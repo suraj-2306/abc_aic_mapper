@@ -119,22 +119,22 @@ int Hop_ManCountLevels( Hop_Man_t * p )
     Hop_Obj_t * pObj;
     int i, LevelsMax, Level0, Level1;
     // initialize the levels
-    Hop_ManConst1(p)->pData = NULL;
+    Hop_ManConst1(p)->iData = 0;
     Hop_ManForEachPi( p, pObj, i )
-        pObj->pData = NULL;
+        pObj->iData = 0;
     // compute levels in a DFS order
     vNodes = Hop_ManDfs( p );
     Vec_PtrForEachEntry( Hop_Obj_t *, vNodes, pObj, i )
     {
-        Level0 = (int)(ABC_PTRUINT_T)Hop_ObjFanin0(pObj)->pData;
-        Level1 = (int)(ABC_PTRUINT_T)Hop_ObjFanin1(pObj)->pData;
-        pObj->pData = (void *)(ABC_PTRUINT_T)(1 + Hop_ObjIsExor(pObj) + Abc_MaxInt(Level0, Level1));
+        Level0 = Hop_ObjFanin0(pObj)->iData;
+        Level1 = Hop_ObjFanin1(pObj)->iData;
+        pObj->iData = 1 + Hop_ObjIsExor(pObj) + Abc_MaxInt(Level0, Level1);
     }
     Vec_PtrFree( vNodes );
     // get levels of the POs
     LevelsMax = 0;
     Hop_ManForEachPo( p, pObj, i )
-        LevelsMax = Abc_MaxInt( LevelsMax, (int)(ABC_PTRUINT_T)Hop_ObjFanin0(pObj)->pData );
+        LevelsMax = Abc_MaxInt( LevelsMax, Hop_ObjFanin0(pObj)->iData );
     return LevelsMax;
 }
 
