@@ -101,6 +101,7 @@ struct Abc_Frame_t_
     void *          pLibBox;       // the current box library
     void *          pLibGen;       // the current genlib
     void *          pLibGen2;      // the current genlib
+    void *          pLibMiMo;      // the current Multiple input Multiple Output library
     void *          pLibSuper;     // the current supergate library
     void *          pLibScl;       // the current Liberty library
     void *          pAbcCon;       // constraint manager

@@ -39,6 +39,8 @@ extern void Map_Init( Abc_Frame_t * pAbc );
 extern void Map_End ( Abc_Frame_t * pAbc );
 extern void Mio_Init( Abc_Frame_t * pAbc );
 extern void Mio_End ( Abc_Frame_t * pAbc );
+extern void MiMo_Init ( Abc_Frame_t * pAbc );
+extern void MiMo_End ( Abc_Frame_t * pAbc );
 extern void Super_Init( Abc_Frame_t * pAbc );
 extern void Super_End ( Abc_Frame_t * pAbc );
 extern void Libs_Init( Abc_Frame_t * pAbc );
@@ -111,6 +113,7 @@ void Abc_FrameInit( Abc_Frame_t * pAbc )
     If_Init( pAbc );
     Map_Init( pAbc );
     Mio_Init( pAbc );
+    MiMo_Init( pAbc );
     Super_Init( pAbc );
     Libs_Init( pAbc );
     Load_Init( pAbc );
@@ -152,6 +155,7 @@ void Abc_FrameEnd( Abc_Frame_t * pAbc )
     If_End( pAbc );
     Map_End( pAbc );
     Mio_End( pAbc );
+    MiMo_End ( pAbc );
     Super_End( pAbc );
     Libs_End( pAbc );
     Load_End( pAbc );

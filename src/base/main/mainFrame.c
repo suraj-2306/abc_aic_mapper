@@ -58,6 +58,7 @@ void *      Abc_FrameReadLibLut()                            { return s_GlobalFr
 void *      Abc_FrameReadLibBox()                            { return s_GlobalFrame->pLibBox;      } 
 void *      Abc_FrameReadLibGen()                            { return s_GlobalFrame->pLibGen;      } 
 void *      Abc_FrameReadLibGen2()                           { return s_GlobalFrame->pLibGen2;     } 
+void *      Abc_FrameReadLibMiMo()                           { return s_GlobalFrame->pLibMiMo;     }
 void *      Abc_FrameReadLibSuper()                          { return s_GlobalFrame->pLibSuper;    } 
 void *      Abc_FrameReadLibScl()                            { return s_GlobalFrame->pLibScl;      } 
 #ifdef ABC_USE_CUDD
@@ -94,6 +95,7 @@ void        Abc_FrameSetLibLut( void * pLib )                { s_GlobalFrame->pL
 void        Abc_FrameSetLibBox( void * pLib )                { s_GlobalFrame->pLibBox   = pLib;    } 
 void        Abc_FrameSetLibGen( void * pLib )                { s_GlobalFrame->pLibGen   = pLib;    } 
 void        Abc_FrameSetLibGen2( void * pLib )               { s_GlobalFrame->pLibGen2  = pLib;    } 
+void        Abc_FrameSetLibMiMo( void * pLib )               { s_GlobalFrame->pLibMiMo  = pLib;    }
 void        Abc_FrameSetLibSuper( void * pLib )              { s_GlobalFrame->pLibSuper = pLib;    } 
 void        Abc_FrameSetFlag( char * pFlag, char * pValue )  { Cmd_FlagUpdateValue( s_GlobalFrame, pFlag, pValue );               } 
 void        Abc_FrameSetCex( Abc_Cex_t * pCex )              { ABC_FREE( s_GlobalFrame->pCex ); s_GlobalFrame->pCex = pCex;       }
