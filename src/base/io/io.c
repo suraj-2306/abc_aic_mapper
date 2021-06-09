@@ -230,6 +230,8 @@ int IoCommandRead( Abc_Frame_t * pAbc, int argc, char ** argv )
     assert( strlen(pFileName) < 900 );
     if ( !strcmp( Extra_FileNameExtension(pFileName), "genlib" )  )
         sprintf( Command, "read_genlib %s", pFileName );
+    if ( !strcmp( Extra_FileNameExtension(pFileName), "mimolib" )  )
+        sprintf( Command, "read_mimolib %s", pFileName );
     else if ( !strcmp( Extra_FileNameExtension(pFileName), "lib" ) )
         sprintf( Command, "read_lib %s", pFileName );
     else if ( !strcmp( Extra_FileNameExtension(pFileName), "scl" ) )
