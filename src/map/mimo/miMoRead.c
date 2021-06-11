@@ -165,7 +165,6 @@ MiMo_GateType_t MiMo_ReadParseGateType(char * pStr)
 ***********************************************************************/
 MiMo_Gate_t *  MiMo_ReadParseGateBegin(MiMo_Library_t * pLib, char * pLine)
 {
-    printf("Input line: %s\n", pLine);
     char wd [] = "\t ";
     char * pWord = strtok(pLine, wd);
     if (!pWord || ! *pWord)
