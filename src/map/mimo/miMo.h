@@ -59,6 +59,7 @@ struct MiMo_Library_t_
 struct MiMo_Gate_t_ {
     char * pName; // name of the gate
     float Area; // area of the gate
+    float MaxDelay; // maximum delay of all inputs to outputs
     MiMo_Library_t * pMiMoLib; // reference to library
     Vec_Ptr_t * pPinIns; // input pins of type MiMoPinIn_t
     Vec_Ptr_t * pPinOuts; // output pins of type MiMoPinOut_t
@@ -75,6 +76,7 @@ struct MiMo_PinOut_t_
 {
     char * pName; // name 
     int Id; // its id
+    float MaxDelay; // maximum delay of all inputs
     MiMo_PinDelay_t * pDelayList; // combinational input path specification
 };
 
@@ -128,6 +130,8 @@ extern MiMo_PinOut_t * MiMo_GateFindPinOut(MiMo_Gate_t * pGate, char *pName);
 extern void MiMo_DelayListSetDelay(MiMo_PinOut_t *pPinOut, MiMo_PinDelay_t * pLast, float delay);
 extern int MiMo_DelayListAdd(MiMo_Gate_t *pGate, MiMo_PinOut_t * pToPinOut, char *pFromPinStr);
 extern int MiMo_LibCheck(MiMo_Library_t *pLib);
+extern void MiMo_GateCalcMaxDelay(MiMo_Gate_t * pGate);
+
 ABC_NAMESPACE_HEADER_END
 
 #endif

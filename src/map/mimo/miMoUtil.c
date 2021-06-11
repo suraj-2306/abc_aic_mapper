@@ -185,4 +185,70 @@ int MiMo_LibCheck(MiMo_Library_t *pLib)
 }
 
 
+/**Function*************************************************************
+
+  Synopsis    [Calculates recursively the maximum delay for all the
+               input pins of the given output pin]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void MiMo_PinCalcMaxDelay_rec(MiMo_PinOut_t *pPinOut)
+{
+    if ( pPinOut->MaxDelay >= 0)
+        return;
+    MiMo_PinDelay_t * pDelay = pPinOut->pDelayList;
+    float maxDelay = -1;
+    while ( pDelay )
+    {
+        if (pDelay->fFromPinOut)
+        {
+            MiMo_PinOut_t *pPinOutIn = pDelay->pFromPin;
+            MiMo_PinCalcMaxDelay_rec(pPinOutIn);
+            float delay = pPinOutIn->MaxDelay + pDelay->Delay;
+            if ( maxDelay < delay)
+                maxDelay = delay;
+        } else
+        {
+            if ( maxDelay < pDelay->Delay )
+                maxDelay = pDelay->Delay;
+        }
+        pDelay = pDelay->pNext;
+    }
+    pPinOut->MaxDelay = maxDelay;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Calculates all the maximum delays between all inputs and
+               outputs]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void MiMo_GateCalcMaxDelay(MiMo_Gate_t * pGate)
+{
+    int i;
+    MiMo_PinOut_t *pPinOut;
+    MiMo_GateForEachPinOut(pGate, pPinOut, i)
+        pPinOut->MaxDelay = -1;
+    float maxDelay = -1;
+    MiMo_GateForEachPinOut(pGate, pPinOut, i)
+    {
+        MiMo_PinCalcMaxDelay_rec(pPinOut);
+        if (pPinOut->MaxDelay > maxDelay)
+            maxDelay = pPinOut->MaxDelay;
+    }
+    pGate->MaxDelay = maxDelay;
+}
+
+
 ABC_NAMESPACE_IMPL_END

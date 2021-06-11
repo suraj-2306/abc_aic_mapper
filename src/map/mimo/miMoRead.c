@@ -325,7 +325,8 @@ MiMo_Gate_t *  MiMo_ReadParseGate(MiMo_Library_t * pLib, char *pLines [])
 
 /**Function*************************************************************
 
-  Synopsis    [Creates a new mimolibrary from given file]
+  Synopsis    [Creates a new mimolibrary from given file and performs
+               basic initialization (maxDelay)]
 
   Description []
                
@@ -336,6 +337,8 @@ MiMo_Gate_t *  MiMo_ReadParseGate(MiMo_Library_t * pLib, char *pLines [])
 ***********************************************************************/
 MiMo_Library_t * MiMo_ReadLibrary(char *pFileName, int fVerbose)
 {
+    int i;
+    MiMo_Gate_t * pGate;
 
     MiMo_Library_t * pLib = MiMo_LibStart(Extra_FileNameWithoutPath(pFileName));
 
@@ -365,6 +368,8 @@ MiMo_Library_t * MiMo_ReadLibrary(char *pFileName, int fVerbose)
     }
     ABC_FREE(pStr);
     MiMo_LibCheck(pLib);
+    MiMo_LibForEachGate(pLib, pGate, i)
+        MiMo_GateCalcMaxDelay(pGate);
 
     if (fVerbose)
         MiMo_PrintLibStatistics(pLib);

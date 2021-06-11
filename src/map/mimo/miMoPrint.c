@@ -59,7 +59,7 @@ void MiMo_PrintLibrary(MiMo_Library_t * pLib, int fVerbose)
     MiMo_PinOut_t *pPinOut;
     MiMo_LibForEachGate(pLib, pGate, i)
     {
-        printf("Gate: %s (Area %4.2f)\n", pGate->pName, pGate->Area);
+        printf("Gate: %s (MaxDelay %4.2f, Area %4.2f)\n", pGate->pName, pGate->MaxDelay, pGate->Area);
         printf("Input pins:");
         MiMo_GateForEachPinIn(pGate, pPinIn, j)
             printf(" %s", pPinIn->pName);
