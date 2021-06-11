@@ -86,6 +86,14 @@ struct MiMo_PinDelay_t_ {
 };
 
 ////////////////////////////////////////////////////////////////////////
+///                       INLINE FUNCTIONS                           ///
+////////////////////////////////////////////////////////////////////////
+
+
+static inline char * MiMo_PinDelayInName (MiMo_PinDelay_t * pDelay)  { return (pDelay->fFromPinOut ? ((MiMo_PinOut_t*)pDelay->pFromPin)->pName : ((MiMo_PinIn_t*)pDelay->pFromPin)->pName); }
+
+
+////////////////////////////////////////////////////////////////////////
 ///                      MACRO DEFINITIONS                           ///
 ////////////////////////////////////////////////////////////////////////
 
@@ -118,8 +126,8 @@ extern MiMo_Library_t * MiMo_ReadLibrary( char *pFileName, int fVerbose );
 extern MiMo_PinIn_t * MiMo_GateFindPinIn(MiMo_Gate_t * pGate, char *pName);
 extern MiMo_PinOut_t * MiMo_GateFindPinOut(MiMo_Gate_t * pGate, char *pName);
 extern void MiMo_DelayListSetDelay(MiMo_PinOut_t *pPinOut, MiMo_PinDelay_t * pLast, float delay);
-int MiMo_DelayListAdd(MiMo_Gate_t *pGate, MiMo_PinOut_t * pToPinOut, char *pFromPinStr);
-
+extern int MiMo_DelayListAdd(MiMo_Gate_t *pGate, MiMo_PinOut_t * pToPinOut, char *pFromPinStr);
+extern int MiMo_LibCheck(MiMo_Library_t *pLib);
 ABC_NAMESPACE_HEADER_END
 
 #endif

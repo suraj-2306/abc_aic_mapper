@@ -363,8 +363,8 @@ MiMo_Library_t * MiMo_ReadLibrary(char *pFileName, int fVerbose)
         pLine = strtok(pLine + strlen(pLine) + 1, "\r\n");
         MiMo_ReadParseGate(pLib, pParseLines);
     }
-
     ABC_FREE(pStr);
+    MiMo_LibCheck(pLib);
 
     if (fVerbose)
         MiMo_PrintLibStatistics(pLib);

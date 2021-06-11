@@ -124,5 +124,65 @@ int MiMo_DelayListAdd(MiMo_Gate_t *pGate, MiMo_PinOut_t * pToPinOut, char *pFrom
     return 0;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Performs some basic consistency checks for all gates in
+               library. Returns 1 on sucess]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+
+int MiMo_LibCheck(MiMo_Library_t *pLib)
+{
+    int fOk = 1;
+    int i, k;
+    MiMo_Gate_t * pGate;
+    MiMo_PinOut_t *pPinOut;
+    MiMo_LibForEachGate(pLib, pGate, i)
+    {
+        Vec_Int_t * vInSeen = Vec_IntStart ( Vec_PtrSize(pGate->pPinIns) );
+        // check that every output has some input 
+        MiMo_GateForEachPinOut(pGate, pPinOut, k)
+        {
+            if ( !pPinOut->pDelayList )
+            {
+                fOk = 0;
+                printf("Output pin %s in gate %s has no input\n", pGate->pName, pPinOut->pName);
+            }
+            MiMo_PinDelay_t * pDelay = pPinOut->pDelayList;
+            while (pDelay)
+            {
+                if (pDelay->Delay < 0)
+                {
+                    fOk = 0;
+                    printf("Gate %s has from pin %s to pin %s a negative delay (%f)\n",
+                            pGate->pName, pPinOut->pName, MiMo_PinDelayInName(pDelay), pDelay->Delay);
+                }
+                if ( ! pDelay->fFromPinOut )
+                    Vec_IntWriteEntry( vInSeen, ((MiMo_PinIn_t*)pDelay->pFromPin)->Id, 1);
+
+                pDelay = pDelay->pNext;
+            }
+        }
+        // check that every input is connected to some output
+        int seen;
+        Vec_IntForEachEntry(vInSeen, seen, k)
+            if ( !seen )
+            {
+                fOk = 0;
+                printf("Gate %s has unconnected input pin %s\n", pGate->pName,
+                         ((MiMo_PinIn_t*)Vec_PtrEntry(pGate->pPinIns, k))->pName);
+            }
+        Vec_IntFree(vInSeen);
+        // TODO: check that there is no cyclic output ...
+    }
+    return fOk;
+}
+
 
 ABC_NAMESPACE_IMPL_END
