@@ -46,6 +46,7 @@ void Cm_PrintPars(Cm_Par_t * pPars)
     printf("%-*s%s\n", w, "Verbose", pPars->fVerbose ? "yes" : "no");
     printf("%-*s%s\n", w, "Very verbose", pPars->fVeryVerbose ? "yes" : "no");
     printf("%-*s%s\n", w, "Extra validity checks", pPars->fExtraValidityChecks ? "yes" : "no" );
+    printf("%-*s%f\n", w, "Epsilon", pPars->Epsilon);
     printf("\n");
 }
 /**Function*************************************************************
@@ -94,6 +95,40 @@ void Cm_ManPrintAigStructure(Cm_Man_t *pMan, int lineLimit)
     }
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Prints the fanin array up to depth as binary tree to stdout]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth)
+{
+    int nWidth = 6;
+    if ( !pFaninArray[1] )
+    {
+        printf("Cm_PrintFa: input is not well formed\n");
+        return;
+    }
+    printf("%*d\n", nWidth/2 + (nWidth<<(depth-1)), pFaninArray[1]->Id);
+    for(int cdepth=1;cdepth<=depth; cdepth++)
+    {
+        if(cdepth < depth)
+            printf("%*s", nWidth/2, "");
+        for(int i=(1<<cdepth); i<(2<<cdepth); i++)
+        {
+            int indent = (i == (1<<cdepth) && cdepth < depth) ? 
+                                 nWidth << (depth-cdepth-1) :
+                                 nWidth << (depth-cdepth);
+            printf("%*d", indent, pFaninArray[i] ? pFaninArray[i]->Id : -1);
+        }
+        printf("\n");
+    }
+}
 
 
 ABC_NAMESPACE_IMPL_END

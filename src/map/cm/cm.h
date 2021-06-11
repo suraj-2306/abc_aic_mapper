@@ -43,7 +43,9 @@ ABC_NAMESPACE_HEADER_START
 ////////////////////////////////////////////////////////////////////////
 
 
-#define CM_MAX_DEPTH 7 
+#define CM_MAX_DEPTH 6
+#define CM_MAX_NLEAFS (1<<CM_MAX_DEPTH)
+#define CM_MAX_FA_SIZE (2<<CM_MAX_DEPTH)
 #define CM_CUT_SIZE_LIMIT 10
 
 
@@ -65,12 +67,16 @@ typedef enum {
 typedef struct Cm_Par_t_ Cm_Par_t;
 typedef struct Cm_Man_t_ Cm_Man_t;
 typedef struct Cm_Obj_t_ Cm_Obj_t;
+typedef struct Cm_Cut_t_ Cm_Cut_t;
 
 struct Cm_Par_t_ {
     int nConeDepth; // cone depth to map for
     int fVerbose; // be verbose
     int fVeryVerbose; // be very verbose
     int fExtraValidityChecks; // run more checks -- mainly for debugging 
+    
+    float AicDelay[CM_MAX_DEPTH + 1]; // delay of the cones for each depth
+    float Epsilon; // used for comparisons
 };
 
 struct Cm_Man_t_
@@ -88,6 +94,15 @@ struct Cm_Man_t_
     int nObjBytes;
     // memory management
     Mem_Fixed_t * pMemObj; // memory manager for AIG nodes
+};
+
+
+struct Cm_Cut_t_
+{
+    float Arrival; // arrival time of the root at cut
+    short Depth; // depth of the cut
+    short nFanins; // number of leafs
+    Cm_Obj_t * Leafs[CM_MAX_NLEAFS]; // pointer to leafs
 };
 
 struct Cm_Obj_t_
@@ -113,6 +128,7 @@ struct Cm_Obj_t_
         int iCopy;
     };
     unsigned fMark; // used as temporary storage for marking/coloring
+    Cm_Cut_t BestCut;
 };
 
 
@@ -166,15 +182,18 @@ static inline void Cm_ObjSetCopy( Cm_Obj_t * pObj, void * pCopy)             { p
 /*=== cmCore.c =======================================================*/
 extern void Cm_ManSetDefaultPars( Cm_Par_t * pPars );
 extern int Cm_ManPerformMapping( Cm_Man_t * p );
+/*=== cmFa.c =========================================================*/
+extern float Cm_FaBuildDepthOptimal(Cm_Obj_t **pNodes, Cm_Par_t * pPars);
+extern int Cm_FaBuildWithMaximumDepth(Cm_Obj_t **pFaninArray, int maxDepth);
 /*=== cmMan.c ========================================================*/
 extern Cm_Man_t * Cm_ManStart( Cm_Par_t *pPars );
 extern void Cm_ManStop( Cm_Man_t * p );
 extern Cm_Obj_t * Cm_ManCreateCi( Cm_Man_t * p );
 extern Cm_Obj_t * Cm_ManCreateCo( Cm_Man_t * p, Cm_Obj_t * pDriver );
 extern Cm_Obj_t * Cm_ManCreateAnd( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 );
-
 /*=== cmPrint.c ======================================================*/
 extern void Cm_PrintPars( Cm_Par_t * pPars );
+extern void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth);
 extern void Cm_ManPrintAigStructure(Cm_Man_t * pMan, int lineLimit);
 
 

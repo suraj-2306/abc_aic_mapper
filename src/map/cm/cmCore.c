@@ -44,6 +44,11 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->fVerbose = 0;
     pPars->fVeryVerbose = 0;
     pPars->fExtraValidityChecks = 0;
+    pPars->Epsilon = 0.005;
+    // This is only temporary, until the delay is inferred from the MiMoLib-Gates
+    float * AicDelay = &pPars->AicDelay[0];
+    AicDelay[0] = 0; AicDelay[1] = 184; AicDelay[2] = 184; AicDelay[3] = 252; AicDelay[4] = 318;
+    AicDelay[5] = 388; AicDelay[6] = 450; AicDelay[7] = 520;
 }
 
 /**Function*************************************************************
@@ -59,10 +64,27 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
 ***********************************************************************/
 int Cm_ManPerformMapping( Cm_Man_t * p )
 {
+    Cm_Obj_t * pObj;
+    Cm_Obj_t * pNodes[CM_MAX_FA_SIZE];
+    int enumerator;
+    float *AicDelay = p->pPars->AicDelay;
     if ( p->pPars->fVeryVerbose)
-    {
         Cm_PrintPars(p->pPars);
-        Cm_ManPrintAigStructure(p, 100);
+    Cm_ManForEachCi(p, pObj, enumerator)
+        pObj->BestCut.Arrival = 0;
+    Cm_ManForEachNode(p, pObj, enumerator)
+    {
+        pNodes[1] = pObj;
+        float arr = Cm_FaBuildDepthOptimal(pNodes, p->pPars);
+        pObj->BestCut.Arrival = arr + AicDelay[pObj->BestCut.Depth];
+        if ( p->pPars->fVerbose)
+        {
+            printf("Node %d (arr: %5.2f):\n", pObj->Id, pObj->BestCut.Arrival);
+        }
+        if ( p->pPars->fVeryVerbose )
+        {
+            Cm_PrintFa(pNodes, pObj->BestCut.Depth);
+        }
     }
     return 0;
 }
