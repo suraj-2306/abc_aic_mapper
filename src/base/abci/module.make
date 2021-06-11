@@ -6,6 +6,7 @@ SRC +=    src/base/abci/abc.c \
     src/base/abci/abcBm.c \
     src/base/abci/abcBmc.c \
     src/base/abci/abcCas.c \
+    src/base/abci/abcCm.c \
     src/base/abci/abcCascade.c \
     src/base/abci/abcCollapse.c \
     src/base/abci/abcCut.c \

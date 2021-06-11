@@ -27,6 +27,7 @@
 #include "opt/cut/cut.h"
 #include "map/fpga/fpga.h"
 #include "map/if/if.h"
+#include "map/cm/cm.h"
 #include "opt/sim/sim.h"
 #include "opt/res/res.h"
 #include "opt/lpk/lpk.h"
@@ -282,6 +283,8 @@ static int Abc_CommandTimeScale              ( Abc_Frame_t * pAbc, int argc, cha
 //static int Abc_CommandFpgaFast               ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Abc_CommandIf                     ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Abc_CommandIfif                   ( Abc_Frame_t * pAbc, int argc, char ** argv );
+
+static int Abc_CommandCm                     ( Abc_Frame_t * pAbc, int argc, char ** argv );
 
 static int Abc_CommandDsdSave                ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Abc_CommandDsdLoad                ( Abc_Frame_t * pAbc, int argc, char ** argv );
@@ -1010,6 +1013,8 @@ void Abc_Init( Abc_Frame_t * pAbc )
 //    Cmd_CommandAdd( pAbc, "FPGA mapping", "ffpga",         Abc_CommandFpgaFast,         1 );
     Cmd_CommandAdd( pAbc, "FPGA mapping", "if",            Abc_CommandIf,               1 );
     Cmd_CommandAdd( pAbc, "FPGA mapping", "ifif",          Abc_CommandIfif,             1 );
+
+    Cmd_CommandAdd( pAbc, "Cone Mapping", "cm",            Abc_CommandCm,               1 );   
 
     Cmd_CommandAdd( pAbc, "DSD manager",  "dsd_save",      Abc_CommandDsdSave,          0 );
     Cmd_CommandAdd( pAbc, "DSD manager",  "dsd_load",      Abc_CommandDsdLoad,          0 );
@@ -19485,6 +19490,127 @@ usage:
     Abc_Print( -2, "\t-h       : print the command usage\n");
     return 1;
 }
+
+
+/**Function*************************************************************
+
+  Synopsis    [Cone mapper]
+
+  Description [Performs cone-mapping algorithm configurable by
+               provided user arguments]
+
+  SideEffects [Updates the current network]
+
+  SeeAlso     []
+
+***********************************************************************/
+static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
+{
+    extern Abc_Ntk_t * Abc_NtkCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars );
+    extern void Cm_ManSetDefaultPars( Cm_Par_t * pPars );
+    Abc_Ntk_t * pNtk, * pNtkRes;
+    pNtk = Abc_FrameReadNtk(pAbc);
+    Cm_Par_t Pars, * pPars = &Pars;
+    Cm_ManSetDefaultPars( pPars );
+    int c;
+    Extra_UtilGetoptReset();
+    while ( ( c = Extra_UtilGetopt( argc, argv, "Dtvwh" ) ) != EOF )
+    {
+        switch ( c )
+        {
+        case 'D':
+            if ( globalUtilOptind >= argc )
+            {
+                Abc_Print( -1, "Command line switch \"-D\" should be followed by a positive integer.\n" );
+                goto usage;
+            }
+            pPars->nConeDepth = atoi(argv[globalUtilOptind]);
+            globalUtilOptind++;
+            int minDepth = 2, maxDepth = 8;
+            if ( pPars->nConeDepth < minDepth || pPars->nConeDepth > maxDepth )
+            {
+                Abc_Print( -1, "Cone depth should be in range [%d, %d].\n", minDepth, maxDepth );
+                goto usage;
+            }
+            break;
+	    case 't':
+            pPars->fExtraValidityChecks ^= 1;
+            break;
+        case 'v':
+            pPars->fVerbose ^= 1;
+            break;
+        case 'w':
+            pPars->fVeryVerbose ^= 1;
+            break;
+        case 'h':
+            goto usage;
+        default:
+            goto usage;
+        }
+    }
+    if (! pNtk )
+    {
+        Abc_Print( -1, "Empty network\n");
+        return 1;
+    }
+    // preprocess network and call CM mapper
+    if ( !Abc_NtkIsStrash(pNtk) )
+    {
+        // strash and balance the network
+        pNtk = Abc_NtkStrash( pNtk, 0, 0, 0 );
+        if ( pNtk == NULL )
+        {
+            Abc_Print( -1, "Strashing before cone mapping has failed.\n" );
+            return 1;
+        }
+        pNtk = Abc_NtkBalance( pNtkRes = pNtk, 0, 0, 1 );
+        Abc_NtkDelete( pNtkRes );
+        if ( pNtk == NULL )
+        {
+            Abc_Print( -1, "Balancing before cone mapping has failed.\n" );
+            return 1;
+        }
+        if ( !Abc_FrameReadFlag("silentmode") )
+        {
+            Abc_Print( 1, "The network was strashed and balanced before cone mapping.\n" );
+        }
+        // get the new network
+        pNtkRes = Abc_NtkCm( pNtk, pPars );
+        if ( pNtkRes == NULL )
+        {
+            Abc_Print( -1, "Cone mapping has failed.\n" );
+            return 0;
+        }
+        Abc_NtkDelete( pNtk );
+    }
+    else
+    {
+        // get the new network
+        pNtkRes = Abc_NtkCm( pNtk, pPars );
+        if ( pNtkRes == NULL )
+        {
+            Abc_Print( -1, "Cone mapping has failed.\n" );
+            return 0;
+        }
+    }
+    // replace the current network
+    Abc_FrameReplaceCurrentNetwork( pAbc, pNtkRes );
+    return 0;
+
+usage: ;
+    Cm_ManSetDefaultPars( pPars );
+    Abc_Print( -2, "usage cm [-D num] [-tvwh]\n" );
+    Abc_Print( -2, "\t          maps AIG to AIC\n" );
+    Abc_Print( -2, "\t-D num    set maximum cone depth [default = %d]\n", pPars->nConeDepth );
+    Abc_Print( -2, "\t-v        toggle verbose output [default = %s]\n", pPars->fVerbose ? "yes" : "no" );
+    Abc_Print( -2, "\t-w        toggle very verbose output [default = %s]\n", pPars->fVeryVerbose ? "yes" : "no");
+    Abc_Print( -2, "\t-t        run extra validity checks [default = %s]\n", pPars->fExtraValidityChecks ? "yes" : "no" );
+    Abc_Print( -2, "\t-h        print the command usage\n" );
+    return 1;
+}
+
+
+
 
 /**Function*************************************************************
 
