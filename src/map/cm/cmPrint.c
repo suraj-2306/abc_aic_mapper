@@ -131,4 +131,24 @@ void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth)
 }
 
 
+/**Function*************************************************************
+
+  Synopsis    [Prints the Bestcut of the given node ]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintBestCut(Cm_Obj_t * pObj)
+{
+    printf("Bestcut at %d (Arrival: %3.1f, depth: %d, nFanins %d): ", 
+              pObj->Id, pObj->BestCut.Arrival, pObj->BestCut.Depth, pObj->BestCut.nFanins);
+    for(int i=0; i<pObj->BestCut.nFanins; i++)
+        printf(" %d", pObj->BestCut.Leafs[i]->Id);
+    printf("\n");
+}
+
 ABC_NAMESPACE_IMPL_END

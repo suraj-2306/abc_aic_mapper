@@ -43,11 +43,14 @@ ABC_NAMESPACE_HEADER_START
 ////////////////////////////////////////////////////////////////////////
 
 
-#define CM_MAX_DEPTH 6
+#define CM_MAX_DEPTH (6)
 #define CM_MAX_NLEAFS (1<<CM_MAX_DEPTH)
 #define CM_MAX_FA_SIZE (2<<CM_MAX_DEPTH)
-#define CM_CUT_SIZE_LIMIT 10
+#define CM_CUT_SIZE_LIMIT (10)
 
+
+#define CM_MARK_VALID (1)
+#define CM_MARK_LEAF_CUT (2)
 
 /* Defines the type of the objects in the AIG  */
 typedef enum {
@@ -147,7 +150,7 @@ static inline Cm_Obj_t * Cm_ManCi ( Cm_Man_t *p, int i)                      { r
 static inline Cm_Obj_t * Cm_ManCo ( Cm_Man_t *p, int i)                      { return (Cm_Obj_t*)(Vec_PtrEntry( p->vCos, i)); }
 static inline void Cm_ObjSetCopy( Cm_Obj_t * pObj, void * pCopy)             { pObj->pCopy = pCopy; }
 
-
+static inline void Cm_ObjClearMarkFa(Cm_Obj_t **pFa, int depth, unsigned flag) { for(int i=1; i<(2<<depth); i++) if(pFa[i]) pFa[i]->fMark &= ~flag; }
 ////////////////////////////////////////////////////////////////////////
 ///                      MACRO DEFINITIONS                           ///
 ////////////////////////////////////////////////////////////////////////
@@ -185,6 +188,7 @@ extern int Cm_ManPerformMapping( Cm_Man_t * p );
 /*=== cmFa.c =========================================================*/
 extern float Cm_FaBuildDepthOptimal(Cm_Obj_t **pNodes, Cm_Par_t * pPars);
 extern int Cm_FaBuildWithMaximumDepth(Cm_Obj_t **pFaninArray, int maxDepth);
+extern void Cm_FaExtractLeafs(Cm_Obj_t **pNodes, Cm_Cut_t *pCut);
 /*=== cmMan.c ========================================================*/
 extern Cm_Man_t * Cm_ManStart( Cm_Par_t *pPars );
 extern void Cm_ManStop( Cm_Man_t * p );
@@ -195,7 +199,7 @@ extern Cm_Obj_t * Cm_ManCreateAnd( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pF
 extern void Cm_PrintPars( Cm_Par_t * pPars );
 extern void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth);
 extern void Cm_ManPrintAigStructure(Cm_Man_t * pMan, int lineLimit);
-
+extern void Cm_PrintBestCut(Cm_Obj_t * pObj);
 
 
 ABC_NAMESPACE_HEADER_END

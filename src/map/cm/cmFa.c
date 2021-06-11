@@ -124,4 +124,143 @@ float Cm_FaBuildDepthOptimal(Cm_Obj_t **pNodes, Cm_Par_t *pPars)
     return latestArrival;
 }
 
+
+/**Function*************************************************************
+
+  Synopsis    [Removes all leafs of the pLeafs array for which no path
+               from the root (pObj) to the leafs without intermediate leaf
+               exists ]
+
+  Description [Removal is done inline in linear leaf array, which is ended
+               by first NULL pointer or maximum size]
+               
+  SideEffects [nodes fMark CM_MARK_LEAF_CUT and CM_MARK_VALID used]
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_FaMarkValidLeafs_rec(Cm_Obj_t * pObj)
+{
+    if( (pObj->fMark & CM_MARK_LEAF_CUT) )
+    {
+        pObj->fMark |= CM_MARK_VALID;
+        return;
+    }
+    Cm_FaMarkValidLeafs_rec(pObj->pFanin0);
+    Cm_FaMarkValidLeafs_rec(pObj->pFanin1);
+}
+void Cm_FaRemoveDanglingLeafs(Cm_Obj_t *pObj, Cm_Obj_t ** pLeafs, int maxSize)
+{
+    int k = 0;
+    while(k<maxSize && pLeafs[k])
+        pLeafs[k++]->fMark |= CM_MARK_LEAF_CUT;
+
+    Cm_FaMarkValidLeafs_rec(pObj);
+    
+    k = 0;
+    int r = 0;
+    while(k<maxSize && pLeafs[k])
+    {
+        if ( (pLeafs[k]->fMark & CM_MARK_VALID) )
+            pLeafs[r++] = pLeafs[k];
+        pLeafs[k++]->fMark &= ~(CM_MARK_LEAF_CUT|CM_MARK_VALID);
+    }
+    if ( r < k )
+        pLeafs[r] = NULL;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Merges to leaf arrays in the resulting array]
+
+  Description [The arrays must be sorted. Returns sorted array
+               of unique leafs.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_FaMergeLeafArrays(Cm_Obj_t ** pA, Cm_Obj_t **pB, Cm_Obj_t **pMerged, int size)
+{
+    int posA = 0;
+    int posB = 0;
+    int posM = 0;
+    while(posA < size && pA[posA] && posB < size && pB[posB])
+    {
+        if ( pA[posA]->Id > pB[posB]->Id )
+            pMerged[posM++] = pA[posA++];
+        else
+        {
+            if ( pA[posA]->Id == pB[posB]->Id )
+                posA++;
+            pMerged[posM++] = pB[posB++];
+        }
+    }
+    while(posA < size && pA[posA] )
+        pMerged[posM++] = pA[posA++];
+    while(posB < size && pB[posB] )
+        pMerged[posM++] = pB[posB++];
+    if ( posM != 2*size)
+        pMerged[posM] = NULL;
+}
+/**Function*************************************************************
+
+  Synopsis    [Extract the leafs from the fanin array and updates cut]
+
+  Description [The leafs are extracted in kind of merge sort of the
+               subtrees. Addtionally any dangling leafs are removed.]
+               
+  SideEffects [fMark of CM_MARK_LEAF_CUT and CM_MARK_VALID is cleared
+               for fanin nodes.]
+
+  SeeAlso     [Cm_FaBuildWithMaximumDepth]
+
+***********************************************************************/
+void Cm_FaExtractLeafs(Cm_Obj_t **pNodes, Cm_Cut_t *pCut)
+{
+    short depth = pCut->Depth;
+    Cm_ObjClearMarkFa(pNodes, pCut->Depth, CM_MARK_LEAF_CUT|CM_MARK_VALID);
+    Cm_Obj_t * pLeafMem[2*CM_MAX_NLEAFS];
+    for(int i=0; i<2*CM_MAX_NLEAFS; i++)
+        pLeafMem[i] = NULL;
+    Cm_Obj_t ** pLeafs = pLeafMem;
+    Cm_Obj_t ** pMergedLeafs = pLeafMem + CM_MAX_NLEAFS;
+    for(int i=0; i<(1<<depth); i++)
+        pLeafs[i] = pNodes[(1<<depth) + i];
+    int csize = 1;
+    for(int cdepth=depth-1; cdepth >=0; cdepth--)
+    {
+        for(int k=0; k<(1<<cdepth); k++)
+        {
+            int nodePos = (1<<cdepth) + k;
+            if ( pNodes[nodePos] && pNodes[2*nodePos] && pNodes[2*nodePos+1] )
+            {
+                Cm_FaMergeLeafArrays(pLeafs+(2*k)*csize, pLeafs+(2*k+1)*csize, pMergedLeafs+(2*k)*csize, csize);
+                Cm_FaRemoveDanglingLeafs(pNodes[nodePos], pMergedLeafs+2*k*csize, 2*csize);
+            }
+            else
+            {
+                pMergedLeafs[k*(2*csize)] = pNodes[nodePos];
+                pMergedLeafs[k*(2*csize)+1] = NULL;
+            }
+        }
+        // swap arrays for next depth
+        Cm_Obj_t ** pTemp = pLeafs;
+        pLeafs = pMergedLeafs;
+        pMergedLeafs = pTemp;
+        csize *= 2;
+    }
+    pCut->nFanins = 0;
+    while( pCut->nFanins < (1<<depth) && pLeafs[pCut->nFanins])
+    {
+        pCut->Leafs[pCut->nFanins] = pLeafs[pCut->nFanins];
+        pCut->nFanins++;
+    }
+    if ( pCut->nFanins == 0)
+        printf("No Fanins for %d with depth %d\n", pNodes[1]->Id, depth);
+}
+
+
+
 ABC_NAMESPACE_IMPL_END
