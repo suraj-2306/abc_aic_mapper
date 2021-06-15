@@ -81,6 +81,7 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
     {
         Cm_TestBestCutLeafsStructure(p);
         Cm_TestMonotonicArrival(p);
+        Cm_TestArrivalConsistency(p);
     }
     return 0;
 }

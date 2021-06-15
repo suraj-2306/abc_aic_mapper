@@ -110,7 +110,6 @@ int Cm_TestBestCutLeafsStructure(Cm_Man_t *p)
   SeeAlso     []
 
 ***********************************************************************/
-
 int Cm_TestMonotonicArrival(Cm_Man_t *p)
 {
     Cm_Obj_t *pObj;
@@ -153,5 +152,86 @@ int Cm_TestMonotonicArrival(Cm_Man_t *p)
     return !fail;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Tests that the arrival time of a node is at least the
+               minimal arrival time of the cut rooted at the node.]
+
+  Description [Returns 0 if so.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Cm_TestMoArrivalConsistency(Cm_Man_t *p, Cm_Obj_t * pObj, int fVerbose)
+{
+    float * AicDelay = p->pPars->AicDelay;
+    float eps = p->pPars->Epsilon;
+    float latestAllowedArrival = pObj->BestCut.Arrival - AicDelay[pObj->BestCut.Depth];
+    int fNodeFail = 0;
+    for(int i=0; i<pObj->BestCut.nFanins; i++)
+    {
+        Cm_Obj_t * pL = pObj->BestCut.Leafs[i];
+        float d = pL->BestCut.Arrival;
+        if ( d > latestAllowedArrival + eps )
+        {
+            if (!fNodeFail)
+            {
+                if ( !fVerbose )
+                    return 1;
+                printf("Arrival fail at node %d (Given Ar: %3.1f, depth: %d, maxAllowedFaninAr: %3.1f) ->",
+                    pObj->Id, pObj->BestCut.Arrival, pObj->BestCut.Depth, latestAllowedArrival);
+                fNodeFail  = 1;
+            }
+            printf(" (Id: %d, Arr: %3.1f)", pL->Id, d);
+        }
+    }
+    if ( fNodeFail )
+        printf("\n");
+    return fNodeFail;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Tests that arrival times of each node is at least the
+               minimal arrival time of the cut rooted at the node.]
+
+  Description [Returns 1 if so.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Cm_TestArrivalConsistency(Cm_Man_t * p)
+{
+    float eps = p->pPars->Epsilon;
+    int enumerator;
+    Cm_Obj_t * pObj;
+    int lineLimit = p->pPars->fVeryVerbose ? 1000*1000*1000  : 10;
+    int failCount = 0;
+    Cm_ManForEachCi(p, pObj, enumerator)
+    {
+        if ( pObj->BestCut.Arrival + eps < 0)
+        {
+            if (failCount < lineLimit)
+                printf("Ci %d has negative arrival %3.1f\n", pObj->Id, pObj->BestCut.Arrival);
+            failCount++;
+        }
+    }
+    Cm_ManForEachNode(p, pObj, enumerator)
+    {
+        failCount += Cm_TestMoArrivalConsistency(p, pObj, failCount < lineLimit);
+    }
+    if ( failCount )
+        printf("----------------------- %d nodes have invalid arrival time\n", failCount);
+    else
+    {
+        if ( p->pPars->fVerbose )
+            printf("----------------------- Consistent arrival propagation\n");
+    }
+    return !failCount;
+}
 
 ABC_NAMESPACE_IMPL_END

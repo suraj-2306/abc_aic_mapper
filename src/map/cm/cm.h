@@ -204,6 +204,7 @@ extern void Cm_PrintBestCut(Cm_Obj_t * pObj);
 /*=== cmTest.c =======================================================*/
 extern int Cm_TestBestCutLeafsStructure(Cm_Man_t *p);
 extern int Cm_TestMonotonicArrival(Cm_Man_t *p);
+extern int Cm_TestArrivalConsistency(Cm_Man_t * p);
 
 ABC_NAMESPACE_HEADER_END
 
