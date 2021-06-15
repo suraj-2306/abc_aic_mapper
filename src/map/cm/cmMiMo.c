@@ -56,7 +56,6 @@ int Cm_Cone2ReadOrderedConeGates(MiMo_Library_t *pLib, MiMo_Gate_t **ppGates, in
                 pGate->Depth = coneDepth;
                 fFound = 1;
             }
-        pGate->Depth = coneDepth;
         if (!fFound){
             printf("%s not found in current MiMoLibrary\n", coneStr);
             return 0;
