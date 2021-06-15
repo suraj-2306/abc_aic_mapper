@@ -51,6 +51,7 @@ ABC_NAMESPACE_HEADER_START
 
 #define CM_MARK_VALID (1)
 #define CM_MARK_LEAF_CUT (2)
+#define CM_MARK_LEAF (4)
 
 /* Defines the type of the objects in the AIG  */
 typedef enum {
@@ -200,7 +201,9 @@ extern void Cm_PrintPars( Cm_Par_t * pPars );
 extern void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth);
 extern void Cm_ManPrintAigStructure(Cm_Man_t * pMan, int lineLimit);
 extern void Cm_PrintBestCut(Cm_Obj_t * pObj);
-
+/*=== cmTest.c =======================================================*/
+extern int Cm_TestBestCutLeafsStructure(Cm_Man_t *p);
+extern int Cm_TestMonotonicArrival(Cm_Man_t *p);
 
 ABC_NAMESPACE_HEADER_END
 

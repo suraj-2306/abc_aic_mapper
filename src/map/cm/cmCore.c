@@ -76,17 +76,15 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
         float arr = Cm_FaBuildDepthOptimal(pNodes, p->pPars);
         Cm_FaExtractLeafs(pNodes, &pObj->BestCut);
         pObj->BestCut.Arrival = arr + AicDelay[pObj->BestCut.Depth];
-        if ( p->pPars->fVerbose)
-        {
-            Cm_PrintBestCut(pObj);
-        }
-        if ( p->pPars->fVeryVerbose )
-        {
-            Cm_PrintFa(pNodes, pObj->BestCut.Depth);
-        }
+    }
+    if ( p->pPars->fExtraValidityChecks )
+    {
+        Cm_TestBestCutLeafsStructure(p);
+        Cm_TestMonotonicArrival(p);
     }
     return 0;
 }
 
 
 
+ABC_NAMESPACE_IMPL_END
