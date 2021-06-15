@@ -19553,6 +19553,12 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
         Abc_Print( -1, "Empty network\n");
         return 1;
     }
+    pPars->pMiMoLib = Abc_FrameReadLibMiMo();
+    if (! pPars->pMiMoLib )
+    {
+        Abc_Print(-1, "No mimo library defined\n");
+        return 1;
+    }
     // preprocess network and call CM mapper
     if ( !Abc_NtkIsStrash(pNtk) )
     {

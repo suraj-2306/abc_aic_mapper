@@ -63,7 +63,7 @@ void Cm_PrintPars(Cm_Par_t * pPars)
 ***********************************************************************/
 static inline char Cm_ManCompl0ToChar(Cm_Obj_t * pObj) { return (pObj->fCompl0 ? ' ' : '!'); }
 static inline char Cm_ManCompl1ToChar(Cm_Obj_t * pObj) { return (pObj->fCompl1 ? ' ' : '!'); }
-void Cm_ManPrintAigStructure(Cm_Man_t *pMan, int lineLimit)
+void Cm_PrintAigStructure(Cm_Man_t *pMan, int lineLimit)
 {  
     printf( "Found: %d CIs, %d ANDs, and %d COs\n", pMan->nObjs[CM_CI],
             pMan->nObjs[CM_AND], pMan->nObjs[CM_CO]);
@@ -148,6 +148,25 @@ void Cm_PrintBestCut(Cm_Obj_t * pObj)
               pObj->Id, pObj->BestCut.Arrival, pObj->BestCut.Depth, pObj->BestCut.nFanins);
     for(int i=0; i<pObj->BestCut.nFanins; i++)
         printf(" %d", pObj->BestCut.Leafs[i]->Id);
+    printf("\n");
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Prints the delay of the cones sorted by depth.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintConeDelays(Cm_Man_t *p)
+{
+    printf("Cone delays:");
+    for(int i=1; i<=p->pPars->nConeDepth; i++)
+        printf(" (%d: %5.2f)", i, p->pPars->AicDelay[i]);
     printf("\n");
 }
 

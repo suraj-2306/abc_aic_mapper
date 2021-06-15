@@ -51,8 +51,33 @@ static Abc_Ntk_t * Abc_NtkFromCm( Cm_Man_t * pMan, Abc_Ntk_t * pNtk);
 Abc_Ntk_t * Abc_NtkCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars)
 {
     assert (Abc_NtkIsStrash(pNtk) );
-
+    // read gates and pins from mimolib
+    int minSoHeight = pPars->MinSoHeight;
+    int maxDepth = pPars->nConeDepth;
+    MiMo_Gate_t * pConeGates[CM_MAX_DEPTH+1];
+    if ( !Cm_Cone2ReadOrderedConeGates(pPars->pMiMoLib, pConeGates, minSoHeight, maxDepth))
+        return NULL;
+    Vec_Ptr_t * pOrderedInputPins = Cm_Cone2ReadOrderedConeInputPins(pConeGates, minSoHeight, maxDepth);
+    if ( !pOrderedInputPins )
+        return NULL;
+    Vec_Ptr_t * pOrderedOutputPins = Cm_Cone2ReadOrderedConeOutputPins(pConeGates, minSoHeight, maxDepth);
+    if ( !pOrderedOutputPins )
+    {
+        Vec_PtrFree(pOrderedInputPins);
+        return NULL;
+    }
+    // transfer delay
+    for(int i=1;i<minSoHeight; i++)
+        pPars->AicDelay[i] = pConeGates[minSoHeight]->MaxDelay;
+    for(int i=minSoHeight; i<=pPars->nConeDepth; i++)
+        pPars->AicDelay[i] = pConeGates[i]->MaxDelay;
     Cm_Man_t * pCmMan = Abc_NtkToCm( pNtk, pPars );
+    // transfer gates and pins to mapping manager
+    for(int i=0; i<=CM_MAX_DEPTH; i++)
+        pCmMan->pConeGates[i] = pConeGates[i];
+    pCmMan->pOrderedInputPins = pOrderedInputPins;
+    pCmMan->pOrderedOutputPins = pOrderedOutputPins;
+    // perform macpping 
     Cm_ManPerformMapping( pCmMan );
     Abc_Ntk_t * pNtkNew = Abc_NtkFromCm( pCmMan, pNtk );
     Cm_ManStop( pCmMan );

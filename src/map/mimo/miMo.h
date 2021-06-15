@@ -60,6 +60,7 @@ struct MiMo_Gate_t_ {
     char * pName; // name of the gate
     float Area; // area of the gate
     float MaxDelay; // maximum delay of all inputs to outputs
+    int Depth; // maximum depth of the gate
     MiMo_Library_t * pMiMoLib; // reference to library
     Vec_Ptr_t * pPinIns; // input pins of type MiMoPinIn_t
     Vec_Ptr_t * pPinOuts; // output pins of type MiMoPinOut_t
@@ -77,6 +78,7 @@ struct MiMo_PinOut_t_
     char * pName; // name 
     int Id; // its id
     float MaxDelay; // maximum delay of all inputs
+    int Pos; // position in external reference array 
     MiMo_PinDelay_t * pDelayList; // combinational input path specification
 };
 

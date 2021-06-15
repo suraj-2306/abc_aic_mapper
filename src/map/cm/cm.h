@@ -35,6 +35,7 @@
 #include "misc/util/abc_global.h"
 #include "aig/hop/hop.h"
 
+#include "cmMiMo.h"
 
 ABC_NAMESPACE_HEADER_START
 
@@ -78,9 +79,10 @@ struct Cm_Par_t_ {
     int fVerbose; // be verbose
     int fVeryVerbose; // be very verbose
     int fExtraValidityChecks; // run more checks -- mainly for debugging 
-    
+    int MinSoHeight; 
     float AicDelay[CM_MAX_DEPTH + 1]; // delay of the cones for each depth
     float Epsilon; // used for comparisons
+    MiMo_Library_t * pMiMoLib;
 };
 
 struct Cm_Man_t_
@@ -98,6 +100,10 @@ struct Cm_Man_t_
     int nObjBytes;
     // memory management
     Mem_Fixed_t * pMemObj; // memory manager for AIG nodes
+    // data for cone mapping from MiMoLibrary (initialized during setup)
+    MiMo_Gate_t * pConeGates[CM_MAX_DEPTH+1];
+    Vec_Ptr_t * pOrderedInputPins;
+    Vec_Ptr_t * pOrderedOutputPins;
 };
 
 
@@ -199,7 +205,8 @@ extern Cm_Obj_t * Cm_ManCreateAnd( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pF
 /*=== cmPrint.c ======================================================*/
 extern void Cm_PrintPars( Cm_Par_t * pPars );
 extern void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth);
-extern void Cm_ManPrintAigStructure(Cm_Man_t * pMan, int lineLimit);
+extern void Cm_PrintAigStructure(Cm_Man_t * pMan, int lineLimit);
+extern void Cm_PrintConeDelays(Cm_Man_t * p);
 extern void Cm_PrintBestCut(Cm_Obj_t * pObj);
 /*=== cmTest.c =======================================================*/
 extern int Cm_TestBestCutLeafsStructure(Cm_Man_t *p);

@@ -116,6 +116,7 @@ MiMo_Gate_t * MiMo_LibCreateGate(MiMo_Library_t *pLib, char *pName)
     pGate->pName = Abc_UtilStrsav(pName);
     pGate->Type = MIMO_GENERIC;
     pGate->MaxDelay = -1;
+    pGate->Depth = -1;
     pGate->pMiMoLib = pLib;
     pGate->pPinIns = Vec_PtrAlloc(8);
     pGate->pPinOuts = Vec_PtrAlloc(8);
@@ -165,6 +166,7 @@ MiMo_PinOut_t * MiMo_GateCreatePinOut(MiMo_Gate_t *pGate, char *pName)
     pPinOut->pDelayList = NULL;
     pPinOut->Id = Vec_PtrSize(pGate->pPinOuts);
     pPinOut->MaxDelay = -1;
+    pPinOut->Pos = -1;
     Vec_PtrPush(pGate->pPinOuts, pPinOut);
     return pPinOut;
 }
