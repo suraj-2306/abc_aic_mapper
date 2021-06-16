@@ -211,6 +211,42 @@ void Abc_ObjPatchFanin( Abc_Obj_t * pObj, Abc_Obj_t * pFaninOld, Abc_Obj_t * pFa
 
 /**Function*************************************************************
 
+  Synopsis    [Replaces a fanin at index of the node ]
+
+  Description [The node is pObj. An old fanin at the index (iFanin) has to be
+  replaced by a new fanin (pFaninNew). Assumes that the node and the old fanin 
+  are not complemented. The new fanin can be complemented. In this case, the
+  polarity of the new fanin will change, compared to the polarity of the old fanin.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Abc_ObjPatchFaninAt( Abc_Obj_t * pObj, Abc_Obj_t * pFaninNew, int iFanin )
+{
+    Abc_Obj_t * pFaninNewR = Abc_ObjRegular(pFaninNew);
+    Abc_Obj_t * pFaninOld = Abc_ObjFanin(pObj, iFanin);
+    assert( !Abc_ObjIsComplement(pObj) );
+    assert( pObj->pNtk == pFaninNewR->pNtk );
+    // replace the old fanin entry by the new fanin entry (removes attributes)
+    Vec_IntWriteEntry( &pObj->vFanins, iFanin, pFaninNewR->Id );
+    // set the attributes of the new fanin
+    if ( Abc_ObjIsComplement(pFaninNew) )
+        Abc_ObjXorFaninC( pObj, iFanin );
+
+    // update the fanout of the fanin
+    if ( !Vec_IntRemove( &pFaninOld->vFanouts, pObj->Id ) )
+    {
+        printf( "Node %s is not among", Abc_ObjName(pObj) );
+        printf( " the fanouts of its old fanin %s...\n", Abc_ObjName(pFaninOld) );
+//        return;
+    }
+    Vec_IntPushMem( pObj->pNtk->pMmStep, &pFaninNewR->vFanouts, pObj->Id );
+}
+
+/**Function*************************************************************
+
   Synopsis    [Replaces pObj by iObjNew in the fanin arrays of the fanouts.]
 
   Description []
@@ -313,6 +349,24 @@ void Abc_ObjTransferFanout( Abc_Obj_t * pNodeFrom, Abc_Obj_t * pNodeTo )
 
 /**Function*************************************************************
 
+  Synopsis    [Transfers fanout from the old node to the new node.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Abc_ObjTransferFanioOrdering( Abc_Obj_t * pObjOld, Abc_Obj_t * pObjNew )
+{
+    Vec_IntCopy( &pObjOld->vFanouts, &pObjNew->vFanouts );
+    Vec_IntCopy( &pObjOld->vFanins, &pObjNew->vFanins );
+}
+
+
+/**Function*************************************************************
+
   Synopsis    [Replaces the node by a new node.]
 
   Description []
@@ -344,7 +398,6 @@ void Abc_ObjReplace( Abc_Obj_t * pNodeOld, Abc_Obj_t * pNodeNew )
   SideEffects []
 
   SeeAlso     []
-
 ***********************************************************************/
 void Abc_ObjReplaceByConstant( Abc_Obj_t * pNode, int fConst1 )
 {
@@ -376,6 +429,27 @@ int Abc_ObjFanoutFaninNum( Abc_Obj_t * pFanout, Abc_Obj_t * pFanin )
     int i;
     Abc_ObjForEachFanin( pFanout, pObj, i )
         if ( pObj == pFanin )
+            return i;
+    return -1;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Returns the index of the fanout in the fanout list of the fanin.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Abc_ObjFaninFanoutNum( Abc_Obj_t * pFanin, Abc_Obj_t * pFanout )
+{
+    Abc_Obj_t * pObj;
+    int i;
+    Abc_ObjForEachFanout( pFanin, pObj, i )
+        if ( pObj == pFanout )
             return i;
     return -1;
 }

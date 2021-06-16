@@ -66,9 +66,10 @@ typedef enum {
     ABC_FUNC_BDD,       // 2:  binary decision diagrams
     ABC_FUNC_AIG,       // 3:  and-inverter graphs
     ABC_FUNC_MAP,       // 4:  standard cell library
-    ABC_FUNC_BLIFMV,    // 5:  BLIF-MV node functions
-    ABC_FUNC_BLACKBOX,  // 6:  black box about which nothing is known
-    ABC_FUNC_OTHER      // 7:  unused
+    ABC_FUNC_MAP_MO,    // 5:  Multiple Outputs of cell library
+    ABC_FUNC_BLIFMV,    // 6:  BLIF-MV node functions
+    ABC_FUNC_BLACKBOX,  // 7:  black box about which nothing is known
+    ABC_FUNC_OTHER      // 8:  unused
 } Abc_NtkFunc_t;
 
 // Supported type/functionality combinations:
@@ -203,6 +204,7 @@ struct Abc_Ntk_t_
     void *            pData;         // misc
     Abc_Ntk_t *       pCopy;         // copy of this network
     void *            pBSMan;        // application manager
+    void *            pMiMoLib;      // MiMo Library
     void *            pSCLib;        // SC library
     Vec_Int_t *       vGates;        // SC library gates
     Vec_Int_t *       vPhases;       // fanins phases in the mapped netlist
@@ -255,6 +257,7 @@ static inline int         Abc_NtkHasSop( Abc_Ntk_t * pNtk )          { return pN
 static inline int         Abc_NtkHasBdd( Abc_Ntk_t * pNtk )          { return pNtk->ntkFunc == ABC_FUNC_BDD;        }
 static inline int         Abc_NtkHasAig( Abc_Ntk_t * pNtk )          { return pNtk->ntkFunc == ABC_FUNC_AIG;        }
 static inline int         Abc_NtkHasMapping( Abc_Ntk_t * pNtk )      { return pNtk->ntkFunc == ABC_FUNC_MAP;        }
+static inline int         Abc_NtkHasMappingMO (Abc_Ntk_t * pNtk )    { return pNtk->ntkFunc == ABC_FUNC_MAP_MO;     }
 static inline int         Abc_NtkHasBlifMv( Abc_Ntk_t * pNtk )       { return pNtk->ntkFunc == ABC_FUNC_BLIFMV;     }
 static inline int         Abc_NtkHasBlackbox( Abc_Ntk_t * pNtk )     { return pNtk->ntkFunc == ABC_FUNC_BLACKBOX;   }
 
@@ -653,12 +656,15 @@ extern ABC_DLL void               Abc_ObjAddFanin( Abc_Obj_t * pObj, Abc_Obj_t *
 extern ABC_DLL void               Abc_ObjDeleteFanin( Abc_Obj_t * pObj, Abc_Obj_t * pFanin );
 extern ABC_DLL void               Abc_ObjRemoveFanins( Abc_Obj_t * pObj );
 extern ABC_DLL void               Abc_ObjPatchFanin( Abc_Obj_t * pObj, Abc_Obj_t * pFaninOld, Abc_Obj_t * pFaninNew );
+extern ABC_DLL void               Abc_ObjPatchFaninAt( Abc_Obj_t * pObj, Abc_Obj_t * pFaninNew, int iFanin );
 extern ABC_DLL void               Abc_ObjPatchFanoutFanin( Abc_Obj_t * pObj, int iObjNew );
 extern ABC_DLL Abc_Obj_t *        Abc_ObjInsertBetween( Abc_Obj_t * pNodeIn, Abc_Obj_t * pNodeOut, Abc_ObjType_t Type );
 extern ABC_DLL void               Abc_ObjTransferFanout( Abc_Obj_t * pObjOld, Abc_Obj_t * pObjNew );
+extern ABC_DLL void               Abc_ObjTransferFanioOrdering( Abc_Obj_t * pObjOld, Abc_Obj_t * pObjNew );
 extern ABC_DLL void               Abc_ObjReplace( Abc_Obj_t * pObjOld, Abc_Obj_t * pObjNew );
 extern ABC_DLL void               Abc_ObjReplaceByConstant( Abc_Obj_t * pNode, int fConst1 );
 extern ABC_DLL int                Abc_ObjFanoutFaninNum( Abc_Obj_t * pFanout, Abc_Obj_t * pFanin );
+extern ABC_DLL int                Abc_ObjFaninFanoutNum( Abc_Obj_t * pFanin, Abc_Obj_t * pFanout );
 /*=== abcFanOrder.c ==========================================================*/
 extern ABC_DLL int                Abc_NtkMakeLegit( Abc_Ntk_t * pNtk );
 extern ABC_DLL void               Abc_NtkSortSops( Abc_Ntk_t * pNtk );

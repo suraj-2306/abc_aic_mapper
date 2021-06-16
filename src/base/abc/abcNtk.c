@@ -86,6 +86,8 @@ Abc_Ntk_t * Abc_NtkAlloc( Abc_NtkType_t Type, Abc_NtkFunc_t Func, int fUseMemMan
         pNtk->pManFunc = Hop_ManStart();
     else if ( Abc_NtkHasMapping(pNtk) )
         pNtk->pManFunc = Abc_FrameReadLibGen();
+    else if ( Abc_NtkHasMappingMO(pNtk) )
+        pNtk->pMiMoLib = Abc_FrameReadLibMiMo();
     else if ( !Abc_NtkHasBlackbox(pNtk) )
         assert( 0 );
     // name manager
@@ -149,6 +151,7 @@ Abc_Ntk_t * Abc_NtkStartFrom( Abc_Ntk_t * pNtk, Abc_NtkType_t Type, Abc_NtkFunc_
     if ( pNtk->vObjPerm )
         pNtkNew->vObjPerm = Vec_IntDup( pNtk->vObjPerm );
     pNtkNew->AndGateDelay = pNtk->AndGateDelay;
+    pNtkNew->pMiMoLib = pNtk->pMiMoLib;
     if ( pNtkNew->pManTime && Abc_FrameReadLibGen() && pNtkNew->AndGateDelay == 0.0 )
         pNtkNew->AndGateDelay = Mio_LibraryReadDelayAigNode((Mio_Library_t *)Abc_FrameReadLibGen());
     // initialize logic level of the CIs
@@ -461,6 +464,11 @@ Abc_Ntk_t * Abc_NtkDup( Abc_Ntk_t * pNtk )
             if ( !Abc_ObjIsBox(pObj) && !Abc_ObjIsBo(pObj) )
                 Abc_ObjForEachFanin( pObj, pFanin, k )
                     Abc_ObjAddFanin( pObj->pCopy, pFanin->pCopy );
+        if ( Abc_NtkHasMappingMO(pNtk) )
+        {
+            Abc_NtkForEachObj( pNtk, pObj, i )
+                Abc_ObjTransferFanioOrdering(pObj, pObj->pCopy);
+        }
     }
     // duplicate the EXDC Ntk
     if ( pNtk->pExdc )
@@ -1374,6 +1382,8 @@ void Abc_NtkDelete( Abc_Ntk_t * pNtk )
         { if ( pNtk->pManFunc ) Hop_ManStop( (Hop_Man_t *)pNtk->pManFunc ); }
     else if ( Abc_NtkHasMapping(pNtk) )
         pNtk->pManFunc = NULL;
+    else if ( Abc_NtkHasMappingMO(pNtk) )
+        pNtk->pMiMoLib = NULL;
     else if ( !Abc_NtkHasBlackbox(pNtk) )
         assert( 0 );
     // free the hierarchy
