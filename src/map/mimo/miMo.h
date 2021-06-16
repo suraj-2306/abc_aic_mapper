@@ -49,6 +49,10 @@ typedef struct MiMo_Gate_t_ MiMo_Gate_t;
 typedef struct MiMo_PinIn_t_ MiMo_PinIn_t;
 typedef struct MiMo_PinOut_t_ MiMo_PinOut_t;
 typedef struct MiMo_PinDelay_t_ MiMo_PinDelay_t;
+typedef struct MiMo_CellPinIn_t_ MiMo_CellPinIn_t;
+typedef struct MiMo_CellFanout_t_ MiMo_CellFanout_t;
+typedef struct MiMo_CellPinOut_t_ MiMo_CellPinOut_t;
+typedef struct MiMo_Cell_t_ MiMo_Cell_t;
 
 struct MiMo_Library_t_
 {
@@ -57,6 +61,7 @@ struct MiMo_Library_t_
     MiMo_Gate_t * pGate0; // constant0
     MiMo_Gate_t * pGate1; // constant1
     MiMo_Gate_t * pGateBuf; // buffer
+    MiMo_Cell_t * pCellList; // list of all allocated cells
 };
 
 struct MiMo_Gate_t_ {
@@ -92,6 +97,34 @@ struct MiMo_PinDelay_t_ {
     MiMo_PinDelay_t *pNext; // next specification
 };
 
+struct MiMo_CellPinIn_t_ {
+    MiMo_PinIn_t * pPinIn; // input pin
+    int FaninId; // fanin Id in Abc_Obj_t
+    int FaninFanoutNetId; // fanin index in successor Abc_Obj_t 
+    MiMo_CellPinIn_t * pNext; // next pinIn
+};
+
+struct MiMo_CellFanout_t_ {
+    int FanoutId; // fanout index in Abc_Obj_t
+    MiMo_CellFanout_t * pNext; // next pinOut
+};
+
+struct MiMo_CellPinOut_t_ {
+    MiMo_PinOut_t *pPinOut; // output pin
+    int FanoutNetId; // fanout index in Abc_Obj_t
+    MiMo_CellFanout_t * pFanoutList; // all fanouts of this (pin, fanoutNetId) combination
+    MiMo_CellPinOut_t * pNext; // next pinOut
+};
+
+struct MiMo_Cell_t_
+{
+    MiMo_Gate_t * pGate; // corresponding gate
+    MiMo_CellPinIn_t * pPinInList; // input pins
+    MiMo_CellPinOut_t * pPinOutList; // output pins
+    Vec_Bit_t * vBitConfig; // configuration bits
+    MiMo_Cell_t * pNext; // next cell in MiMoLibrary
+};
+
 ////////////////////////////////////////////////////////////////////////
 ///                       INLINE FUNCTIONS                           ///
 ////////////////////////////////////////////////////////////////////////
@@ -124,6 +157,17 @@ static inline int MiMo_GateIsSpecial(MiMo_Gate_t *pGate)  { return MiMo_GateIsCo
 ///                    FUNCTION DECLARATIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
+/*=== miMoCell.c ===*/
+extern MiMo_Cell_t * MiMo_CellCreate(MiMo_Gate_t * pGate);
+extern void MiMo_CellFree(MiMo_Cell_t *pCell);
+extern void MiMo_CellAddPinIn(MiMo_Cell_t *pCell, MiMo_PinIn_t * pPinIn, int faninId);
+extern int MiMo_CellAddPinOut(MiMo_Cell_t *pCell, MiMo_PinOut_t *pPinOut, int fanoutId);
+extern void MiMo_CellAddBufOut(MiMo_Cell_t * pCell, int fanoutId);
+extern void MiMo_CellAddConstOut(MiMo_Cell_t * pCell, int fanoutId);
+extern int MiMo_CellFanoutNetId(MiMo_Cell_t * pCell, int fanoutId);
+extern void MiMo_CellSortFanoutNets(MiMo_Cell_t * pCell);
+extern void MiMo_CellSetPinInNet(MiMo_Cell_t * pCell, int faninId, int netId);
+extern int MiMo_CellGetPinInNet(MiMo_Cell_t * pCell, int faninId);
 /*=== miMoCore.c ===*/
 extern MiMo_Library_t * MiMo_LibStart( char * pName );
 extern void MiMo_LibFree( MiMo_Library_t * pLib );
@@ -135,6 +179,7 @@ extern MiMo_PinOut_t * MiMo_GateCreatePinOut(MiMo_Gate_t * pGate, char *pName);
 /*=== miMoPrint.c ===*/
 extern void MiMo_PrintLibStatistics( MiMo_Library_t * pLib );
 extern void MiMo_PrintLibrary( MiMo_Library_t * pLib, int fVerbose );
+extern void MiMo_PrintCell( MiMo_Cell_t * pCell );
 /*=== miMoRead.c ===*/
 extern MiMo_Library_t * MiMo_ReadLibrary( char *pFileName, int fVerbose );
 /*=== miMoUtil.c ===*/

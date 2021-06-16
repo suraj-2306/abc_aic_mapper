@@ -35,6 +35,7 @@ MiMo_Library_t * MiMo_LibStart(char *pName)
 {
     MiMo_Library_t * pLib = ABC_ALLOC(MiMo_Library_t, 1);
     pLib->pName = Abc_UtilStrsav(pName);
+    pLib->pCellList = NULL;
     pLib->pGates = Vec_PtrAlloc(8);
     return pLib; 
 }
@@ -57,6 +58,13 @@ void MiMo_LibFree(MiMo_Library_t * pLib)
     MiMo_Gate_t * pGate;
     MiMo_LibForEachGate(pLib, pGate, i)
         MiMo_GateFree(pGate);
+    MiMo_Cell_t * pCell = pLib->pCellList;
+    while ( pCell )
+    {
+        MiMo_Cell_t * pCellNext = pCell->pNext;
+        MiMo_CellFree(pCell);
+        pCell = pCellNext;
+    }
     ABC_FREE(pLib);
 }
 
