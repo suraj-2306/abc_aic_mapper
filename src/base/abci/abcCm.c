@@ -66,6 +66,7 @@ Abc_Ntk_t * Abc_NtkCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars)
         Vec_PtrFree(pOrderedInputPins);
         return NULL;
     }
+    MiMo_LibAddStandardGates(pPars->pMiMoLib);
     // transfer delay
     for(int i=1;i<minSoHeight; i++)
         pPars->AicDelay[i] = pConeGates[minSoHeight]->MaxDelay;

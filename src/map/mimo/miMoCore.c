@@ -126,6 +126,31 @@ MiMo_Gate_t * MiMo_LibCreateGate(MiMo_Library_t *pLib, char *pName)
 
 /**Function*************************************************************
 
+  Synopsis    [Adds constant and buffer gates to the MiMoLib]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void MiMo_LibAddStandardGates(MiMo_Library_t *pLib)
+{
+    pLib->pGate1 = MiMo_LibCreateGate(pLib, "gateConst1");
+    pLib->pGate1->Type = MIMO_SPECIAL;
+    MiMo_GateCreatePinOut(pLib->pGate1, "const1");
+    pLib->pGate0 = MiMo_LibCreateGate(pLib, "gateConst1");
+    pLib->pGate0->Type = MIMO_SPECIAL;
+    MiMo_GateCreatePinOut(pLib->pGate0, "const0");
+    pLib->pGateBuf = MiMo_LibCreateGate(pLib, "gateBuff");
+    pLib->pGateBuf->Type = MIMO_SPECIAL;
+    MiMo_GateCreatePinIn(pLib->pGateBuf, "in");
+    MiMo_GateCreatePinOut(pLib->pGateBuf, "out");
+}
+
+/**Function*************************************************************
+
   Synopsis    [Creates a new input pin of gate with given name]
 
   Description [If pin of desired name already exists,  NULL is returned]

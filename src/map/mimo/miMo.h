@@ -54,6 +54,9 @@ struct MiMo_Library_t_
 {
     char * pName;  // name of the library
     Vec_Ptr_t * pGates; // of type MiMo_Gate_t
+    MiMo_Gate_t * pGate0; // constant0
+    MiMo_Gate_t * pGate1; // constant1
+    MiMo_Gate_t * pGateBuf; // buffer
 };
 
 struct MiMo_Gate_t_ {
@@ -95,6 +98,14 @@ struct MiMo_PinDelay_t_ {
 
 
 static inline char * MiMo_PinDelayInName (MiMo_PinDelay_t * pDelay)  { return (pDelay->fFromPinOut ? ((MiMo_PinOut_t*)pDelay->pFromPin)->pName : ((MiMo_PinIn_t*)pDelay->pFromPin)->pName); }
+static inline MiMo_PinOut_t * MiMo_PinOutAt(MiMo_Gate_t *pGate, int id) { return Vec_PtrEntry(pGate->pPinOuts, id); }
+static inline MiMo_PinIn_t * MiMo_PinInAt(MiMo_Gate_t *pGate, int id) { return Vec_PtrEntry(pGate->pPinIns, id); }
+
+static inline int MiMo_GateIsConst1 (MiMo_Gate_t * pGate)  { return (pGate ? pGate->pMiMoLib->pGate1 == pGate : 0); }
+static inline int MiMo_GateIsConst0 (MiMo_Gate_t * pGate)  { return (pGate ? pGate->pMiMoLib->pGate0 == pGate : 0); }
+static inline int MiMo_GateIsConst (MiMo_Gate_t * pGate) { return MiMo_GateIsConst1(pGate) || MiMo_GateIsConst0(pGate); }
+static inline int MiMo_GateIsBuf (MiMo_Gate_t *pGate)     { return (pGate ? pGate->pMiMoLib->pGateBuf == pGate : 0); }
+static inline int MiMo_GateIsSpecial(MiMo_Gate_t *pGate)  { return MiMo_GateIsConst(pGate) || MiMo_GateIsBuf(pGate); }
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -117,10 +128,10 @@ static inline char * MiMo_PinDelayInName (MiMo_PinDelay_t * pDelay)  { return (p
 extern MiMo_Library_t * MiMo_LibStart( char * pName );
 extern void MiMo_LibFree( MiMo_Library_t * pLib );
 extern MiMo_Gate_t * MiMo_LibCreateGate(MiMo_Library_t *pLib, char *pName);
+extern void MiMo_LibAddStandardGates(MiMo_Library_t *pLib);
 extern void MiMo_GateFree( MiMo_Gate_t * pGate );
 extern MiMo_PinIn_t * MiMo_GateCreatePinIn(MiMo_Gate_t * pGate, char *pName);
 extern MiMo_PinOut_t * MiMo_GateCreatePinOut(MiMo_Gate_t * pGate, char *pName);
-
 /*=== miMoPrint.c ===*/
 extern void MiMo_PrintLibStatistics( MiMo_Library_t * pLib );
 extern void MiMo_PrintLibrary( MiMo_Library_t * pLib, int fVerbose );
