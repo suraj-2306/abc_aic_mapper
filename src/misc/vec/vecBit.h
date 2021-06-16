@@ -610,6 +610,24 @@ static inline int Vec_BitCount( Vec_Bit_t * p )
 
 /**Function*************************************************************
 
+  Synopsis    [Inverts the bit at the given position]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline void Vec_BitInvertEntry( Vec_Bit_t * p, int i )
+{
+    assert( i >= 0 && i < p->nSize );
+    p->pArray[i >> 5] ^= (1 << (i & 31));
+}
+
+
+/**Function*************************************************************
+
   Synopsis    []
 
   Description []
@@ -625,6 +643,26 @@ static inline void Vec_BitReset( Vec_Bit_t * p )
     for ( i = 0; i < nWords; i++ )
         p->pArray[i] = 0;
 }
+
+/**Function*************************************************************
+
+  Synopsis    [Inverts all bits of the vector]
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline void Vec_BitInvert( Vec_Bit_t * p )
+{
+    int i, nWords = (p->nSize >> 5) + ((p->nSize & 31) > 0);
+    for ( i = 0; i < nWords; i++ )
+        p->pArray[i] = ~ p->pArray[i];
+}
+
+
 
 ABC_NAMESPACE_HEADER_END
 
