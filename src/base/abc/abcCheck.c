@@ -104,7 +104,7 @@ int Abc_NtkDoCheck( Abc_Ntk_t * pNtk )
         fprintf( stdout, "NetworkCheck: Unknown network type.\n" );
         return 0;
     }
-    if ( !Abc_NtkHasSop(pNtk) && !Abc_NtkHasBdd(pNtk) && !Abc_NtkHasAig(pNtk) && !Abc_NtkHasMapping(pNtk) && !Abc_NtkHasBlifMv(pNtk) && !Abc_NtkHasBlackbox(pNtk) )
+    if ( !Abc_NtkHasSop(pNtk) && !Abc_NtkHasBdd(pNtk) && !Abc_NtkHasAig(pNtk) && !Abc_NtkHasMapping(pNtk) && !Abc_NtkHasMappingMO(pNtk) && !Abc_NtkHasBlifMv(pNtk) && !Abc_NtkHasBlackbox(pNtk) )
     {
         fprintf( stdout, "NetworkCheck: Unknown functionality type.\n" );
         return 0;
@@ -117,7 +117,14 @@ int Abc_NtkDoCheck( Abc_Ntk_t * pNtk )
             return 0;
         }
     }
-
+    if ( Abc_NtkHasMappingMO(pNtk) )
+    {
+        if ( pNtk->pMiMoLib != Abc_FrameReadLibMiMo() )
+        {
+            fprintf( stdout, "NetworkCheck: The library of the mapped network is not the global library.\n" );
+            return 0;
+        }
+    }
     if ( Abc_NtkHasOnlyLatchBoxes(pNtk) )
     {
         // check CI/CO numbers
