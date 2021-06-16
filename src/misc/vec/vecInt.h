@@ -218,6 +218,23 @@ static inline Vec_Int_t * Vec_IntAllocArrayCopy( int * pArray, int nSize )
 
 /**Function*************************************************************
 
+  Synopsis    [Copies content from one vector into another one.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline void Vec_IntCopy( Vec_Int_t *pVecFrom, Vec_Int_t * pVecTo )
+{
+    assert(pVecFrom->nSize == pVecTo->nSize);
+    memcpy(pVecTo->pArray, pVecFrom->pArray, sizeof(int) * pVecFrom->nSize);
+}
+
+/**Function*************************************************************
+
   Synopsis    [Duplicates the integer array.]
 
   Description []
