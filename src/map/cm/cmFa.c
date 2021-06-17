@@ -261,6 +261,40 @@ void Cm_FaExtractLeafs(Cm_Obj_t **pNodes, Cm_Cut_t *pCut)
         printf("No Fanins for %d with depth %d\n", pNodes[1]->Id, depth);
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Shifts the leafs down to maximum layer.]
+
+  Description [Leafs must me marked with CM_MARK_LEAF.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_FaShiftDownLeafs(Cm_Obj_t **pFaninArray, int depth)
+{
+    for(int i=1; i<(1<<depth); i++)
+    {
+        // calculate pos in cone structure, (shifting leaf to bottom) and clearing undesired pointers
+        if ( ! pFaninArray[i] || !(pFaninArray[i]->fMark & CM_MARK_LEAF) )
+            continue;
+        int pos = i;
+        int layerNodeCount = 1;
+        while( pos < (1<<depth) )
+        {
+            pos *= 2;
+            layerNodeCount *= 2;
+            for(int k=pos; k<pos+layerNodeCount; k++)
+                pFaninArray[k] = NULL;
+        }
+        if ( pos!=i )
+        {
+            pFaninArray[pos] = pFaninArray[i];
+            pFaninArray[i] = NULL;
+        } 
+    }
+}
 
 
 ABC_NAMESPACE_IMPL_END

@@ -158,6 +158,9 @@ static inline Cm_Obj_t * Cm_ManCo ( Cm_Man_t *p, int i)                      { r
 static inline void Cm_ObjSetCopy( Cm_Obj_t * pObj, void * pCopy)             { pObj->pCopy = pCopy; }
 
 static inline void Cm_ObjClearMarkFa(Cm_Obj_t **pFa, int depth, unsigned flag) { for(int i=1; i<(2<<depth); i++) if(pFa[i]) pFa[i]->fMark &= ~flag; }
+static inline void Cm_FaClear(Cm_Obj_t ** pFa, int depth)                    { for(int i=1; i<(2<<depth); i++) pFa[i] = NULL; }
+
+
 ////////////////////////////////////////////////////////////////////////
 ///                      MACRO DEFINITIONS                           ///
 ////////////////////////////////////////////////////////////////////////
@@ -196,6 +199,7 @@ extern int Cm_ManPerformMapping( Cm_Man_t * p );
 extern float Cm_FaBuildDepthOptimal(Cm_Obj_t **pNodes, Cm_Par_t * pPars);
 extern int Cm_FaBuildWithMaximumDepth(Cm_Obj_t **pFaninArray, int maxDepth);
 extern void Cm_FaExtractLeafs(Cm_Obj_t **pNodes, Cm_Cut_t *pCut);
+void Cm_FaShiftDownLeafs(Cm_Obj_t **pFaninArray, int depth);
 /*=== cmMan.c ========================================================*/
 extern Cm_Man_t * Cm_ManStart( Cm_Par_t *pPars );
 extern void Cm_ManStop( Cm_Man_t * p );
