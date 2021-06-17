@@ -46,7 +46,57 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->fExtraValidityChecks = 0;
     pPars->MinSoHeight = 2;
     pPars->Epsilon = (float)0.005;
+
+    pPars->nMaxCycleDetectionRecDepth = 5;
 }
+
+
+/**Function*************************************************************
+
+  Synopsis    [Selects the required cuts for the circuit covering]
+
+  Description [The root nodes of the selected cuts are marked VISIBLE.
+               No side outputs are enabled.]
+               
+  SideEffects []
+
+  SeeAlso     [CommandCm in base/abc.c ]
+
+***********************************************************************/
+void Cm_ManAssignCones( Cm_Man_t * p )
+{
+    Cm_Obj_t * pObj;
+    int enumerator;
+    Cm_ManForEachObj(p, pObj, enumerator)
+    {
+        pObj->fMark = 0;
+        pObj->nMoRefs = 0;
+        pObj->nSoRefs = 0;
+        pObj->BestCut.SoOfCutAt = NULL;
+    }
+    Cm_ManForEachObjReverse(p, pObj, enumerator)
+    {
+        if ( pObj->Type == CM_CO )
+        {
+            pObj->pFanin0->fMark |= CM_MARK_VISIBLE;
+            continue;
+        }
+        if ( pObj->Type == CM_AND )
+        {
+            if ( !(pObj->fMark&CM_MARK_VISIBLE) )
+                continue;
+            for(int i=0; i<pObj->BestCut.nFanins; i++)
+            {
+                pObj->BestCut.Leafs[i]->fMark |= CM_MARK_VISIBLE;
+                pObj->BestCut.Leafs[i]->nMoRefs++;
+            }
+        }
+    }
+}
+
+
+
+
 
 /**Function*************************************************************
 
@@ -81,9 +131,11 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
         Cm_TestMonotonicArrival(p);
         Cm_TestArrivalConsistency(p);
     }
+    Cm_ManAssignCones(p);
+    Cm_ManInsertSos(p);
     return 0;
 }
 
 
-
 ABC_NAMESPACE_IMPL_END
+

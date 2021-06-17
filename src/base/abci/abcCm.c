@@ -147,10 +147,11 @@ Cm_Man_t * Abc_NtkToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
     return pCmMan;
 }
 
+
 /**Function*************************************************************
 
-  Synopsis    [Adds a new fanin of a Abc_Obj and updates the 
-               MiMoCell pin reference accordingly.]
+  Synopsis    [Adds a new fanin of a Abc_Obj at the given pin position
+               and updates the MiMoCell pin reference accordingly.]
 
   Description []
                
@@ -159,9 +160,8 @@ Cm_Man_t * Abc_NtkToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
   SeeAlso     []
 
 ***********************************************************************/
-int Cm_AbcObjAddFanin(Cm_Man_t *pCmMan, Abc_Obj_t * pAbcObj, Abc_Obj_t *pFanin)
+int Cm_AbcObjAddSoFanin(Cm_Man_t *pCmMan, Abc_Obj_t * pAbcObj, Abc_Obj_t *pFanin, int outputPos)
 {
-    int outputPos = 1;
     MiMo_Cell_t * pCell = pFanin->pData;
     int fanoutNum = Abc_ObjFanoutNum(pFanin);
     Abc_ObjAddFanin(pAbcObj, pFanin);
@@ -171,6 +171,23 @@ int Cm_AbcObjAddFanin(Cm_Man_t *pCmMan, Abc_Obj_t * pAbcObj, Abc_Obj_t *pFanin)
         return MiMo_CellAddPinOut(pCell, Cm_ManGetOutputPin(pCmMan, d, outputPos), fanoutNum);
     }
     return -1;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Adds a new fanin of a Abc_Obj at the Main output and 
+               updates the MiMoCell pin reference accordingly.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+inline int Cm_AbcObjAddFanin(Cm_Man_t *pCmMan, Abc_Obj_t * pAbcObj, Abc_Obj_t *pFanin)
+{
+    return Cm_AbcObjAddSoFanin(pCmMan, pAbcObj, pFanin, 1);
 }
 
 /**Function*************************************************************
@@ -320,11 +337,22 @@ Abc_Obj_t * Abc_NodeFromCm_rec( Abc_Ntk_t * pNtkNew, Cm_Man_t * pCmMan, Cm_Obj_t
     for(int i=0; i<pCmObj->BestCut.nFanins; i++)
     {
         Cm_Obj_t * pLeaf = pCmObj->BestCut.Leafs[i];
-        Abc_Obj_t * pFanin = Abc_NodeFromCm_rec( pNtkNew, pCmMan, pLeaf, CM_DC_MO );
-        int netId = Cm_AbcObjAddFanin(pCmMan, pNodeNew, pFanin);
-        MiMo_CellSetPinInNet(pCell, i, netId);
-        if ( pFanin->pData && MiMo_CmMoInverted(pFanin->pData) )
-            MiMo_CmInvertInput(pNodeNew->pData, i);
+        if ( pLeaf->BestCut.SoOfCutAt )
+        {
+            Abc_Obj_t * pFanin = Abc_NodeFromCm_rec( pNtkNew, pCmMan, pLeaf->BestCut.SoOfCutAt, CM_DC_MO );
+            int netId = Cm_AbcObjAddSoFanin(pCmMan, pNodeNew, pFanin, pLeaf->BestCut.SoPos );
+            MiMo_CellSetPinInNet(pCell, i, netId);
+            if (pFanin->pData &&  MiMo_CmSoInverted(pFanin->pData, pLeaf->BestCut.SoPos) ) 
+                MiMo_CmInvertInput(pNodeNew->pData, i);
+        }
+        else 
+        {
+            Abc_Obj_t * pFanin = Abc_NodeFromCm_rec( pNtkNew, pCmMan, pLeaf, CM_DC_MO );
+            int netId = Cm_AbcObjAddFanin(pCmMan, pNodeNew, pFanin);
+            MiMo_CellSetPinInNet(pCell, i, netId);
+            if ( pFanin->pData && MiMo_CmMoInverted(pFanin->pData) )
+                MiMo_CmInvertInput(pNodeNew->pData, i);
+        } 
     }
     if ( pCmObj->pCopy )
         ((Abc_Obj_t*)pCmObj->pCopy)->pCopy = pNodeNew;
@@ -381,6 +409,36 @@ Abc_Obj_t * Abc_PhaseNodeFromCm(Abc_Ntk_t * pNtkNew, Cm_Man_t * pCmMan, Cm_Obj_t
         MiMo_CellAddConstOut(pNode->pData, Abc_ObjFanoutNum(pNode) );
         return pNode;
     }
+    if ( pCmObj->BestCut.SoOfCutAt )
+    {
+        Abc_Obj_t * pAbcRoot = pCmObj->BestCut.SoOfCutAt->pCopy;
+        if ( pAbcRoot )
+        {
+            int fSoInverted = MiMo_CmSoInverted(pAbcRoot->pData, pCmObj->BestCut.SoPos);
+            if ( MiMo_CmIsClassNN(pAbcRoot->pData) )
+            {
+                if ( !pAbcRoot->fMarkA || fCompl == fSoInverted )
+                {
+                    fCompl ^= MiMo_CmMoSoInverted(pAbcRoot->pData, pCmObj->BestCut.SoPos);
+                    return Abc_NodeFromCm_rec(pNtkNew, pCmMan, pCmObj->BestCut.SoOfCutAt,
+                                               fCompl ? CM_NEGATIVE_MO : CM_POSITIVE_MO);
+                }
+                pCmObj->BestCut.SoOfCutAt = NULL;
+            }
+            else
+            {
+                if ( fSoInverted == fCompl )
+                    return pAbcRoot;
+                pCmObj->BestCut.SoOfCutAt = NULL;
+            }
+        }
+        else
+        {
+            // to avoid the generation of extra nodes, probably something like the following line might be usefull: 
+            // return Abc_NodeFromCm_rec(pNtkNew, pCmMan, pCmObj->BestCut.SoOfCutAt, fCompl ? CM_NEGATIVE_MO : CM_POSITIVE_MO);
+            pCmObj->BestCut.SoOfCutAt = NULL;
+        }
+    }
     return Abc_NodeFromCm_rec(pNtkNew, pCmMan, pCmObj, fCompl ? CM_NEGATIVE_MO : CM_POSITIVE_MO );
 }
 
@@ -436,7 +494,7 @@ Abc_Ntk_t * Abc_NtkFromCm( Cm_Man_t * pCmMan, Abc_Ntk_t * pNtk )
             Abc_ObjAddFanin(pNode->pCopy, pNodeNew);
         else
         {
-            Cm_AbcObjAddFanin(pCmMan, pNode->pCopy, pNodeNew);
+            Cm_AbcObjAddSoFanin(pCmMan, pNode->pCopy, pNodeNew, pCmObj->BestCut.SoOfCutAt ? pCmObj->BestCut.SoPos : 1 );
         }
     }
     printf("Co created\n");

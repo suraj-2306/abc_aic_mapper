@@ -53,6 +53,8 @@ ABC_NAMESPACE_HEADER_START
 #define CM_MARK_VALID (1)
 #define CM_MARK_LEAF_CUT (2)
 #define CM_MARK_LEAF (4)
+#define CM_MARK_VISIBLE (8)
+#define CM_MARK_FIXED (16)
 
 /* Defines the type of the objects in the AIG  */
 typedef enum {
@@ -82,6 +84,7 @@ struct Cm_Par_t_ {
     int MinSoHeight; 
     float AicDelay[CM_MAX_DEPTH + 1]; // delay of the cones for each depth
     float Epsilon; // used for comparisons
+    int nMaxCycleDetectionRecDepth; // longest allowed side output chain path length
     MiMo_Library_t * pMiMoLib;
 };
 
@@ -113,6 +116,9 @@ struct Cm_Cut_t_
     short Depth; // depth of the cut
     short nFanins; // number of leafs
     Cm_Obj_t * Leafs[CM_MAX_NLEAFS]; // pointer to leafs
+    int SoPos; // corresponding cone position of side output
+    float SoArrival; // arrival time of the side output
+    Cm_Obj_t * SoOfCutAt; // side output pointer: references to the root of the cut
 };
 
 struct Cm_Obj_t_
@@ -127,6 +133,8 @@ struct Cm_Obj_t_
     int Id; // identifier (to vObjs)
     int IdPio; // identifier to PI/PO
     int nRefs;
+    int nSoRefs; // counts how often this node is used as SO
+    int nMoRefs; // counts how often this node is used as MO
     int nVisits;
     float Required; // time requirement on node
     union {
@@ -159,6 +167,8 @@ static inline void Cm_ObjSetCopy( Cm_Obj_t * pObj, void * pCopy)             { p
 
 static inline void Cm_ObjClearMarkFa(Cm_Obj_t **pFa, int depth, unsigned flag) { for(int i=1; i<(2<<depth); i++) if(pFa[i]) pFa[i]->fMark &= ~flag; }
 static inline void Cm_FaClear(Cm_Obj_t ** pFa, int depth)                    { for(int i=1; i<(2<<depth); i++) pFa[i] = NULL; }
+static inline void Cm_CutClearMarkLeafs(Cm_Cut_t * pCut, unsigned flag)      { for(int i=0; i<pCut->nFanins; i++) pCut->Leafs[i]->fMark &= ~flag; }
+static inline void Cm_CutMarkLeafs(Cm_Cut_t * pCut, unsigned flag)           { for(int i=0; i<pCut->nFanins; i++) pCut->Leafs[i]->fMark |= flag; }
 static inline MiMo_PinIn_t * Cm_ManGetInputPin(Cm_Man_t * p, int pos)                       { return Vec_PtrEntry(p->pOrderedInputPins, pos); }
 static inline MiMo_PinOut_t * Cm_ManGetOutputPin(Cm_Man_t * p, int coneDepth, int pos)       { return Vec_PtrEntry(p->pOrderedOutputPins, (1<<(coneDepth-1)) + pos); }
 
@@ -214,11 +224,15 @@ extern void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth);
 extern void Cm_PrintAigStructure(Cm_Man_t * pMan, int lineLimit);
 extern void Cm_PrintConeDelays(Cm_Man_t * p);
 extern void Cm_PrintBestCut(Cm_Obj_t * pObj);
+/*=== cmSo.c =========================================================*/
+extern void Cm_ManInsertSos(Cm_Man_t *p);
 /*=== cmTest.c =======================================================*/
 extern int Cm_TestBestCutLeafsStructure(Cm_Man_t *p);
 extern int Cm_TestMonotonicArrival(Cm_Man_t *p);
 extern int Cm_TestArrivalConsistency(Cm_Man_t * p);
-
+/*=== cmUtil.c =======================================================*/
+float Cm_CutLatestLeafMoArrival(Cm_Cut_t * pCut);
+float Cm_CutLatestLeafArrival(Cm_Cut_t * pCut);
 ABC_NAMESPACE_HEADER_END
 
 #endif
