@@ -159,6 +159,8 @@ static inline void Cm_ObjSetCopy( Cm_Obj_t * pObj, void * pCopy)             { p
 
 static inline void Cm_ObjClearMarkFa(Cm_Obj_t **pFa, int depth, unsigned flag) { for(int i=1; i<(2<<depth); i++) if(pFa[i]) pFa[i]->fMark &= ~flag; }
 static inline void Cm_FaClear(Cm_Obj_t ** pFa, int depth)                    { for(int i=1; i<(2<<depth); i++) pFa[i] = NULL; }
+static inline MiMo_PinIn_t * Cm_ManGetInputPin(Cm_Man_t * p, int pos)                       { return Vec_PtrEntry(p->pOrderedInputPins, pos); }
+static inline MiMo_PinOut_t * Cm_ManGetOutputPin(Cm_Man_t * p, int coneDepth, int pos)       { return Vec_PtrEntry(p->pOrderedOutputPins, (1<<(coneDepth-1)) + pos); }
 
 
 ////////////////////////////////////////////////////////////////////////
