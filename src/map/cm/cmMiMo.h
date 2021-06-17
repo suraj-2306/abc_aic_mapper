@@ -51,7 +51,7 @@ extern int MiMo_CmSoInverted( MiMo_Cell_t * pCell, int soPos );
 extern int MiMo_CmMoSoInverted( MiMo_Cell_t * pCell, int soPos );
 extern void MiMo_CmInvertInput( MiMo_Cell_t * pCell, int faninId);
 
-extern MiMo_Cell_t * MiMo_CmCellFromCmFa( MiMo_Gate_t * pGate, void **pPredArray, int fMoCompl );
+extern MiMo_Cell_t * MiMo_CmCellFromFa( MiMo_Gate_t * pGate, void **pPredArray, int fMoCompl );
 extern Hop_Obj_t * MiMo_CmToAig( MiMo_Cell_t * pCell, Hop_Man_t * p, MiMo_PinOut_t * pPinOut );
 
 
