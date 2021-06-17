@@ -149,11 +149,248 @@ Cm_Man_t * Abc_NtkToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
 
 /**Function*************************************************************
 
-  Synopsis    [Interface with the cone mapping package. -- Currently only template!!!]
+  Synopsis    [Adds a new fanin of a Abc_Obj and updates the 
+               MiMoCell pin reference accordingly.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Cm_AbcObjAddFanin(Cm_Man_t *pCmMan, Abc_Obj_t * pAbcObj, Abc_Obj_t *pFanin)
+{
+    int outputPos = 1;
+    MiMo_Cell_t * pCell = pFanin->pData;
+    int fanoutNum = Abc_ObjFanoutNum(pFanin);
+    Abc_ObjAddFanin(pAbcObj, pFanin);
+    if (pCell)
+    {
+        int d = pCell->pGate->Depth;
+        return MiMo_CellAddPinOut(pCell, Cm_ManGetOutputPin(pCmMan, d, outputPos), fanoutNum);
+    }
+    return -1;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Creates a new MiMoCell from best cut of cm node]
+
+  Description [The output is inverted iff fMoCompl == 1]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+MiMo_Cell_t * Cm_ManBuildCellWithInputs(Cm_Man_t * pCmMan, Cm_Obj_t *pCmObj, int fMoCompl)
+{
+    // generate cone and config information from given leafs
+    Cm_Obj_t * pFaninCone[CM_MAX_FA_SIZE];
+    int depth = pCmObj->BestCut.Depth;
+    int minDepth = pCmMan->pPars->MinSoHeight;
+    if (depth < minDepth) // can't map to AIC of depth smaller MinSoHeight
+    {
+        depth = minDepth;
+        Cm_FaClear(pFaninCone, depth);
+    }
+    pFaninCone[1] = pCmObj;
+    Cm_FaBuildWithMaximumDepth(pFaninCone, depth);
+    // mark as leaf and store faninId in iTemp
+    Cm_ObjClearMarkFa(pFaninCone, depth, CM_MARK_LEAF);
+    for(int i=0; i<pCmObj->BestCut.nFanins; i++)
+    {
+        pCmObj->BestCut.Leafs[i]->fMark |= CM_MARK_LEAF;
+        pCmObj->BestCut.Leafs[i]->iTemp = i;
+    }
+    Cm_FaShiftDownLeafs(pFaninCone, depth);
+    MiMo_Gate_t * pGate = pCmMan->pConeGates[depth];
+    MiMo_Cell_t * pCell = (MiMo_Cell_t*)MiMo_CmCellFromFa(pGate, (void**)pFaninCone, fMoCompl);
+
+    for(int i=(1<<depth); i<(2<<depth); i++)
+    {
+        if (pFaninCone[i] && (pFaninCone[i]->fMark&CM_MARK_LEAF))
+            MiMo_CellAddPinIn(pCell, Cm_ManGetInputPin(pCmMan, i), pFaninCone[i]->iTemp);
+    }
+    return pCell;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Inverts the main output of a cell.]
+
+  Description [Toggles the configuration bits the successive fanout cells
+               for all inverted output signals]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Abc_CmInvertMo(Cm_Man_t * pCmMan, Cm_Obj_t * pCmObj)
+{
+    Abc_Obj_t * pNode = pCmObj->pCopy;
+    MiMo_Cell_t * pCell = pNode->pData;
+    MiMo_CmInvertMo(pCell);
+    MiMo_PinOut_t * pMoPinOut = Cm_ManGetOutputPin(pCmMan, pCmObj->BestCut.Depth, 1);
+    MiMo_CellPinOut_t * pPinOut = pCell->pPinOutList;
+    while ( pPinOut )
+    {
+        if ( !MiMo_CmIsClassNN(pCell) && pPinOut->pPinOut != pMoPinOut)
+        {
+            pPinOut = pPinOut->pNext;
+            continue;
+        }
+        MiMo_CellFanout_t * pCellFanout = pPinOut->pFanoutList;
+        while ( pCellFanout )
+        {
+            Abc_Obj_t * pFanout = Abc_ObjFanout(pNode, pCellFanout->FanoutId);
+            MiMo_Cell_t * pFanoutCell = pFanout->pData;
+            if ( pFanoutCell )
+            {
+                int d = pFanoutCell->pGate->Depth;
+                MiMo_CellPinIn_t * pFanoutIn = pFanoutCell->pPinInList;
+                while ( pFanoutIn )
+                {
+                    if ( Abc_ObjFanin(pFanout, pFanoutIn->FaninId) == pNode
+                         && pFanoutIn->FaninFanoutNetId == pPinOut->FanoutNetId )
+                    {
+                         int configPos = (1<<d) + pFanoutIn->pPinIn->Id;
+                         Vec_BitInvertEntry(pFanoutCell->vBitConfig, configPos);
+                    }
+                    pFanoutIn = pFanoutIn->pNext;
+                }
+            }
+            pCellFanout = pCellFanout->pNext;
+        }
+        pPinOut = pPinOut->pNext;
+    }
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Recursively creates Abc_Obj's with MiMo_Cells from cm graph]
+
+  Description [The phase of the mainoutput is positive, negative or 
+               don't care (dc). For dc the positive phase is implemented.
+               The phase of an main output is inverted if benefitial.
+               Meaning of marks:
+                 - A == 1: phase is fixed
+                 - B fcompl]
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+typedef enum { CM_POSITIVE_MO, CM_NEGATIVE_MO, CM_DC_MO } Cm_AbcMainoutPhase_t;
+Abc_Obj_t * Abc_NodeFromCm_rec( Abc_Ntk_t * pNtkNew, Cm_Man_t * pCmMan, Cm_Obj_t * pCmObj, Cm_AbcMainoutPhase_t moPhase)
+{
+    int fMoCompl = (moPhase == CM_NEGATIVE_MO) ? 1 : 0;
+    // return node if already implemented and MO phase is matchable
+    if ( pCmObj->pCopy )
+    {
+        Abc_Obj_t * pObj = pCmObj->pCopy;
+        if ( moPhase == CM_DC_MO )
+            return pObj;
+        if (pObj->fMarkB == fMoCompl)
+        {
+            pObj->fMarkA = 1;
+            return pObj;
+        }
+        if ( !pObj->fMarkA )
+        {
+            Abc_CmInvertMo(pCmMan, pCmObj);
+            pObj->fMarkB ^= 1; // invert phase
+            pObj->fMarkA = 1;
+            return pObj;
+        }
+        // second phase is already implemented.
+        if ( pObj->pCopy )
+            return pObj->pCopy;
+        else
+            moPhase = fMoCompl ? CM_NEGATIVE_MO : CM_POSITIVE_MO;
+    }
+    Abc_Obj_t * pNodeNew = Abc_NtkCreateNode ( pNtkNew );
+    pNodeNew->pCopy = NULL;
+    MiMo_Cell_t * pCell = Cm_ManBuildCellWithInputs( pCmMan, pCmObj, fMoCompl );
+    pNodeNew->pData = pCell;
+    pNodeNew->fMarkA = ((moPhase == CM_POSITIVE_MO) || (moPhase == CM_NEGATIVE_MO)) ?  1 : 0;
+    pNodeNew->fMarkB = fMoCompl;
+    for(int i=0; i<pCmObj->BestCut.nFanins; i++)
+    {
+        Cm_Obj_t * pLeaf = pCmObj->BestCut.Leafs[i];
+        Abc_Obj_t * pFanin = Abc_NodeFromCm_rec( pNtkNew, pCmMan, pLeaf, CM_DC_MO );
+        int netId = Cm_AbcObjAddFanin(pCmMan, pNodeNew, pFanin);
+        MiMo_CellSetPinInNet(pCell, i, netId);
+        if ( pFanin->pData && MiMo_CmMoInverted(pFanin->pData) )
+            MiMo_CmInvertInput(pNodeNew->pData, i);
+    }
+    if ( pCmObj->pCopy )
+        ((Abc_Obj_t*)pCmObj->pCopy)->pCopy = pNodeNew;
+    else
+        pCmObj->pCopy = pNodeNew;
+    return pNodeNew;
+}
+
+
+/**Function*************************************************************
+
+  Synopsis    [Creates all the predecessor Abc nodes for the cm node]
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     [Abc_NodeFromCm_rec]
+
+***********************************************************************/
+static inline MiMo_Cell_t * Cm_ManCreateInvertingConeCell(Cm_Man_t * pCmMan) {  return MiMo_CmCreateInvertingCell(pCmMan->pConeGates[pCmMan->pPars->MinSoHeight]); }
+Abc_Obj_t * Abc_PhaseNodeFromCm(Abc_Ntk_t * pNtkNew, Cm_Man_t * pCmMan, Cm_Obj_t * pCmObj, int fCompl)
+{
+    MiMo_Library_t * pLib = pNtkNew->pMiMoLib;
+    if ( pCmObj->Type == CM_CI)
+    {
+        if ( fCompl )
+        {
+            Abc_Obj_t * pAbc = pCmObj->pCopy;
+            if ( pAbc->pCopy )
+                return pAbc->pCopy;
+            Abc_Obj_t * pNodeNew = Abc_NtkCreateNode ( pNtkNew );
+            pNodeNew->pData = Cm_ManCreateInvertingConeCell( pCmMan );
+            Cm_AbcObjAddFanin(pCmMan, pNodeNew, pAbc );
+            pAbc->pCopy = pNodeNew;
+            return pNodeNew;
+        }
+        else
+        {
+            Abc_Obj_t * pNodeNew = Abc_NtkCreateNode( pNtkNew );
+            Abc_ObjAddFanin( pNodeNew, pCmObj->pCopy);
+            pNodeNew->pData = MiMo_CellCreate(pLib->pGateBuf);
+            MiMo_CellAddBufOut(pNodeNew->pData, 0);
+            return pNodeNew;
+        }
+    }
+    if ( pCmObj->Type == CM_CONST1 )
+    {
+        Abc_Obj_t * pNode;
+        if (fCompl)
+            pNode = Abc_NtkCreateNodeConst0(pNtkNew);
+        else
+            pNode = Abc_NtkCreateNodeConst1(pNtkNew);
+        MiMo_CellAddConstOut(pNode->pData, Abc_ObjFanoutNum(pNode) );
+        return pNode;
+    }
+    return Abc_NodeFromCm_rec(pNtkNew, pCmMan, pCmObj, fCompl ? CM_NEGATIVE_MO : CM_POSITIVE_MO );
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Interface with the cone mapping package.]
 
   Description [Generates a new Netlist with from output of cone mapping
-               manager ] 
-               
+               manager ]
+
   SideEffects []
 
   SeeAlso     []
@@ -161,5 +398,53 @@ Cm_Man_t * Abc_NtkToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
 ***********************************************************************/
 Abc_Ntk_t * Abc_NtkFromCm( Cm_Man_t * pCmMan, Abc_Ntk_t * pNtk )
 {
-    return NULL;
+    Abc_Obj_t * pNode;
+    int i;
+    // clean copy data
+    Cm_Obj_t *pCmObj;
+    Cm_ManForEachObj(pCmMan, pCmObj, i)
+       pCmObj->pCopy = NULL;
+
+    Abc_Ntk_t * pNtkNew = Abc_NtkStartFrom( pNtk, ABC_NTK_LOGIC, ABC_FUNC_MAP_MO );
+    pNtkNew->pMiMoLib = pCmMan->pPars->pMiMoLib;
+    Abc_NtkForEachCi ( pNtk, pNode, i )
+    {
+        Abc_Obj_t *pNodeNew = pNode->pCopy;
+        Cm_ManCi(pCmMan, i)->pCopy = pNodeNew;
+        Cm_ManCi(pCmMan, i)->fMark |= CM_MARK_VALID;
+        pNodeNew->fMarkA = 0;
+        pNodeNew->fMarkB = 0;
+        pNodeNew->pData = NULL;
+    }
+    printf("%d Ci created\n", Cm_ManCiNum(pCmMan));
+    // create network structure
+    Abc_NtkForEachCo(pNtk, pNode, i)
+    {
+        Abc_Obj_t *pFanin = Abc_ObjFanin0(pNode);
+        // directly connect CI/CO pair with identical names
+        if ( Abc_ObjIsCi(pFanin) && !strcmp( Abc_ObjName(pFanin), Abc_ObjName(pNode)) )
+        {
+            Abc_ObjAddFanin(pNode->pCopy, pFanin->pCopy);
+            continue;
+        }
+
+        Cm_ManCo(pCmMan, i)->pCopy = pNode->pCopy;
+        pCmObj = Cm_ManCo(pCmMan, i)->pFanin0;
+        int fCompl = Cm_ManCo(pCmMan, i)->fCompl0;
+        Abc_Obj_t * pNodeNew = Abc_PhaseNodeFromCm( pNtkNew, pCmMan, pCmObj, fCompl );
+        if ( MiMo_GateIsSpecial(((MiMo_Cell_t*)pNodeNew->pData)->pGate) )
+            Abc_ObjAddFanin(pNode->pCopy, pNodeNew);
+        else
+        {
+            Cm_AbcObjAddFanin(pCmMan, pNode->pCopy, pNodeNew);
+        }
+    }
+    printf("Co created\n");
+    // reset tempary markings
+    Abc_NtkForEachObj(pNtkNew, pNode, i)
+    {
+        pNode->fMarkA = 0;
+        pNode->fMarkB = 0;
+    }
+    return pNtkNew;
 }
