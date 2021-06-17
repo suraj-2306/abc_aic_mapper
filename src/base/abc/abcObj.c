@@ -22,6 +22,7 @@
 #include "abcInt.h"
 #include "base/main/main.h"
 #include "map/mio/mio.h"
+#include "map/mimo/miMo.h"
 
 #ifdef ABC_USE_CUDD
 #include "bdd/extrab/extraBdd.h"
@@ -385,6 +386,8 @@ Abc_Obj_t * Abc_NtkDupObj( Abc_Ntk_t * pNtkNew, Abc_Obj_t * pObj, int fCopyName 
                 pObjNew->pData = Hop_Transfer((Hop_Man_t *)pObj->pNtk->pManFunc, (Hop_Man_t *)pNtkNew->pManFunc, (Hop_Obj_t *)pObj->pData, Abc_ObjFaninNum(pObj));
             else if ( Abc_NtkHasMapping(pNtkNew) )
                 pObjNew->pData = pObj->pData, pNtkNew->nBarBufs2 += !pObj->pData;
+            else if ( Abc_NtkHasMappingMO(pNtkNew) )
+                pObjNew->pData = pObj->pData;
             else assert( 0 );
         }
     }
@@ -624,6 +627,8 @@ Abc_Obj_t * Abc_NtkCreateNodeConst0( Abc_Ntk_t * pNtk )
         pNode->pData = Hop_ManConst0((Hop_Man_t *)pNtk->pManFunc);
     else if ( Abc_NtkHasMapping(pNtk) )
         pNode->pData = Mio_LibraryReadConst0((Mio_Library_t *)Abc_FrameReadLibGen());
+    else if ( Abc_NtkHasMappingMO(pNtk) )
+        pNode->pData = MiMo_CellCreate(((MiMo_Library_t *)Abc_FrameReadLibMiMo())->pGate0);
     else if ( !Abc_NtkHasBlackbox(pNtk) )
         assert( 0 );
     return pNode;
@@ -655,6 +660,8 @@ Abc_Obj_t * Abc_NtkCreateNodeConst1( Abc_Ntk_t * pNtk )
         pNode->pData = Hop_ManConst1((Hop_Man_t *)pNtk->pManFunc);
     else if ( Abc_NtkHasMapping(pNtk) )
         pNode->pData = Mio_LibraryReadConst1((Mio_Library_t *)Abc_FrameReadLibGen());
+    else if ( Abc_NtkHasMappingMO(pNtk) )
+        pNode->pData = MiMo_CellCreate(((MiMo_Library_t *)Abc_FrameReadLibMiMo())->pGate1);
     else if ( !Abc_NtkHasBlackbox(pNtk) )
         assert( 0 );
     return pNode;
@@ -898,6 +905,8 @@ int Abc_NodeIsConst0( Abc_Obj_t * pNode )
         return Hop_IsComplement((Hop_Obj_t *)pNode->pData)? 1:0;
     if ( Abc_NtkHasMapping(pNtk) )
         return pNode->pData == Mio_LibraryReadConst0((Mio_Library_t *)Abc_FrameReadLibGen());
+    if ( Abc_NtkHasMappingMO(pNtk) )
+        return MiMo_GateIsConst0(((MiMo_Cell_t*)pNode->pData)->pGate);
     assert( 0 );
     return 0;
 }
@@ -930,6 +939,9 @@ int Abc_NodeIsConst1( Abc_Obj_t * pNode )
         return !Hop_IsComplement((Hop_Obj_t *)pNode->pData);
     if ( Abc_NtkHasMapping(pNtk) )
         return pNode->pData == Mio_LibraryReadConst1((Mio_Library_t *)Abc_FrameReadLibGen());
+    if ( Abc_NtkHasMappingMO(pNtk) )
+        return MiMo_GateIsConst1(((MiMo_Cell_t*)pNode->pData)->pGate);
+
     assert( 0 );
     return 0;
 }
