@@ -21,6 +21,7 @@
 #include "abc.h"
 #include "base/main/main.h"
 #include "map/mio/mio.h"
+#include "map/mimo/miMo.h"
 
 #ifdef ABC_USE_CUDD
 #include "bdd/extrab/extraBdd.h"
@@ -1197,6 +1198,136 @@ int Abc_NtkToSop( Abc_Ntk_t * pNtk, int fMode, int nCubeLimit )
 
 /**Function*************************************************************
 
+  Synopsis    [Converts mappedMO network to the AIG form.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Abc_NtkMapMiMoToAig( Abc_Ntk_t * pNtk )
+{
+    assert ( Abc_NtkHasMappingMO(pNtk) );
+    Abc_Obj_t * pNode, * pFanin, * pFanout, * pFanoutFanin;
+    int i, k, Max;
+    // start the functionality manager
+    Max = Abc_NtkGetFaninMax( pNtk );
+    Hop_Man_t * pMan = Hop_ManStart();
+    if ( Max )
+        Hop_IthVar( pMan, Max - 1 );
+   
+    // reset mark, to distinct between newly added and old nodes
+    Abc_NtkForEachNode(pNtk, pNode, i)
+        pNode->fMarkA = 0;
+    // add nodes with AIG func, to enable single output 
+    Abc_NtkForEachNode( pNtk, pNode, i )
+    {
+        // skip newly created nodes
+        if ( pNode->fMarkA )
+            continue;
+        MiMo_Cell_t * pCell = pNode->pData;
+        if ( !pCell || MiMo_GateIsSpecial(pCell->pGate) )
+            continue;
+        MiMo_CellSortFanoutNets(pCell);
+        MiMo_CellPinOut_t * pPinOut = pCell->pPinOutList;
+        // use node for first output pin directly
+        assert(pPinOut);
+        pPinOut = pPinOut->pNext;
+        // create for each following pin a seperate node 
+        Abc_Obj_t * pNodePrev = pNode;
+        while ( pPinOut )
+        {
+            Abc_Obj_t * pNodeNew = Abc_NtkCreateNode(pNtk);
+            Abc_ObjForEachFanin(pNode, pFanin, k)
+                Abc_ObjAddFanin(pNodeNew, pFanin);
+            pNodeNew->fMarkA = 1;
+            pNodePrev->pCopy = pNodeNew;
+            pNodePrev = pNodeNew;
+            pPinOut = pPinOut->pNext;
+        }
+    }
+    // add fanouts of nodes and convert func of initial nodes.
+    Abc_NtkForEachNode(pNtk, pNode, i)
+    {
+        // skip newly created nodes
+        if ( pNode->fMarkA )
+            continue;
+        MiMo_Cell_t * pCell = pNode->pData;
+        if ( !pCell || MiMo_GateIsSpecial(pCell->pGate))
+            continue;
+        Vec_Ptr_t * vFanouts = Vec_PtrStart(Abc_ObjFanoutNum(pNode));
+        Abc_ObjForEachFanout(pNode, pFanout, k)
+            Vec_PtrWriteEntry(vFanouts, k, pFanout);
+        MiMo_CellPinOut_t * pCellPinOut = pCell->pPinOutList;
+        // skip first pinout ( by original node handled )
+        pCellPinOut = pCellPinOut->pNext;
+        Abc_Obj_t * pNodeCopy = pNode->pCopy;
+        while ( pCellPinOut )
+        {
+            MiMo_CellFanout_t * pCellFanout = pCellPinOut->pFanoutList;
+            while( pCellFanout )
+            {
+                pFanout = Vec_PtrEntry(vFanouts, pCellFanout->FanoutId);
+                MiMo_Cell_t * pCellOut = pFanout->pData;
+                Abc_ObjForEachFanin(pFanout, pFanoutFanin, k)
+                {
+                    if ( pNode == pFanoutFanin)
+                    {
+                        int fanoutNetId = MiMo_CellGetPinInNet(pCellOut, k);
+                        if (fanoutNetId < 0 || pCellPinOut->FanoutNetId == fanoutNetId)
+                        {
+                            Abc_Obj_t * pFanoutCopy = pFanout;
+                            while (pFanoutCopy)
+                            {
+                                Abc_ObjPatchFaninAt(pFanoutCopy, pNodeCopy, k);
+                                pFanoutCopy = pFanoutCopy->pCopy;
+                            }
+                        }
+                    }
+                }
+                pCellFanout = pCellFanout->pNext;
+            } 
+            pCellPinOut = pCellPinOut->pNext;
+            pNodeCopy = pNodeCopy->pCopy;
+        }
+        Vec_PtrFree(vFanouts);
+    }
+    Abc_NtkForEachNode(pNtk, pNode, i)
+    {
+        if ( !pNode->fMarkA )
+        {
+            MiMo_Cell_t * pCell = pNode->pData;
+            if (pCell)
+            {
+                Abc_Obj_t * pNodeNew = pNode;
+                MiMo_CellPinOut_t * pCellPinOut = pCell->pPinOutList;
+                while(pCellPinOut)
+                {
+                    // Use a function pointer!!!
+                    pNodeNew->pData = MiMo_CmToAig(pCell, pMan, pCellPinOut->pPinOut);
+                    pNodeNew = pNodeNew->pCopy;
+                    pCellPinOut = pCellPinOut->pNext;
+                }
+            }
+            else
+                printf("Bug: Node %d has no cell\n", pNode->Id);
+        }
+        if ( !pNode->pData )
+            printf("Node %d has no cell\n", pNode->Id);
+        pNode->fMarkA = 0;
+        pNode->pCopy = NULL;
+    }
+    Hop_ManCheck ( pMan );
+    pNtk->pManFunc = pMan;
+    pNtk->ntkFunc = ABC_FUNC_AIG;
+    return 1; 
+}
+
+
+/**Function*************************************************************
+
   Synopsis    [Convers logic network to the SOP form.]
 
   Description []
@@ -1252,6 +1383,8 @@ int Abc_NtkToAig( Abc_Ntk_t * pNtk )
         Abc_NtkMapToSop(pNtk);
         return Abc_NtkSopToAig(pNtk);
     }
+    if ( Abc_NtkHasMappingMO(pNtk) )
+        return Abc_NtkMapMiMoToAig(pNtk);
     if ( Abc_NtkHasBdd(pNtk) )
     {
         if ( !Abc_NtkBddToSop(pNtk, -1, ABC_INFINITY, 1) )
