@@ -432,7 +432,7 @@ void Io_Write( Abc_Ntk_t * pNtk, char * pFileName, Io_FileType_t FileType )
 
     if ( FileType == IO_FILE_BLIF )
     {
-        if ( !Abc_NtkHasSop(pNtkTemp) && !Abc_NtkHasMapping(pNtkTemp) )
+        if ( !Abc_NtkHasSop(pNtkTemp) && !Abc_NtkHasMapping(pNtkTemp) && !Abc_NtkHasMappingMO(pNtkTemp) )
             Abc_NtkToSop( pNtkTemp, -1, ABC_INFINITY );
         Io_WriteBlif( pNtkTemp, pFileName, 1, 0, 0 );
     }
@@ -460,7 +460,7 @@ void Io_Write( Abc_Ntk_t * pNtk, char * pFileName, Io_FileType_t FileType )
         Io_WriteSmv( pNtkTemp, pFileName );
     else if ( FileType == IO_FILE_VERILOG )
     {
-        if ( !Abc_NtkHasAig(pNtkTemp) && !Abc_NtkHasMapping(pNtkTemp) )
+        if ( !Abc_NtkHasAig(pNtkTemp) && !Abc_NtkHasMapping(pNtkTemp) && !Abc_NtkHasMappingMO(pNtkTemp) )
             Abc_NtkToAig( pNtkTemp );
         Io_WriteVerilog( pNtkTemp, pFileName, 0 );
     }
@@ -567,12 +567,12 @@ void Io_WriteHie( Abc_Ntk_t * pNtk, char * pBaseName, char * pFileName )
         if ( pNtkResult->pDesign )
         {
             Vec_PtrForEachEntry( Abc_Ntk_t *, pNtkResult->pDesign->vModules, pNtkTemp, i )
-                if ( !Abc_NtkHasSop(pNtkTemp) && !Abc_NtkHasMapping(pNtkTemp) )
+                if ( !Abc_NtkHasSop(pNtkTemp) && !Abc_NtkHasMapping(pNtkTemp) && !Abc_NtkHasMappingMO(pNtkTemp) )
                     Abc_NtkToSop( pNtkTemp, -1, ABC_INFINITY );
         }
         else
         {
-            if ( !Abc_NtkHasSop(pNtkResult) && !Abc_NtkHasMapping(pNtkResult) )
+            if ( !Abc_NtkHasSop(pNtkResult) && !Abc_NtkHasMapping(pNtkResult) && !Abc_NtkHasMappingMO(pNtkResult) )
                 Abc_NtkToSop( pNtkResult, -1, ABC_INFINITY );
         }
         Io_WriteBlif( pNtkResult, pFileName, 1, 0, 0 );
@@ -582,12 +582,12 @@ void Io_WriteHie( Abc_Ntk_t * pNtk, char * pBaseName, char * pFileName )
         if ( pNtkResult->pDesign )
         {
             Vec_PtrForEachEntry( Abc_Ntk_t *, pNtkResult->pDesign->vModules, pNtkTemp, i )
-                if ( !Abc_NtkHasAig(pNtkTemp) && !Abc_NtkHasMapping(pNtkTemp) )
+                if ( !Abc_NtkHasAig(pNtkTemp) && !Abc_NtkHasMapping(pNtkTemp) && !Abc_NtkHasMappingMO(pNtkTemp) )
                     Abc_NtkToAig( pNtkTemp );
         }
         else
         {
-            if ( !Abc_NtkHasAig(pNtkResult) && !Abc_NtkHasMapping(pNtkResult) )
+            if ( !Abc_NtkHasAig(pNtkResult) && !Abc_NtkHasMapping(pNtkResult) && !Abc_NtkHasMappingMO(pNtkResult) )
                 Abc_NtkToAig( pNtkResult );
         }
         Io_WriteVerilog( pNtkResult, pFileName, 0 );

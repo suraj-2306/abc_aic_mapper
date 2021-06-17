@@ -940,6 +940,8 @@ void Abc_NtkFixCoDriverProblem( Abc_Obj_t * pDriver, Abc_Obj_t * pNodeCo, int fD
 ***********************************************************************/
 int Abc_NtkLogicHasSimpleCos( Abc_Ntk_t * pNtk )
 {
+    if ( Abc_NtkHasMappingMO(pNtk) )
+        return 1; // guaranteed by mapping algorithm
     Abc_Obj_t * pNode, * pDriver;
     int i;
     assert( Abc_NtkIsLogic(pNtk) );

@@ -21,6 +21,7 @@
 #include "ioAbc.h"
 #include "base/main/main.h"
 #include "map/mio/mio.h"
+#include "map/mimo/miMo.h"
 #include "bool/kit/kit.h"
 #include "map/if/if.h"
 
@@ -40,6 +41,7 @@ static void Io_NtkWriteAsserts( FILE * pFile, Abc_Ntk_t * pNtk );
 static void Io_NtkWriteNodeFanins( FILE * pFile, Abc_Obj_t * pNode );
 static int  Io_NtkWriteNode( FILE * pFile, Abc_Obj_t * pNode, int Length );
 static void Io_NtkWriteLatch( FILE * pFile, Abc_Obj_t * pLatch );
+static void Io_NtkWriteMiMoLibBlackboxes( FILE * pFile, MiMo_Library_t * pLib, int fWriteSpecialGates );
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -142,6 +144,12 @@ void Io_NtkWrite( FILE * pFile, Abc_Ntk_t * pNtk, int fWriteLatches, int fBb2Wb,
     }
     // finalize the file
     fprintf( pFile, ".end\n" );
+    // write uses mimo circuits
+    if (Abc_NtkHasMappingMO(pNtk))
+    {
+        fprintf(pFile, "\n");
+        Io_NtkWriteMiMoLibBlackboxes(pFile, pNtk->pMiMoLib, 0);
+    }
 }
 
 /**Function*************************************************************
@@ -600,6 +608,90 @@ int Io_NtkWriteNodeGate( FILE * pFile, Abc_Obj_t * pNode, int Length )
 
 /**Function*************************************************************
 
+  Synopsis    [Writes complete .subckt for MiMo mapped nodes.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Io_NtkWriteNodeMappingMO(FILE * pFile, Abc_Obj_t * pNode )
+{
+    char pPrintStr[512];
+    int k;
+    Abc_Obj_t *pFanout;
+    // skip if not mapped (i.e. for direct input to output connection)
+    if ( !pNode->pData )
+        return;
+    MiMo_Cell_t *pCell = (MiMo_Cell_t*)pNode->pData;
+    MiMo_Gate_t *pGate = pCell->pGate;
+    if (MiMo_GateIsConst(pGate) )
+    {
+        int c = MiMo_GateIsConst0(pGate) ? 0 : 1;
+        Abc_ObjForEachFanout(pNode, pFanout, k)
+            fprintf(pFile, ".names %s\n%d\n", Abc_ObjName(pFanout), c);
+        return;
+    }
+    if (MiMo_GateIsBuf(pGate))
+    {
+        MiMo_CellFanout_t * pCellFanout = pCell->pPinOutList->pFanoutList;
+        while ( pCellFanout )
+        {
+            fprintf(pFile, ".names %s %s\n1 1\n", Abc_ObjName(Abc_ObjFanin0(pNode)), 
+                Abc_ObjName(Abc_ObjFanout(pNode, pCellFanout->FanoutId)));
+            pCellFanout = pCellFanout ->pNext;
+        }
+        return;
+    }
+    int  addedLength = 0;
+    addedLength = sprintf(pPrintStr, ".subckt %s", pCell->pGate->pName);
+    fprintf(pFile, "%s", pPrintStr);
+    MiMo_CellPinIn_t * pCellPinIn = pCell->pPinInList;
+    while (pCellPinIn)
+    {
+        if ( pCellPinIn->FaninId >= Abc_ObjFaninNum(pNode) )
+            printf("Fanin of %d: %d/%d\n", pNode->Id, pCellPinIn->FaninId, Abc_ObjFaninNum(pNode));
+        Abc_Obj_t *pFanin = Abc_ObjFanin(pNode, pCellPinIn->FaninId);
+        int expressionLength = sprintf(pPrintStr, " %s=%s", pCellPinIn->pPinIn->pName, Abc_ObjName(pFanin));
+        if (expressionLength + addedLength + 3 > IO_WRITE_LINE_LENGTH)
+        {
+            fprintf(pFile, " \\\n");
+            addedLength = 0;
+        }
+        fprintf(pFile, "%s",  pPrintStr);
+        addedLength += expressionLength;
+        pCellPinIn = pCellPinIn->pNext;
+    }
+    // print cone outputs
+    MiMo_CellPinOut_t * pCellPinOut = pCell->pPinOutList;
+    while (pCellPinOut)
+    {
+        pFanout = Abc_ObjFanout(pNode, pCellPinOut->FanoutNetId);
+        int expressionLength = sprintf(pPrintStr, " %s=%s", pCellPinOut->pPinOut->pName, Abc_ObjName(pFanout));
+        if (expressionLength + addedLength + 3 > IO_WRITE_LINE_LENGTH)
+        {
+            fprintf(pFile," \\\n");
+            addedLength = 0;
+        }
+        fprintf(pFile, "%s", pPrintStr);
+        addedLength += expressionLength;
+        pCellPinOut = pCellPinOut->pNext;
+    }
+    fprintf(pFile, "\n");
+    // write config
+    for(int layer=0; layer<=pCell->pGate->Depth; layer++)
+    {
+        fprintf(pFile, "#");
+        for (int k=(1<<layer); k<(1<<(layer+1)); k++)
+            fprintf(pFile, "%d", Vec_BitEntry(pCell->vBitConfig, k));
+        fprintf(pFile, "\n");
+    }
+}
+
+/**Function*************************************************************
+
   Synopsis    [Write the node into a file.]
 
   Description []
@@ -627,6 +719,10 @@ int Io_NtkWriteNode( FILE * pFile, Abc_Obj_t * pNode, int Length )
             RetValue = Io_NtkWriteNodeGate( pFile, pNode, Length );
             fprintf( pFile, "\n" );
         }
+    }
+    else if ( Abc_NtkHasMappingMO(pNode->pNtk) )
+    {
+        Io_NtkWriteNodeMappingMO( pFile, pNode );
     }
     else
     {
@@ -734,6 +830,62 @@ void Io_WriteTimingInfo( FILE * pFile, Abc_Ntk_t * pNtk )
     fprintf( pFile, "\n" );
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Writes all the MiMoLibrary gates as blackboxes]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Io_NtkWriteMiMoLibBlackboxes (FILE * pFile, MiMo_Library_t * pLib, int fWriteSpecialGates)
+{
+    int i, j;
+    char pPrintStr[256];
+    int addedLength = 0;
+    MiMo_Gate_t * pGate;
+    MiMo_LibForEachGate(pLib, pGate, i)
+    {
+        if (! fWriteSpecialGates && MiMo_GateIsSpecial(pGate))
+            continue;
+        fprintf(pFile, ".model %s\n", pGate->pName);
+        addedLength = sprintf(pPrintStr, ".inputs");
+        fprintf(pFile, "%s", pPrintStr);
+        MiMo_PinIn_t * pPinIn;
+        MiMo_GateForEachPinIn(pGate, pPinIn, j)
+        {
+            int expressionLength = sprintf(pPrintStr," %s", pPinIn->pName);
+            if (expressionLength + addedLength + 2 > IO_WRITE_LINE_LENGTH)
+            {
+                fprintf(pFile, " \\\n");
+                addedLength = 0;
+            }
+            addedLength += expressionLength;
+            fprintf(pFile, "%s", pPrintStr);
+        }
+        fprintf(pFile, "\n");
+        addedLength = sprintf(pPrintStr, "%s", ".outputs");
+        fprintf(pFile, "%s",  pPrintStr);
+        MiMo_PinOut_t * pPinOut;
+        MiMo_GateForEachPinOut(pGate, pPinOut, j)
+        {
+            int expressionLength = sprintf(pPrintStr," %s", pPinOut->pName);
+            if (expressionLength + addedLength + 2 > IO_WRITE_LINE_LENGTH)
+            {
+                fprintf(pFile, " \\\n");
+                addedLength = 0;
+            }
+            addedLength += expressionLength;
+            fprintf(pFile, "%s", pPrintStr);
+        }
+        fprintf(pFile, "\n");
+        fprintf(pFile, ".blackbox\n");
+        fprintf(pFile, ".end\n\n");
+    }
+}
 
 /**Function*************************************************************
 

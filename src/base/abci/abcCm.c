@@ -147,6 +147,52 @@ Cm_Man_t * Abc_NtkToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
     return pCmMan;
 }
 
+void Cm_MakeSimpleCos(Abc_Ntk_t * pNtk)
+{
+    Abc_Obj_t * pNode, *pNodeOrig, *pDriver;
+    int i;
+    Abc_NtkForEachCo(pNtk, pNode, i)
+        Abc_ObjFanin0(pNode)->pCopy = NULL;
+    Abc_NtkForEachCo(pNtk, pNode, i)
+    {
+        pDriver = Abc_ObjFanin0(pNode);
+        if ( pDriver->pCopy )
+        {
+            assert( !Abc_ObjIsCi(pDriver) );
+
+            pNodeOrig = pDriver->pCopy;
+            MiMo_Cell_t * pCell = pDriver->pData;
+            int fanoutOrigNum =  Abc_ObjFaninFanoutNum(pDriver, pNodeOrig);
+            int fanoutNewNum = Abc_ObjFaninFanoutNum(pDriver, pNode);
+            MiMo_CellPinOut_t *pPinOut = pCell->pPinOutList;
+
+            int fOrigFound = 0;
+            int fNewFound = 0;
+            while ( pPinOut && !fOrigFound && !fNewFound )
+            {
+                MiMo_CellFanout_t * pFanout = pPinOut->pFanoutList;
+                while(pFanout && (!fNewFound || !fOrigFound))
+                {
+                    if(pFanout->FanoutId == fanoutOrigNum)
+                        fOrigFound = 1;
+                    if(pFanout->FanoutId == fanoutNewNum)
+                        fNewFound = 1;
+                    pFanout = pFanout->pNext;
+                }
+                if ( !fOrigFound && !fNewFound)
+                    pPinOut = pPinOut->pNext;
+            }
+            if ( fOrigFound && fNewFound )
+            {
+                Abc_Obj_t * pNodeNew = Abc_ObjInsertBetween( pDriver, pNode, ABC_OBJ_NODE);
+                pNodeNew->pData = MiMo_CellCreate(((MiMo_Library_t*)(pNtk->pMiMoLib))->pGateBuf);
+                MiMo_CellAddBufOut(pNodeNew->pData, 0);
+            }
+        }
+        else
+            pDriver->pCopy = pNode;
+    }
+}
 
 /**Function*************************************************************
 
@@ -504,5 +550,6 @@ Abc_Ntk_t * Abc_NtkFromCm( Cm_Man_t * pCmMan, Abc_Ntk_t * pNtk )
         pNode->fMarkA = 0;
         pNode->fMarkB = 0;
     }
+    // Cm_MakeSimpleCos(pNtkNew);
     return pNtkNew;
 }

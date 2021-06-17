@@ -20,6 +20,7 @@
 
 #include "abc.h"
 #include "base/main/main.h"
+#include "map/cm/cmMiMo.h"
 //#include "seq.h"
 
 ABC_NAMESPACE_IMPL_START
@@ -194,42 +195,146 @@ Abc_Ntk_t * Abc_NtkLogicToNetlist( Abc_Ntk_t * pNtk )
             continue;
         }
         assert( Abc_ObjIsNode(pDriver) );
-        // if the CO driver has no net, create it
-        if ( pDriver->pCopy->pCopy == NULL )
+        if ( Abc_NtkHasMappingMO(pNtkNew) )
         {
-            // create the CO net and connect it to CO
-            //if ( Abc_NtkFindNet(pNtkNew, Abc_ObjName(pDriver)) == NULL )
-            //    pNet = Abc_NtkFindOrCreateNet( pNtkNew, Abc_ObjName(pDriver) );
-            //else
-            pNet = Abc_NtkFindOrCreateNet( pNtkNew, Abc_ObjName(pObj) );
-            Abc_ObjAddFanin( pObj->pCopy, pNet );
-            // connect the CO net to the new driver and remember it in the new driver
-            Abc_ObjAddFanin( pNet, pDriver->pCopy );
-            pDriver->pCopy->pCopy = pNet;
+            // check if net matches
+            // iData contains driver fanoutNetId
+            Abc_Obj_t *pNetPrev = pDriver->pCopy;
+
+            int fanoutNetId = MiMo_CellFanoutNetId( pDriver->pData, Abc_ObjFaninFanoutNum(pDriver, pObj) );
+            while( pNetPrev->pCopy && pNetPrev->pCopy->iData != fanoutNetId)
+                pNetPrev = pNetPrev->pCopy;
+
+            // if the CO driver has no matching net, create it
+            if ( !pNetPrev->pCopy )
+            {
+                pNet = Abc_NtkFindOrCreateNet( pNtkNew, Abc_ObjName(pObj) );
+                Abc_ObjAddFanin( pObj->pCopy, pNet );
+                pNet->iData = fanoutNetId;
+                // remember it, to add it later as fanout of driver
+                pNetPrev->pCopy = pNet;
+            }
+            else
+            {
+                assert( !strcmp( Abc_ObjName(pNetPrev->pCopy), Abc_ObjName(pObj) ) );
+                Abc_ObjAddFanin( pObj->pCopy, pNetPrev->pCopy );
+            }
         }
         else
         {
-            assert( !strcmp( Abc_ObjName(pDriver->pCopy->pCopy), Abc_ObjName(pObj) ) );
-            Abc_ObjAddFanin( pObj->pCopy, pDriver->pCopy->pCopy );
+            // if the CO driver has no net, create it
+            if ( pDriver->pCopy->pCopy == NULL )
+            {
+                pNet = Abc_NtkFindOrCreateNet( pNtkNew, Abc_ObjName(pObj) );
+                Abc_ObjAddFanin( pObj->pCopy, pNet );
+                // connect the CO net to the new driver and remember it in the new driver
+                Abc_ObjAddFanin( pNet, pDriver->pCopy );
+                pDriver->pCopy->pCopy = pNet;
+            }
+            else
+            {
+                assert( !strcmp( Abc_ObjName(pDriver->pCopy->pCopy), Abc_ObjName(pObj) ) );
+                Abc_ObjAddFanin( pObj->pCopy, pDriver->pCopy->pCopy );
+            }
         }
     }
+
     // create the missing nets
-    Abc_NtkForEachNode( pNtk, pObj, i )
+    if ( Abc_NtkHasMappingMO(pNtkNew) )
     {
-        char Buffer[1000];
-        if ( pObj->pCopy->pCopy ) // the net of the new object is already created
-            continue;
-        // create the new net
-        sprintf( Buffer, "new_%s_", Abc_ObjName(pObj) );
-        //pNet = Abc_NtkFindOrCreateNet( pNtkNew, Abc_ObjName(pObj) ); // here we create net names such as "n48", where 48 is the ID of the node
-        pNet = Abc_NtkFindOrCreateNet( pNtkNew, Buffer ); 
-        Abc_ObjAddFanin( pNet, pObj->pCopy );
-        pObj->pCopy->pCopy = pNet;
+        Abc_NtkForEachNode( pNtk, pObj, i )
+        {
+            MiMo_Cell_t *pCell = pObj->pData;
+            // skip nodes inserted during Abc_NtkLogicMakeSimpleCos
+            if ( !pCell)
+            {
+                // non-Cells  have exactly one output
+                if ( pObj->pCopy->pCopy )
+                    continue;
+                pNet = Abc_NtkFindOrCreateNet( pNtkNew, Abc_ObjName(pObj) );
+                Abc_ObjAddFanin( pNet, pObj->pCopy );
+                pNet->iData = 0;
+                pObj->pCopy->pCopy = pNet;
+                continue;
+            }
+            MiMo_CellPinOut_t *pPinOut = pCell->pPinOutList;
+            char nameBuf[32];
+            while(pPinOut)
+            {
+                // search if net is already created
+                Abc_Obj_t * pNetPrev = pObj->pCopy;
+                while( pNetPrev->pCopy && pNetPrev->pCopy->iData != pPinOut->FanoutNetId )
+                    pNetPrev = pNetPrev->pCopy;
+                // otherwise create net
+                if ( !pNetPrev->pCopy )
+                {
+                    sprintf(nameBuf, "%s_c%d", Abc_ObjName(pObj), pPinOut->FanoutNetId);
+                    pNet = Abc_NtkFindOrCreateNet( pNtkNew , nameBuf );
+                    pNet->iData = pPinOut->FanoutNetId;
+                    pNetPrev->pCopy = pNet;
+                }
+                pPinOut = pPinOut->pNext;
+            }
+
+            // add nets fanins in desired order
+            for(int r=0; r<=pCell->pPinOutList->FanoutNetId; r++)
+            {
+                Abc_Obj_t * pNetPrev = pObj->pCopy;
+                while( pNetPrev->pCopy->iData != r )
+                    pNetPrev = pNetPrev->pCopy;
+                Abc_ObjAddFanin(pNetPrev->pCopy, pObj->pCopy);
+                pNetPrev->pCopy = pNetPrev->pCopy->pCopy;
+            }
+        }
+        // connect nodes to the fanins nets
+        Abc_NtkForEachNode( pNtk, pObj, i )
+        {
+            Abc_ObjForEachFanin( pObj, pFanin, k )
+            {
+                MiMo_Cell_t *pCell = pFanin->pData;
+                if( !pCell )
+                {
+                    Abc_ObjAddFanin( pObj->pCopy, pFanin->pCopy->pCopy );
+                    continue;
+                }
+                MiMo_CellPinOut_t * pPinOut = pCell->pPinOutList;
+                while(pPinOut)
+                {
+                    int fanoutNetId = MiMo_CellGetPinInNet(pObj->pData, k);
+                    if ( fanoutNetId>=0 && fanoutNetId != pPinOut->FanoutNetId)
+                    {
+                        pPinOut = pPinOut->pNext;
+                        continue;
+                    }
+                    MiMo_CellFanout_t * pCellFanout = pPinOut->pFanoutList;
+                    while (pCellFanout)
+                    {
+                        if ( Abc_ObjFanout( pFanin, pCellFanout->FanoutId) == pObj )
+                            Abc_ObjAddFanin( pObj->pCopy, Abc_ObjFanout(pFanin->pCopy, pPinOut->FanoutNetId));
+                        pCellFanout = pCellFanout->pNext;
+                    }
+                    pPinOut = pPinOut->pNext;
+                }
+            }
+        }
     }
-    // connect nodes to the fanins nets
-    Abc_NtkForEachNode( pNtk, pObj, i )
-        Abc_ObjForEachFanin( pObj, pFanin, k )
-            Abc_ObjAddFanin( pObj->pCopy, pFanin->pCopy->pCopy );
+    else
+    {
+        // create the missing nets
+        Abc_NtkForEachNode( pNtk, pObj, i )
+        {
+            if ( pObj->pCopy->pCopy ) // the net of the new object is already created
+                continue;
+            // create the new net
+            pNet = Abc_NtkFindOrCreateNet( pNtkNew, Abc_ObjName(pObj) ); // here we create ridiculous names net line "n48", where 48 is the ID of the node
+            Abc_ObjAddFanin( pNet, pObj->pCopy );
+            pObj->pCopy->pCopy = pNet;
+        }
+        // connect nodes to the fanins nets
+        Abc_NtkForEachNode( pNtk, pObj, i )
+            Abc_ObjForEachFanin( pObj, pFanin, k )
+                Abc_ObjAddFanin( pObj->pCopy, pFanin->pCopy->pCopy );
+    }
     // duplicate EXDC 
     if ( pNtk->pExdc )
         pNtkNew->pExdc = Abc_NtkToNetlist( pNtk->pExdc );
