@@ -170,4 +170,46 @@ void Cm_PrintConeDelays(Cm_Man_t *p)
     printf("\n");
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Prints for each CO the arrival time. ]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintCoArrival(Cm_Man_t * p)
+{
+    int i;
+    Cm_Obj_t * pObj;
+    printf("Co arrival:");
+    Cm_ManForEachCo(p, pObj, i)
+        printf(" %3.1f", pObj->pFanin0->BestCut.Arrival);
+    printf("\n");
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Prints for each CI the required time.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintCiRequired(Cm_Man_t *p)
+{
+    int enumerator;
+    Cm_Obj_t * pObj;
+    printf("Ci Required at:");
+    Cm_ManForEachCi(p, pObj, enumerator)
+        printf(" %3.1f", pObj->Required);
+    printf("\n");
+}
+
 ABC_NAMESPACE_IMPL_END

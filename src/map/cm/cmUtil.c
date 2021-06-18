@@ -76,4 +76,77 @@ float Cm_CutLatestLeafArrival(Cm_Cut_t * pCut)
     return arrival;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Sets the required times of the COs.]
+
+  Description [Takes the minimum of the direct and external provided
+               required time.]
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_ManSetCoRequired(Cm_Man_t *p, float required)
+{
+    int i;
+    Cm_Obj_t * pObj;
+    float *pReq = p->pPars->pCoRequired;
+    if ( !pReq ){
+        Cm_ManForEachCo(p, pObj, i)
+           pObj->Required = required;
+    } else {
+       Cm_ManForEachCo(p, pObj, i)
+           pObj->Required = CM_MIN(pReq[i], required);
+    }
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Initializes the CI arrival time.]
+
+  Description [To 0 If no external arrival time is given]
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_ManSetCiArrival(Cm_Man_t *p)
+{
+    int i;
+    Cm_Obj_t * pObj;
+    float *pArr = p->pPars->pCiArrival;
+    if ( !pArr ){
+        Cm_ManForEachCi(p, pObj, i)
+           pObj->BestCut.Arrival = 0;
+    } else {
+       Cm_ManForEachCi(p, pObj, i)
+           pObj->BestCut.Arrival = pArr[i];
+    }
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Calculates the latest CO arrival]
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+float Cm_ManLatestCoArrival(Cm_Man_t *p)
+{
+    int i;
+    Cm_Obj_t * pObj;
+    float circuitArrival = -CM_FLOAT_LARGE;
+    Cm_ManForEachCo(p, pObj, i)
+        circuitArrival = CM_MAX(circuitArrival, pObj->pFanin0->BestCut.Arrival);
+    return circuitArrival;
+}
+
+
 ABC_NAMESPACE_IMPL_END

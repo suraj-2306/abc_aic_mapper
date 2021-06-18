@@ -72,6 +72,9 @@ Abc_Ntk_t * Abc_NtkCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars)
         pPars->AicDelay[i] = pConeGates[minSoHeight]->MaxDelay;
     for(int i=minSoHeight; i<=pPars->nConeDepth; i++)
         pPars->AicDelay[i] = pConeGates[i]->MaxDelay;
+    pPars->pCiArrival = Abc_NtkGetCiArrivalFloats( pNtk );
+    pPars->pCoRequired = Abc_NtkGetCoRequiredFloats( pNtk );
+
     Cm_Man_t * pCmMan = Abc_NtkToCm( pNtk, pPars );
     // transfer gates and pins to mapping manager
     for(int i=0; i<=CM_MAX_DEPTH; i++)

@@ -86,6 +86,8 @@ struct Cm_Par_t_ {
     float Epsilon; // used for comparisons
     int nMaxCycleDetectionRecDepth; // longest allowed side output chain path length
     MiMo_Library_t * pMiMoLib;
+    float * pCiArrival;
+    float * pCoRequired;
 };
 
 struct Cm_Man_t_
@@ -224,15 +226,25 @@ extern void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth);
 extern void Cm_PrintAigStructure(Cm_Man_t * pMan, int lineLimit);
 extern void Cm_PrintConeDelays(Cm_Man_t * p);
 extern void Cm_PrintBestCut(Cm_Obj_t * pObj);
+extern void Cm_PrintCoArrival(Cm_Man_t * pObj);
+extern void Cm_PrintCiRequired(Cm_Man_t * pObj);
+/*=== cmRequired.c ===================================================*/
+extern void Cm_ManCalcVisibleRequired(Cm_Man_t *p);
+extern void Cm_ManSetInvisibleRequired(Cm_Man_t *p);
 /*=== cmSo.c =========================================================*/
 extern void Cm_ManInsertSos(Cm_Man_t *p);
 /*=== cmTest.c =======================================================*/
 extern int Cm_TestBestCutLeafsStructure(Cm_Man_t *p);
 extern int Cm_TestMonotonicArrival(Cm_Man_t *p);
 extern int Cm_TestArrivalConsistency(Cm_Man_t * p);
+extern int Cm_TestPositiveSlacks(Cm_Man_t * p, int fConservative);
 /*=== cmUtil.c =======================================================*/
-float Cm_CutLatestLeafMoArrival(Cm_Cut_t * pCut);
-float Cm_CutLatestLeafArrival(Cm_Cut_t * pCut);
+extern float Cm_CutLatestLeafMoArrival(Cm_Cut_t * pCut);
+extern float Cm_CutLatestLeafArrival(Cm_Cut_t * pCut);
+extern void Cm_ManSetCoRequired(Cm_Man_t *p, float required);
+extern void Cm_ManSetCiArrival(Cm_Man_t *p);
+extern float Cm_ManLatestCoArrival(Cm_Man_t *p);
+
 ABC_NAMESPACE_HEADER_END
 
 #endif

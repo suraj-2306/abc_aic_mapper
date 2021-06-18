@@ -95,9 +95,6 @@ void Cm_ManAssignCones( Cm_Man_t * p )
 }
 
 
-
-
-
 /**Function*************************************************************
 
   Synopsis    [Performs the cone mapping]
@@ -118,6 +115,7 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
     float *AicDelay = p->pPars->AicDelay;
     Cm_ManForEachCi(p, pObj, enumerator)
         pObj->BestCut.Arrival = 0;
+
     Cm_ManForEachNode(p, pObj, enumerator)
     {
         pNodes[1] = pObj;
@@ -125,11 +123,21 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
         Cm_FaExtractLeafs(pNodes, &pObj->BestCut);
         pObj->BestCut.Arrival = arr + AicDelay[pObj->BestCut.Depth];
     }
+    float arrival = Cm_ManLatestCoArrival(p);
+    Cm_ManSetCoRequired(p, arrival);
+    Cm_ManCalcVisibleRequired(p);
+    Cm_ManSetInvisibleRequired(p);
+    if ( p->pPars->fVeryVerbose)
+    {
+        Cm_PrintCoArrival(p);
+        Cm_PrintCiRequired(p);
+    }
     if ( p->pPars->fExtraValidityChecks )
     {
         Cm_TestBestCutLeafsStructure(p);
         Cm_TestMonotonicArrival(p);
         Cm_TestArrivalConsistency(p);
+        Cm_TestPositiveSlacks(p, 1);
     }
     Cm_ManAssignCones(p);
     Cm_ManInsertSos(p);

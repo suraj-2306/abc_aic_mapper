@@ -26,6 +26,19 @@ ABC_NAMESPACE_IMPL_START
 
 /**Function*************************************************************
 
+  Synopsis    [Line limit for failed test outputs.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline int Cm_TestLineLimit(Cm_Man_t * p) { return p->pPars->fVeryVerbose ? 1000*1000*1000 : 10; }
+ 
+/**Function*************************************************************
+
   Synopsis    [Tests that leafs of all cuts are valid.]
 
   Description [Returns 1 if ok. The leafs of a cut are valid if each path
@@ -38,7 +51,7 @@ ABC_NAMESPACE_IMPL_START
 ***********************************************************************/
 int Cm_TestBestCutLeafsStructure(Cm_Man_t *p)
 {
-    int lineLimit = p->pPars->fVeryVerbose ? 1000*1000*1000  : 10;
+    int lineLimit = Cm_TestLineLimit(p);
     int lineCount = 0;
     int i, fail = 0;
     Cm_Obj_t * pObj;
@@ -116,7 +129,7 @@ int Cm_TestMonotonicArrival(Cm_Man_t *p)
     int i;
     int fail = 0;
     int lineCount = 0;
-    int lineLimit = p->pPars->fVeryVerbose ? 1000*1000*1000  : 10;
+    int lineLimit = Cm_TestLineLimit(p);
     Cm_ManForEachNode(p, pObj, i)
     {
         float d = pObj->BestCut.Arrival + p->pPars->Epsilon;
@@ -209,7 +222,7 @@ int Cm_TestArrivalConsistency(Cm_Man_t * p)
     float eps = p->pPars->Epsilon;
     int enumerator;
     Cm_Obj_t * pObj;
-    int lineLimit = p->pPars->fVeryVerbose ? 1000*1000*1000  : 10;
+    int lineLimit = Cm_TestLineLimit(p);
     int failCount = 0;
     Cm_ManForEachCi(p, pObj, enumerator)
     {
@@ -232,6 +245,76 @@ int Cm_TestArrivalConsistency(Cm_Man_t * p)
             printf("----------------------- Consistent arrival propagation\n");
     }
     return !failCount;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Tests that for each node (each CO for fConservative = 0)
+               the required time is not less than the arrival time.]
+
+  Description [Returns 1 if so.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Cm_TestPositiveSlacks(Cm_Man_t *p, int fConservative)
+{
+    Cm_Obj_t * pObj;
+    float eps = p->pPars->Epsilon;
+    int i;
+    int linesLeft = Cm_TestLineLimit(p);
+    int nCiFails = 0, nNodeFails = 0;
+    int nCoFails = 0;
+    Cm_ManForEachCi(p, pObj, i)
+        if ( pObj->Required +eps < 0)
+        {
+            nCiFails++;
+            if (linesLeft)
+            {
+                printf("Slack fail at ci %d: (R=%3.1f)\n", pObj->Id, pObj->Required);
+                linesLeft--;
+            }
+        }
+    Cm_ManForEachCo(p, pObj, i)
+    {
+        Cm_Obj_t * pF = pObj->pFanin0;
+        float arrival = pF->BestCut.SoOfCutAt ? pF->BestCut.SoArrival : pF->BestCut.Arrival;
+        if (pObj->pFanin0->Required + eps < arrival)
+        {
+            printf("Co arrival at %3.1f, but required at %3.1f\n", arrival, pObj->pFanin0->Required);
+            nCoFails++;
+        }
+    }
+
+    if (fConservative)
+    {
+        nNodeFails = - nCoFails; // do not count twice
+        Cm_ManForEachNode(p, pObj, i)
+        {
+            if (! (pObj->fMark & CM_MARK_VISIBLE))
+                continue;
+            float arrival = pObj->BestCut.SoOfCutAt ? pObj->BestCut.SoArrival : pObj->BestCut.Arrival;
+            if (pObj->Required + eps < arrival)
+            {
+                nNodeFails++;
+                if ( linesLeft )
+                {
+                    printf("Slack fail at node %d: (R=%3.1f, A=%3.1f)\n", pObj->Id, pObj->Required, arrival);
+                    linesLeft--;
+                }
+            }
+        }
+    }
+    int fail = nCiFails || nNodeFails || nCoFails;
+    if(fail){
+        printf("----------------------- %d co, %d ci, and %d node slacks are negative\n", nCoFails, nCiFails, nNodeFails);
+    } else {
+        if ( p->pPars->fVerbose )
+            printf("----------------------- All slacks are positive\n");
+    }
+    return !fail;
 }
 
 ABC_NAMESPACE_IMPL_END
