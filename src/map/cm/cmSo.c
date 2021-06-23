@@ -245,7 +245,8 @@ int Cm_ManPostProcessSoAssignment(Cm_Man_t *p)
 
   Description [Considers only nodes marked VISIBLE.]
 
-  SideEffects [May increase arrival times of nodes.]
+  SideEffects [May increase arrival times of nodes. Either unconstrained
+               or limited by required times (fRespectSoSlack).]
 
   SeeAlso     []
 
@@ -254,7 +255,9 @@ void Cm_ManInsertSos(Cm_Man_t *p)
 {
     Cm_Obj_t *pObj;
     int enumerator;
+    float eps = p->pPars->Epsilon;
     float *AicDelay = p->pPars->AicDelay;
+    int fRespectSlack = p->pPars->fRespectSoSlack;
  
     Cm_Obj_t *pSo[CM_MAX_NLEAFS];
     int soPos[CM_MAX_NLEAFS];
@@ -269,11 +272,16 @@ void Cm_ManInsertSos(Cm_Man_t *p)
         {
             if ( !(pSo[i]->fMark & CM_MARK_VISIBLE) )
                 continue;
-            if ( !pSo[i]->BestCut.SoOfCutAt )
-                nPossibleSos++;
-            pSo[i]->BestCut.SoOfCutAt = pObj;
-            pSo[i]->BestCut.SoPos = soPos[i];
-            pSo[i]->BestCut.SoArrival = soArrival[i];
+            // if desired: enable only Side outputs that don't violate the slack
+            if ( !fRespectSlack || soArrival[i] < pSo[i]->Required + eps ||
+                  (pSo[i]->BestCut.SoOfCutAt && soArrival[i] < pSo[i]->BestCut.SoArrival) )
+            {
+                if ( !pSo[i]->BestCut.SoOfCutAt )
+                    nPossibleSos++;
+                pSo[i]->BestCut.SoOfCutAt = pObj;
+                pSo[i]->BestCut.SoPos = soPos[i];
+                pSo[i]->BestCut.SoArrival = soArrival[i];
+            }
         }
     }
     Cm_ManForEachNode(p, pObj, enumerator)
@@ -286,7 +294,14 @@ void Cm_ManInsertSos(Cm_Man_t *p)
             float arrivalSo = Cm_CutLatestLeafArrival(&pSoRoot->BestCut) + AicDelay[pSoRoot->BestCut.Depth];
           
             // ignore arrival reduction by SO, as it might be invalid
-            pObj->BestCut.SoArrival = CM_MAX(arrivalSo, pObj->BestCut.Arrival);
+            float arrival = CM_MAX(arrivalSo, pObj->BestCut.Arrival);
+            if ( !fRespectSlack || arrival < pObj->Required + eps  )
+                pObj->BestCut.SoArrival = arrival;
+            else
+            {
+                pObj->BestCut.SoOfCutAt = NULL;
+                nPossibleSos--;
+            }
         }
         if ( ! pObj->BestCut.SoOfCutAt )
         {

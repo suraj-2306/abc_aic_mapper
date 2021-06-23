@@ -208,4 +208,40 @@ void Cm_CutCopy(Cm_Cut_t *pFrom, Cm_Cut_t *pTo)
         pTo->Leafs[i] = pFrom->Leafs[i];
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Calculates the minimal arrival time of an side output]
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Cm_ObjLatestLeafArrival_rec(Cm_Obj_t *pObj)
+{
+    if ( (pObj->fMark & CM_MARK_LEAF) )
+    {
+        return pObj->BestCut.SoOfCutAt ? pObj->BestCut.SoArrival : pObj->BestCut.Arrival;
+    }
+    return CM_MAX(Cm_ObjLatestLeafArrival_rec(pObj->pFanin0), Cm_ObjLatestLeafArrival_rec(pObj->pFanin1));
+}
+int Cm_ObjMaxLeafDepth_rec(Cm_Obj_t *pObj)
+{
+    if ( (pObj->fMark & CM_MARK_LEAF) )
+        return 0;
+    return 1 + CM_MAX(Cm_ObjMaxLeafDepth_rec(pObj->pFanin0), Cm_ObjMaxLeafDepth_rec(pObj->pFanin1));
+}
+float Cm_ObjSoArrival(Cm_Obj_t * pObj, float *coneDelay)
+{
+    Cm_Obj_t *pSoRoot = pObj->BestCut.SoOfCutAt;
+    Cm_CutMarkLeafs(&pSoRoot->BestCut, CM_MARK_LEAF);
+    int maxDepth = Cm_ObjMaxLeafDepth_rec(pObj);
+    float latestArrival = Cm_ObjLatestLeafArrival_rec(pObj);
+    Cm_CutClearMarkLeafs(&pSoRoot->BestCut, CM_MARK_LEAF);
+    return latestArrival + coneDelay[maxDepth]; 
+}
+
+
 ABC_NAMESPACE_IMPL_END

@@ -88,6 +88,7 @@ struct Cm_Par_t_ {
     float Epsilon; // used for comparisons
     int MaxCutSize;
     int nMaxCycleDetectionRecDepth; // longest allowed side output chain path length
+    int fRespectSoSlack; // respect required time, when inserting side outputs ?
     MiMo_Library_t * pMiMoLib;
     float * pCiArrival;
     float * pCoRequired;
@@ -256,8 +257,8 @@ extern void Cm_ManSetCiArrival(Cm_Man_t *p);
 extern float Cm_ManLatestCoArrival(Cm_Man_t *p);
 extern float Cm_CutLeafAreaFlowSum(Cm_Cut_t * pCut);
 extern float Cm_ManCutAreaFlow(Cm_Man_t *p, Cm_Cut_t * pCut);
-void Cm_CutCopy(Cm_Cut_t *pFrom, Cm_Cut_t *pTo);
-
+extern void Cm_CutCopy(Cm_Cut_t *pFrom, Cm_Cut_t *pTo);
+extern float Cm_ObjSoArrival(Cm_Obj_t * pObj, float *coneDelay);
 ABC_NAMESPACE_HEADER_END
 
 #endif

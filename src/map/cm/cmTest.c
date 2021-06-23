@@ -207,10 +207,38 @@ int Cm_TestMoArrivalConsistency(Cm_Man_t *p, Cm_Obj_t * pObj, int fVerbose)
 
 /**Function*************************************************************
 
-  Synopsis    [Tests that arrival times of each node is at least the
-               minimal arrival time of the cut rooted at the node.]
+  Synopsis    [Tests that the arrival time of a side output is at least
+               the minimal arrival time inside the processing cone.]
 
-  Description [Returns 1 if so.]
+  Description [Returns 0 if so.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Cm_TestSoArrivalConsistency(Cm_Man_t *p, Cm_Obj_t * pObj, int fVerbose)
+{
+    float * AicDelay = p->pPars->AicDelay;
+    float eps = p->pPars->Epsilon; 
+    float minAr = Cm_ObjSoArrival(pObj, AicDelay);
+    if ( minAr > pObj->BestCut.SoArrival + eps)
+    {
+        if(fVerbose)
+            printf("Side output %d (root %d) arrival fail: (minAr: %3.1f, given: %3.1f)\n", 
+                    pObj->Id, pObj->BestCut.SoOfCutAt->Id,
+                    minAr, pObj->BestCut.SoArrival);
+        return 1;
+    }
+    return 0;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Tests that arrival times of each node is at exceeding the
+               minimal arrival time given by all of its fanins.]
+
+  Description [Returns 1 if so. Also takes care of side outputs.]
                
   SideEffects []
 
@@ -235,7 +263,10 @@ int Cm_TestArrivalConsistency(Cm_Man_t * p)
     }
     Cm_ManForEachNode(p, pObj, enumerator)
     {
-        failCount += Cm_TestMoArrivalConsistency(p, pObj, failCount < lineLimit);
+        if ( pObj->BestCut.SoOfCutAt)
+            failCount += Cm_TestSoArrivalConsistency(p, pObj, failCount < lineLimit);
+        else
+            failCount += Cm_TestMoArrivalConsistency(p, pObj, failCount < lineLimit);
     }
     if ( failCount )
         printf("----------------------- %d nodes have invalid arrival time\n", failCount);

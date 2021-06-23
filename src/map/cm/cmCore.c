@@ -45,9 +45,9 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->fVeryVerbose = 0;
     pPars->fExtraValidityChecks = 0;
     pPars->MinSoHeight = 2;
+    pPars->fRespectSoSlack = 1;
     pPars->Epsilon = (float)0.005;
     pPars->MaxCutSize = 10;
-
     pPars->nMaxCycleDetectionRecDepth = 5;
 }
 
@@ -204,6 +204,11 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
     }
     Cm_ManAssignCones(p);
     Cm_ManInsertSos(p);
+    if ( p->pPars->fExtraValidityChecks )
+    {
+        Cm_TestArrivalConsistency(p);
+        Cm_TestPositiveSlacks(p, 1);
+    }
     return 0;
 }
 
