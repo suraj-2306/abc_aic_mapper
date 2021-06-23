@@ -6,4 +6,5 @@ SRC +=  src/map/cm/cmCore.c \
     src/map/cm/cmMiMo.c \
     src/map/cm/cmSo.c \
     src/map/cm/cmUtil.c \
-    src/map/cm/cmRequired.c
+    src/map/cm/cmRequired.c \
+    src/map/cm/cmArea.c

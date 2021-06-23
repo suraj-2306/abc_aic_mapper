@@ -125,6 +125,23 @@ float Cm_FaBuildDepthOptimal(Cm_Obj_t **pNodes, Cm_Par_t *pPars)
 }
 
 
+void Cm_FaBuildSub_rec(Cm_Obj_t * pObj, Cm_Obj_t **pNodes, int pos, int depth)
+{
+    pNodes[pos] = pObj;
+    if ( (pObj->fMark & CM_MARK_LEAF_SUB) )
+        return;
+    Cm_FaBuildSub_rec(pObj->pFanin0, pNodes, 2*pos, depth);
+    Cm_FaBuildSub_rec(pObj->pFanin1, pNodes, 2*pos+1, depth);
+}
+void Cm_FaBuildSub(Cm_Obj_t **pNodes, int rootPos, Cm_Cut_t * pCut, int depth)
+{
+    for(int i=0; i<pCut->nFanins; i++)
+        pCut->Leafs[i]->fMark |= CM_MARK_LEAF_SUB;
+    Cm_FaBuildSub_rec(pNodes[rootPos], pNodes, rootPos, depth);
+    for(int i=0; i<pCut->nFanins; i++)
+        pCut->Leafs[i]->fMark &= ~CM_MARK_LEAF_SUB;
+}
+
 /**Function*************************************************************
 
   Synopsis    [Removes all leafs of the pLeafs array for which no path
@@ -294,6 +311,56 @@ void Cm_FaShiftDownLeafs(Cm_Obj_t **pFaninArray, int depth)
             pFaninArray[i] = NULL;
         } 
     }
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Clears the fanin array elements, which are predecessors
+               of the node at given pos.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_FaClearSub(Cm_Obj_t **pFa, int pos, int depth)
+{
+    pos *= 2;
+    int layerSize = 2;
+    while(pos < (2<<depth))
+    {
+        for(int i=pos; i<pos+layerSize; i++)
+            pFa[i] = NULL;
+        pos *= 2;
+        layerSize *= 2;
+    }
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Returns the latest (from cut root coming) arrival time of
+               all the potential leaf nodes.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+float Cm_FaLatestMoInputArrival(Cm_Obj_t ** pFa, int depth)
+{
+    float latestInputArrival = -CM_FLOAT_LARGE;
+    for(int i=1; i<(1<<depth); i++)
+        if ( pFa[i] && !pFa[2*i] && !pFa[2*i+1] &&
+             pFa[i]->BestCut.Arrival > latestInputArrival)
+            latestInputArrival = pFa[i]->BestCut.Arrival;   
+    for(int i=(1<<depth); i<(2<<depth); i++)
+        if ( pFa[i] && pFa[i]->BestCut.Arrival > latestInputArrival)
+            latestInputArrival = pFa[i]->BestCut.Arrival;
+    return latestInputArrival;
 }
 
 

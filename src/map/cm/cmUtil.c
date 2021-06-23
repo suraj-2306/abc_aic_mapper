@@ -148,5 +148,64 @@ float Cm_ManLatestCoArrival(Cm_Man_t *p)
     return circuitArrival;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Calculates areaflow sum of the cut leafs.]
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+float Cm_CutLeafAreaFlowSum(Cm_Cut_t * pCut)
+{
+    float af = 0;
+    for(int i=0; i<pCut->nFanins; i++)
+        af += pCut->Leafs[i]->BestCut.AreaFlow;
+    return af;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Calculates the areaflow of the cut.]
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+float Cm_ManCutAreaFlow(Cm_Man_t *p, Cm_Cut_t * pCut)
+{
+    float *AicArea = p->pPars->AicArea;
+    float af = 0;
+    for(int i=0; i<pCut->nFanins; i++)
+        af += pCut->Leafs[i]->BestCut.AreaFlow;
+    return af + AicArea[pCut->Depth];
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Copies the relevant content of one cut to another.]
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_CutCopy(Cm_Cut_t *pFrom, Cm_Cut_t *pTo)
+{
+    pTo->Depth = pFrom->Depth;
+    pTo->Arrival = pFrom->Arrival;
+    pTo->AreaFlow = pFrom->AreaFlow;
+    pTo->nFanins = pFrom->nFanins;
+    for(int i=0; i< pFrom->nFanins; i++)
+        pTo->Leafs[i] = pFrom->Leafs[i];
+}
 
 ABC_NAMESPACE_IMPL_END

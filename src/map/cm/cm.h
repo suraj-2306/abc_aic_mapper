@@ -55,6 +55,7 @@ ABC_NAMESPACE_HEADER_START
 #define CM_MARK_LEAF (4)
 #define CM_MARK_VISIBLE (8)
 #define CM_MARK_FIXED (16)
+#define CM_MARK_LEAF_SUB (32)
 
 /* Defines the type of the objects in the AIG  */
 typedef enum {
@@ -83,7 +84,9 @@ struct Cm_Par_t_ {
     int fExtraValidityChecks; // run more checks -- mainly for debugging 
     int MinSoHeight; 
     float AicDelay[CM_MAX_DEPTH + 1]; // delay of the cones for each depth
+    float AicArea[CM_MAX_DEPTH+1]; // area of the cones for each depth
     float Epsilon; // used for comparisons
+    int MaxCutSize;
     int nMaxCycleDetectionRecDepth; // longest allowed side output chain path length
     MiMo_Library_t * pMiMoLib;
     float * pCiArrival;
@@ -115,6 +118,7 @@ struct Cm_Man_t_
 struct Cm_Cut_t_
 {
     float Arrival; // arrival time of the root at cut
+    float AreaFlow; // area flow 
     short Depth; // depth of the cut
     short nFanins; // number of leafs
     Cm_Obj_t * Leafs[CM_MAX_NLEAFS]; // pointer to leafs
@@ -206,14 +210,19 @@ static inline MiMo_PinOut_t * Cm_ManGetOutputPin(Cm_Man_t * p, int coneDepth, in
 ///                    FUNCTION DECLARATIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
+/*=== cmArea.c =======================================================*/
+extern float Cm_ManMinimizeCutAreaFlowPriority(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
 /*=== cmCore.c =======================================================*/
 extern void Cm_ManSetDefaultPars( Cm_Par_t * pPars );
 extern int Cm_ManPerformMapping( Cm_Man_t * p );
 /*=== cmFa.c =========================================================*/
 extern float Cm_FaBuildDepthOptimal(Cm_Obj_t **pNodes, Cm_Par_t * pPars);
 extern int Cm_FaBuildWithMaximumDepth(Cm_Obj_t **pFaninArray, int maxDepth);
+extern void Cm_FaBuildSub(Cm_Obj_t ** pFaninArray, int rootPos, Cm_Cut_t *pCut, int depth);
 extern void Cm_FaExtractLeafs(Cm_Obj_t **pNodes, Cm_Cut_t *pCut);
-void Cm_FaShiftDownLeafs(Cm_Obj_t **pFaninArray, int depth);
+extern void Cm_FaShiftDownLeafs(Cm_Obj_t **pFaninArray, int depth);
+extern void Cm_FaClearSub(Cm_Obj_t **pFa, int pos, int depth);
+extern float Cm_FaLatestMoInputArrival(Cm_Obj_t ** pFa, int depth);
 /*=== cmMan.c ========================================================*/
 extern Cm_Man_t * Cm_ManStart( Cm_Par_t *pPars );
 extern void Cm_ManStop( Cm_Man_t * p );
@@ -226,6 +235,7 @@ extern void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth);
 extern void Cm_PrintAigStructure(Cm_Man_t * pMan, int lineLimit);
 extern void Cm_PrintConeDelays(Cm_Man_t * p);
 extern void Cm_PrintBestCut(Cm_Obj_t * pObj);
+extern void Cm_PrintBestCutStats(Cm_Man_t * p);
 extern void Cm_PrintCoArrival(Cm_Man_t * pObj);
 extern void Cm_PrintCiRequired(Cm_Man_t * pObj);
 /*=== cmRequired.c ===================================================*/
@@ -244,6 +254,9 @@ extern float Cm_CutLatestLeafArrival(Cm_Cut_t * pCut);
 extern void Cm_ManSetCoRequired(Cm_Man_t *p, float required);
 extern void Cm_ManSetCiArrival(Cm_Man_t *p);
 extern float Cm_ManLatestCoArrival(Cm_Man_t *p);
+extern float Cm_CutLeafAreaFlowSum(Cm_Cut_t * pCut);
+extern float Cm_ManCutAreaFlow(Cm_Man_t *p, Cm_Cut_t * pCut);
+void Cm_CutCopy(Cm_Cut_t *pFrom, Cm_Cut_t *pTo);
 
 ABC_NAMESPACE_HEADER_END
 

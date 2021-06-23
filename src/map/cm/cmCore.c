@@ -46,6 +46,7 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->fExtraValidityChecks = 0;
     pPars->MinSoHeight = 2;
     pPars->Epsilon = (float)0.005;
+    pPars->MaxCutSize = 10;
 
     pPars->nMaxCycleDetectionRecDepth = 5;
 }
@@ -94,6 +95,58 @@ void Cm_ManAssignCones( Cm_Man_t * p )
     }
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Performs one round of area recovery]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_ManRecoverArea( Cm_Man_t * p )
+{
+    float * AicDelay = p->pPars->AicDelay;
+    float eps = p->pPars->Epsilon;
+    const int minDepth = p->pPars->MinSoHeight;
+    const int maxDepth = p->pPars->nConeDepth;
+    int enumerator;
+    Cm_Obj_t * pNodes[(2<<maxDepth)];
+    Cm_Obj_t * pObj;
+    Cm_Cut_t tCut;
+    Cm_ManForEachNode(p, pObj, enumerator)
+    {
+        int fUpdate = 0;
+
+        float bestAreaFlow = CM_FLOAT_LARGE;
+        for(int d=minDepth; d<=maxDepth; d++)
+        {
+            pNodes[1] = pObj;
+            int cdepth = Cm_FaBuildWithMaximumDepth(pNodes, d);
+            if ( cdepth < d )
+                break;
+            float latestInputArrival = Cm_FaLatestMoInputArrival(pNodes, d);
+            float requiredInputArrival = pObj->Required - AicDelay[d];
+            if ( latestInputArrival > requiredInputArrival + eps )
+                continue;
+            tCut.Depth = d;
+            float areaFlow = Cm_ManMinimizeCutAreaFlowPriority(p, pNodes, requiredInputArrival, &tCut);
+            if ( areaFlow + eps < bestAreaFlow )
+            {
+                fUpdate = 1;
+                Cm_CutCopy(&tCut, &pObj->BestCut);
+                bestAreaFlow = areaFlow;
+            }
+        }
+        if ( fUpdate )
+            pObj->BestCut.AreaFlow = bestAreaFlow / (pObj->nRefs);
+        else
+            pObj->BestCut.AreaFlow = Cm_ManCutAreaFlow(p, &pObj->BestCut) / pObj->nRefs;
+        pObj->BestCut.Arrival = Cm_CutLatestLeafMoArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
+    }
+}
 
 /**Function*************************************************************
 
@@ -108,13 +161,13 @@ void Cm_ManAssignCones( Cm_Man_t * p )
 ***********************************************************************/
 int Cm_ManPerformMapping( Cm_Man_t * p )
 {
-    Cm_PrintConeDelays(p);
     Cm_Obj_t * pObj;
     Cm_Obj_t * pNodes[CM_MAX_FA_SIZE];
     int enumerator;
-    float *AicDelay = p->pPars->AicDelay;
+    float * AicDelay = p->pPars->AicDelay;
+    Cm_ManSetCiArrival(p);
     Cm_ManForEachCi(p, pObj, enumerator)
-        pObj->BestCut.Arrival = 0;
+        pObj->BestCut.AreaFlow = 0;
 
     Cm_ManForEachNode(p, pObj, enumerator)
     {
@@ -123,10 +176,21 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
         Cm_FaExtractLeafs(pNodes, &pObj->BestCut);
         pObj->BestCut.Arrival = arr + AicDelay[pObj->BestCut.Depth];
     }
+    if ( p->pPars->fExtraValidityChecks)
+        Cm_TestMonotonicArrival(p);
+
     float arrival = Cm_ManLatestCoArrival(p);
     Cm_ManSetCoRequired(p, arrival);
     Cm_ManCalcVisibleRequired(p);
     Cm_ManSetInvisibleRequired(p);
+    if ( p->pPars->fVerbose )
+        Cm_PrintBestCutStats(p);
+    Cm_ManRecoverArea(p);
+
+    Cm_ManCalcVisibleRequired(p);
+    if ( p->pPars->fVerbose )
+        Cm_PrintBestCutStats(p);
+ 
     if ( p->pPars->fVeryVerbose)
     {
         Cm_PrintCoArrival(p);
@@ -135,7 +199,6 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
     if ( p->pPars->fExtraValidityChecks )
     {
         Cm_TestBestCutLeafsStructure(p);
-        Cm_TestMonotonicArrival(p);
         Cm_TestArrivalConsistency(p);
         Cm_TestPositiveSlacks(p, 1);
     }

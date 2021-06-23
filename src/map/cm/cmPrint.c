@@ -144,12 +144,50 @@ void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth)
 ***********************************************************************/
 void Cm_PrintBestCut(Cm_Obj_t * pObj)
 {
-    printf("Bestcut at %d (Arrival: %3.1f, depth: %d, nFanins %d): ", 
-              pObj->Id, pObj->BestCut.Arrival, pObj->BestCut.Depth, pObj->BestCut.nFanins);
+    printf("Bestcut at %d (Arrival: %3.1f, AF : %3.1f depth: %d, nFanins %d): ", 
+              pObj->Id, pObj->BestCut.Arrival, pObj->BestCut.AreaFlow,
+              pObj->BestCut.Depth, pObj->BestCut.nFanins);
     for(int i=0; i<pObj->BestCut.nFanins; i++)
         printf(" %d", pObj->BestCut.Leafs[i]->Id);
     printf("\n");
 }
+
+/**Function*************************************************************
+
+  Synopsis    [Prints statistics of all visible best cuts.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintBestCutStats(Cm_Man_t *p)
+{
+    int enumerator;
+    Cm_Obj_t * pObj;
+    int cnt[CM_MAX_DEPTH+1];
+    for(int i=0; i<=p->pPars->nConeDepth; i++)
+        cnt[i] = 0;
+    Cm_ManForEachNode(p, pObj, enumerator)
+        if ( (pObj->fMark & CM_MARK_VISIBLE))
+            cnt[pObj->BestCut.Depth]++;
+    int nGates = 0;
+    float area = 0;
+    for(int i=1; i<p->pPars->nConeDepth; i++)
+    {
+        nGates +=  cnt[i] * ((1<<i)-1);
+        area += cnt[i] * p->pPars->AicArea[i];
+    }
+    printf("Number of cones (depth: #):");
+    for(int i=0; i <= CM_MAX_DEPTH; i++)
+        printf(" (%d %d)", i, cnt[i]);
+    printf("\n");
+    printf("\tgateCount: %d\n", nGates);
+    printf("\tarea: %3.1f\n", area);
+}
+
 
 /**Function*************************************************************
 
