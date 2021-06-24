@@ -47,6 +47,8 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->fStructuralRequired = 1;
     pPars->fDirectCuts = 1;
     pPars->fPriorityCuts = 0;
+    pPars->nAreaRounds = 3;
+    pPars->AreaFlowAverageWeightFactor = 1.5;
     pPars->MaxCutSize = 10;
     pPars->MinSoHeight = 2;
     pPars->fRespectSoSlack = 1;
@@ -57,7 +59,8 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
 
 /**Function*************************************************************
 
-  Synopsis    [Selects the required cuts for the circuit covering]
+  Synopsis    [Selects the required cuts for the circuit covering and 
+               updates estimated reference count]
 
   Description [The root nodes of the selected cuts are marked VISIBLE.
                No side outputs are enabled.]
@@ -96,6 +99,14 @@ void Cm_ManAssignCones( Cm_Man_t * p )
             }
         }
     }
+    float alpha = p->pPars->AreaFlowAverageWeightFactor;
+    Cm_ManForEachNode(p, pObj, enumerator)
+    {
+        if((pObj->fMark&CM_MARK_VISIBLE))
+            pObj->nRefsEstimate = (pObj->nRefsEstimate + alpha * pObj->nMoRefs) / (1+alpha);
+        else
+            pObj->nRefsEstimate = 1;
+    }
 }
 
 /**Function*************************************************************
@@ -109,7 +120,7 @@ void Cm_ManAssignCones( Cm_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Cm_ManRecoverArea( Cm_Man_t * p, int fForceUpdate )
+void Cm_ManRecoverArea( Cm_Man_t * p )
 {
     float * AicDelay = p->pPars->AicDelay;
     float eps = p->pPars->Epsilon;
@@ -121,7 +132,7 @@ void Cm_ManRecoverArea( Cm_Man_t * p, int fForceUpdate )
     Cm_Cut_t tCut;
     Cm_ManForEachNode(p, pObj, enumerator)
     {
-        int fUpdate = fForceUpdate;
+        int fUpdate = 0;
         float bestAreaFlow = CM_FLOAT_LARGE;
         for(int d=minDepth; d<=maxDepth; d++)
         {
@@ -143,9 +154,9 @@ void Cm_ManRecoverArea( Cm_Man_t * p, int fForceUpdate )
             }
         }
         if ( fUpdate )
-            pObj->BestCut.AreaFlow = bestAreaFlow / (pObj->nRefs);
+            pObj->BestCut.AreaFlow = bestAreaFlow / (pObj->nRefsEstimate);
         else
-            pObj->BestCut.AreaFlow = Cm_ManCutAreaFlow(p, &pObj->BestCut) / pObj->nRefs;
+            pObj->BestCut.AreaFlow = Cm_ManCutAreaFlow(p, &pObj->BestCut) / pObj->nRefsEstimate;
         pObj->BestCut.Arrival = Cm_CutLatestLeafMoArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
     }
 }
@@ -167,26 +178,30 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
     Cm_Obj_t * pNodes[CM_MAX_FA_SIZE];
     int enumerator;
     float * AicDelay = p->pPars->AicDelay;
+    int nAreaRounds = p->pPars->nAreaRounds;
     Cm_ManSetCiArrival(p);
     Cm_ManForEachCi(p, pObj, enumerator)
+    {
         pObj->BestCut.AreaFlow = 0;
+        pObj->nRefsEstimate = 1;
+    }
 
     Cm_ManForEachNode(p, pObj, enumerator)
     {
+        pObj->nRefsEstimate = 1;
         pNodes[1] = pObj;
         float arr = Cm_FaBuildDepthOptimal(pNodes, p->pPars);
         Cm_FaExtractLeafs(pNodes, &pObj->BestCut);
         pObj->BestCut.Arrival = arr + AicDelay[pObj->BestCut.Depth];
     }
+    Cm_ManAssignCones(p);
+    if ( p->pPars->fVerbose )
+        Cm_PrintBestCutStats(p);
 
     if (p->pPars->fStructuralRequired)
-    {
         Cm_ManCalcRequiredStructural(p);
-        Cm_ManRecoverArea(p, 0);
-    }
     else
     {
-
         if ( p->pPars->fExtraValidityChecks)
             Cm_TestMonotonicArrival(p);
         float arrival = Cm_ManLatestCoArrival(p);
@@ -196,13 +211,26 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
 
         if ( p->pPars->fVerbose )
             Cm_PrintBestCutStats(p);
-        Cm_ManRecoverArea(p, 0);
     }
+    if (nAreaRounds)
+    {
+        while (nAreaRounds)
+        {
+            Cm_ManRecoverArea(p);
+            Cm_ManAssignCones(p);
+            if ( p->pPars->fExtraValidityChecks)
+            {
+                Cm_TestPositiveSlacks(p, 1);
+                Cm_TestArrivalConsistency(p);
+            }
+            if (p->pPars->fVerbose)
+                Cm_PrintBestCutStats(p);
+            nAreaRounds--;
+        }
+    }
+    else
+        Cm_ManCalcVisibleRequired(p);
 
-    Cm_ManCalcVisibleRequired(p);
-    if ( p->pPars->fVerbose )
-        Cm_PrintBestCutStats(p);
- 
     if ( p->pPars->fVeryVerbose)
     {
         Cm_PrintCoArrival(p);
@@ -214,7 +242,9 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
         Cm_TestArrivalConsistency(p);
         Cm_TestPositiveSlacks(p, 1);
     }
+
     Cm_ManAssignCones(p);
+    Cm_ManCalcVisibleRequired(p);
     Cm_ManInsertSos(p);
     if ( p->pPars->fExtraValidityChecks )
     {

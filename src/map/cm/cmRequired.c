@@ -158,7 +158,6 @@ void Cm_ManCalcRequiredStructural(Cm_Man_t * p)
         }
     }
     float circuitArrival = pArrival[p->nLevelMax];
-    printf("Fancy best achievable time %3.1f\n", circuitArrival);
     // set required time to at least arrival time
     // this ensures that every slack can be respected, even if some nodes may not be usefull on
     // critical path

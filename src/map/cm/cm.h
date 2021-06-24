@@ -85,13 +85,15 @@ struct Cm_Par_t_ {
     int MinSoHeight;
     int fDirectCuts; // enable cut calculation based on priority cuts?
     int fPriorityCuts; // enable direct cut selection heuristic?
-    int fStructuralRequired; // enable direct required time calculation?
     int MaxCutSize;
+    int nAreaRounds; // number of area recovery rounds to perform
+    float AreaFlowAverageWeightFactor; // weighting factor to estimate exptected nRefs during area recovery
+    int fRespectSoSlack; // respect required time, when inserting side outputs ?
+    int fStructuralRequired; // enable direct required time calculation?
     float AicDelay[CM_MAX_DEPTH + 1]; // delay of the cones for each depth
     float AicArea[CM_MAX_DEPTH+1]; // area of the cones for each depth
     float Epsilon; // used for comparisons
     int nMaxCycleDetectionRecDepth; // longest allowed side output chain path length
-    int fRespectSoSlack; // respect required time, when inserting side outputs ?
     MiMo_Library_t * pMiMoLib;
     float * pCiArrival;
     float * pCoRequired;
@@ -146,6 +148,7 @@ struct Cm_Obj_t_
     int nSoRefs; // counts how often this node is used as SO
     int nMoRefs; // counts how often this node is used as MO
     int nVisits;
+    float nRefsEstimate; // estimation how often node will be used as MO (area recovery)
     float Required; // time requirement on node
     union {
         float fTemp; // used as temporary storage for calculations

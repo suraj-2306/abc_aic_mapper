@@ -19514,10 +19514,21 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
     Cm_ManSetDefaultPars( pPars );
     int c;
     Extra_UtilGetoptReset();
-    while ( ( c = Extra_UtilGetopt( argc, argv, "DtvwpdSh" ) ) != EOF )
+    while ( ( c = Extra_UtilGetopt( argc, argv, "ADtvwpdSh" ) ) != EOF )
     {
         switch ( c )
         {
+        case 'A':
+            if ( globalUtilOptind >= argc )
+            {
+                Abc_Print( -1, "Command line switch \"-A\" should be followed by a positive integer.\n" );
+                goto usage;
+            }
+            pPars->nAreaRounds = atoi(argv[globalUtilOptind]);
+            if (pPars->nAreaRounds < 0)
+                pPars->nAreaRounds = 0;
+            globalUtilOptind++;
+            break;
         case 'D':
             if ( globalUtilOptind >= argc )
             {
