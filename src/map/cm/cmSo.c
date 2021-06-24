@@ -50,22 +50,23 @@ int Cm_ManSoInducesCycle_rec(Cm_Obj_t * pObj, int cmpId, int maxDepth)
     if ( pObj->Id == cmpId )
         return 1; 
 
-    for(int i=0; i<pObj->BestCut.nFanins; i++)
+    Cm_Obj_t * pRepr = Cm_ObjGetRepr(pObj);
+    for(int i=0; i<pRepr->BestCut.nFanins; i++)
     {
-        Cm_Obj_t * pLeaf = pObj->BestCut.Leafs[i];
+        Cm_Obj_t * pLeaf = pRepr->BestCut.Leafs[i];
         if ( pLeaf->Id == cmpId )
             return 1;
     }
-    for(int i=0; i<pObj->BestCut.nFanins; i++)
+    for(int i=0; i<pRepr->BestCut.nFanins; i++)
     {
-        Cm_Obj_t * pLeaf = pObj->BestCut.Leafs[i];
+        Cm_Obj_t * pLeaf = pRepr->BestCut.Leafs[i];
         if ( pLeaf->Id > cmpId && ! pLeaf->BestCut.SoOfCutAt )
             if ( Cm_ManSoInducesCycle_rec(pLeaf, cmpId, maxDepth-1) )
                 return 1;
     }
-    for(int i=0; i<pObj->BestCut.nFanins; i++)
+    for(int i=0; i<pRepr->BestCut.nFanins; i++)
     {
-        Cm_Obj_t * pLeaf = pObj->BestCut.Leafs[i];
+        Cm_Obj_t * pLeaf = pRepr->BestCut.Leafs[i];
         if ( pLeaf->Id > cmpId && pLeaf->BestCut.SoOfCutAt )
             if ( Cm_ManSoInducesCycle_rec(pLeaf->BestCut.SoOfCutAt, cmpId, maxDepth-1) )
                 return 1;
@@ -93,7 +94,9 @@ int Cm_ManCalcSo(Cm_Man_t *p , Cm_Obj_t * pObj, Cm_Obj_t ** pSo, int *pSoPos, fl
 {
     float *AicDelay = p->pPars->AicDelay;
     const int minSoHeight = p->pPars->MinSoHeight;
-
+    // So calculation for balanced cuts is currently not supported
+    if ( !pObj->fRepr ) 
+        return 0;
     if ( pObj->BestCut.Depth <= minSoHeight)
         return 0;
     Cm_Obj_t * pNodes[CM_MAX_FA_SIZE/2];
@@ -232,8 +235,9 @@ int Cm_ManPostProcessSoAssignment(Cm_Man_t *p)
         else
         {
             pObj->nMoRefs++;
-            for(int i=0; i<pObj->BestCut.nFanins; i++)
-                pObj->BestCut.Leafs[i]->fMark |= CM_MARK_VISIBLE;
+            Cm_Obj_t * pRepr = Cm_ObjGetRepr(pObj);
+            for(int i=0; i<pRepr->BestCut.nFanins; i++)
+                pRepr->BestCut.Leafs[i]->fMark |= CM_MARK_VISIBLE;
         } 
     }
     return disabledSos;
@@ -296,7 +300,10 @@ void Cm_ManInsertSos(Cm_Man_t *p)
             // ignore arrival reduction by SO, as it might be invalid
             float arrival = CM_MAX(arrivalSo, pObj->BestCut.Arrival);
             if ( !fRespectSlack || arrival < pObj->Required + eps  )
+            {
                 pObj->BestCut.SoArrival = arrival;
+                pObj->fRepr = 1;
+            }
             else
             {
                 pObj->BestCut.SoOfCutAt = NULL;
@@ -305,7 +312,9 @@ void Cm_ManInsertSos(Cm_Man_t *p)
         }
         if ( ! pObj->BestCut.SoOfCutAt )
         {
-            pObj->BestCut.Arrival = Cm_CutLatestLeafArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
+            Cm_Obj_t * pRepr = Cm_ObjGetRepr(pObj);
+            pRepr->BestCut.Arrival = Cm_CutLatestLeafArrival(&pRepr->BestCut) + AicDelay[pRepr->BestCut.Depth];
+            pObj->BestCut.Arrival = pRepr->BestCut.Arrival;
         }
     }
     int disabledSos = Cm_ManPostProcessSoAssignment(p);

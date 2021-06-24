@@ -19514,7 +19514,7 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
     Cm_ManSetDefaultPars( pPars );
     int c;
     Extra_UtilGetoptReset();
-    while ( ( c = Extra_UtilGetopt( argc, argv, "DAarcHEWtvwpdSsRh" ) ) != EOF )
+    while ( ( c = Extra_UtilGetopt( argc, argv, "DAarcHEWbtvwpdSsRh" ) ) != EOF )
     {
         switch ( c )
         {
@@ -19611,6 +19611,8 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
             if ( pPars->WireDelay < 0.0 )
                 goto usage;
             break;
+        case 'b':
+            pPars->fCutBalancing ^= 1;
 	    case 't':
             pPars->fExtraValidityChecks ^= 1;
             break;
@@ -19709,6 +19711,7 @@ usage: ;
     Abc_Print( -2, "\t-c num    set maximum size of priority cuts [default = %d]\n", pPars->MaxCutSize);
     Abc_Print( -2, "\t-A num    set number of area recovery rounds [default = %d]\n", pPars->nAreaRounds );
     Abc_Print( -2, "\t-a num    set weighting factor of estimated outputs for area recovery [default = %f]\n", pPars->AreaFlowAverageWeightFactor );
+    Abc_Print( -2, "\t-b        toggle usage of local cut balancing [default = %s]\n", pPars->fCutBalancing ? "yes" : "no");
     Abc_Print( -2, "\t-r num    set the arrival time relax factor [default = %f]\n", pPars->ArrivalRelaxFactor );
     Abc_Print( -2, "\t-s        toggle usage of side outputs [default = %s]\n", pPars->fEnableSo ? "yes" : "no" );
     Abc_Print( -2, "\t-R        toggle respect of slack constraint for side outputs [default = %s]\n", pPars->fRespectSoSlack ? "yes" : "no");

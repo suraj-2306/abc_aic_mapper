@@ -63,9 +63,10 @@ void Cm_ManCalcVisibleRequired(Cm_Man_t *p)
     {
         if ( !(pObj->fMark & CM_MARK_VISIBLE) || pObj->Type != CM_AND )
             continue;
-        float req = pObj->Required - AicDelay[pObj->BestCut.Depth];
-        for(int i=0; i<pObj->BestCut.nFanins; i++){
-            Cm_Obj_t *l = pObj->BestCut.Leafs[i];
+        Cm_Obj_t * pRepr = Cm_ObjGetRepr(pObj);
+        float req = pObj->Required - AicDelay[pRepr->BestCut.Depth];
+        for(int i=0; i<pRepr->BestCut.nFanins; i++){
+            Cm_Obj_t *l = pRepr->BestCut.Leafs[i];
             l->fMark |= CM_MARK_VISIBLE;
             if ( l->Required > req)
                 l->Required = req;

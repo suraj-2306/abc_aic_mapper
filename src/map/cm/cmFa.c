@@ -53,7 +53,7 @@ int Cm_FaBuildWithMaximumDepth(Cm_Obj_t **pFaninArray, int maxDepth)
             if( pFaninArray[index] )
             {
                 // add fanins
-                if ( pFaninArray[index]->Type == CM_AND )
+                if ( pFaninArray[index]->Type == CM_AND || pFaninArray[index]->Type == CM_AND_EQ )
                 {
                     pFaninArray[2*index] = pFaninArray[index]->pFanin0;
                     pFaninArray[2*index+1] = pFaninArray[index]->pFanin1;
@@ -63,7 +63,8 @@ int Cm_FaBuildWithMaximumDepth(Cm_Obj_t **pFaninArray, int maxDepth)
                 {
                     pFaninArray[2*index] = pFaninArray[2*index+1] = NULL;
                 }
-                assert(pFaninArray[index]->Type == CM_AND || pFaninArray[index]->Type == CM_CI);
+                assert(pFaninArray[index]->Type == CM_AND || pFaninArray[index]->Type == CM_AND_EQ
+                                                          || pFaninArray[index]->Type == CM_CI);
             }
             else
             {

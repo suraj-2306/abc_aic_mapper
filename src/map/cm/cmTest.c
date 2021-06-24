@@ -185,7 +185,7 @@ int Cm_TestMoArrivalConsistency(Cm_Man_t *p, Cm_Obj_t * pObj, int fVerbose)
     int fNodeFail = 0;
     for(int i=0; i<pObj->BestCut.nFanins; i++)
     {
-        Cm_Obj_t * pL = pObj->BestCut.Leafs[i];
+        Cm_Obj_t * pL = Cm_ObjGetRepr(pObj->BestCut.Leafs[i]);
         float d = pL->BestCut.Arrival;
         if ( d > latestAllowedArrival + eps )
         {
@@ -263,10 +263,11 @@ int Cm_TestArrivalConsistency(Cm_Man_t * p)
     }
     Cm_ManForEachNode(p, pObj, enumerator)
     {
-        if ( pObj->BestCut.SoOfCutAt)
-            failCount += Cm_TestSoArrivalConsistency(p, pObj, failCount < lineLimit);
+        Cm_Obj_t * pRepr = Cm_ObjGetRepr(pObj);
+        if ( pRepr->BestCut.SoOfCutAt)
+            failCount += Cm_TestSoArrivalConsistency(p, pRepr, failCount < lineLimit);
         else
-            failCount += Cm_TestMoArrivalConsistency(p, pObj, failCount < lineLimit);
+            failCount += Cm_TestMoArrivalConsistency(p, pRepr, failCount < lineLimit);
     }
     if ( failCount )
         printf("----------------------- %d nodes have invalid arrival time\n", failCount);
@@ -310,7 +311,7 @@ int Cm_TestPositiveSlacks(Cm_Man_t *p, int fConservative)
         }
     Cm_ManForEachCo(p, pObj, i)
     {
-        Cm_Obj_t * pF = pObj->pFanin0;
+        Cm_Obj_t * pF = Cm_ObjGetRepr(pObj->pFanin0);
         float arrival = pF->BestCut.SoOfCutAt ? pF->BestCut.SoArrival : pF->BestCut.Arrival;
         if (pObj->pFanin0->Required + eps < arrival)
         {
@@ -326,7 +327,8 @@ int Cm_TestPositiveSlacks(Cm_Man_t *p, int fConservative)
         {
             if (! (pObj->fMark & CM_MARK_VISIBLE))
                 continue;
-            float arrival = pObj->BestCut.SoOfCutAt ? pObj->BestCut.SoArrival : pObj->BestCut.Arrival;
+            Cm_Obj_t * pRepr = Cm_ObjGetRepr(pObj);
+            float arrival = pRepr->BestCut.SoOfCutAt ? pRepr->BestCut.SoArrival : pRepr->BestCut.Arrival;
             if (pObj->Required + eps < arrival)
             {
                 nNodeFails++;

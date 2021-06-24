@@ -56,6 +56,7 @@ ABC_NAMESPACE_HEADER_START
 #define CM_MARK_VISIBLE (8)
 #define CM_MARK_FIXED (16)
 #define CM_MARK_LEAF_SUB (32)
+#define CM_MARK_SEEN (64)
 
 /* Defines the type of the objects in the AIG  */
 typedef enum {
@@ -64,7 +65,8 @@ typedef enum {
     CM_CI,     // 2: combinational input
     CM_CO,     // 3: combinational output
     CM_AND,    // 4: And node
-    CM_VOID    // 5: unused object
+    CM_AND_EQ, // 5: equivalent and node
+    CM_VOID    // 6: unused object
 } Cm_Type_t;
 
 
@@ -88,6 +90,7 @@ struct Cm_Par_t_ {
     int MaxCutSize; // maximum number of cuts in local priority cut list
     int nAreaRounds; // number of area recovery rounds to perform
     float AreaFlowAverageWeightFactor; // weighting factor to estimate exptected nRefs during area recovery
+    int fCutBalancing; // enable balancing of cuts?
     int fEnableSo; // enable side outputs?
     int fRespectSoSlack; // respect required time, when inserting side outputs ?
     int fStructuralRequired; // enable direct required time calculation?
@@ -161,6 +164,8 @@ struct Cm_Obj_t_
         void * pCopy;
         int iCopy;
     };
+    unsigned fRepr; // representative node over all equivalent nodes
+    Cm_Obj_t * pEquiv; // choice nodes
     unsigned fMark; // used as temporary storage for marking/coloring
     Cm_Cut_t BestCut;
 };
@@ -187,6 +192,7 @@ static inline void Cm_CutClearMarkLeafs(Cm_Cut_t * pCut, unsigned flag)      { f
 static inline void Cm_CutMarkLeafs(Cm_Cut_t * pCut, unsigned flag)           { for(int i=0; i<pCut->nFanins; i++) pCut->Leafs[i]->fMark |= flag; }
 static inline MiMo_PinIn_t * Cm_ManGetInputPin(Cm_Man_t * p, int pos)                       { return Vec_PtrEntry(p->pOrderedInputPins, pos); }
 static inline MiMo_PinOut_t * Cm_ManGetOutputPin(Cm_Man_t * p, int coneDepth, int pos)       { return Vec_PtrEntry(p->pOrderedOutputPins, (1<<(coneDepth-1)) + pos); }
+static inline Cm_Obj_t * Cm_ObjGetRepr(Cm_Obj_t * pObj)                      { Cm_Obj_t * pRepr = pObj; while( !pRepr->fRepr ) pRepr = pRepr->pEquiv; return pRepr; }
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -224,6 +230,8 @@ static inline MiMo_PinOut_t * Cm_ManGetOutputPin(Cm_Man_t * p, int coneDepth, in
 extern float Cm_ManMinimizeCutAreaFlow(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
 extern float Cm_ManMinimizeCutAreaFlowPriority(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
 extern float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
+/*=== cmBalance.c ====================================================*/
+extern Cm_Obj_t * Cm_ManBalanceCut(Cm_Man_t * p, Cm_Obj_t * pObj);
 /*=== cmCore.c =======================================================*/
 extern void Cm_ManSetDefaultPars( Cm_Par_t * pPars );
 extern int Cm_ManPerformMapping( Cm_Man_t * p );
@@ -241,6 +249,7 @@ extern void Cm_ManStop( Cm_Man_t * p );
 extern Cm_Obj_t * Cm_ManCreateCi( Cm_Man_t * p );
 extern Cm_Obj_t * Cm_ManCreateCo( Cm_Man_t * p, Cm_Obj_t * pDriver );
 extern Cm_Obj_t * Cm_ManCreateAnd( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 );
+extern Cm_Obj_t * Cm_ManCreateAndEq( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 );
 /*=== cmPrint.c ======================================================*/
 extern void Cm_PrintPars( Cm_Par_t * pPars );
 extern void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth);

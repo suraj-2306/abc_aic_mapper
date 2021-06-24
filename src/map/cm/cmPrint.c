@@ -57,6 +57,7 @@ void Cm_PrintPars(Cm_Par_t * pPars)
     printf("%-*s%d\n", w, "Number of area recovery rounds", pPars->nAreaRounds);
     printf("%-*s%f\n", w, "Area flow weighting factor", pPars->AreaFlowAverageWeightFactor);
     printf("%-*s%f\n", w, "Arrival relaxation factor", pPars->ArrivalRelaxFactor);
+    printf("%-*s%s\n", w, "Cut balancing", pPars->fCutBalancing ? "yes" : "no");
     printf("%-*s%s\n", w, "Required time calculation", pPars->fStructuralRequired ? "Structure" : "Choice");
     printf("%-*s%f\n", w, "Epsilon", pPars->Epsilon);
     printf("%-*s%f\n", w, "Wire delay", pPars->WireDelay);

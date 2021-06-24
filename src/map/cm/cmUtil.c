@@ -44,7 +44,7 @@ float Cm_CutLatestLeafMoArrival(Cm_Cut_t * pCut)
     float arrival = -CM_FLOAT_LARGE;
     for(int i=0; i<pCut->nFanins; i++)
     {
-        Cm_Obj_t * pL = pCut->Leafs[i];
+        Cm_Obj_t * pL = Cm_ObjGetRepr(pCut->Leafs[i]);
         if ( arrival < pL->BestCut.Arrival)
             arrival = pL->BestCut.Arrival;
     }
@@ -68,7 +68,7 @@ float Cm_CutLatestLeafArrival(Cm_Cut_t * pCut)
     float arrival = -CM_FLOAT_LARGE;
     for(int i=0; i<pCut->nFanins; i++)
     {
-        Cm_Obj_t *pL = pCut->Leafs[i];
+        Cm_Obj_t *pL = Cm_ObjGetRepr(pCut->Leafs[i]);
         float ca = pL->BestCut.SoOfCutAt ? pL->BestCut.SoArrival : pL->BestCut.Arrival;
         if ( ca > arrival )
             arrival = ca;

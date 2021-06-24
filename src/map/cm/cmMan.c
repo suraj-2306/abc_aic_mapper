@@ -129,6 +129,7 @@ Cm_Obj_t * Cm_ManCreateCi( Cm_Man_t * p )
     Cm_Obj_t * pObj;
     pObj = Cm_ManSetupObj( p );
     pObj->Type = CM_CI;
+    pObj->fRepr = 1;
     pObj->IdPio = Vec_PtrSize( p->vCis );
     Vec_PtrPush( p->vCis, pObj );
     p->nObjs[CM_CI]++;
@@ -153,6 +154,7 @@ Cm_Obj_t * Cm_ManCreateCo( Cm_Man_t * p, Cm_Obj_t * pDriver )
     pObj->IdPio = Vec_PtrSize( p->vCos );
     Vec_PtrPush( p->vCos, pObj );
     pObj->Type = CM_CO;
+    pObj->fRepr = 1;
     pObj->fCompl0 = Cm_IsComplement(pDriver); pDriver = Cm_Regular(pDriver);
     pObj->pFanin0 = pDriver; pDriver->nRefs++; 
     pObj->fPhase  = (pObj->fCompl0 ^ pDriver->fPhase);
@@ -189,6 +191,7 @@ Cm_Obj_t * Cm_ManCreateAnd( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 )
     // get memory for the new object
     pObj = Cm_ManSetupObj( p );
     pObj->Type    = CM_AND;
+    pObj->fRepr = 1;
     pObj->fCompl0 = Cm_IsComplement(pFan0); pFan0 = Cm_Regular(pFan0);
     pObj->fCompl1 = Cm_IsComplement(pFan1); pFan1 = Cm_Regular(pFan1);
     pObj->pFanin0 = pFan0; pFan0->nRefs++; pFan0->nVisits++;
@@ -201,5 +204,41 @@ Cm_Obj_t * Cm_ManCreateAnd( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 )
     return pObj;
 }
 
+
+/**Function*************************************************************
+
+  Synopsis    [Create the new node for equivalent cut representation
+               assuming it does not exist.]
+
+  Description [It is initially not representive]
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Cm_Obj_t * Cm_ManCreateAndEq( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 )
+{
+    Cm_Obj_t * pObj;
+    // perform constant propagation
+    if ( pFan0 == pFan1 )
+        return pFan0;
+    if ( pFan0 == Cm_Not(pFan1) )
+        return Cm_Not(p->pConst1);
+    if ( Cm_Regular(pFan0) == p->pConst1 )
+        return pFan0 == p->pConst1 ? pFan1 : Cm_Not(p->pConst1);
+    if ( Cm_Regular(pFan1) == p->pConst1 )
+        return pFan1 == p->pConst1 ? pFan0 : Cm_Not(p->pConst1);
+    // get memory for the new object
+    pObj = Cm_ManSetupObj( p );
+    pObj->Type    = CM_AND_EQ;
+    pObj->fRepr = 0;
+    pObj->fCompl0 = Cm_IsComplement(pFan0); pFan0 = Cm_Regular(pFan0);
+    pObj->fCompl1 = Cm_IsComplement(pFan1); pFan1 = Cm_Regular(pFan1);
+    pObj->pFanin0 = pFan0;
+    pObj->pFanin1 = pFan1;
+    p->nObjs[CM_AND_EQ]++;
+    return pObj;
+}
 
 ABC_NAMESPACE_IMPL_END

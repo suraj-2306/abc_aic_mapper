@@ -49,6 +49,7 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->fPriorityCuts = 0;
     pPars->nAreaRounds = 3;
     pPars->AreaFlowAverageWeightFactor = (float)1.5;
+    pPars->fCutBalancing = 1;
     pPars->MaxCutSize = 10;
     pPars->MinSoHeight = 2;
     pPars->fEnableSo = 1;
@@ -95,10 +96,11 @@ void Cm_ManAssignCones( Cm_Man_t * p )
         {
             if ( !(pObj->fMark&CM_MARK_VISIBLE) )
                 continue;
-            for(int i=0; i<pObj->BestCut.nFanins; i++)
+            Cm_Obj_t * pRepr = Cm_ObjGetRepr(pObj);
+            for(int i=0; i<pRepr->BestCut.nFanins; i++)
             {
-                pObj->BestCut.Leafs[i]->fMark |= CM_MARK_VISIBLE;
-                pObj->BestCut.Leafs[i]->nMoRefs++;
+                pRepr->BestCut.Leafs[i]->fMark |= CM_MARK_VISIBLE;
+                pRepr->BestCut.Leafs[i]->nMoRefs++;
             }
         }
     }
@@ -126,9 +128,11 @@ void Cm_ManAssignCones( Cm_Man_t * p )
 void Cm_ManRecoverArea( Cm_Man_t * p )
 {
     float * AicDelay = p->pPars->AicDelay;
+    float * AicArea = p->pPars->AicArea;
     float eps = p->pPars->Epsilon;
     const int minDepth = p->pPars->MinSoHeight;
     const int maxDepth = p->pPars->nConeDepth;
+    const int fCutBalancing = p->pPars->fCutBalancing;
     int enumerator;
     Cm_Obj_t * pNodes[(2<<maxDepth)];
     Cm_Obj_t * pObj;
@@ -161,6 +165,29 @@ void Cm_ManRecoverArea( Cm_Man_t * p )
         else
             pObj->BestCut.AreaFlow = Cm_ManCutAreaFlow(p, &pObj->BestCut) / pObj->nRefsEstimate;
         pObj->BestCut.Arrival = Cm_CutLatestLeafMoArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
+        if ( fCutBalancing && Cm_ManBalanceCut(p, pObj) )
+        {
+            pObj->fRepr = 0;
+            Cm_Obj_t * pBest = pObj;
+            Cm_Obj_t * pEq = pObj->pEquiv;
+            while(pEq)
+            {
+                float arrival = Cm_CutLatestLeafMoArrival(&pEq->BestCut) + AicDelay[pEq->BestCut.Depth];
+                if ( arrival < pObj->Required + eps )
+                {
+                    float af = (Cm_CutLeafAreaFlowSum(&pEq->BestCut) + AicArea[pEq->BestCut.Depth] ) / pObj->nRefsEstimate;
+                    if ( af < pBest->BestCut.AreaFlow )
+                    {
+                        pEq->BestCut.AreaFlow = af;
+                        pEq->BestCut.Arrival = arrival;
+                        pBest = pEq;
+                    }
+                }
+                pEq->fRepr = 0;
+                pEq = pEq->pEquiv;
+            }
+            pBest->fRepr = 1;
+        }
     }
 }
 
@@ -207,7 +234,7 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
     {
         if ( p->pPars->fExtraValidityChecks)
             Cm_TestMonotonicArrival(p);
-        float arrival = Cm_ManLatestCoArrival(p) * p->pPars->ArrivalRelaxFactor;
+        float arrival = Cm_ManLatestCoArrival(p);
         Cm_ManSetCoRequired(p, arrival);
         Cm_ManCalcVisibleRequired(p);
         Cm_ManSetInvisibleRequired(p);
@@ -245,7 +272,6 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
         Cm_TestArrivalConsistency(p);
         Cm_TestPositiveSlacks(p, 1);
     }
-
     Cm_ManAssignCones(p);
     if ( p->pPars->fEnableSo)
     {

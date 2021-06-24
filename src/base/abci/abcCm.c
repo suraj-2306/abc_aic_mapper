@@ -385,13 +385,15 @@ Abc_Obj_t * Abc_NodeFromCm_rec( Abc_Ntk_t * pNtkNew, Cm_Man_t * pCmMan, Cm_Obj_t
     }
     Abc_Obj_t * pNodeNew = Abc_NtkCreateNode ( pNtkNew );
     pNodeNew->pCopy = NULL;
-    MiMo_Cell_t * pCell = Cm_ManBuildCellWithInputs( pCmMan, pCmObj, fMoCompl );
+    Cm_Obj_t * pCmRep = Cm_ObjGetRepr(pCmObj);
+
+    MiMo_Cell_t * pCell = Cm_ManBuildCellWithInputs( pCmMan, pCmRep, fMoCompl );
     pNodeNew->pData = pCell;
     pNodeNew->fMarkA = ((moPhase == CM_POSITIVE_MO) || (moPhase == CM_NEGATIVE_MO)) ?  1 : 0;
     pNodeNew->fMarkB = fMoCompl;
-    for(int i=0; i<pCmObj->BestCut.nFanins; i++)
+    for(int i=0; i<pCmRep->BestCut.nFanins; i++)
     {
-        Cm_Obj_t * pLeaf = pCmObj->BestCut.Leafs[i];
+        Cm_Obj_t * pLeaf = pCmRep->BestCut.Leafs[i];
         if ( pLeaf->BestCut.SoOfCutAt )
         {
             Abc_Obj_t * pFanin = Abc_NodeFromCm_rec( pNtkNew, pCmMan, pLeaf->BestCut.SoOfCutAt, CM_DC_MO );
