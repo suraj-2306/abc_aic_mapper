@@ -19514,10 +19514,25 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
     Cm_ManSetDefaultPars( pPars );
     int c;
     Extra_UtilGetoptReset();
-    while ( ( c = Extra_UtilGetopt( argc, argv, "ADtvwpdSh" ) ) != EOF )
+    while ( ( c = Extra_UtilGetopt( argc, argv, "DAarcHEWtvwpdSsRh" ) ) != EOF )
     {
         switch ( c )
         {
+        case 'D':
+            if ( globalUtilOptind >= argc )
+            {
+                Abc_Print( -1, "Command line switch \"-D\" should be followed by a positive integer.\n" );
+                goto usage;
+            }
+            pPars->nConeDepth = atoi(argv[globalUtilOptind]);
+            globalUtilOptind++;
+            const int minDepth = 1;
+            if ( pPars->nConeDepth < minDepth || pPars->nConeDepth > CM_MAX_DEPTH )
+            {
+                Abc_Print( -1, "Cone depth must be in range [%d, %d].\n", minDepth, CM_MAX_DEPTH );
+                goto usage;
+            }
+            break;
         case 'A':
             if ( globalUtilOptind >= argc )
             {
@@ -19529,20 +19544,72 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
                 pPars->nAreaRounds = 0;
             globalUtilOptind++;
             break;
-        case 'D':
+        case 'a':
             if ( globalUtilOptind >= argc )
             {
-                Abc_Print( -1, "Command line switch \"-D\" should be followed by a positive integer.\n" );
+                Abc_Print( -1, "Command line switch \"-a\" should be followed by a floating point number.\n" );
                 goto usage;
             }
-            pPars->nConeDepth = atoi(argv[globalUtilOptind]);
+            pPars->AreaFlowAverageWeightFactor = (float)atof(argv[globalUtilOptind]);
             globalUtilOptind++;
-            int minDepth = 2, maxDepth = 8;
-            if ( pPars->nConeDepth < minDepth || pPars->nConeDepth > maxDepth )
+            break;
+       case 'r':
+            if ( globalUtilOptind >= argc )
             {
-                Abc_Print( -1, "Cone depth should be in range [%d, %d].\n", minDepth, maxDepth );
+                Abc_Print( -1, "Command line switch \"-r\" should be followed by a floating point number.\n" );
                 goto usage;
             }
+            pPars->ArrivalRelaxFactor = (float)atof(argv[globalUtilOptind]);
+            if (pPars->ArrivalRelaxFactor < 1)
+            {
+                Abc_Print( -1, "Arrival relaxation factor must at least be 1.\n" );
+                goto usage;
+            }
+            globalUtilOptind++;
+            break;
+        case 'c':
+            if ( globalUtilOptind >= argc )
+            {
+                Abc_Print( -1, "Command line switch \"-c\" should be followed by a floating point number.\n" );
+                goto usage;
+            }
+            pPars->MaxCutSize = atoi(argv[globalUtilOptind]);
+            globalUtilOptind++;
+            if ( pPars->MaxCutSize < 1)
+                goto usage;
+            break;
+        case 'H':
+            if ( globalUtilOptind >= argc )
+            {
+                Abc_Print( -1, "Command line switch \"-H\" should be followed by a floating point number.\n" );
+                goto usage;
+            }
+            pPars->MinSoHeight = atoi(argv[globalUtilOptind]);
+            globalUtilOptind++;
+            if ( pPars->Epsilon < 0.0 )
+                goto usage;
+            break;
+        case 'E':
+            if ( globalUtilOptind >= argc )
+            {
+                Abc_Print( -1, "Command line switch \"-E\" should be followed by a floating point number.\n" );
+                goto usage;
+            }
+            pPars->Epsilon = (float)atof(argv[globalUtilOptind]);
+            globalUtilOptind++;
+            if ( pPars->MinSoHeight < 1 )
+                goto usage;
+            break;
+        case 'W':
+            if ( globalUtilOptind >= argc )
+            {
+                Abc_Print( -1, "Command line switch \"-W\" should be followed by a floating point number.\n" );
+                goto usage;
+            }
+            pPars->WireDelay = (float)atof(argv[globalUtilOptind]);
+            globalUtilOptind++;
+            if ( pPars->WireDelay < 0.0 )
+                goto usage;
             break;
 	    case 't':
             pPars->fExtraValidityChecks ^= 1;
@@ -19561,6 +19628,12 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
             break;
         case 'S':
             pPars->fStructuralRequired ^= 1;
+            break;
+        case 's':
+            pPars->fEnableSo ^= 1;
+            break;
+        case 'R':
+            pPars->fRespectSoSlack ^= 1;
             break;
         case 'h':
             goto usage;
@@ -19625,15 +19698,26 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
 
 usage: ;
     Cm_ManSetDefaultPars( pPars );
-    Abc_Print( -2, "usage cm [-D num] [-tvpdSh]\n" );
+    Abc_Print( -2, "usage cm [-D num] [-tvwpdSsRh]\n" );
+    Abc_Print( -2, "\t          maps AIG to AIC\n" );
+    Abc_Print( -2, "usage cm [-DAarcHEW num] [-rpsSbvwth]\n" );
     Abc_Print( -2, "\t          maps AIG to AIC\n" );
     Abc_Print( -2, "\t-D num    set maximum cone depth [default = %d]\n", pPars->nConeDepth );
+    Abc_Print( -2, "\t-S        toggle usage of required time calculation by structure [default = %s]\n", pPars->fStructuralRequired ? "yes" : "no" );
+    Abc_Print( -2, "\t-d        toggle usage of direct cut selection [default = %s]\n", pPars->fDirectCuts ? "yes" : "no" );
+    Abc_Print( -2, "\t-p        toggle usage of priority cuts [default = %s]\n", pPars->fPriorityCuts ? "yes" : "no" );
+    Abc_Print( -2, "\t-c num    set maximum size of priority cuts [default = %d]\n", pPars->MaxCutSize);
+    Abc_Print( -2, "\t-A num    set number of area recovery rounds [default = %d]\n", pPars->nAreaRounds );
+    Abc_Print( -2, "\t-a num    set weighting factor of estimated outputs for area recovery [default = %f]\n", pPars->AreaFlowAverageWeightFactor );
+    Abc_Print( -2, "\t-r num    set the arrival time relax factor [default = %f]\n", pPars->ArrivalRelaxFactor );
+    Abc_Print( -2, "\t-s        toggle usage of side outputs [default = %s]\n", pPars->fEnableSo ? "yes" : "no" );
+    Abc_Print( -2, "\t-R        toggle respect of slack constraint for side outputs [default = %s]\n", pPars->fRespectSoSlack ? "yes" : "no");
+    Abc_Print( -2, "\t-H num    set minimum side output height [default = %d]\n", pPars->MinSoHeight);
+    Abc_Print( -2, "\t-W num    set wire delay [default = %f]\n", pPars->WireDelay);
+    Abc_Print( -2, "\t-E num    set epsilon for comparisons [default = %f]\n", pPars->Epsilon);
     Abc_Print( -2, "\t-v        toggle verbose output [default = %s]\n", pPars->fVerbose ? "yes" : "no" );
     Abc_Print( -2, "\t-w        toggle very verbose output [default = %s]\n", pPars->fVeryVerbose ? "yes" : "no");
     Abc_Print( -2, "\t-t        run extra validity checks [default = %s]\n", pPars->fExtraValidityChecks ? "yes" : "no" );
-    Abc_Print( -2, "\t-p        toggle usage of priority cuts [default = %s]\n", pPars->fPriorityCuts ? "yes" : "no" );
-    Abc_Print( -2, "\t-d        toggle usage of direct cut selection [default = %s]\n", pPars->fDirectCuts ? "yes" : "no" );
-    Abc_Print( -2, "\t-S        toggle usage of required time calculation by structure [default = %s]\n", pPars->fStructuralRequired ? "yes" : "no" );
     Abc_Print( -2, "\t-h        print the command usage\n" );
     return 1;
 }

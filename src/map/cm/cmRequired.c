@@ -157,7 +157,7 @@ void Cm_ManCalcRequiredStructural(Cm_Man_t * p)
                 pArrival[i] = ar;
         }
     }
-    float circuitArrival = pArrival[p->nLevelMax];
+    float circuitArrival = pArrival[p->nLevelMax] * p->pPars->ArrivalRelaxFactor;
     // set required time to at least arrival time
     // this ensures that every slack can be respected, even if some nodes may not be usefull on
     // critical path

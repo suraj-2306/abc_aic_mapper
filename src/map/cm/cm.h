@@ -85,13 +85,16 @@ struct Cm_Par_t_ {
     int MinSoHeight;
     int fDirectCuts; // enable cut calculation based on priority cuts?
     int fPriorityCuts; // enable direct cut selection heuristic?
-    int MaxCutSize;
+    int MaxCutSize; // maximum number of cuts in local priority cut list
     int nAreaRounds; // number of area recovery rounds to perform
     float AreaFlowAverageWeightFactor; // weighting factor to estimate exptected nRefs during area recovery
+    int fEnableSo; // enable side outputs?
     int fRespectSoSlack; // respect required time, when inserting side outputs ?
     int fStructuralRequired; // enable direct required time calculation?
+    float ArrivalRelaxFactor;
     float AicDelay[CM_MAX_DEPTH + 1]; // delay of the cones for each depth
     float AicArea[CM_MAX_DEPTH+1]; // area of the cones for each depth
+    float WireDelay; // wire delay of cones.
     float Epsilon; // used for comparisons
     int nMaxCycleDetectionRecDepth; // longest allowed side output chain path length
     MiMo_Library_t * pMiMoLib;

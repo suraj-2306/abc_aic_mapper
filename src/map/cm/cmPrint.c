@@ -43,10 +43,26 @@ void Cm_PrintPars(Cm_Par_t * pPars)
 {
     int w = 35;
     printf("%-*s%d\n", w, "Cone mapping depth", pPars->nConeDepth );
+    printf("%-*s%s\n", w, "MiMo library", pPars->pMiMoLib->pName );
+    if( pPars->fPriorityCuts )
+        printf("%-*s%d\n", w, "Priority cuts with maxSize", pPars->MaxCutSize);
+    if( pPars->fDirectCuts )
+        printf("%-*s\n", w, "Direct cut calculation");
+    printf("%-*s%s\n", w, "Enable side outputs", pPars->fEnableSo ? "yes" : "no" );
+    if (pPars->fEnableSo )
+    {
+        printf("%-*s%d\n", w, "Minimum side outputs height", pPars->MinSoHeight);
+        printf("%-*s%s\n", w, "Respect slack for side outputs", pPars->fRespectSoSlack ? "yes" : "no");
+    }
+    printf("%-*s%d\n", w, "Number of area recovery rounds", pPars->nAreaRounds);
+    printf("%-*s%f\n", w, "Area flow weighting factor", pPars->AreaFlowAverageWeightFactor);
+    printf("%-*s%f\n", w, "Arrival relaxation factor", pPars->ArrivalRelaxFactor);
+    printf("%-*s%s\n", w, "Required time calculation", pPars->fStructuralRequired ? "Structure" : "Choice");
+    printf("%-*s%f\n", w, "Epsilon", pPars->Epsilon);
+    printf("%-*s%f\n", w, "Wire delay", pPars->WireDelay);
     printf("%-*s%s\n", w, "Verbose", pPars->fVerbose ? "yes" : "no");
     printf("%-*s%s\n", w, "Very verbose", pPars->fVeryVerbose ? "yes" : "no");
     printf("%-*s%s\n", w, "Extra validity checks", pPars->fExtraValidityChecks ? "yes" : "no" );
-    printf("%-*s%f\n", w, "Epsilon", pPars->Epsilon);
     printf("\n");
 }
 /**Function*************************************************************
@@ -168,14 +184,14 @@ void Cm_PrintBestCutStats(Cm_Man_t *p)
     int enumerator;
     Cm_Obj_t * pObj;
     int cnt[CM_MAX_DEPTH+1];
-    for(int i=0; i<=p->pPars->nConeDepth; i++)
+    for(int i=0; i<=CM_MAX_DEPTH; i++)
         cnt[i] = 0;
     Cm_ManForEachNode(p, pObj, enumerator)
         if ( (pObj->fMark & CM_MARK_VISIBLE))
             cnt[pObj->BestCut.Depth]++;
     int nGates = 0;
     float area = 0;
-    for(int i=1; i<p->pPars->nConeDepth; i++)
+    for(int i=1; i<=p->pPars->nConeDepth; i++)
     {
         nGates +=  cnt[i] * ((1<<i)-1);
         area += cnt[i] * p->pPars->AicArea[i];

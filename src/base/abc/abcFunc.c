@@ -21,7 +21,7 @@
 #include "abc.h"
 #include "base/main/main.h"
 #include "map/mio/mio.h"
-#include "map/mimo/miMo.h"
+#include "map/cm/cmMiMo.h"
 
 #ifdef ABC_USE_CUDD
 #include "bdd/extrab/extraBdd.h"
@@ -1306,7 +1306,7 @@ int Abc_NtkMapMiMoToAig( Abc_Ntk_t * pNtk )
                 while(pCellPinOut)
                 {
                     // Use a function pointer!!!
-                    pNodeNew->pData = MiMo_CmToAig(pCell, pMan, pCellPinOut->pPinOut);
+                    pNodeNew->pData = (void*)MiMo_CmToAig(pCell, pMan, pCellPinOut->pPinOut);
                     pNodeNew = pNodeNew->pCopy;
                     pCellPinOut = pCellPinOut->pNext;
                 }

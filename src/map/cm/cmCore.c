@@ -48,11 +48,14 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->fDirectCuts = 1;
     pPars->fPriorityCuts = 0;
     pPars->nAreaRounds = 3;
-    pPars->AreaFlowAverageWeightFactor = 1.5;
+    pPars->AreaFlowAverageWeightFactor = (float)1.5;
     pPars->MaxCutSize = 10;
     pPars->MinSoHeight = 2;
+    pPars->fEnableSo = 1;
     pPars->fRespectSoSlack = 1;
+    pPars->ArrivalRelaxFactor = (float)1.0;
     pPars->Epsilon = (float)0.005;
+    pPars->WireDelay = (float)0;
     pPars->nMaxCycleDetectionRecDepth = 5;
 }
 
@@ -204,7 +207,7 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
     {
         if ( p->pPars->fExtraValidityChecks)
             Cm_TestMonotonicArrival(p);
-        float arrival = Cm_ManLatestCoArrival(p);
+        float arrival = Cm_ManLatestCoArrival(p) * p->pPars->ArrivalRelaxFactor;
         Cm_ManSetCoRequired(p, arrival);
         Cm_ManCalcVisibleRequired(p);
         Cm_ManSetInvisibleRequired(p);
@@ -244,12 +247,16 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
     }
 
     Cm_ManAssignCones(p);
-    Cm_ManCalcVisibleRequired(p);
-    Cm_ManInsertSos(p);
-    if ( p->pPars->fExtraValidityChecks )
+    if ( p->pPars->fEnableSo)
     {
-        Cm_TestArrivalConsistency(p);
-        Cm_TestPositiveSlacks(p, 1);
+        Cm_ManCalcVisibleRequired(p);
+        Cm_ManInsertSos(p);
+        if ( p->pPars->fExtraValidityChecks )
+        {
+            Cm_TestArrivalConsistency(p);
+            if ( p->pPars->fRespectSoSlack)
+                Cm_TestPositiveSlacks(p, 1);
+        }
     }
     return 0;
 }

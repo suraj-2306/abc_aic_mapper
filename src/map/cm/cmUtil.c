@@ -219,7 +219,7 @@ void Cm_CutCopy(Cm_Cut_t *pFrom, Cm_Cut_t *pTo)
   SeeAlso     []
 
 ***********************************************************************/
-Cm_ObjLatestLeafArrival_rec(Cm_Obj_t *pObj)
+int Cm_ObjLatestLeafArrival_rec(Cm_Obj_t *pObj)
 {
     if ( (pObj->fMark & CM_MARK_LEAF) )
     {

@@ -70,12 +70,12 @@ Abc_Ntk_t * Abc_NtkCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars)
     // transfer delay and area
     for(int i=1;i<minSoHeight; i++)
     {
-        pPars->AicDelay[i] = pConeGates[minSoHeight]->MaxDelay;
+        pPars->AicDelay[i] = pConeGates[minSoHeight]->MaxDelay + pPars->WireDelay;
         pPars->AicArea[i] = pConeGates[minSoHeight]->Area;
     }
     for(int i=minSoHeight; i<=pPars->nConeDepth; i++)
     {
-        pPars->AicDelay[i] = pConeGates[i]->MaxDelay;
+        pPars->AicDelay[i] = pConeGates[i]->MaxDelay + pPars->WireDelay;
         pPars->AicArea[i] = pConeGates[i]->Area;
     }
     pPars->pCiArrival = Abc_NtkGetCiArrivalFloats( pNtk );
