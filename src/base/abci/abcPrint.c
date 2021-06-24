@@ -23,6 +23,7 @@
 #include "bool/dec/dec.h"
 #include "base/main/main.h"
 #include "map/mio/mio.h"
+#include "map/mimo/miMo.h"
 #include "aig/aig/aig.h"
 #include "map/if/if.h"
 
@@ -328,6 +329,11 @@ void Abc_NtkPrintStats( Abc_Ntk_t * pNtk, int fFactored, int fSaveBest, int fDum
             pNtk->pManTime = NULL;
         }
     }
+    else if ( Abc_NtkHasMappingMO(pNtk) )
+    {
+        Abc_Print( 1,"  area =%5.2f", Abc_NtkGetMappedMOArea(pNtk) );
+        Abc_Print( 1,"  areaGateCount=%6d", Abc_NtkGetMappedMOGateCount(pNtk) );
+    }    
     else if ( !Abc_NtkHasBlackbox(pNtk) )
     {
         assert( 0 );

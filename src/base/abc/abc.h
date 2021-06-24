@@ -1001,6 +1001,8 @@ extern ABC_DLL int                Abc_NtkGetBddNodeNum( Abc_Ntk_t * pNtk );
 extern ABC_DLL int                Abc_NtkGetAigNodeNum( Abc_Ntk_t * pNtk );
 extern ABC_DLL int                Abc_NtkGetClauseNum( Abc_Ntk_t * pNtk );
 extern ABC_DLL double             Abc_NtkGetMappedArea( Abc_Ntk_t * pNtk );
+extern ABC_DLL double             Abc_NtkGetMappedMOArea( Abc_Ntk_t * pNtk );
+extern ABC_DLL int                Abc_NtkGetMappedMOGateCount ( Abc_Ntk_t * pNtk );
 extern ABC_DLL int                Abc_NtkGetExorNum( Abc_Ntk_t * pNtk );
 extern ABC_DLL int                Abc_NtkGetMuxNum( Abc_Ntk_t * pNtk );
 extern ABC_DLL int                Abc_NtkGetBufNum( Abc_Ntk_t * pNtk );

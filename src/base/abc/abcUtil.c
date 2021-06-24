@@ -21,6 +21,7 @@
 #include "abc.h"
 #include "base/main/main.h"
 #include "map/mio/mio.h"
+#include "map/mimo/miMo.h"
 #include "bool/dec/dec.h"
 #include "opt/fxu/fxu.h"
 #include "aig/miniaig/ndr.h"
@@ -367,6 +368,72 @@ double Abc_NtkGetMappedArea( Abc_Ntk_t * pNtk )
     }
     return TotalArea;
 }
+
+/**Function*************************************************************
+
+  Synopsis    [Computes the area of the mapped circuit.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+double Abc_NtkGetMappedMOArea( Abc_Ntk_t * pNtk )
+{
+    Abc_Obj_t * pObj;
+    double TotalArea = 0;
+    int i;
+    assert (Abc_NtkHasMappingMO(pNtk) );
+    Abc_NtkForEachNode (pNtk, pObj, i )
+    {
+        MiMo_Cell_t * pCell = pObj->pData;
+        if ( !pCell )
+        {
+            printf( "Node without mapping is encountered.\n" );
+            continue;
+        }
+        TotalArea += pCell->pGate->Area;
+    }
+    return TotalArea;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Counts the number of gates for cone mapped circuit.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Abc_NtkGetMappedMOGateCount( Abc_Ntk_t * pNtk )
+{
+    Abc_Obj_t * pObj;
+    int nGates = 0;
+    int i;
+    assert (Abc_NtkHasMappingMO(pNtk) );
+    Abc_NtkForEachNode (pNtk, pObj, i )
+    {
+        MiMo_Cell_t * pCell = pObj->pData;
+        if ( !pCell )
+        {
+            printf( "Node without cone mapping is encountered.\n" );
+            continue;
+        }
+        int gc = pCell->pGate->GateCount;
+        // skip cells with unset/invalid logic gate counts
+        if ( gc < 0 )
+            continue;
+        nGates += gc;
+    }
+    return nGates;
+}
+
+
 
 /**Function*************************************************************
 

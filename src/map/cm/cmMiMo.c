@@ -34,7 +34,7 @@ ABC_NAMESPACE_IMPL_START
 
   Description [Returns 1 on success.]
                
-  SideEffects [Updates the depth of the gates]
+  SideEffects [Updates the depth and gateCount of the gates.]
 
   SeeAlso     []
 
@@ -54,6 +54,7 @@ int Cm_Cone2ReadOrderedConeGates(MiMo_Library_t *pLib, MiMo_Gate_t **ppGates, in
             {
                 ppGates[coneDepth] = pGate;
                 pGate->Depth = coneDepth;
+                pGate->GateCount = (1<<coneDepth) - 1;
                 fFound = 1;
             }
         if (!fFound){

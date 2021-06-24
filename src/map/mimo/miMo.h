@@ -69,6 +69,7 @@ struct MiMo_Gate_t_ {
     float Area; // area of the gate
     float MaxDelay; // maximum delay of all inputs to outputs
     int Depth; // maximum depth of the gate
+    int GateCount; // number of internal logic gates 
     MiMo_Library_t * pMiMoLib; // reference to library
     Vec_Ptr_t * pPinIns; // input pins of type MiMoPinIn_t
     Vec_Ptr_t * pPinOuts; // output pins of type MiMoPinOut_t

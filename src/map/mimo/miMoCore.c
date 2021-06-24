@@ -125,6 +125,7 @@ MiMo_Gate_t * MiMo_LibCreateGate(MiMo_Library_t *pLib, char *pName)
     pGate->Type = MIMO_GENERIC;
     pGate->MaxDelay = -1;
     pGate->Depth = -1;
+    pGate->GateCount = -1;
     pGate->pMiMoLib = pLib;
     pGate->pPinIns = Vec_PtrAlloc(8);
     pGate->pPinOuts = Vec_PtrAlloc(8);
@@ -147,12 +148,15 @@ void MiMo_LibAddStandardGates(MiMo_Library_t *pLib)
 {
     pLib->pGate1 = MiMo_LibCreateGate(pLib, "gateConst1");
     pLib->pGate1->Type = MIMO_SPECIAL;
+    pLib->pGate1->GateCount = 0;
     MiMo_GateCreatePinOut(pLib->pGate1, "const1");
     pLib->pGate0 = MiMo_LibCreateGate(pLib, "gateConst1");
+    pLib->pGate0->GateCount = 0;
     pLib->pGate0->Type = MIMO_SPECIAL;
     MiMo_GateCreatePinOut(pLib->pGate0, "const0");
     pLib->pGateBuf = MiMo_LibCreateGate(pLib, "gateBuff");
     pLib->pGateBuf->Type = MIMO_SPECIAL;
+    pLib->pGateBuf->GateCount = 0;
     MiMo_GateCreatePinIn(pLib->pGateBuf, "in");
     MiMo_GateCreatePinOut(pLib->pGateBuf, "out");
 }

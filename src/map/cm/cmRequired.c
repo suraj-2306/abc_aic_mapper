@@ -164,7 +164,7 @@ void Cm_ManCalcRequiredStructural(Cm_Man_t * p)
     // critical path
     Cm_ManForEachObj(p, pObj, enumerator)
     {
-        pObj->Required = pArrival[pObj->iTemp];
+        pObj->Required = pArrival[pObj->Level];
         pObj->iTemp = 0;
     }
     // calc depth and update required time
