@@ -19514,7 +19514,7 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
     Cm_ManSetDefaultPars( pPars );
     int c;
     Extra_UtilGetoptReset();
-    while ( ( c = Extra_UtilGetopt( argc, argv, "Dtvwpdh" ) ) != EOF )
+    while ( ( c = Extra_UtilGetopt( argc, argv, "DtvwpdSh" ) ) != EOF )
     {
         switch ( c )
         {
@@ -19547,6 +19547,9 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
             break;
         case 'd':
             pPars->fDirectCuts ^= 1;
+            break;
+        case 'S':
+            pPars->fStructuralRequired ^= 1;
             break;
         case 'h':
             goto usage;
@@ -19611,7 +19614,7 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
 
 usage: ;
     Cm_ManSetDefaultPars( pPars );
-    Abc_Print( -2, "usage cm [-D num] [-tvpdh]\n" );
+    Abc_Print( -2, "usage cm [-D num] [-tvpdSh]\n" );
     Abc_Print( -2, "\t          maps AIG to AIC\n" );
     Abc_Print( -2, "\t-D num    set maximum cone depth [default = %d]\n", pPars->nConeDepth );
     Abc_Print( -2, "\t-v        toggle verbose output [default = %s]\n", pPars->fVerbose ? "yes" : "no" );
@@ -19619,6 +19622,7 @@ usage: ;
     Abc_Print( -2, "\t-t        run extra validity checks [default = %s]\n", pPars->fExtraValidityChecks ? "yes" : "no" );
     Abc_Print( -2, "\t-p        toggle usage of priority cuts [default = %s]\n", pPars->fPriorityCuts ? "yes" : "no" );
     Abc_Print( -2, "\t-d        toggle usage of direct cut selection [default = %s]\n", pPars->fDirectCuts ? "yes" : "no" );
+    Abc_Print( -2, "\t-S        toggle usage of required time calculation by structure [default = %s]\n", pPars->fStructuralRequired ? "yes" : "no" );
     Abc_Print( -2, "\t-h        print the command usage\n" );
     return 1;
 }

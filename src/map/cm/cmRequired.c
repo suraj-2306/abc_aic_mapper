@@ -124,4 +124,66 @@ void Cm_ManSetInvisibleRequired(Cm_Man_t *p)
     }
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Sets the optimal required times for all nodes of an
+               circuit without timing constraint.]
+
+  Description [The required times for each node depends only on its
+               height, depth and the circuit height; as for each cone
+               its depth (forward traversal) equals its height (backward
+               traversal).]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_ManCalcRequiredStructural(Cm_Man_t * p)
+{
+    float * AicDelay = p->pPars->AicDelay;
+    int enumerator;
+    Cm_Obj_t * pObj;
+    // calc optimum arrival time for each level
+    float * pArrival = ABC_ALLOC(float, p->nLevelMax + 1);
+    pArrival[0] = 0;
+    for(int i=1; i<=p->nLevelMax; i++)
+    {
+        pArrival[i] = CM_FLOAT_LARGE;
+        for(int k=1; k<=p->pPars->nConeDepth && k<=i; k++)
+        {
+            float ar = pArrival[i-k] + AicDelay[k];
+            if ( ar < pArrival[i])
+                pArrival[i] = ar;
+        }
+    }
+    float circuitArrival = pArrival[p->nLevelMax];
+    printf("Fancy best achievable time %3.1f\n", circuitArrival);
+    // set required time to at least arrival time
+    // this ensures that every slack can be respected, even if some nodes may not be usefull on
+    // critical path
+    Cm_ManForEachObj(p, pObj, enumerator)
+    {
+        pObj->Required = pArrival[pObj->iTemp];
+        pObj->iTemp = 0;
+    }
+    // calc depth and update required time
+    Cm_ManForEachObjReverse(p, pObj, enumerator)
+    {
+        
+        float req = circuitArrival - pArrival[pObj->iTemp];
+        if ( pObj->Required < req )
+            pObj->Required = req;
+        if ( pObj->Type == CM_AND)
+        {
+
+            if ( pObj->pFanin0->iTemp <= pObj->iTemp )
+                pObj->pFanin0->iTemp = pObj->iTemp + 1;
+            if ( pObj->pFanin1->iTemp <= pObj->iTemp )
+                pObj->pFanin1->iTemp = pObj->iTemp + 1;
+        }
+    }
+    ABC_FREE ( pArrival );
+}
+
 ABC_NAMESPACE_IMPL_END

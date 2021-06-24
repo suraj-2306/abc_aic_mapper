@@ -85,6 +85,7 @@ struct Cm_Par_t_ {
     int MinSoHeight;
     int fDirectCuts; // enable cut calculation based on priority cuts?
     int fPriorityCuts; // enable direct cut selection heuristic?
+    int fStructuralRequired; // enable direct required time calculation?
     int MaxCutSize;
     float AicDelay[CM_MAX_DEPTH + 1]; // delay of the cones for each depth
     float AicArea[CM_MAX_DEPTH+1]; // area of the cones for each depth
@@ -246,6 +247,7 @@ extern void Cm_PrintCiRequired(Cm_Man_t * pObj);
 /*=== cmRequired.c ===================================================*/
 extern void Cm_ManCalcVisibleRequired(Cm_Man_t *p);
 extern void Cm_ManSetInvisibleRequired(Cm_Man_t *p);
+extern void Cm_ManCalcRequiredStructural(Cm_Man_t * p);
 /*=== cmSo.c =========================================================*/
 extern void Cm_ManInsertSos(Cm_Man_t *p);
 /*=== cmTest.c =======================================================*/

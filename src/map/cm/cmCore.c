@@ -44,6 +44,7 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->fVerbose = 0;
     pPars->fVeryVerbose = 0;
     pPars->fExtraValidityChecks = 0;
+    pPars->fStructuralRequired = 1;
     pPars->fDirectCuts = 1;
     pPars->fPriorityCuts = 0;
     pPars->MaxCutSize = 10;
@@ -108,7 +109,7 @@ void Cm_ManAssignCones( Cm_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Cm_ManRecoverArea( Cm_Man_t * p )
+void Cm_ManRecoverArea( Cm_Man_t * p, int fForceUpdate )
 {
     float * AicDelay = p->pPars->AicDelay;
     float eps = p->pPars->Epsilon;
@@ -120,14 +121,13 @@ void Cm_ManRecoverArea( Cm_Man_t * p )
     Cm_Cut_t tCut;
     Cm_ManForEachNode(p, pObj, enumerator)
     {
-        int fUpdate = 0;
-
+        int fUpdate = fForceUpdate;
         float bestAreaFlow = CM_FLOAT_LARGE;
         for(int d=minDepth; d<=maxDepth; d++)
         {
             pNodes[1] = pObj;
             int cdepth = Cm_FaBuildWithMaximumDepth(pNodes, d);
-            if ( cdepth < d )
+            if (cdepth < d )
                 break;
             float latestInputArrival = Cm_FaLatestMoInputArrival(pNodes, d);
             float requiredInputArrival = pObj->Required - AicDelay[d];
@@ -178,16 +178,26 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
         Cm_FaExtractLeafs(pNodes, &pObj->BestCut);
         pObj->BestCut.Arrival = arr + AicDelay[pObj->BestCut.Depth];
     }
-    if ( p->pPars->fExtraValidityChecks)
-        Cm_TestMonotonicArrival(p);
 
-    float arrival = Cm_ManLatestCoArrival(p);
-    Cm_ManSetCoRequired(p, arrival);
-    Cm_ManCalcVisibleRequired(p);
-    Cm_ManSetInvisibleRequired(p);
-    if ( p->pPars->fVerbose )
-        Cm_PrintBestCutStats(p);
-    Cm_ManRecoverArea(p);
+    if (p->pPars->fStructuralRequired)
+    {
+        Cm_ManCalcRequiredStructural(p);
+        Cm_ManRecoverArea(p, 0);
+    }
+    else
+    {
+
+        if ( p->pPars->fExtraValidityChecks)
+            Cm_TestMonotonicArrival(p);
+        float arrival = Cm_ManLatestCoArrival(p);
+        Cm_ManSetCoRequired(p, arrival);
+        Cm_ManCalcVisibleRequired(p);
+        Cm_ManSetInvisibleRequired(p);
+
+        if ( p->pPars->fVerbose )
+            Cm_PrintBestCutStats(p);
+        Cm_ManRecoverArea(p, 0);
+    }
 
     Cm_ManCalcVisibleRequired(p);
     if ( p->pPars->fVerbose )
