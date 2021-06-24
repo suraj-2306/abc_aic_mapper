@@ -44,10 +44,12 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->fVerbose = 0;
     pPars->fVeryVerbose = 0;
     pPars->fExtraValidityChecks = 0;
+    pPars->fDirectCuts = 1;
+    pPars->fPriorityCuts = 0;
+    pPars->MaxCutSize = 10;
     pPars->MinSoHeight = 2;
     pPars->fRespectSoSlack = 1;
     pPars->Epsilon = (float)0.005;
-    pPars->MaxCutSize = 10;
     pPars->nMaxCycleDetectionRecDepth = 5;
 }
 
@@ -132,7 +134,7 @@ void Cm_ManRecoverArea( Cm_Man_t * p )
             if ( latestInputArrival > requiredInputArrival + eps )
                 continue;
             tCut.Depth = d;
-            float areaFlow = Cm_ManMinimizeCutAreaFlowPriority(p, pNodes, requiredInputArrival, &tCut);
+            float areaFlow = Cm_ManMinimizeCutAreaFlow(p, pNodes, requiredInputArrival, &tCut);
             if ( areaFlow + eps < bestAreaFlow )
             {
                 fUpdate = 1;

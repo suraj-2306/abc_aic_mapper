@@ -82,11 +82,13 @@ struct Cm_Par_t_ {
     int fVerbose; // be verbose
     int fVeryVerbose; // be very verbose
     int fExtraValidityChecks; // run more checks -- mainly for debugging 
-    int MinSoHeight; 
+    int MinSoHeight;
+    int fDirectCuts; // enable cut calculation based on priority cuts?
+    int fPriorityCuts; // enable direct cut selection heuristic?
+    int MaxCutSize;
     float AicDelay[CM_MAX_DEPTH + 1]; // delay of the cones for each depth
     float AicArea[CM_MAX_DEPTH+1]; // area of the cones for each depth
     float Epsilon; // used for comparisons
-    int MaxCutSize;
     int nMaxCycleDetectionRecDepth; // longest allowed side output chain path length
     int fRespectSoSlack; // respect required time, when inserting side outputs ?
     MiMo_Library_t * pMiMoLib;
@@ -212,7 +214,9 @@ static inline MiMo_PinOut_t * Cm_ManGetOutputPin(Cm_Man_t * p, int coneDepth, in
 ////////////////////////////////////////////////////////////////////////
 
 /*=== cmArea.c =======================================================*/
+extern float Cm_ManMinimizeCutAreaFlow(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
 extern float Cm_ManMinimizeCutAreaFlowPriority(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
+extern float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
 /*=== cmCore.c =======================================================*/
 extern void Cm_ManSetDefaultPars( Cm_Par_t * pPars );
 extern int Cm_ManPerformMapping( Cm_Man_t * p );

@@ -19514,7 +19514,7 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
     Cm_ManSetDefaultPars( pPars );
     int c;
     Extra_UtilGetoptReset();
-    while ( ( c = Extra_UtilGetopt( argc, argv, "Dtvwh" ) ) != EOF )
+    while ( ( c = Extra_UtilGetopt( argc, argv, "Dtvwpdh" ) ) != EOF )
     {
         switch ( c )
         {
@@ -19541,6 +19541,12 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
             break;
         case 'w':
             pPars->fVeryVerbose ^= 1;
+            break;
+        case 'p':
+            pPars->fPriorityCuts ^= 1;
+            break;
+        case 'd':
+            pPars->fDirectCuts ^= 1;
             break;
         case 'h':
             goto usage;
@@ -19605,12 +19611,14 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
 
 usage: ;
     Cm_ManSetDefaultPars( pPars );
-    Abc_Print( -2, "usage cm [-D num] [-tvwh]\n" );
+    Abc_Print( -2, "usage cm [-D num] [-tvpdh]\n" );
     Abc_Print( -2, "\t          maps AIG to AIC\n" );
     Abc_Print( -2, "\t-D num    set maximum cone depth [default = %d]\n", pPars->nConeDepth );
     Abc_Print( -2, "\t-v        toggle verbose output [default = %s]\n", pPars->fVerbose ? "yes" : "no" );
     Abc_Print( -2, "\t-w        toggle very verbose output [default = %s]\n", pPars->fVeryVerbose ? "yes" : "no");
     Abc_Print( -2, "\t-t        run extra validity checks [default = %s]\n", pPars->fExtraValidityChecks ? "yes" : "no" );
+    Abc_Print( -2, "\t-p        toggle usage of priority cuts [default = %s]\n", pPars->fPriorityCuts ? "yes" : "no" );
+    Abc_Print( -2, "\t-d        toggle usage of direct cut selection [default = %s]\n", pPars->fDirectCuts ? "yes" : "no" );
     Abc_Print( -2, "\t-h        print the command usage\n" );
     return 1;
 }
