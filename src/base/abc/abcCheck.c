@@ -562,7 +562,8 @@ int Abc_NtkCheckNode( Abc_Ntk_t * pNtk, Abc_Obj_t * pNode )
         }
 #endif
     }
-    else if ( !Abc_NtkHasMapping(pNtk) && !Abc_NtkHasBlifMv(pNtk) && !Abc_NtkHasAig(pNtk) )
+    else if ( !Abc_NtkHasMapping(pNtk) && !Abc_NtkHasMappingMO(pNtk)
+                && !Abc_NtkHasBlifMv(pNtk) && !Abc_NtkHasAig(pNtk) )
     {
         assert( 0 );
     }

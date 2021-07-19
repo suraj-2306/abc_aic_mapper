@@ -103,6 +103,8 @@ void Cm_ManSetInvisibleRequired(Cm_Man_t *p)
         pQueue[0] = pObj->pFanin0;
         pQueue[1] = pObj->pFanin1;
         int front = 0, back = 2;
+        if ( pObj->pFanin2)
+            pQueue[back++] = pObj->pFanin2;
         while(front != back)
         {
             // discard outside / invisible nodes
@@ -119,6 +121,8 @@ void Cm_ManSetInvisibleRequired(Cm_Man_t *p)
                 pQueue[back] = pFront->pFanin0;
             if ( pFront->pFanin1 )
                 pQueue[back] = pFront->pFanin1;
+            if ( pFront->pFanin2 ) 
+                pQueue[back] = pFront->pFanin2;
        }
        for(int i=0; i<pObj->BestCut.nFanins; i++)
            pObj->BestCut.Leafs[i]->fMark &= ~CM_MARK_LEAF;
@@ -181,6 +185,8 @@ void Cm_ManCalcRequiredStructural(Cm_Man_t * p)
                 pObj->pFanin0->iTemp = pObj->iTemp + 1;
             if ( pObj->pFanin1->iTemp <= pObj->iTemp )
                 pObj->pFanin1->iTemp = pObj->iTemp + 1;
+            if ( pObj->pFanin2 && pObj->pFanin2->iTemp <= pObj->iTemp)
+                pObj->pFanin2->iTemp = pObj->iTemp + 1;
         }
     }
     ABC_FREE ( pArrival );

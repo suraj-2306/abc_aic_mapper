@@ -53,6 +53,7 @@
 #include "bdd/llb/llb.h"
 #include "bdd/bbr/bbr.h"
 #include "map/cov/cov.h"
+#include "map/mio/mio.h"
 #include "base/cmd/cmd.h"
 #include "proof/abs/abs.h"
 #include "sat/bmc/bmc.h"
@@ -64,7 +65,6 @@
 #include "opt/fret/fretime.h"
 #include "opt/nwk/nwkMerge.h"
 #include "base/acb/acbPar.h"
-
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -19508,13 +19508,17 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
 {
     extern Abc_Ntk_t * Abc_NtkCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars );
     extern void Cm_ManSetDefaultPars( Cm_Par_t * pPars );
+    extern Mio_Library_t * Mio_LibraryRead( char * FileName, char * pBuffer, char * ExcludeFile, int fVerbose );
+    extern void Mio_UpdateGenlib( Mio_Library_t * pLib );
+    extern Abc_Ntk_t * Abc_NtkMap( Abc_Ntk_t * pNtk, double DelayTarget, double AreaMulti, double DelayMulti, float LogFan, float Slew, float Gain, int nGatesMin, int fRecovery, int fSwitching, int fSkipFanout, int fUseProfile, int fUseBuffs, int fVerbose );
+    int fMapRecovery = 0;
     Abc_Ntk_t * pNtk, * pNtkRes;
     pNtk = Abc_FrameReadNtk(pAbc);
     Cm_Par_t Pars, * pPars = &Pars;
     Cm_ManSetDefaultPars( pPars );
     int c;
     Extra_UtilGetoptReset();
-    while ( ( c = Extra_UtilGetopt( argc, argv, "DAarcHEWbtvwpdSsRh" ) ) != EOF )
+    while ( ( c = Extra_UtilGetopt( argc, argv, "DAarcHEWbtvwpdSsRTh" ) ) != EOF )
     {
         switch ( c )
         {
@@ -19586,7 +19590,7 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
             }
             pPars->MinSoHeight = atoi(argv[globalUtilOptind]);
             globalUtilOptind++;
-            if ( pPars->Epsilon < 0.0 )
+            if ( pPars->MinSoHeight < 0.0 )
                 goto usage;
             break;
         case 'E':
@@ -19613,6 +19617,7 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
             break;
         case 'b':
             pPars->fCutBalancing ^= 1;
+            break;
 	    case 't':
             pPars->fExtraValidityChecks ^= 1;
             break;
@@ -19637,8 +19642,12 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
         case 'R':
             pPars->fRespectSoSlack ^= 1;
             break;
+        case 'T':
+            pPars->fThreeInputGates ^= 1;
+            break;
         case 'h':
             goto usage;
+            break;
         default:
             goto usage;
         }
@@ -19675,6 +19684,19 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
         {
             Abc_Print( 1, "The network was strashed and balanced before cone mapping.\n" );
         }
+        // map to three inputs
+        if ( pPars->fThreeInputGates )
+        {
+            char buf [] = CM_GENLIB_STR;
+            Mio_UpdateGenlib(Mio_LibraryRead("nn3", buf, NULL, pPars->fVerbose));
+            pNtk = Abc_NtkMap( pNtkRes = pNtk, -1, 0, 0, 0, 0, 0, 0, fMapRecovery, 0, 0, 0, 0, pPars->fVeryVerbose );
+            // Abc_NtkDelete( pNtkRes );
+            if ( pNtk == NULL )
+            {
+                Abc_Print( -1, "Mapping to 3 input-gates has failed\n");
+                return 0;
+            }
+        }
         // get the new network
         pNtkRes = Abc_NtkCm( pNtk, pPars );
         if ( pNtkRes == NULL )
@@ -19686,6 +19708,18 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
     }
     else
     {
+        if ( pPars->fThreeInputGates )
+        {
+            char buf[] = CM_GENLIB_STR;
+            Mio_UpdateGenlib(Mio_LibraryRead("nn3", buf, NULL, pPars->fVerbose));
+            pNtk = Abc_NtkMap( pNtkRes = pNtk, -1, 0, 0, 0, 0, 0, 0, fMapRecovery, 0, 0, 0, 0, pPars->fVeryVerbose );
+            //Abc_NtkDelete( pNtkRes );
+            if ( pNtk == NULL )
+            {
+                Abc_Print( -1, "Mapping to 3 input-gates has failed\n");
+                return 0;
+            }
+        }        
         // get the new network
         pNtkRes = Abc_NtkCm( pNtk, pPars );
         if ( pNtkRes == NULL )
@@ -19700,11 +19734,10 @@ static int Abc_CommandCm( Abc_Frame_t * pAbc, int argc, char ** argv )
 
 usage: ;
     Cm_ManSetDefaultPars( pPars );
-    Abc_Print( -2, "usage cm [-D num] [-tvwpdSsRh]\n" );
-    Abc_Print( -2, "\t          maps AIG to AIC\n" );
-    Abc_Print( -2, "usage cm [-DAarcHEW num] [-rpsSbvwth]\n" );
+    Abc_Print( -2, "usage cm [-DAarcHEW num] [-rTpsSbvwth]\n" );
     Abc_Print( -2, "\t          maps AIG to AIC\n" );
     Abc_Print( -2, "\t-D num    set maximum cone depth [default = %d]\n", pPars->nConeDepth );
+    Abc_Print( -2, "\t-T        toggle usage of 3-input gate cones [default = %s]\n", pPars->fThreeInputGates ? "yes" : "no"); 
     Abc_Print( -2, "\t-S        toggle usage of required time calculation by structure [default = %s]\n", pPars->fStructuralRequired ? "yes" : "no" );
     Abc_Print( -2, "\t-d        toggle usage of direct cut selection [default = %s]\n", pPars->fDirectCuts ? "yes" : "no" );
     Abc_Print( -2, "\t-p        toggle usage of priority cuts [default = %s]\n", pPars->fPriorityCuts ? "yes" : "no" );

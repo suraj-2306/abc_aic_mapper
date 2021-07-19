@@ -336,6 +336,7 @@ void Abc_NtkPrintStats( Abc_Ntk_t * pNtk, int fFactored, int fSaveBest, int fDum
     }    
     else if ( !Abc_NtkHasBlackbox(pNtk) )
     {
+        printf("Type: %d, Func: %d\n", pNtk->ntkType, pNtk->ntkFunc);
         assert( 0 );
     }
 

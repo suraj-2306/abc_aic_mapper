@@ -1339,7 +1339,6 @@ void Abc_NtkDelete( Abc_Ntk_t * pNtk )
         Abc_NtkForEachObj( pNtk, pObj, i )
             ABC_FREE( pObj );
     }
-        
     // free the arrays
     Vec_PtrFree( pNtk->vPios );
     Vec_PtrFree( pNtk->vPis );

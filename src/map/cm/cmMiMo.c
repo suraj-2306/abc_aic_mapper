@@ -14,7 +14,7 @@
 
   Date        [Ver. 1.0. Started - February 15, 2021.]
 
-  Revision    [$Id: if.h,v 1.00 2021/02/15 00:00:00 thm Exp $]
+  Revision    [$Id: cmMiMo.h,v 1.00 2021/02/15 00:00:00 thm Exp $]
 
 ***********************************************************************/
 
@@ -159,6 +159,139 @@ Vec_Ptr_t * Cm_Cone2ReadOrderedConeOutputPins(MiMo_Gate_t **ppGates, int minDept
     return pOutVec;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Reads the cone gates of pLib into ppGates,from minDepth to 
+               maxDepth, with fixed expected names.
+               Internal gates are assumed to have exactly 3 inputs.]
+
+  Description [Returns 1 on success.]
+               
+  SideEffects [Updates the depth and gateCount of the gates.]
+
+  SeeAlso     []
+
+***********************************************************************/
+int Cm_Cone3ReadOrderedConeGates(MiMo_Library_t *pLib, MiMo_Gate_t **ppGates, int minDepth, int maxDepth)
+{
+    MiMo_Gate_t * pGate = NULL;
+    int i;
+    char coneStr [20];
+    for(int coneDepth=minDepth; coneDepth<=maxDepth; coneDepth++)
+    {
+        sprintf(coneStr, "cone_%d", coneDepth);
+        // for now using slow direct string comparison search
+        int fFound = 0;
+        MiMo_LibForEachGate(pLib, pGate, i)
+            if (!strcmp(coneStr, pGate->pName))
+            {
+                ppGates[coneDepth] = pGate;
+                pGate->Depth = coneDepth;
+                pGate->GateCount = (Cm_Pow3(coneDepth) - 1 ) / 2;
+                fFound = 1;
+            }
+        if (!fFound)
+        {
+            printf("%s not found in current MiMoLibrary\n", coneStr);
+            return 0;
+        }
+    }
+    return 1;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Reads input pins of previously read gates in specific order]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     [Cm_Cone3ReadOrderedConeGates]
+
+***********************************************************************/
+Vec_Ptr_t * Cm_Cone3ReadOrderedConeInputPins(MiMo_Gate_t ** ppGates, int minDepth, int maxDepth)
+{
+    // add structural check instead of comparing to fixed strings...
+    Vec_Ptr_t * pInVec = Vec_PtrAlloc(Cm_Fa3Size(maxDepth+1));
+    for(int d=minDepth; d<=maxDepth; d++)
+    {
+        int startPos = Cm_Fa3Size(d);
+        int pinPos = 0;
+        int i;
+        MiMo_PinIn_t *pPinIn;
+        char expectedPinName [32];
+        MiMo_GateForEachPinIn(ppGates[d], pPinIn, i)
+        {
+            sprintf(expectedPinName, "in%d[%d]", pinPos/3, pinPos%3); 
+            if ( !strcmp(expectedPinName, pPinIn->pName) )
+            {
+                Vec_PtrSetEntry(pInVec, startPos + pinPos, pPinIn);
+                pinPos++;
+            } else {
+                printf("Expected input name %s, but got %s in gate %s while parsing MiMoLibrary\n",
+                        expectedPinName, pPinIn->pName, ppGates[d]->pName);
+                Vec_PtrFree(pInVec);
+                return NULL;
+            }
+        }
+    }
+    return pInVec;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Reads output pins of previously read gates in specific order]
+
+  Description []
+               
+  SideEffects [Sets the position of the output pins.]
+
+  SeeAlso     [Cm_Cone3ReadOrderedConeGates]
+
+***********************************************************************/
+Vec_Ptr_t * Cm_Cone3ReadOrderedConeOutputPins(MiMo_Gate_t **ppGates, int minDepth, int maxDepth)
+{
+    // add structural check instead of comparing to fixed strings...
+    Vec_Ptr_t * pOutVec = Vec_PtrAlloc(Cm_Fa3Size(maxDepth));
+    for(int d=minDepth; d<=maxDepth; d++)
+    {
+        int startPos = Cm_Fa3OutPinStartPos(d);
+        int i;
+        MiMo_PinOut_t *pPinOut;
+        char expectedPinName[32];
+        int pinOutNumber = 0;
+        int layer = d-1;
+        int pinLayerNumber = 0;
+        MiMo_GateForEachPinOut(ppGates[d], pPinOut, i)
+        {
+            sprintf(expectedPinName, "out%d", pinOutNumber);
+            if ( !strcmp(expectedPinName, pPinOut->pName) )
+            {
+                // push pin in correct place as it is seen in bfs order
+                int predArrayPos = Cm_Fa3LayerStart(layer) + pinLayerNumber;
+                pPinOut->Pos = predArrayPos;
+                Vec_PtrSetEntry(pOutVec, startPos + predArrayPos, pPinOut );
+            }
+            else
+            {
+                printf("Expected output name %s, but got %s in gate %s while parsing MiMoLibrary\n",
+                        expectedPinName, pPinOut->pName, ppGates[d]->pName);
+                Vec_PtrFree(pOutVec);
+                return NULL;
+            }
+
+            pinOutNumber++;
+            pinLayerNumber++;
+            if ( pinLayerNumber == Cm_Pow3(layer) )
+            {
+                layer--;
+                pinLayerNumber = 0;
+            }
+        }
+    }
+    return pOutVec;
+}
 
 ////////////////////////////////////////////////////////////////////////
 ///                        GENERIC FUNCTIONS                         ///
@@ -219,6 +352,38 @@ void MiMo_CmCreateInputLayer2(MiMo_Cell_t * pCell, Hop_Man_t *p, Hop_Obj_t ** pL
         pLayer[2*i+1] = inId1 < 0 ? Hop_ManConst0( p ) : Hop_IthVar ( p, inId1 );
         if ( Vec_BitEntry(pCell->vBitConfig, 2*i+1 ) )
             pLayer[2*i+1] = Hop_Not(pLayer[2*i+1] );
+    }
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Creates for an cone of 3 input gates the AIG input layer
+               nodes according to the configuration]
+
+  Description [startPos and endPos are used to create only the required
+               range of the input node layer (usefull for side outputs)]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void MiMo_CmCreateInputLayer3(MiMo_Cell_t * pCell, Hop_Man_t *p, Hop_Obj_t ** pLayer, int startPos, int endPos)
+{
+    int d = pCell->pGate->Depth;
+    int pFaninId[Cm_Pow3(d+1)];
+    MiMo_CmCalcFaninIdArray(pCell, pFaninId, Cm_Pow3(d+1));
+    int layerStart = Cm_Fa3LayerStart(d);
+    // create bottom layer with required inversions
+    for(int i=startPos; i<endPos; i++)
+    {
+        for(int k=-1; k<=1; k++)
+        {
+            int inId = pFaninId[3*i+k - layerStart];
+            pLayer[3*i+k] = inId < 0 ? Hop_ManConst0( p ) : Hop_IthVar ( p, inId );
+            if ( Vec_BitEntry(pCell->vBitConfig, 3*i+k ) )
+                pLayer[3*i+k] = Hop_Not( pLayer[3*i+k] );
+        }
     }
 }
 
@@ -407,9 +572,9 @@ void MiMo_CmInvertInputAIC2( MiMo_Cell_t * pCell, int faninId )
 ***********************************************************************/
 Hop_Obj_t * MiMo_CmToAigAIC2( MiMo_Cell_t * pCell, Hop_Man_t * p, MiMo_PinOut_t * pPinOut )
 {
-    int d = pCell->pGate->Depth;
+    const int d = pCell->pGate->Depth;
     int faninPos = pPinOut->Pos;
-    Hop_Obj_t * pObjLayer[128];
+    Hop_Obj_t * pObjLayer[(2<<d)];
     int layerStart = faninPos;
     int layerSize = 1;
     while(layerStart < (1<<(d-1)) )
@@ -557,7 +722,7 @@ void MiMo_CmInvertInputAIC3( MiMo_Cell_t * pCell, int faninId )
     static int msg = 0;
     if (!msg)
     {
-        printf("TDOD: Implement CmInvertInputNNC3\n");
+        printf("TDOD: Implement CmInvertInputAIC3\n");
         msg = 1;
     }
 }
@@ -613,9 +778,9 @@ Hop_Obj_t * MiMo_CmToAigAIC3( MiMo_Cell_t * pCell, Hop_Man_t * p, MiMo_PinOut_t 
 MiMo_Cell_t * MiMo_CmCellFromFaNNC2( MiMo_Gate_t * pGate, Cm_Obj_t ** pFa, int fMoCompl )
 {
     MiMo_Cell_t * pCell = MiMo_CellCreate( pGate );
-    int d = pGate->Depth;
+    const int d = pGate->Depth;
     Vec_Bit_t * vConfig = Vec_BitStart((2<<d));
-    int fInv[128];
+    int fInv[(2<<d)];
     fInv[1] = fMoCompl;
     for(int i=1; i<(1<<d); i++)
     {
@@ -745,9 +910,9 @@ void MiMo_CmInvertInputNNC2( MiMo_Cell_t * pCell, int faninId )
 ***********************************************************************/
 Hop_Obj_t * MiMo_CmToAigNNC2( MiMo_Cell_t * pCell, Hop_Man_t * p, MiMo_PinOut_t * pPinOut )
 {
-    int d = pCell->pGate->Depth;
+    const int d = pCell->pGate->Depth;
     int faninPos = pPinOut->Pos;
-    Hop_Obj_t * pObjLayer[128];
+    Hop_Obj_t * pObjLayer[(2<<d)];
     int layerStart = faninPos;
     int layerSize = 1;
     while(layerStart < (1<<(d-1)) )
@@ -781,10 +946,25 @@ Hop_Obj_t * MiMo_CmToAigNNC2( MiMo_Cell_t * pCell, Hop_Man_t * p, MiMo_PinOut_t 
  *    1 -> select NAND
  *  Meaning on input layer
  *    0 -> direct signal
- *    1 -> inverted signal
- *  Assumes const0 for unconnected pins
+ *    1 -> inverted signal ( also for unconnected const0)
+ *  Assumes const0 for unconnected inputs 
  */ 
 
+
+int Cm_Fa3FaninCompl(Cm_Obj_t ** pFa, int index)
+{
+    int pi = (index+1)/3;
+    if ( pi < 1 )
+        printf("Problematic for %d\n", pFa[1]->Id);
+    if ( !pFa[pi] ) return 0;
+    switch(index % 3)
+    {
+        case 0: return pFa[pi]->fCompl1; break;
+        case 1: return pFa[pi]->fCompl2; break;
+        case 2: return pFa[pi]->fCompl0; break;
+        default: return 0;
+    }
+}
 
 /**Function*************************************************************
 
@@ -797,15 +977,35 @@ Hop_Obj_t * MiMo_CmToAigNNC2( MiMo_Cell_t * pCell, Hop_Man_t * p, MiMo_PinOut_t 
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_Cell_t * MiMo_CmCellFromFaNNC3( MiMo_Gate_t * pGate, void ** pFa, int fMoCompl )
+MiMo_Cell_t * MiMo_CmCellFromFaNNC3( MiMo_Gate_t * pGate, Cm_Obj_t ** pFa, int fMoCompl )
 {
     MiMo_Cell_t * pCell = MiMo_CellCreate( pGate );
-    static int msg = 0;
-    if (!msg)
+    const int d = pGate->Depth;
+    Vec_Bit_t * vConfig = Vec_BitStart(Cm_Fa3Size(d+1) + 1);
+    int fInv[Cm_Fa3Size(d+1)];
+    fInv[1] = fMoCompl;
+    for(int i=1; i<Cm_Fa3LayerStart(d); i++)
     {
-        printf("TODO: NNC3 config generation is currently not implemented\n");
-        msg = 1;
+        if ( pFa[i] && pFa[i]->Type == CM_CONST1 && Cm_Fa3FaninCompl(pFa, i) )
+            fInv[i] ^= 1;
+        Vec_BitWriteEntry(vConfig, i, fInv[i]);
+        fInv[3*i-1] = 1 ^ fInv[i];
+        fInv[3*i] = 1 ^ fInv[i];
+        fInv[3*i+1] =  1 ^ fInv[i];
+        if ( pFa[i] )
+        {
+            fInv[3*i-1] ^= pFa[i]->fCompl0;
+            fInv[3*i] ^= pFa[i]->fCompl1;
+            fInv[3*i+1] ^= pFa[i]->fCompl2;
+        }
     }
+    for(int i=Cm_Fa3LayerStart(d); i<Cm_Fa3LayerStart(d+1); i++)
+    {
+        if ( ! pFa[i] ||  (pFa[i]->Type == CM_CONST1 && !Cm_Fa3FaninCompl(pFa, i)) )
+            fInv[i] ^= 1;
+        Vec_BitWriteEntry(vConfig, i, fInv[i] );
+    }
+    pCell->vBitConfig = vConfig;
     return pCell;
 }
 
@@ -883,11 +1083,16 @@ int MiMo_CmSoInvertedNNC3( MiMo_Cell_t * pCell, int soPos )
 
 void MiMo_CmInvertInputNNC3( MiMo_Cell_t * pCell, int faninId )
 {
-    static int msg = 0;
-    if (!msg)
+    MiMo_CellPinIn_t * pPinIn = pCell->pPinInList;
+    while (pPinIn)
     {
-        printf("TODO: Implement CmInvertInputNNC3\n");
-        msg = 1;
+        if (pPinIn->FaninId == faninId )
+        {
+            int pinId = pPinIn->pPinIn->Id;
+            int inputLayerPos = Cm_Fa3LayerStart(pCell->pGate->Depth);
+            Vec_BitInvertEntry(pCell->vBitConfig, pinId + inputLayerPos);
+        }
+        pPinIn = pPinIn->pNext;
     }
 }
 
@@ -904,13 +1109,34 @@ void MiMo_CmInvertInputNNC3( MiMo_Cell_t * pCell, int faninId )
 ***********************************************************************/
 Hop_Obj_t * MiMo_CmToAigNNC3( MiMo_Cell_t * pCell, Hop_Man_t * p, MiMo_PinOut_t * pPinOut )
 {
-    static int msg = 0;
-    if (!msg)
+    const int d = pCell->pGate->Depth;
+    int faninPos = pPinOut->Pos;
+    Hop_Obj_t * pObjLayer[Cm_Fa3Size(d+1) + 1];
+    int layerStart = faninPos;
+    int layerSize = 1;
+    // go to lowest gate layer
+    while(layerStart < Cm_Fa3LayerStart(d-1) )
     {
-        printf("TODO: Implement MiMo_CmToAigNNC3\n");
-        msg = 1;
+        layerStart = layerStart * 3 - 1;
+        layerSize *= 3;
     }
-    return NULL;
+    MiMo_CmCreateInputLayer3(pCell, p, pObjLayer, layerStart, layerStart + layerSize);
+    // create layers above
+    while ( layerSize )
+    {
+        for(int i=layerStart; i<layerStart+layerSize; i++)
+        {
+            if ( Vec_BitEntry(pCell->vBitConfig, i) )
+                pObjLayer[i] = Hop_Not( Hop_And(p, pObjLayer[3*i-1], 
+                                                Hop_And( p, pObjLayer[3*i], pObjLayer[3*i+1]) ));
+            else
+                pObjLayer[i] = Hop_And(p, Hop_Not(pObjLayer[3*i-1]),
+                                       Hop_And( p, Hop_Not(pObjLayer[3*i]), Hop_Not(pObjLayer[3*i+1]) ));
+        }
+        layerStart = (layerStart + 1) / 3;
+        layerSize /= 3;
+    }
+    return pObjLayer[faninPos];
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -939,7 +1165,7 @@ MiMo_Cell_t * MiMo_CmCellFromFa( MiMo_Gate_t * pGate, void **pFa, int fMoCompl)
     if ( pGate->Type == MIMO_NNC2 )
         return MiMo_CmCellFromFaNNC2( pGate, (Cm_Obj_t**)pFa, fMoCompl );
     if ( pGate->Type == MIMO_NNC3 )
-        return MiMo_CmCellFromFaNNC3( pGate, pFa, fMoCompl );
+        return MiMo_CmCellFromFaNNC3( pGate, (Cm_Obj_t**)pFa, fMoCompl );
     assert(0);
     return NULL;
 }
@@ -1015,6 +1241,10 @@ int MiMo_CmMoInverted(MiMo_Cell_t * pCell)
         return MiMo_CmMoInvertedNNC2( pCell );
     if ( pCell->pGate->Type == MIMO_NNC3 )
         return MiMo_CmMoInvertedNNC3( pCell );
+    if ( MiMo_GateIsConst1( pCell->pGate ) )
+        return 0;
+    if ( MiMo_GateIsConst0( pCell->pGate ) )
+        return 1;
     assert(0);
     return 0;
 }

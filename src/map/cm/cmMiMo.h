@@ -14,7 +14,7 @@
 
   Date        [Ver. 1.0. Started - February 15, 2021.]
 
-  Revision    [$Id: if.h,v 1.00 2021/02/15 00:00:00 thm Exp $]
+  Revision    [$Id: cmMiMo.h,v 1.00 2021/02/15 00:00:00 thm Exp $]
 
 ***********************************************************************/
  
@@ -42,6 +42,12 @@ ABC_NAMESPACE_HEADER_START
 extern int Cm_Cone2ReadOrderedConeGates(MiMo_Library_t *pLib, MiMo_Gate_t **ppGates, int minDepth, int maxDepth);
 extern Vec_Ptr_t * Cm_Cone2ReadOrderedConeInputPins(MiMo_Gate_t ** ppGates, int minDepth, int maxDepth);
 extern Vec_Ptr_t * Cm_Cone2ReadOrderedConeOutputPins(MiMo_Gate_t **ppGates, int minDepth, int maxDepth);
+
+extern int Cm_Cone3ReadOrderedConeGates(MiMo_Library_t *pLib, MiMo_Gate_t **ppGates, int minDepth, int maxDepth);
+extern Vec_Ptr_t * Cm_Cone3ReadOrderedConeInputPins(MiMo_Gate_t ** ppGates, int minDepth, int maxDepth);
+extern Vec_Ptr_t * Cm_Cone3ReadOrderedConeOutputPins(MiMo_Gate_t **ppGates, int minDepth, int maxDepth);
+
+
 
 extern MiMo_Cell_t * MiMo_CmCreateInvertingCell( MiMo_Gate_t * pGate );
 extern void MiMo_CmInvertMo( MiMo_Cell_t * pCell );

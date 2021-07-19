@@ -19,6 +19,7 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "map/cm/cm.h"
+#include "map/mio/mio.h"
 #include "aig/aig/aig.h"
 
 ABC_NAMESPACE_IMPL_START
@@ -28,7 +29,8 @@ ABC_NAMESPACE_IMPL_START
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static Cm_Man_t *  Abc_NtkToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars );
+static Cm_Man_t *  Abc_Ntk2ToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars );
+static Cm_Man_t *  Abc_Ntk3ToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars );
 static Abc_Ntk_t * Abc_NtkFromCm( Cm_Man_t * pMan, Abc_Ntk_t * pNtk);
  
 ////////////////////////////////////////////////////////////////////////
@@ -50,21 +52,42 @@ static Abc_Ntk_t * Abc_NtkFromCm( Cm_Man_t * pMan, Abc_Ntk_t * pNtk);
 ***********************************************************************/
 Abc_Ntk_t * Abc_NtkCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars)
 {
-    assert (Abc_NtkIsStrash(pNtk) );
+    assert ( (Abc_NtkIsStrash(pNtk) && !pPars->fThreeInputGates)
+             || (Abc_NtkHasMapping(pNtk) && pPars->fThreeInputGates) );
+    
     // read gates and pins from mimolib
     int minSoHeight = pPars->MinSoHeight;
     int maxDepth = pPars->nConeDepth;
     MiMo_Gate_t * pConeGates[CM_MAX_DEPTH+1];
-    if ( !Cm_Cone2ReadOrderedConeGates(pPars->pMiMoLib, pConeGates, minSoHeight, maxDepth))
-        return NULL;
-    Vec_Ptr_t * pOrderedInputPins = Cm_Cone2ReadOrderedConeInputPins(pConeGates, minSoHeight, maxDepth);
-    if ( !pOrderedInputPins )
-        return NULL;
-    Vec_Ptr_t * pOrderedOutputPins = Cm_Cone2ReadOrderedConeOutputPins(pConeGates, minSoHeight, maxDepth);
-    if ( !pOrderedOutputPins )
+    Vec_Ptr_t * pOrderedInputPins;
+    Vec_Ptr_t * pOrderedOutputPins;
+    if ( pPars->fThreeInputGates )
     {
-        Vec_PtrFree(pOrderedInputPins);
-        return NULL;
+        if ( !Cm_Cone3ReadOrderedConeGates(pPars->pMiMoLib, pConeGates, minSoHeight, maxDepth))
+            return NULL;
+        pOrderedInputPins = Cm_Cone3ReadOrderedConeInputPins(pConeGates, minSoHeight, maxDepth);
+        if ( !pOrderedInputPins )
+            return NULL;
+        pOrderedOutputPins = Cm_Cone3ReadOrderedConeOutputPins(pConeGates, minSoHeight, maxDepth);
+        if ( !pOrderedOutputPins )
+        {
+            Vec_PtrFree(pOrderedInputPins);
+            return NULL;
+        }
+    } 
+    else
+    {
+        if ( !Cm_Cone2ReadOrderedConeGates(pPars->pMiMoLib, pConeGates, minSoHeight, maxDepth))
+            return NULL;
+        pOrderedInputPins = Cm_Cone2ReadOrderedConeInputPins(pConeGates, minSoHeight, maxDepth);
+        if ( !pOrderedInputPins )
+            return NULL;
+        pOrderedOutputPins = Cm_Cone2ReadOrderedConeOutputPins(pConeGates, minSoHeight, maxDepth);
+        if ( !pOrderedOutputPins )
+        {
+            Vec_PtrFree(pOrderedInputPins);
+            return NULL;
+        }
     }
     MiMo_LibAddStandardGates(pPars->pMiMoLib);
     // transfer delay and area
@@ -81,7 +104,7 @@ Abc_Ntk_t * Abc_NtkCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars)
     pPars->pCiArrival = Abc_NtkGetCiArrivalFloats( pNtk );
     pPars->pCoRequired = Abc_NtkGetCoRequiredFloats( pNtk );
 
-    Cm_Man_t * pCmMan = Abc_NtkToCm( pNtk, pPars );
+    Cm_Man_t * pCmMan = pPars->fThreeInputGates ? Abc_Ntk3ToCm( pNtk, pPars ) : Abc_Ntk2ToCm( pNtk, pPars );
     // transfer gates and pins to mapping manager
     for(int i=0; i<=CM_MAX_DEPTH; i++)
         pCmMan->pConeGates[i] = pConeGates[i];
@@ -114,7 +137,7 @@ Abc_Ntk_t * Abc_NtkCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars)
 
 ***********************************************************************/
 static inline Cm_Obj_t * Abc_ObjCmCopy ( Abc_Obj_t * pNode ) { return (Cm_Obj_t *)pNode->pCopy; }
-Cm_Man_t * Abc_NtkToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
+Cm_Man_t * Abc_Ntk2ToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
 {
     assert( Abc_NtkIsStrash(pNtk) );
     int i;
@@ -146,7 +169,7 @@ Cm_Man_t * Abc_NtkToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
         pNode->pCopy = (Abc_Obj_t *)Cm_ManCreateAnd( pCmMan, 
             Cm_NotCond( Abc_ObjCmCopy(Abc_ObjFanin0(pNode)), pNode->fCompl0 ), 
             Cm_NotCond( Abc_ObjCmCopy(Abc_ObjFanin1(pNode)), pNode->fCompl1 ) );
-        // node that the choices nodes are currently ignored
+        // note that the choices nodes are currently ignored
     }
     Extra_ProgressBarStop ( pProgress );
     Vec_PtrFree( vNodes );
@@ -156,6 +179,138 @@ Cm_Man_t * Abc_NtkToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
     return pCmMan;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Interface with the cone mapping package.]
+
+  Description [Setup of a (copied) AIG-feasible network into a Cm.-Man]
+               
+  SideEffects [The network copy references to the AIG afterwars.]
+
+  SeeAlso     []
+
+***********************************************************************/
+Cm_Man_t * Abc_Ntk3ToCm( Abc_Ntk_t * pNtk, Cm_Par_t * pPars )
+{
+    assert( Abc_NtkHasMapping(pNtk) );
+    int i;
+    Abc_Obj_t * pNode;
+    ProgressBar * pProgress;
+    // initialize the mapping manager
+    Cm_Man_t * pCmMan = Cm_ManStart( pPars );
+    pCmMan->pName = Abc_UtilStrsav( Abc_NtkName(pNtk) );
+    float estimatedMemoryGB = (1.0 * Abc_NtkObjNum(pNtk) * pCmMan->nObjBytes / (1<<30));
+    if ( pPars->fVerbose || estimatedMemoryGB > 1)
+        printf("Going to allocate %1.1f GB of memory for %d AIG nodes\n",
+                estimatedMemoryGB, Abc_NtkObjNum(pNtk) );
+    // add Primary inputs
+    Abc_NtkCleanCopy( pNtk );
+    // Abc_AigConst1(pNtk)->pCopy = (Abc_Obj_t *)(pCmMan->pConst1);
+    Abc_NtkForEachCi( pNtk, pNode, i )
+    {
+        Cm_Obj_t *pCi = Cm_ManCreateCi( pCmMan );
+        pNode->pCopy = (Abc_Obj_t *) pCi;
+        pCi->Level = pNode->Level;
+        pCi->fMark = 0;
+    }
+    // add internal nodes -- currently quite slow as comparing to strings instead of gate pointers ...
+    pProgress = Extra_ProgressBarStart( stdout, Abc_NtkObjNumMax(pNtk) );
+    Vec_Ptr_t * vNodes = Abc_NtkDfs( pNtk, 0 );
+    pCmMan->pConst1->fMark = 0;
+    Vec_PtrForEachEntry( Abc_Obj_t *, vNodes, pNode, i )
+    {
+        Extra_ProgressBarUpdate( pProgress, i, "Initial" );
+        // 
+         Cm_Obj_t * pFanins[3] = { NULL, NULL, NULL};
+        for(int k=0; k<Abc_ObjFaninNum(pNode); k++)
+            pFanins[k] = Abc_ObjCmCopy(Abc_ObjFanin(pNode, k));
+        // create nodes -- fMark = 1 means that output is complemented
+        Mio_Gate_t * pGate = (Mio_Gate_t*)pNode->pData;
+        char * pName = Mio_GateReadName(pGate);
+        if ( ! strcmp(pName, CM_GENLIB_NAND2))
+        {
+            Cm_Obj_t * pCmNode = Cm_ManCreateAnd3(pCmMan, Cm_NotCond(pFanins[0], pFanins[0]->fMark), 
+                                                          Cm_NotCond(pFanins[1], pFanins[1]->fMark),
+                                                          pCmMan->pConst1);
+            pCmNode->fMark = 1;
+            pNode->pCopy = (Abc_Obj_t*) pCmNode;
+        }
+        if ( ! strcmp(pName, CM_GENLIB_NOR2))
+        {
+            Cm_Obj_t * pCmNode = Cm_ManCreateAnd3(pCmMan, Cm_NotCond(pFanins[0], 1^pFanins[0]->fMark),
+                                                          Cm_NotCond(pFanins[1], 1^pFanins[1]->fMark),
+                                                          Cm_Not(pCmMan->pConst1));
+            pCmNode->fMark = 0;
+            pNode->pCopy = (Abc_Obj_t*) pCmNode;
+        }
+        if ( ! strcmp(pName, CM_GENLIB_NAND3))
+        {
+            Cm_Obj_t * pCmNode = Cm_ManCreateAnd3(pCmMan, Cm_NotCond(pFanins[0], pFanins[0]->fMark), 
+                                                          Cm_NotCond(pFanins[1], pFanins[1]->fMark),
+                                                          Cm_NotCond(pFanins[2], pFanins[2]->fMark));
+            pCmNode->fMark = 1;
+            pNode->pCopy = (Abc_Obj_t*) pCmNode;
+        }
+        if ( ! strcmp(pName, CM_GENLIB_NOR3))
+        {
+            Cm_Obj_t * pCmNode = Cm_ManCreateAnd3(pCmMan, Cm_NotCond(pFanins[0], 1^pFanins[0]->fMark), 
+                                                          Cm_NotCond(pFanins[1], 1^pFanins[1]->fMark),
+                                                          Cm_NotCond(pFanins[2], 1^pFanins[2]->fMark));
+            pCmNode->fMark = 0;
+            pNode->pCopy = (Abc_Obj_t*) pCmNode;
+        }
+        if ( ! strcmp(pName, CM_GENLIB_INV))
+        {
+            Cm_Obj_t * pCmNode = Cm_ManCreateAnd3( pCmMan, Cm_NotCond(pFanins[0], pFanins[0]->fMark),
+                                                                     pCmMan->pConst1, pCmMan->pConst1);
+            pCmNode->fMark = 1;
+            pNode->pCopy = (Abc_Obj_t*) pCmNode;
+        }
+        if ( ! strcmp(pName, CM_GENLIB_C0))
+        {
+            // this extra And gate might be avoided ...       
+            Cm_Obj_t * pCmNode = Cm_ManCreateAnd3( pCmMan, pCmMan->pConst1,
+                                                                     pCmMan->pConst1, pCmMan->pConst1);
+            pCmNode->fMark = 1;
+            pNode->pCopy = (Abc_Obj_t*) pCmMan->pConst1;
+            printf("0\n");
+        }
+        if ( ! strcmp(pName, CM_GENLIB_BUF) )
+        {
+            // buffers are only inserted to connect CIs to COs
+            assert( Abc_ObjIsCi(Abc_ObjFanin0(pNode)) && Abc_ObjIsCo(Abc_ObjFanout0(pNode)) );
+            pNode->pCopy = Abc_ObjFanin0(pNode)->pCopy;
+
+        }
+        if ( ! strcmp(pName, CM_GENLIB_C1))
+        {
+            pNode->pCopy = (Abc_Obj_t *)(pCmMan->pConst1);
+            printf("1\n");
+        }
+    }
+    Extra_ProgressBarStop ( pProgress );
+    Vec_PtrFree( vNodes );
+    // set the primary outputs without copying the phase
+    Abc_NtkForEachCo( pNtk, pNode, i )
+    {
+        Cm_Obj_t * pFanin = Abc_ObjCmCopy(Abc_ObjFanin0(pNode));
+        pNode->pCopy = (Abc_Obj_t *)Cm_ManCreateCo( pCmMan, Cm_NotCond(pFanin, pFanin->fMark ) );
+    }
+    return pCmMan;
+}
+
+
+/**Function*************************************************************
+
+  Synopsis    [Inserts buffers to make all circuit outputs simple]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
 void Cm_MakeSimpleCos(Abc_Ntk_t * pNtk)
 {
     Abc_Obj_t * pNode, *pNodeOrig, *pDriver;
@@ -240,7 +395,7 @@ int Cm_AbcObjAddSoFanin(Cm_Man_t *pCmMan, Abc_Obj_t * pAbcObj, Abc_Obj_t *pFanin
   SeeAlso     []
 
 ***********************************************************************/
-inline int Cm_AbcObjAddFanin(Cm_Man_t *pCmMan, Abc_Obj_t * pAbcObj, Abc_Obj_t *pFanin)
+static inline int Cm_AbcObjAddFanin(Cm_Man_t *pCmMan, Abc_Obj_t * pAbcObj, Abc_Obj_t *pFanin)
 {
     return Cm_AbcObjAddSoFanin(pCmMan, pAbcObj, pFanin, 1);
 }
@@ -258,10 +413,42 @@ inline int Cm_AbcObjAddFanin(Cm_Man_t *pCmMan, Abc_Obj_t * pAbcObj, Abc_Obj_t *p
 ***********************************************************************/
 MiMo_Cell_t * Cm_ManBuildCellWithInputs(Cm_Man_t * pCmMan, Cm_Obj_t *pCmObj, int fMoCompl)
 {
-    // generate cone and config information from given leafs
     Cm_Obj_t * pFaninCone[CM_MAX_FA_SIZE];
     int depth = pCmObj->BestCut.Depth;
     int minDepth = pCmMan->pPars->MinSoHeight;
+    if ( pCmMan->pPars->fThreeInputGates )
+    {
+        // generate cone and config information from given leafs
+        if (depth < minDepth) // can't map to AIC of depth smaller MinSoHeight
+        {
+            depth = minDepth;
+            Cm_Fa3Clear(pFaninCone, depth);
+        }
+        pFaninCone[1] = pCmObj;
+        Cm_Fa3BuildWithMaximumDepth(pFaninCone, depth);
+        // mark as leaf and store faninId in iTemp
+        // skip constants
+        Cm_ObjClearMarkFa3(pFaninCone, depth, CM_MARK_LEAF);
+        int faninId = 0;
+        for(int i=0; i<pCmObj->BestCut.nFanins; i++)
+        {
+            Cm_Obj_t * pLeaf = pCmObj->BestCut.Leafs[i];
+            pLeaf->fMark |= CM_MARK_LEAF;
+            if ( pLeaf->Type != CM_CONST1 )
+                pCmObj->BestCut.Leafs[i]->iTemp = faninId++;
+        }
+        Cm_Fa3ShiftDownLeafs(pFaninCone, depth);
+        MiMo_Gate_t * pGate = pCmMan->pConeGates[depth];
+        MiMo_Cell_t * pCell = (MiMo_Cell_t*)MiMo_CmCellFromFa(pGate, (void**)pFaninCone, fMoCompl);
+        for(int i=Cm_Fa3LayerStart(depth); i<Cm_Fa3LayerStart(depth+1); i++)
+        {
+            int inputPinPos = i - 1;
+            if (pFaninCone[i] && (pFaninCone[i]->fMark&CM_MARK_LEAF) && pFaninCone[i]->Type != CM_CONST1)
+                MiMo_CellAddPinIn(pCell, Cm_ManGetInputPin(pCmMan, inputPinPos), pFaninCone[i]->iTemp);
+        }
+        return pCell; 
+    }
+    // generate cone and config information from given leafs
     if (depth < minDepth) // can't map to AIC of depth smaller MinSoHeight
     {
         depth = minDepth;
@@ -328,8 +515,10 @@ void Abc_CmInvertMo(Cm_Man_t * pCmMan, Cm_Obj_t * pCmObj)
                     if ( Abc_ObjFanin(pFanout, pFanoutIn->FaninId) == pNode
                          && pFanoutIn->FaninFanoutNetId == pPinOut->FanoutNetId )
                     {
-                         int configPos = (1<<d) + pFanoutIn->pPinIn->Id;
-                         Vec_BitInvertEntry(pFanoutCell->vBitConfig, configPos);
+                        if ( pCmMan->pPars->fThreeInputGates )
+                            printf("Adapt Abc_CmInvertMo!\n");
+                        int configPos = (1<<d) + pFanoutIn->pPinIn->Id;
+                        Vec_BitInvertEntry(pFanoutCell->vBitConfig, configPos);
                     }
                     pFanoutIn = pFanoutIn->pNext;
                 }
@@ -383,10 +572,10 @@ Abc_Obj_t * Abc_NodeFromCm_rec( Abc_Ntk_t * pNtkNew, Cm_Man_t * pCmMan, Cm_Obj_t
         else
             moPhase = fMoCompl ? CM_NEGATIVE_MO : CM_POSITIVE_MO;
     }
+
     Abc_Obj_t * pNodeNew = Abc_NtkCreateNode ( pNtkNew );
     pNodeNew->pCopy = NULL;
     Cm_Obj_t * pCmRep = Cm_ObjGetRepr(pCmObj);
-
     MiMo_Cell_t * pCell = Cm_ManBuildCellWithInputs( pCmMan, pCmRep, fMoCompl );
     pNodeNew->pData = pCell;
     pNodeNew->fMarkA = ((moPhase == CM_POSITIVE_MO) || (moPhase == CM_NEGATIVE_MO)) ?  1 : 0;
@@ -394,12 +583,16 @@ Abc_Obj_t * Abc_NodeFromCm_rec( Abc_Ntk_t * pNtkNew, Cm_Man_t * pCmMan, Cm_Obj_t
     for(int i=0; i<pCmRep->BestCut.nFanins; i++)
     {
         Cm_Obj_t * pLeaf = pCmRep->BestCut.Leafs[i];
+        // skip constant inputs
+        if ( pLeaf->Type == CM_CONST1)
+            continue;
+        // create and add nodes for side and main outputs
         if ( pLeaf->BestCut.SoOfCutAt )
         {
             Abc_Obj_t * pFanin = Abc_NodeFromCm_rec( pNtkNew, pCmMan, pLeaf->BestCut.SoOfCutAt, CM_DC_MO );
             int netId = Cm_AbcObjAddSoFanin(pCmMan, pNodeNew, pFanin, pLeaf->BestCut.SoPos );
             MiMo_CellSetPinInNet(pCell, i, netId);
-            if (pFanin->pData &&  MiMo_CmSoInverted(pFanin->pData, pLeaf->BestCut.SoPos) ) 
+            if (pFanin->pData && MiMo_CmSoInverted(pFanin->pData, pLeaf->BestCut.SoPos) ) 
                 MiMo_CmInvertInput(pNodeNew->pData, i);
         }
         else 
@@ -519,7 +712,6 @@ Abc_Ntk_t * Abc_NtkFromCm( Cm_Man_t * pCmMan, Abc_Ntk_t * pNtk )
     Cm_Obj_t *pCmObj;
     Cm_ManForEachObj(pCmMan, pCmObj, i)
        pCmObj->pCopy = NULL;
-
     Abc_Ntk_t * pNtkNew = Abc_NtkStartFrom( pNtk, ABC_NTK_LOGIC, ABC_FUNC_MAP_MO );
     pNtkNew->pMiMoLib = pCmMan->pPars->pMiMoLib;
     Abc_NtkForEachCi ( pNtk, pNode, i )
@@ -531,7 +723,7 @@ Abc_Ntk_t * Abc_NtkFromCm( Cm_Man_t * pCmMan, Abc_Ntk_t * pNtk )
         pNodeNew->fMarkB = 0;
         pNodeNew->pData = NULL;
     }
-    printf("%d Ci created\n", Cm_ManCiNum(pCmMan));
+    printf("%d Cis created\n", Cm_ManCiNum(pCmMan));
     // create network structure
     Abc_NtkForEachCo(pNtk, pNode, i)
     {
@@ -554,13 +746,13 @@ Abc_Ntk_t * Abc_NtkFromCm( Cm_Man_t * pCmMan, Abc_Ntk_t * pNtk )
             Cm_AbcObjAddSoFanin(pCmMan, pNode->pCopy, pNodeNew, pCmObj->BestCut.SoOfCutAt ? pCmObj->BestCut.SoPos : 1 );
         }
     }
-    printf("Co created\n");
-    // reset tempary markings
+    printf("Cos created\n");
+    Cm_MakeSimpleCos(pNtkNew);
+    // reset temporary markings
     Abc_NtkForEachObj(pNtkNew, pNode, i)
     {
         pNode->fMarkA = 0;
         pNode->fMarkB = 0;
     }
-    // Cm_MakeSimpleCos(pNtkNew);
     return pNtkNew;
 }

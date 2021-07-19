@@ -44,6 +44,25 @@ ABC_NAMESPACE_HEADER_START
 ////////////////////////////////////////////////////////////////////////
 
 
+// defines the mapping
+#define CM_GENLIB_INV "inv"
+#define CM_GENLIB_NAND2 "nand2"
+#define CM_GENLIB_NAND3 "nand3"
+#define CM_GENLIB_NOR2 "nor2"
+#define CM_GENLIB_NOR3 "nor3"
+#define CM_GENLIB_BUF "buf"
+#define CM_GENLIB_C0 "zero"
+#define CM_GENLIB_C1 "one"
+
+#define CM_GENLIB_STR "GATE inv     3   O=!a;             PIN * INV     1 1000000 1.0 0.0 1.0 0.0\n"\
+                      "GATE nand2   3   O=!(a*b);         PIN * INV     1 1000000 1.0 0.0 1.0 0.0\n"\
+                      "GATE nand3   3   O=!(a*b*c);       PIN * INV     1 1000000 1.0 0.0 1.0 0.0\n"\
+                      "GATE nor2    3   O=!(a+b);         PIN * INV     1 1000000 1.0 0.0 1.0 0.0\n"\
+                      "GATE nor3    3   O=!(a+b+c);       PIN * INV     1 1000000 1.0 0.0 1.0 0.0\n"\
+                      "GATE buf     1   O=a;              PIN * NONINV  1 1000000 1.0 0.0 1.0 0.0\n"\
+                      "GATE zero    0   O=CONST0;\n"\
+                      "GATE one     0   O=CONST1;\n"
+
 #define CM_MAX_DEPTH (6)
 #define CM_MAX_NLEAFS (1<<CM_MAX_DEPTH)
 #define CM_MAX_FA_SIZE (2<<CM_MAX_DEPTH)
@@ -99,6 +118,7 @@ struct Cm_Par_t_ {
     float AicArea[CM_MAX_DEPTH+1]; // area of the cones for each depth
     float WireDelay; // wire delay of cones.
     float Epsilon; // used for comparisons
+    int fThreeInputGates;
     int nMaxCycleDetectionRecDepth; // longest allowed side output chain path length
     MiMo_Library_t * pMiMoLib;
     float * pCiArrival;
@@ -143,9 +163,11 @@ struct Cm_Obj_t_
 {
     unsigned Type;
     unsigned fCompl0;
-    unsigned fCompl1;   // complemented attribute of FanIns
+    unsigned fCompl1;   
+    unsigned fCompl2; // complemented attribute of FanIns
     Cm_Obj_t * pFanin0;
     Cm_Obj_t * pFanin1; // the Fanins
+    Cm_Obj_t * pFanin2; 
     unsigned fPhase; // phase of the node
     unsigned Level; // level/depth of node in AIG
     int Id; // identifier (to vObjs)
@@ -185,14 +207,25 @@ static inline int Cm_ObjIsAnd( Cm_Obj_t * pObj)                              { r
 static inline Cm_Obj_t * Cm_ManCi ( Cm_Man_t *p, int i)                      { return (Cm_Obj_t*)(Vec_PtrEntry( p->vCis, i)); }
 static inline Cm_Obj_t * Cm_ManCo ( Cm_Man_t *p, int i)                      { return (Cm_Obj_t*)(Vec_PtrEntry( p->vCos, i)); }
 static inline void Cm_ObjSetCopy( Cm_Obj_t * pObj, void * pCopy)             { pObj->pCopy = pCopy; }
+static inline Cm_Obj_t * Cm_ObjGetRepr(Cm_Obj_t * pObj)                      { Cm_Obj_t * pRepr = pObj; while( !pRepr->fRepr ) pRepr = pRepr->pEquiv; return pRepr; }
+
+static inline int Cm_Pow3(int e)                                             { int p = 1; for(int i=0; i<e; i++) p *=3; return p;}
+static inline int Cm_Fa3LayerStart(int depth)                                { int sp = 1; for(int i=0; i<depth; i++) sp = 3 * sp -1; return sp; }
+static inline int Cm_Fa3Size(int depth)                                      { return (Cm_Pow3(depth)-1)/2; }
+static inline int Cm_Fa3OutPinStartPos(int nr)                               { return Cm_Fa3Size(nr)/2; }
+
+
 
 static inline void Cm_ObjClearMarkFa(Cm_Obj_t **pFa, int depth, unsigned flag) { for(int i=1; i<(2<<depth); i++) if(pFa[i]) pFa[i]->fMark &= ~flag; }
+static inline void Cm_ObjClearMarkFa3(Cm_Obj_t **pFa, int depth, unsigned flag) { for(int i=1; i<=Cm_Fa3Size(depth); i++) if (pFa[i]) pFa[i]->fMark &= ~flag; }
 static inline void Cm_FaClear(Cm_Obj_t ** pFa, int depth)                    { for(int i=1; i<(2<<depth); i++) pFa[i] = NULL; }
+static inline void Cm_Fa3Clear(Cm_Obj_t ** pFa, int depth)                   { for(int i=1; i<=Cm_Fa3Size(depth); i++) pFa[i] = NULL; }
+
 static inline void Cm_CutClearMarkLeafs(Cm_Cut_t * pCut, unsigned flag)      { for(int i=0; i<pCut->nFanins; i++) pCut->Leafs[i]->fMark &= ~flag; }
 static inline void Cm_CutMarkLeafs(Cm_Cut_t * pCut, unsigned flag)           { for(int i=0; i<pCut->nFanins; i++) pCut->Leafs[i]->fMark |= flag; }
 static inline MiMo_PinIn_t * Cm_ManGetInputPin(Cm_Man_t * p, int pos)                       { return Vec_PtrEntry(p->pOrderedInputPins, pos); }
-static inline MiMo_PinOut_t * Cm_ManGetOutputPin(Cm_Man_t * p, int coneDepth, int pos)       { return Vec_PtrEntry(p->pOrderedOutputPins, (1<<(coneDepth-1)) + pos); }
-static inline Cm_Obj_t * Cm_ObjGetRepr(Cm_Obj_t * pObj)                      { Cm_Obj_t * pRepr = pObj; while( !pRepr->fRepr ) pRepr = pRepr->pEquiv; return pRepr; }
+static inline MiMo_PinOut_t * Cm_ManGetOutputPin(Cm_Man_t * p, int coneDepth, int pos)       { int sp = (p->pPars->fThreeInputGates ? Cm_Fa3OutPinStartPos(coneDepth) : ( 1<<(coneDepth-1)));  return Vec_PtrEntry(p->pOrderedOutputPins, sp + pos); }
+
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -229,7 +262,9 @@ static inline Cm_Obj_t * Cm_ObjGetRepr(Cm_Obj_t * pObj)                      { C
 /*=== cmArea.c =======================================================*/
 extern float Cm_ManMinimizeCutAreaFlow(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
 extern float Cm_ManMinimizeCutAreaFlowPriority(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
+extern float Cm_ManMinimizeCutAreaFlowPriority3(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
 extern float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
+extern float Cm_ManMinimizeCutAreaFlowDirect3(Cm_Man_t *p, Cm_Obj_t **pNodes, float latestArrival, Cm_Cut_t * pCut);
 /*=== cmBalance.c ====================================================*/
 extern Cm_Obj_t * Cm_ManBalanceCut(Cm_Man_t * p, Cm_Obj_t * pObj);
 /*=== cmCore.c =======================================================*/
@@ -238,21 +273,29 @@ extern int Cm_ManPerformMapping( Cm_Man_t * p );
 /*=== cmFa.c =========================================================*/
 extern float Cm_FaBuildDepthOptimal(Cm_Obj_t **pNodes, Cm_Par_t * pPars);
 extern int Cm_FaBuildWithMaximumDepth(Cm_Obj_t **pFaninArray, int maxDepth);
+extern int Cm_Fa3BuildWithMaximumDepth(Cm_Obj_t **pFaninArray, int maxDepth);
 extern void Cm_FaBuildSub(Cm_Obj_t ** pFaninArray, int rootPos, Cm_Cut_t *pCut, int depth);
+extern void Cm_Fa3BuildSub(Cm_Obj_t ** pFaninArray, int rootPos, Cm_Cut_t *pCut, int depth);
 extern void Cm_FaExtractLeafs(Cm_Obj_t **pNodes, Cm_Cut_t *pCut);
+extern void Cm_Fa3ExtractLeafs(Cm_Obj_t **pNodes, Cm_Cut_t *pCut);
 extern void Cm_FaShiftDownLeafs(Cm_Obj_t **pFaninArray, int depth);
+extern void Cm_Fa3ShiftDownLeafs(Cm_Obj_t **pFaninArray, int depth);
 extern void Cm_FaClearSub(Cm_Obj_t **pFa, int pos, int depth);
+extern void Cm_Fa3ClearSub(Cm_Obj_t **pFa, int pos, int depth);
 extern float Cm_FaLatestMoInputArrival(Cm_Obj_t ** pFa, int depth);
+extern float Cm_Fa3LatestMoInputArrival(Cm_Obj_t ** pFa, int depth);
 /*=== cmMan.c ========================================================*/
 extern Cm_Man_t * Cm_ManStart( Cm_Par_t *pPars );
 extern void Cm_ManStop( Cm_Man_t * p );
 extern Cm_Obj_t * Cm_ManCreateCi( Cm_Man_t * p );
 extern Cm_Obj_t * Cm_ManCreateCo( Cm_Man_t * p, Cm_Obj_t * pDriver );
 extern Cm_Obj_t * Cm_ManCreateAnd( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 );
+extern Cm_Obj_t * Cm_ManCreateAnd3( Cm_Man_t *p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1, Cm_Obj_t * pFan2 );
 extern Cm_Obj_t * Cm_ManCreateAndEq( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 );
 /*=== cmPrint.c ======================================================*/
 extern void Cm_PrintPars( Cm_Par_t * pPars );
 extern void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth);
+extern void Cm_PrintFa3(Cm_Obj_t ** pFaninArray, int depth);
 extern void Cm_PrintAigStructure(Cm_Man_t * pMan, int lineLimit);
 extern void Cm_PrintConeDelays(Cm_Man_t * p);
 extern void Cm_PrintBestCut(Cm_Obj_t * pObj);

@@ -43,6 +43,7 @@ void Cm_PrintPars(Cm_Par_t * pPars)
 {
     int w = 35;
     printf("%-*s%d\n", w, "Cone mapping depth", pPars->nConeDepth );
+    printf("%-*s%s\n", w, "3-input gate cone", pPars->fThreeInputGates ? "yes" : "no");
     printf("%-*s%s\n", w, "MiMo library", pPars->pMiMoLib->pName );
     if( pPars->fPriorityCuts )
         printf("%-*s%d\n", w, "Priority cuts with maxSize", pPars->MaxCutSize);
@@ -66,6 +67,7 @@ void Cm_PrintPars(Cm_Par_t * pPars)
     printf("%-*s%s\n", w, "Extra validity checks", pPars->fExtraValidityChecks ? "yes" : "no" );
     printf("\n");
 }
+
 /**Function*************************************************************
 
   Synopsis    [Prints AIG statistic and limited number of nodes with 
@@ -78,13 +80,14 @@ void Cm_PrintPars(Cm_Par_t * pPars)
   SeeAlso     []
 
 ***********************************************************************/
-static inline char Cm_ManCompl0ToChar(Cm_Obj_t * pObj) { return (pObj->fCompl0 ? ' ' : '!'); }
-static inline char Cm_ManCompl1ToChar(Cm_Obj_t * pObj) { return (pObj->fCompl1 ? ' ' : '!'); }
+static inline char Cm_ManCompl0ToChar(Cm_Obj_t * pObj) { return (pObj->fCompl0 ? '!' : ' '); }
+static inline char Cm_ManCompl1ToChar(Cm_Obj_t * pObj) { return (pObj->fCompl1 ? '!' : ' '); }
+static inline char Cm_ManCompl2ToChar(Cm_Obj_t * pObj) { return (pObj->fCompl2 ? '!' : ' '); }
 void Cm_PrintAigStructure(Cm_Man_t *pMan, int lineLimit)
 {  
     printf( "Found: %d CIs, %d ANDs, and %d COs\n", pMan->nObjs[CM_CI],
             pMan->nObjs[CM_AND], pMan->nObjs[CM_CO]);
-    printf( "Up to  %d first nodes of AIG\n", lineLimit );
+    printf( "Printing up to %d first nodes of AIG\n", lineLimit );
     
     int i;
     Cm_Obj_t *pObj;
@@ -100,8 +103,14 @@ void Cm_PrintAigStructure(Cm_Man_t *pMan, int lineLimit)
                 printf("CI %d\n", pObj->Id);
                 break;
             case CM_AND:
-                printf("N %d: (%c%d,%c%d)\n", pObj->Id, Cm_ManCompl0ToChar(pObj), pObj->pFanin0->Id,
-                                                         Cm_ManCompl1ToChar(pObj), pObj->pFanin1->Id );
+                if ( pObj->pFanin2 )
+                    printf("N %d: (%c%d,%c%d,%c%d)\n", pObj->Id, Cm_ManCompl0ToChar(pObj), pObj->pFanin0->Id,
+                                                             Cm_ManCompl1ToChar(pObj), pObj->pFanin1->Id,
+                                                             Cm_ManCompl2ToChar(pObj), pObj->pFanin2->Id );
+                else
+                    printf("N %d: (%c%d,%c%d)\n", pObj->Id, Cm_ManCompl0ToChar(pObj), pObj->pFanin0->Id,
+                                                             Cm_ManCompl1ToChar(pObj), pObj->pFanin1->Id );
+
                 break;
             case CM_CO:
                 printf("Co %d: (%c%d)\n", pObj->Id, Cm_ManCompl0ToChar(pObj), pObj->pFanin0->Id );
@@ -147,6 +156,40 @@ void Cm_PrintFa(Cm_Obj_t ** pFaninArray, int depth)
     }
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Prints the fanin array up to depth as ternary tree to stdout]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintFa3(Cm_Obj_t ** pFaninArray, int depth)
+{
+    int nWidth = 6;
+    if ( !pFaninArray[1] )
+    {
+        printf("Cm_PrintFa3: input is not well formed\n");
+        return;
+    }
+    printf("%*d\n", nWidth * (1+Cm_Pow3(depth)/2), pFaninArray[1]->Id);
+    int ind = Cm_Pow3(depth);
+    for(int cdepth=1; cdepth<=depth; cdepth++)
+    {
+        for(int i=Cm_Fa3LayerStart(cdepth); i<Cm_Fa3LayerStart(cdepth+1); i++)
+        {
+            int indent = (i == Cm_Fa3LayerStart(cdepth) && cdepth < depth) ? 
+                                 nWidth * (1+ind/6) :
+                                 nWidth * (ind/3);
+            printf("%*d", indent, pFaninArray[i] ? pFaninArray[i]->Id : -1);
+        }
+        ind /= 3;
+        printf("\n");
+    }
+}
 
 /**Function*************************************************************
 

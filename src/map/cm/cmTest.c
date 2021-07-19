@@ -153,6 +153,17 @@ int Cm_TestMonotonicArrival(Cm_Man_t *p)
             }
             fail = 1;
         }
+        if( pObj->pFanin2 && pObj->pFanin2->BestCut.Arrival > d)
+        {
+            if(lineCount < lineLimit)
+            {
+                printf("Monotonic arrival fail  Id: (%d, %3.1f) -> F1: (%d, %3.1f)\n", pObj->Id, d, 
+                        pObj->pFanin2->Id, pObj->pFanin2->BestCut.Arrival);
+                lineCount++;
+            }
+            fail = 1;
+        }
+
     }
     if(fail)
     {

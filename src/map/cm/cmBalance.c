@@ -104,11 +104,12 @@ Cm_Obj_t * Cm_ManBalanceCut(Cm_Man_t *p, Cm_Obj_t * pObj)
     Hop_ObjCreatePo(pHm, pHopRoot );
     for(int i=0; i<pObj->BestCut.nFanins; i++) 
         pObj->BestCut.Leafs[i]->fMark &= ~CM_MARK_LEAF_CUT;
-    Hop_Man_t *pN = Hop_ManBalance(pHm, 0);
+    Hop_Man_t *pN = Hop_ManBalance(pHm, 1);
     int balancedDepth = Hop_ManCountLevels(pN);
     Hop_ManStop(pHm);
     if ( balancedDepth < d && d >= 2 && balancedDepth > 0)
     {
+        Cm_PrintBestCut(pObj);
         pHopRoot = Hop_ObjFanin0(Hop_ManPo(pN, 0));
         // get last element in equivalence list
         Cm_Obj_t * pPre = pObj;
@@ -124,6 +125,11 @@ Cm_Obj_t * Cm_ManBalanceCut(Cm_Man_t *p, Cm_Obj_t * pObj)
                 pEq->BestCut.Leafs[pEq->BestCut.nFanins++] = pObj->BestCut.Leafs[i];
         pEq->BestCut.Depth = balancedDepth;
         pEq->BestCut.SoOfCutAt = NULL;
+        Cm_Obj_t *pNodes[128];
+        pNodes[1] = pEq;
+        Cm_FaBuildWithMaximumDepth(pNodes, balancedDepth);
+        Cm_PrintFa(pNodes, balancedDepth); 
+        Cm_PrintBestCut(pEq);
         // add node
         pPre->pEquiv = pEq;
         pEqCut = pEq;

@@ -125,6 +125,7 @@ void Cm_ManSetCiArrival(Cm_Man_t *p)
        Cm_ManForEachCi(p, pObj, i)
            pObj->BestCut.Arrival = pArr[i];
     }
+    p->pConst1->BestCut.Arrival = 0;
 }
 
 /**Function*************************************************************

@@ -196,6 +196,7 @@ Cm_Obj_t * Cm_ManCreateAnd( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 )
     pObj->fCompl1 = Cm_IsComplement(pFan1); pFan1 = Cm_Regular(pFan1);
     pObj->pFanin0 = pFan0; pFan0->nRefs++; pFan0->nVisits++;
     pObj->pFanin1 = pFan1; pFan1->nRefs++; pFan1->nVisits++;
+    pObj->pFanin2 = NULL;
     pObj->fPhase  = (pObj->fCompl0 ^ pFan0->fPhase) & (pObj->fCompl1 ^ pFan1->fPhase);
     pObj->Level   = 1 + CM_MAX( pFan0->Level, pFan1->Level );
     if ( p->nLevelMax < (int)pObj->Level )
@@ -204,6 +205,37 @@ Cm_Obj_t * Cm_ManCreateAnd( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 )
     return pObj;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Create a new 3-input node assuming it does not exist.]
+
+  Description [Performs no constant propagation]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Cm_Obj_t * Cm_ManCreateAnd3( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1, Cm_Obj_t * pFan2 )
+{
+    Cm_Obj_t * pObj;
+    // get memory for the new object
+    pObj = Cm_ManSetupObj( p );
+    pObj->Type    = CM_AND;
+    pObj->fRepr = 1;
+    pObj->fCompl0 = Cm_IsComplement(pFan0); pFan0 = Cm_Regular(pFan0);
+    pObj->fCompl1 = Cm_IsComplement(pFan1); pFan1 = Cm_Regular(pFan1);
+    pObj->fCompl2 = Cm_IsComplement(pFan2); pFan2 = Cm_Regular(pFan2);
+    pObj->pFanin0 = pFan0; pFan0->nRefs++; pFan0->nVisits++;
+    pObj->pFanin1 = pFan1; pFan1->nRefs++; pFan1->nVisits++;
+    pObj->pFanin2 = pFan2; pFan2->nRefs++; pFan2->nVisits++;
+    pObj->fPhase  = (pObj->fCompl0 ^ pFan0->fPhase) & (pObj->fCompl1 ^ pFan1->fPhase) & (pObj->fCompl2 ^ pFan2->fPhase);
+    pObj->Level   = 1 + CM_MAX(CM_MAX( pFan0->Level, pFan1->Level ), pFan2->Level);
+    if ( p->nLevelMax < (int)pObj->Level )
+        p->nLevelMax = (int)pObj->Level;
+    p->nObjs[CM_AND]++;
+    return pObj;
+}
 
 /**Function*************************************************************
 
@@ -237,6 +269,7 @@ Cm_Obj_t * Cm_ManCreateAndEq( Cm_Man_t * p, Cm_Obj_t * pFan0, Cm_Obj_t * pFan1 )
     pObj->fCompl1 = Cm_IsComplement(pFan1); pFan1 = Cm_Regular(pFan1);
     pObj->pFanin0 = pFan0;
     pObj->pFanin1 = pFan1;
+    pObj->pFanin2 = NULL;
     p->nObjs[CM_AND_EQ]++;
     return pObj;
 }

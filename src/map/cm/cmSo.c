@@ -75,35 +75,79 @@ int Cm_ManSoInducesCycle_rec(Cm_Obj_t * pObj, int cmpId, int maxDepth)
     return 0;
 }
 
-
-/**Function*************************************************************
-
-  Synopsis    [Calculates all possible side outputs of the best cut rooted
-               at pObj.]
-
-  Description [Returns number of side outputs. The parameter arrays
-               contain afterwards: pointer to the SOs, the
-               position in the cone, the arrival time of the SO.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-***********************************************************************/
-int Cm_ManCalcSo(Cm_Man_t *p , Cm_Obj_t * pObj, Cm_Obj_t ** pSo, int *pSoPos, float * pSoArrival)
+static inline int Cm_CutCollectInternalNodes3(Cm_Obj_t *pObj, Cm_Obj_t ** pNodes, int * pHeight, int * pFaPos, float * pArrival)
 {
-    float *AicDelay = p->pPars->AicDelay;
-    const int minSoHeight = p->pPars->MinSoHeight;
-    // So calculation for balanced cuts is currently not supported
-    if ( !pObj->fRepr ) 
-        return 0;
-    if ( pObj->BestCut.Depth <= minSoHeight)
-        return 0;
-    Cm_Obj_t * pNodes[CM_MAX_FA_SIZE/2];
-    int pHeight[CM_MAX_FA_SIZE/2];
-    int pFaPos[CM_MAX_FA_SIZE/2];
-    float pFaninArrival[CM_MAX_FA_SIZE/2];
-    Cm_CutMarkLeafs(&pObj->BestCut, CM_MARK_LEAF);
+    int back = 0;
+    if ( !(pObj->pFanin0->fMark & CM_MARK_LEAF))
+    {
+        pHeight[back] = pObj->BestCut.Depth - 1;
+        pFaPos[back] = 2;
+        pNodes[back++] = pObj->pFanin0;
+    }
+    if ( !(pObj->pFanin1->fMark & CM_MARK_LEAF))
+    {
+        pHeight[back] = pObj->BestCut.Depth - 1;
+        pFaPos[back] = 3;
+        pNodes[back++] = pObj->pFanin1;
+    }
+    if ( !(pObj->pFanin2->fMark & CM_MARK_LEAF))
+    {
+        pHeight[back] = pObj->BestCut.Depth - 1;
+        pFaPos[back] = 4;
+        pNodes[back++] = pObj->pFanin2;
+    }
+
+    // BFS - collect nodes between leafs and nodes
+    int front = 0;
+    while(front != back)
+    {
+        Cm_Obj_t * pFront = pNodes[front];
+        if ( !(pFront->pFanin0->fMark & CM_MARK_LEAF) )
+        {
+            pHeight[back] = pHeight[front] - 1;
+            pFaPos[back] = 3 * pFaPos[front] -1;
+            pNodes[back++] = pFront->pFanin0;
+        }
+        if ( !(pFront->pFanin1->fMark & CM_MARK_LEAF) )
+        {
+            pHeight[back] = pHeight[front] - 1;
+            pFaPos[back] = 3 * pFaPos[front];
+            pNodes[back++] = pFront->pFanin1;
+        }
+        if ( !(pFront->pFanin2->fMark & CM_MARK_LEAF) )
+        {
+            pHeight[back] = pHeight[front] - 1;
+            pFaPos[back] = 3 * pFaPos[front] + 1;
+            pNodes[back++] = pFront->pFanin2;
+        }
+        front++;
+    }
+    // calculate latest fanin arrival time of SO inputs
+    for(int i=back-1; i>=0; --i)
+    {
+        int pos = pFaPos[i];
+        Cm_Obj_t * pIns[3] = {pNodes[i]->pFanin0, pNodes[i]->pFanin1, pNodes[i]->pFanin2};
+        float ar[3] = {0, 0, 0};
+        for(int k=0; k<3; k++)
+            if( (pIns[k]->fMark & CM_MARK_LEAF) )
+            {
+                if ( pIns[k]->BestCut.SoOfCutAt )
+                    ar[k] = CM_MAX(pIns[k]->BestCut.SoArrival, pIns[k]->BestCut.Arrival);
+                else
+                    ar[k] = pIns[k]->BestCut.Arrival;
+            }
+            else
+            {
+                ar[k] = pArrival[3*pos-1+k];
+            }
+        pArrival[pos] = CM_MAX(ar[0], CM_MAX(ar[1], ar[2]));
+    }
+    return back;
+}
+
+
+static inline int Cm_CutCollectInternalNodes(Cm_Obj_t *pObj, Cm_Obj_t ** pNodes, int * pHeight, int * pFaPos, float * pArrival)
+{
     int back = 0;
     if ( !(pObj->pFanin0->fMark & CM_MARK_LEAF))
     {
@@ -152,18 +196,59 @@ int Cm_ManCalcSo(Cm_Man_t *p , Cm_Obj_t * pObj, Cm_Obj_t ** pSo, int *pSoPos, fl
             }
             else
             {
-                ar[k] = pFaninArrival[2*pos+k];
+                ar[k] = pArrival[2*pos+k];
             }
-        pFaninArrival[pos] = CM_MAX(ar[0], ar[1]);
+        pArrival[pos] = CM_MAX(ar[0], ar[1]);
     }
+    return back;
+}
+
+
+/**Function*************************************************************
+
+  Synopsis    [Calculates all possible side outputs of the best cut rooted
+               at pObj.]
+
+  Description [Returns number of side outputs. The parameter arrays
+               contain afterwards: pointer to the SOs, the
+               position in the cone, the arrival time of the SO.]
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Cm_ManCalcSo(Cm_Man_t *p , Cm_Obj_t * pObj, Cm_Obj_t ** pSo, int *pSoPos, float * pSoArrival)
+{
+    float *AicDelay = p->pPars->AicDelay;
+    const int minSoHeight = p->pPars->MinSoHeight;
+    // So calculation for balanced cuts is currently not supported
+    if ( !pObj->fRepr ) 
+        return 0;
+    if ( pObj->BestCut.Depth <= minSoHeight)
+        return 0;
+    Cm_Obj_t * pNodes[CM_MAX_FA_SIZE/2];
+    int pHeight[CM_MAX_FA_SIZE/2];
+    int pFaPos[CM_MAX_FA_SIZE/2];
+    float pFaninArrival[CM_MAX_FA_SIZE/2];
+    Cm_CutMarkLeafs(&pObj->BestCut, CM_MARK_LEAF);
+
+
+    int cnt;
+    if ( p->pPars->fThreeInputGates)
+        cnt = Cm_CutCollectInternalNodes3(pObj, pNodes, pHeight, pFaPos, pFaninArrival);
+    else
+        cnt = Cm_CutCollectInternalNodes(pObj, pNodes, pHeight, pFaPos, pFaninArrival);
+
+
     // count number of occurences of each node in iTemp
-    for(int i=0; i<back; i++)
+    for(int i=0; i<cnt; i++)
         pNodes[i]->iTemp = 0;
-    for(int i=0;i<back; i++)
+    for(int i=0;i<cnt; i++)
         pNodes[i]->iTemp++;
     // populate the Sos
     int nSo = 0;
-    for(int i=back-1; i>= 0; --i)
+    for(int i=cnt-1; i>= 0; --i)
     {
         // add as SO only once, with minimum allowed height and if not all fanouts are used in cone
         if ( !(pNodes[i]->fMark & (CM_MARK_FIXED|CM_MARK_LEAF)) &&
@@ -177,7 +262,7 @@ int Cm_ManCalcSo(Cm_Man_t *p , Cm_Obj_t * pObj, Cm_Obj_t ** pSo, int *pSoPos, fl
         }
     }
     // cleanup marking
-    for(int i=0; i<back; i++)
+    for(int i=0; i<cnt; i++)
         pNodes[i]->fMark &= ~CM_MARK_FIXED;
     Cm_CutClearMarkLeafs(&pObj->BestCut, CM_MARK_LEAF);
     return nSo; 

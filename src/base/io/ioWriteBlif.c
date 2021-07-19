@@ -22,6 +22,7 @@
 #include "base/main/main.h"
 #include "map/mio/mio.h"
 #include "map/mimo/miMo.h"
+#include "map/cm/cm.h"
 #include "bool/kit/kit.h"
 #include "map/if/if.h"
 
@@ -681,11 +682,25 @@ void Io_NtkWriteNodeMappingMO(FILE * pFile, Abc_Obj_t * pNode )
     }
     fprintf(pFile, "\n");
     // write config
-    for(int layer=0; layer<=pCell->pGate->Depth; layer++)
+    if ( pCell->pGate->Type == MIMO_NNC3 )
     {
-        fprintf(pFile, "#");
-        for (int k=(1<<layer); k<(1<<(layer+1)); k++)
-            fprintf(pFile, "%d", Vec_BitEntry(pCell->vBitConfig, k));
+        for(int layer=1; layer<=pCell->pGate->Depth+1; layer++)
+        {
+            fprintf(pFile, "#");
+            for (int k=Cm_Fa3LayerStart(layer-1); k<Cm_Fa3LayerStart(layer); k++)
+                fprintf(pFile, "%d", Vec_BitEntry(pCell->vBitConfig, k));
+            fprintf(pFile, "\n");
+        }
+    }
+    else
+    {
+        for(int layer=0; layer<=pCell->pGate->Depth; layer++)
+        {
+            fprintf(pFile, "#");
+            for (int k=(1<<layer); k<(1<<(layer+1)); k++)
+                fprintf(pFile, "%d", Vec_BitEntry(pCell->vBitConfig, k));
+            fprintf(pFile, "\n");
+        }
         fprintf(pFile, "\n");
     }
 }
