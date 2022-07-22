@@ -63,13 +63,13 @@ extern unsigned char BitCount[];
 ///                       EXTERNAL FUNCTIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
-extern int GetDistance( Cube* pC1, Cube* pC2 );
+extern int GetDistance(Cube* pC1, Cube* pC2);
 // distance computation for two cubes
-extern int GetDistancePlus( Cube* pC1, Cube* pC2 );
+extern int GetDistancePlus(Cube* pC1, Cube* pC2);
 
-extern void ExorVar( Cube* pC, int Var, varvalue Val );
+extern void ExorVar(Cube* pC, int Var, varvalue Val);
 
-extern void AddToFreeCubes( Cube* pC );
+extern void AddToFreeCubes(Cube* pC);
 // returns a simplified cube back into the free list
 
 //extern void PrintCube( ostream& DebugStream, Cube* pC );
@@ -79,21 +79,21 @@ extern Cube* GetFreeCube();
 
 ////////////////////////////////////////////////////////////////////////
 /// ExorLink Functions
-extern int ExorLinkCubeIteratorStart( Cube** pGroup, Cube* pC1, Cube* pC2, cubedist Dist );
+extern int ExorLinkCubeIteratorStart(Cube** pGroup, Cube* pC1, Cube* pC2, cubedist Dist);
 // this function starts the Exor-Link IteratorCubePair, which iterates
 // through the cube groups starting from the group with min literals
 // returns 1 on success, returns 0 if the cubes have wrong distance
 
-extern int ExorLinkCubeIteratorNext( Cube** pGroup );
+extern int ExorLinkCubeIteratorNext(Cube** pGroup);
 // give the next group in the decreasing order of sum of literals
 // returns 1 on success, returns 0 if there are no more groups
 
-extern int ExorLinkCubeIteratorPick( Cube** pGroup, int g );
+extern int ExorLinkCubeIteratorPick(Cube** pGroup, int g);
 // gives the group #g in the order in which the groups were given
 // during iteration
 // returns 1 on success, returns 0 if something g is too large
 
-extern void ExorLinkCubeIteratorCleanUp( int fTakeLastGroup );
+extern void ExorLinkCubeIteratorCleanUp(int fTakeLastGroup);
 // removes the cubes from the store back into the list of free cubes
 // if fTakeLastGroup is 0, removes all cubes
 // if fTakeLastGroup is 1, does not store the last group
@@ -103,14 +103,14 @@ extern void ExorLinkCubeIteratorCleanUp( int fTakeLastGroup );
 ////////////////////////////////////////////////////////////////////////
 
 // iterative ExorLink
-int IterativelyApplyExorLink2( char fDistEnable );   
-int IterativelyApplyExorLink3( char fDistEnable );   
-int IterativelyApplyExorLink4( char fDistEnable );   
+int IterativelyApplyExorLink2(char fDistEnable);
+int IterativelyApplyExorLink3(char fDistEnable);
+int IterativelyApplyExorLink4(char fDistEnable);
 
 // function which performs distance computation and simplifes on the fly
 // it is also called from the Pseudo-Kronecker module when cubes are added
-int CheckForCloseCubes( Cube* p, int fAddCube );
-int CheckAndInsert( Cube* p );
+int CheckForCloseCubes(Cube* p, int fAddCube);
+int CheckAndInsert(Cube* p);
 
 // this function changes the cube back after it was DIST-1 transformed
 void UndoRecentChanges();
@@ -120,7 +120,7 @@ void UndoRecentChanges();
 
 // start an iterator through cubes of dist CubeDist,
 // the resulting pointers are written into ppC1 and ppC2
-int IteratorCubePairStart( cubedist Dist, Cube** ppC1, Cube** ppC2 );
+int IteratorCubePairStart(cubedist Dist, Cube** ppC1, Cube** ppC2);
 // gives the next VALID cube pair (the previous one is automatically dequequed)
 int IteratorCubePairNext();
 
@@ -128,12 +128,12 @@ int IteratorCubePairNext();
 // the cube storage
 
 // cube storage allocation/delocation
-int AllocateCubeSets( int nVarsIn, int nVarsOut );
+int AllocateCubeSets(int nVarsIn, int nVarsOut);
 void DelocateCubeSets();
 
 // insert/extract a cube into/from the storage
-void CubeInsert( Cube* p );
-Cube* CubeExtract( Cube* p );
+void CubeInsert(Cube* p);
+Cube* CubeExtract(Cube* p);
 
 ////////////////////////////////////////////////////////////////////////
 // Cube Set Iterator
@@ -147,7 +147,7 @@ Cube* IterCubeSetNext();
 // cube adjacency queques
 
 // adjacency queque allocation/delocation procedures
-int AllocateQueques( int nPlaces );
+int AllocateQueques(int nPlaces);
 void DelocateQueques();
 
 // conditional adding cube pairs to queques
@@ -156,18 +156,18 @@ static void NewRangeReset();
 // add temporarily stored new range of cube pairs to the queque
 static void NewRangeAdd();
 // insert one cube pair into the new range
-static void NewRangeInsertCubePair( cubedist Dist, Cube* p1, Cube* p2 );
+static void NewRangeInsertCubePair(cubedist Dist, Cube* p1, Cube* p2);
 
 static void MarkSet();
 static void MarkRewind();
 
 void PrintQuequeStats();
-int GetQuequeStats( cubedist Dist );
+int GetQuequeStats(cubedist Dist);
 
 // iterating through the queque (with authomatic garbage collection)
 // start an iterator through cubes of dist CubeDist,
 // the resulting pointers are written into ppC1 and ppC2
-int IteratorCubePairStart( cubedist Dist, Cube** ppC1, Cube** ppC2 );
+int IteratorCubePairStart(cubedist Dist, Cube** ppC1, Cube** ppC2);
 // gives the next VALID cube pair (the previous one is automatically dequequed)
 int IteratorCubePairNext();
 
@@ -188,8 +188,8 @@ int s_nPosMax[3];
 //    (it may happen that the group is outdated due to recent reshaping)
 // 2) find out what is the improvement achieved by each cube group
 // 3) depending on the distance, do the following:
-//    a) if ( Dist == 2 ) 
-//           try both cube groups, 
+//    a) if ( Dist == 2 )
+//           try both cube groups,
 //           if one of them leads to improvement, take the cube group right away
 //           if none of them leads to improment
 //              - take the last one (because it reshapes)
@@ -218,16 +218,16 @@ static Cube* s_List;
 ///////////////////////////////////////////////////////////////////////////
 static struct
 {
-    int fInput;   // 1 if the input was changed
-    Cube* p;      // the pointer to the modified cube
+    int fInput; // 1 if the input was changed
+    Cube* p;    // the pointer to the modified cube
     int PrevQa;
     int PrevPa;
     int PrevQq;
     int PrevPq;
     int PrevPz;
-    int Var;      // the number of variable that was changed
-    int Value;    // the value what was there
-    int PrevID;   // the previous ID of the removed cube
+    int Var;    // the number of variable that was changed
+    int Value;  // the value what was there
+    int PrevID; // the previous ID of the removed cube
 } s_ChangeStore;
 ///////////////////////////////////////////////////////////////////////////
 
@@ -267,14 +267,13 @@ static Cube *s_pC1, *s_pC2;
 ///                  Iterative ExorLink Operation                    ///
 ////////////////////////////////////////////////////////////////////////
 
-int CheckAndInsert( Cube* p )
-{
-//  return CheckForCloseCubes( p, 1 );
-    CubeInsert( p );
+int CheckAndInsert(Cube* p) {
+    //  return CheckForCloseCubes( p, 1 );
+    CubeInsert(p);
     return 0;
 }
 
-int IterativelyApplyExorLink2( char fDistEnable )   
+int IterativelyApplyExorLink2(char fDistEnable)
 // MEMO: instead of inserting the cubes that have already been checked
 // by running CheckForCloseCubes again, try inserting them without checking
 // and observe the difference (it will save 50% of checking time)
@@ -290,36 +289,32 @@ int IterativelyApplyExorLink2( char fDistEnable )
     s_fDistEnable4 = fDistEnable & 4;
 
     // initialize counters
-    s_cEnquequed = GetQuequeStats( s_Dist );
-    s_cAttempts  = 0;
-    s_cReshapes  = 0;
+    s_cEnquequed = GetQuequeStats(s_Dist);
+    s_cAttempts = 0;
+    s_cReshapes = 0;
 
     // remember the number of cubes before minimization
     s_nCubesBefore = g_CoverInfo.nCubesInUse;
 
-    for ( z = IteratorCubePairStart( s_Dist, &s_pC1, &s_pC2 ); z; z = IteratorCubePairNext() )
-    {
+    for (z = IteratorCubePairStart(s_Dist, &s_pC1, &s_pC2); z; z = IteratorCubePairNext()) {
         s_cAttempts++;
         // start ExorLink of the given Distance
-        if ( ExorLinkCubeIteratorStart( s_CubeGroup, s_pC1, s_pC2, s_Dist ) )
-        {
+        if (ExorLinkCubeIteratorStart(s_CubeGroup, s_pC1, s_pC2, s_Dist)) {
             // extract old cubes from storage (to prevent EXORing with their derivitives)
-            CubeExtract( s_pC1 );
-            CubeExtract( s_pC2 );
+            CubeExtract(s_pC1);
+            CubeExtract(s_pC2);
 
             // mark the current position in the cube pair queques
             MarkSet();
 
             // check the first group (generated by ExorLinkCubeIteratorStart())
-            if ( CheckForCloseCubes( s_CubeGroup[0], 0 ) ) 
-            {  // the first cube leads to improvement - it is already inserted
-                CheckForCloseCubes( s_CubeGroup[1], 1 ); // insert the second cube
+            if (CheckForCloseCubes(s_CubeGroup[0], 0)) { // the first cube leads to improvement - it is already inserted
+                CheckForCloseCubes(s_CubeGroup[1], 1);   // insert the second cube
                 goto SUCCESS;
             }
-            if ( CheckForCloseCubes( s_CubeGroup[1], 0 ) ) 
-            {  // the second cube leads to improvement - it is already inserted
-                CheckForCloseCubes( s_CubeGroup[0], 1 ); // insert the first cube
-//              CheckAndInsert( s_CubeGroup[0] );
+            if (CheckForCloseCubes(s_CubeGroup[1], 0)) { // the second cube leads to improvement - it is already inserted
+                CheckForCloseCubes(s_CubeGroup[0], 1);   // insert the first cube
+                                                         //              CheckAndInsert( s_CubeGroup[0] );
                 goto SUCCESS;
             }
             // the first group does not lead to improvement
@@ -328,39 +323,34 @@ int IterativelyApplyExorLink2( char fDistEnable )
             MarkRewind();
 
             // generate the second group
-            ExorLinkCubeIteratorNext( s_CubeGroup );
+            ExorLinkCubeIteratorNext(s_CubeGroup);
 
             // check the second group
-            if ( CheckForCloseCubes( s_CubeGroup[0], 0 ) ) 
-            { // the first cube leads to improvement - it is already inserted
-                CheckForCloseCubes( s_CubeGroup[1], 1 ); // insert the second cube
+            if (CheckForCloseCubes(s_CubeGroup[0], 0)) { // the first cube leads to improvement - it is already inserted
+                CheckForCloseCubes(s_CubeGroup[1], 1);   // insert the second cube
                 goto SUCCESS;
             }
-            if ( CheckForCloseCubes( s_CubeGroup[1], 0 ) ) 
-            { // the second cube leads to improvement - it is already inserted
-                CheckForCloseCubes( s_CubeGroup[0], 1 ); // insert the first cube
-//              CheckAndInsert( s_CubeGroup[0] );
+            if (CheckForCloseCubes(s_CubeGroup[1], 0)) { // the second cube leads to improvement - it is already inserted
+                CheckForCloseCubes(s_CubeGroup[0], 1);   // insert the first cube
+                                                         //              CheckAndInsert( s_CubeGroup[0] );
                 goto SUCCESS;
             }
             // the second group does not lead to improvement
 
             // decide whether to accept the second group, depending on literals
-            if ( s_fDecreaseLiterals )
-            {
-                if ( g_CoverInfo.fUseQCost ? 
-                     s_CubeGroup[0]->q + s_CubeGroup[1]->q >= s_pC1->q + s_pC2->q :
-                     s_CubeGroup[0]->a + s_CubeGroup[1]->a >= s_pC1->a + s_pC2->a ) 
+            if (s_fDecreaseLiterals) {
+                if (g_CoverInfo.fUseQCost ? s_CubeGroup[0]->q + s_CubeGroup[1]->q >= s_pC1->q + s_pC2->q : s_CubeGroup[0]->a + s_CubeGroup[1]->a >= s_pC1->a + s_pC2->a)
                 // the group increases literals
                 { // do not take the last group
-                            
+
                     // rewind to the previously marked position in the cube pair queques
                     MarkRewind();
 
                     // return the old cubes back to storage
-                    CubeInsert( s_pC1 );
-                    CubeInsert( s_pC2 );
+                    CubeInsert(s_pC1);
+                    CubeInsert(s_pC2);
                     // clean the results of generating ExorLinked cubes
-                    ExorLinkCubeIteratorCleanUp( 0 );
+                    ExorLinkCubeIteratorCleanUp(0);
                     continue;
                 }
             }
@@ -368,42 +358,40 @@ int IterativelyApplyExorLink2( char fDistEnable )
             // take the last group
             // there is no need to test these cubes again,
             // because they have been tested and did not yield any improvement
-            CubeInsert( s_CubeGroup[0] );
-            CubeInsert( s_CubeGroup[1] );
-//          CheckForCloseCubes( s_CubeGroup[0], 1 ); 
-//          CheckForCloseCubes( s_CubeGroup[1], 1 ); 
+            CubeInsert(s_CubeGroup[0]);
+            CubeInsert(s_CubeGroup[1]);
+            //          CheckForCloseCubes( s_CubeGroup[0], 1 );
+            //          CheckForCloseCubes( s_CubeGroup[1], 1 );
 
-SUCCESS:
+        SUCCESS:
             // clean the results of generating ExorLinked cubes
-            ExorLinkCubeIteratorCleanUp( 1 ); // take the last group
+            ExorLinkCubeIteratorCleanUp(1); // take the last group
             // free old cubes
-            AddToFreeCubes( s_pC1 );
-            AddToFreeCubes( s_pC2 );
+            AddToFreeCubes(s_pC1);
+            AddToFreeCubes(s_pC2);
             // increate the counter
             s_cReshapes++;
         }
     }
     // print the report
-    if ( g_CoverInfo.Verbosity == 2 )
-    {
-    printf( "ExLink-%d", 2 );
-    printf( ": Que= %5d", s_cEnquequed );
-    printf( "  Att= %4d", s_cAttempts );
-    printf( "  Resh= %4d", s_cReshapes );
-    printf( "  NoResh= %4d", s_cAttempts - s_cReshapes );
-    printf( "  Cubes= %3d", g_CoverInfo.nCubesInUse );
-    printf( "  (%d)", s_nCubesBefore - g_CoverInfo.nCubesInUse );
-    printf( "  Lits= %5d", CountLiterals() );
-    printf( "  QCost = %6d", CountQCost() );
-    printf( "\n" );
+    if (g_CoverInfo.Verbosity == 2) {
+        printf("ExLink-%d", 2);
+        printf(": Que= %5d", s_cEnquequed);
+        printf("  Att= %4d", s_cAttempts);
+        printf("  Resh= %4d", s_cReshapes);
+        printf("  NoResh= %4d", s_cAttempts - s_cReshapes);
+        printf("  Cubes= %3d", g_CoverInfo.nCubesInUse);
+        printf("  (%d)", s_nCubesBefore - g_CoverInfo.nCubesInUse);
+        printf("  Lits= %5d", CountLiterals());
+        printf("  QCost = %6d", CountQCost());
+        printf("\n");
     }
 
     // return the number of cubes gained in the process
     return s_nCubesBefore - g_CoverInfo.nCubesInUse;
 }
 
-int IterativelyApplyExorLink3( char fDistEnable )   
-{
+int IterativelyApplyExorLink3(char fDistEnable) {
     int z, c, d;
     // this var is specific to ExorLink-3
     s_Dist = (cubedist)1;
@@ -414,115 +402,103 @@ int IterativelyApplyExorLink3( char fDistEnable )
     s_fDistEnable4 = fDistEnable & 4;
 
     // initialize counters
-    s_cEnquequed = GetQuequeStats( s_Dist );
-    s_cAttempts  = 0;
-    s_cReshapes  = 0;
+    s_cEnquequed = GetQuequeStats(s_Dist);
+    s_cAttempts = 0;
+    s_cReshapes = 0;
 
     // remember the number of cubes before minimization
     s_nCubesBefore = g_CoverInfo.nCubesInUse;
 
-    for ( z = IteratorCubePairStart( s_Dist, &s_pC1, &s_pC2 ); z; z = IteratorCubePairNext() )
-    {
+    for (z = IteratorCubePairStart(s_Dist, &s_pC1, &s_pC2); z; z = IteratorCubePairNext()) {
         s_cAttempts++;
         // start ExorLink of the given Distance
-        if ( ExorLinkCubeIteratorStart( s_CubeGroup, s_pC1, s_pC2, s_Dist ) )
-        {
+        if (ExorLinkCubeIteratorStart(s_CubeGroup, s_pC1, s_pC2, s_Dist)) {
             // extract old cubes from storage (to prevent EXORing with their derivitives)
-            CubeExtract( s_pC1 );
-            CubeExtract( s_pC2 );
+            CubeExtract(s_pC1);
+            CubeExtract(s_pC2);
 
             // mark the current position in the cube pair queques
             MarkSet();
 
             // check cube groups one by one
             s_GroupCounter = 0;
-            do  
-            {   // check the cubes of this group one by one
-                for ( c = 0; c < 3; c++ )
-                if ( !s_CubeGroup[c]->fMark ) // this cube has not yet been checked
-                {
-                    s_Gain = CheckForCloseCubes( s_CubeGroup[c], 0 ); // do not insert the cube, by default
-                    if ( s_Gain ) 
-                    { // this cube leads to improvement or reshaping - it is already inserted
+            do { // check the cubes of this group one by one
+                for (c = 0; c < 3; c++)
+                    if (!s_CubeGroup[c]->fMark) // this cube has not yet been checked
+                    {
+                        s_Gain = CheckForCloseCubes(s_CubeGroup[c], 0); // do not insert the cube, by default
+                        if (s_Gain) {                                   // this cube leads to improvement or reshaping - it is already inserted
 
-                        // decide whether to accept this group based on literal count
-                        if ( s_fDecreaseLiterals && s_Gain == 1 )
-                        if ( g_CoverInfo.fUseQCost ?
-                             s_CubeGroup[0]->q + s_CubeGroup[1]->q + s_CubeGroup[2]->q > s_pC1->q + s_pC2->q + s_ChangeStore.PrevQq :
-                             s_CubeGroup[0]->a + s_CubeGroup[1]->a + s_CubeGroup[2]->a > s_pC1->a + s_pC2->a + s_ChangeStore.PrevQa 
-                           ) // the group increases literals
-                        { // do not take this group
-                            // remember the group
-                            s_GroupBest = s_GroupCounter;
-                            // undo changes to be able to continue checking other groups
-                            UndoRecentChanges();
-                            break;
-                        }
+                            // decide whether to accept this group based on literal count
+                            if (s_fDecreaseLiterals && s_Gain == 1)
+                                if (g_CoverInfo.fUseQCost ? s_CubeGroup[0]->q + s_CubeGroup[1]->q + s_CubeGroup[2]->q > s_pC1->q + s_pC2->q + s_ChangeStore.PrevQq : s_CubeGroup[0]->a + s_CubeGroup[1]->a + s_CubeGroup[2]->a > s_pC1->a + s_pC2->a + s_ChangeStore.PrevQa) // the group increases literals
+                                {                                                                                                                                                                                                                                            // do not take this group
+                                    // remember the group
+                                    s_GroupBest = s_GroupCounter;
+                                    // undo changes to be able to continue checking other groups
+                                    UndoRecentChanges();
+                                    break;
+                                }
 
-                        // take this group
-                        for ( d = 0; d < 3; d++ ) // insert other cubes
-                            if ( d != c )
-                            {
-                                CheckForCloseCubes( s_CubeGroup[d], 1 ); 
-//                              if ( s_CubeGroup[d]->fMark )
-//                                  CheckAndInsert( s_CubeGroup[d] );
-//                                  CheckOnlyOneCube( s_CubeGroup[d] );
-//                                  CheckForCloseCubes( s_CubeGroup[d], 1 ); 
-//                              else
-//                                  CheckForCloseCubes( s_CubeGroup[d], 1 ); 
-                            }
+                            // take this group
+                            for (d = 0; d < 3; d++) // insert other cubes
+                                if (d != c) {
+                                    CheckForCloseCubes(s_CubeGroup[d], 1);
+                                    //                              if ( s_CubeGroup[d]->fMark )
+                                    //                                  CheckAndInsert( s_CubeGroup[d] );
+                                    //                                  CheckOnlyOneCube( s_CubeGroup[d] );
+                                    //                                  CheckForCloseCubes( s_CubeGroup[d], 1 );
+                                    //                              else
+                                    //                                  CheckForCloseCubes( s_CubeGroup[d], 1 );
+                                }
 
-                        // clean the results of generating ExorLinked cubes
-                        ExorLinkCubeIteratorCleanUp( 1 ); // take the last group
-                        // free old cubes
-                        AddToFreeCubes( s_pC1 );
-                        AddToFreeCubes( s_pC2 );
-                        // update the counter
-                        s_cReshapes++;
-                        goto END_OF_LOOP;
+                            // clean the results of generating ExorLinked cubes
+                            ExorLinkCubeIteratorCleanUp(1); // take the last group
+                            // free old cubes
+                            AddToFreeCubes(s_pC1);
+                            AddToFreeCubes(s_pC2);
+                            // update the counter
+                            s_cReshapes++;
+                            goto END_OF_LOOP;
+                        } else // mark the cube as checked
+                            s_CubeGroup[c]->fMark = 1;
                     }
-                    else // mark the cube as checked
-                        s_CubeGroup[c]->fMark = 1;
-                }
                 // the group is not taken - find the new group
                 s_GroupCounter++;
-                                        
+
                 // rewind to the previously marked position in the cube pair queques
                 MarkRewind();
-            } 
-            while ( ExorLinkCubeIteratorNext( s_CubeGroup ) );
+            } while (ExorLinkCubeIteratorNext(s_CubeGroup));
             // none of the groups leads to improvement
 
             // return the old cubes back to storage
-            CubeInsert( s_pC1 );
-            CubeInsert( s_pC2 );
+            CubeInsert(s_pC1);
+            CubeInsert(s_pC2);
             // clean the results of generating ExorLinked cubes
-            ExorLinkCubeIteratorCleanUp( 0 );
+            ExorLinkCubeIteratorCleanUp(0);
         }
-END_OF_LOOP: {}
+    END_OF_LOOP : {}
     }
 
     // print the report
-    if ( g_CoverInfo.Verbosity == 2 )
-    {
-    printf( "ExLink-%d", 3 );
-    printf( ": Que= %5d", s_cEnquequed );
-    printf( "  Att= %4d", s_cAttempts );
-    printf( "  Resh= %4d", s_cReshapes );
-    printf( "  NoResh= %4d", s_cAttempts - s_cReshapes );
-    printf( "  Cubes= %3d", g_CoverInfo.nCubesInUse );
-    printf( "  (%d)", s_nCubesBefore - g_CoverInfo.nCubesInUse );
-    printf( "  Lits= %5d", CountLiterals() );
-    printf( "  QCost = %6d", CountQCost() );
-    printf( "\n" );
+    if (g_CoverInfo.Verbosity == 2) {
+        printf("ExLink-%d", 3);
+        printf(": Que= %5d", s_cEnquequed);
+        printf("  Att= %4d", s_cAttempts);
+        printf("  Resh= %4d", s_cReshapes);
+        printf("  NoResh= %4d", s_cAttempts - s_cReshapes);
+        printf("  Cubes= %3d", g_CoverInfo.nCubesInUse);
+        printf("  (%d)", s_nCubesBefore - g_CoverInfo.nCubesInUse);
+        printf("  Lits= %5d", CountLiterals());
+        printf("  QCost = %6d", CountQCost());
+        printf("\n");
     }
 
     // return the number of cubes gained in the process
     return s_nCubesBefore - g_CoverInfo.nCubesInUse;
 }
 
-int IterativelyApplyExorLink4( char fDistEnable )   
-{
+int IterativelyApplyExorLink4(char fDistEnable) {
     int z, c;
     // this var is specific to ExorLink-4
     s_Dist = (cubedist)2;
@@ -533,99 +509,91 @@ int IterativelyApplyExorLink4( char fDistEnable )
     s_fDistEnable4 = fDistEnable & 4;
 
     // initialize counters
-    s_cEnquequed = GetQuequeStats( s_Dist );
-    s_cAttempts  = 0;
-    s_cReshapes  = 0;
+    s_cEnquequed = GetQuequeStats(s_Dist);
+    s_cAttempts = 0;
+    s_cReshapes = 0;
 
     // remember the number of cubes before minimization
     s_nCubesBefore = g_CoverInfo.nCubesInUse;
 
-    for ( z = IteratorCubePairStart( s_Dist, &s_pC1, &s_pC2 ); z; z = IteratorCubePairNext() )
-    {
+    for (z = IteratorCubePairStart(s_Dist, &s_pC1, &s_pC2); z; z = IteratorCubePairNext()) {
         s_cAttempts++;
         // start ExorLink of the given Distance
-        if ( ExorLinkCubeIteratorStart( s_CubeGroup, s_pC1, s_pC2, s_Dist ) )
-        {
+        if (ExorLinkCubeIteratorStart(s_CubeGroup, s_pC1, s_pC2, s_Dist)) {
             // extract old cubes from storage (to prevent EXORing with their derivitives)
-            CubeExtract( s_pC1 );
-            CubeExtract( s_pC2 );
+            CubeExtract(s_pC1);
+            CubeExtract(s_pC2);
 
             // mark the current position in the cube pair queques
             MarkSet();
 
             // check cube groups one by one
-            do  
-            {   // check the cubes of this group one by one
+            do { // check the cubes of this group one by one
                 s_GainTotal = 0;
-                for ( c = 0; c < 4; c++ )
-                if ( !s_CubeGroup[c]->fMark ) // this cube has not yet been checked
-                {
-                    s_Gain = CheckForCloseCubes( s_CubeGroup[c], 0 ); // do not insert the cube, by default
-                    // if the cube leads to gain, it is already inserted
-                    s_fInserted[c] = (int)(s_Gain>0);
-                    // increment the total gain
-                    s_GainTotal += s_Gain;
-                }
-                else
-                    s_fInserted[c] = 0; // the cube has already been checked - it is not inserted
+                for (c = 0; c < 4; c++)
+                    if (!s_CubeGroup[c]->fMark) // this cube has not yet been checked
+                    {
+                        s_Gain = CheckForCloseCubes(s_CubeGroup[c], 0); // do not insert the cube, by default
+                        // if the cube leads to gain, it is already inserted
+                        s_fInserted[c] = (int)(s_Gain > 0);
+                        // increment the total gain
+                        s_GainTotal += s_Gain;
+                    } else
+                        s_fInserted[c] = 0; // the cube has already been checked - it is not inserted
 
-                if ( s_GainTotal == 0 ) // the group does not lead to any gain
-                { // mark the cubes
-                    for ( c = 0; c < 4; c++ )
+                if (s_GainTotal == 0) // the group does not lead to any gain
+                {                     // mark the cubes
+                    for (c = 0; c < 4; c++)
                         s_CubeGroup[c]->fMark = 1;
-                }
-                else if ( s_GainTotal == 1 ) // the group does not lead to substantial gain, too
-                { 
+                } else if (s_GainTotal == 1) // the group does not lead to substantial gain, too
+                {
                     // undo changes to be able to continue checking groups
                     UndoRecentChanges();
                     // mark those cubes that were not inserted
-                    for ( c = 0; c < 4; c++ )
+                    for (c = 0; c < 4; c++)
                         s_CubeGroup[c]->fMark = !s_fInserted[c];
-                }
-                else // if ( s_GainTotal > 1 ) // the group reshapes or improves
-                { // accept the group
-                    for ( c = 0; c < 4; c++ ) // insert other cubes
-                        if ( !s_fInserted[c] )
-                            CheckForCloseCubes( s_CubeGroup[c], 1 ); 
-//                          CheckAndInsert( s_CubeGroup[c] );
+                } else                      // if ( s_GainTotal > 1 ) // the group reshapes or improves
+                {                           // accept the group
+                    for (c = 0; c < 4; c++) // insert other cubes
+                        if (!s_fInserted[c])
+                            CheckForCloseCubes(s_CubeGroup[c], 1);
+                    //                          CheckAndInsert( s_CubeGroup[c] );
                     // clean the results of generating ExorLinked cubes
-                    ExorLinkCubeIteratorCleanUp( 1 ); // take the last group
+                    ExorLinkCubeIteratorCleanUp(1); // take the last group
                     // free old cubes
-                    AddToFreeCubes( s_pC1 );
-                    AddToFreeCubes( s_pC2 );
+                    AddToFreeCubes(s_pC1);
+                    AddToFreeCubes(s_pC2);
                     // update the counter
                     s_cReshapes++;
                     goto END_OF_LOOP;
                 }
-                                        
+
                 // rewind to the previously marked position in the cube pair queques
                 MarkRewind();
-            } 
-            while ( ExorLinkCubeIteratorNext( s_CubeGroup ) );
+            } while (ExorLinkCubeIteratorNext(s_CubeGroup));
             // none of the groups leads to improvement
 
             // return the old cubes back to storage
-            CubeInsert( s_pC1 );
-            CubeInsert( s_pC2 );
+            CubeInsert(s_pC1);
+            CubeInsert(s_pC2);
             // clean the results of generating ExorLinked cubes
-            ExorLinkCubeIteratorCleanUp( 0 );
+            ExorLinkCubeIteratorCleanUp(0);
         }
-END_OF_LOOP: {}
+    END_OF_LOOP : {}
     }
 
     // print the report
-    if ( g_CoverInfo.Verbosity == 2 )
-    {
-    printf( "ExLink-%d", 4 );
-    printf( ": Que= %5d", s_cEnquequed );
-    printf( "  Att= %4d", s_cAttempts );
-    printf( "  Resh= %4d", s_cReshapes );
-    printf( "  NoResh= %4d", s_cAttempts - s_cReshapes );
-    printf( "  Cubes= %3d", g_CoverInfo.nCubesInUse );
-    printf( "  (%d)", s_nCubesBefore - g_CoverInfo.nCubesInUse );
-    printf( "  Lits= %5d", CountLiterals() );
-    printf( "  QCost = %6d", CountQCost() );
-    printf( "\n" );
+    if (g_CoverInfo.Verbosity == 2) {
+        printf("ExLink-%d", 4);
+        printf(": Que= %5d", s_cEnquequed);
+        printf("  Att= %4d", s_cAttempts);
+        printf("  Resh= %4d", s_cReshapes);
+        printf("  NoResh= %4d", s_cAttempts - s_cReshapes);
+        printf("  Cubes= %3d", g_CoverInfo.nCubesInUse);
+        printf("  (%d)", s_nCubesBefore - g_CoverInfo.nCubesInUse);
+        printf("  Lits= %5d", CountLiterals());
+        printf("  QCost = %6d", CountQCost());
+        printf("\n");
     }
 
     // return the number of cubes gained in the process
@@ -640,9 +608,9 @@ int s_DiffVarValueP_old;
 int s_DiffVarValueP_new;
 int s_DiffVarValueQ;
 
-int CheckForCloseCubes( Cube* p, int fAddCube )
-// checks the cube storage for a cube that is dist-0 and dist-1 removed 
-// from the given one (p) if such a cube is found, extracts it from the data 
+int CheckForCloseCubes(Cube* p, int fAddCube)
+// checks the cube storage for a cube that is dist-0 and dist-1 removed
+// from the given one (p) if such a cube is found, extracts it from the data
 // structure, EXORs it with the given cube, adds the resultant cube
 // to the data structure and performed the same check for the resultant cube;
 // returns the number of cubes gained in the process of reduction;
@@ -651,95 +619,80 @@ int CheckForCloseCubes( Cube* p, int fAddCube )
     // start the new range
     NewRangeReset();
 
-    for ( s_q = s_List; s_q; s_q = s_q->Next )
-    {
-        s_Distance = GetDistancePlus( p, s_q );
-        if ( s_Distance > 4 )
-        {
-        }
-        else if ( s_Distance == 4 )
-        {
-            if ( s_fDistEnable4 ) 
-                NewRangeInsertCubePair( DIST4, p, s_q );
-        }
-        else if ( s_Distance == 3 )
-        {
-            if ( s_fDistEnable3 ) 
-                NewRangeInsertCubePair( DIST3, p, s_q );
-        }
-        else if ( s_Distance == 2 )
-        { 
-            if ( s_fDistEnable2 ) 
-                NewRangeInsertCubePair( DIST2, p, s_q );
-        }
-        else if ( s_Distance == 1 )
-        {   // extract the cube from the data structure
+    for (s_q = s_List; s_q; s_q = s_q->Next) {
+        s_Distance = GetDistancePlus(p, s_q);
+        if (s_Distance > 4) {
+        } else if (s_Distance == 4) {
+            if (s_fDistEnable4)
+                NewRangeInsertCubePair(DIST4, p, s_q);
+        } else if (s_Distance == 3) {
+            if (s_fDistEnable3)
+                NewRangeInsertCubePair(DIST3, p, s_q);
+        } else if (s_Distance == 2) {
+            if (s_fDistEnable2)
+                NewRangeInsertCubePair(DIST2, p, s_q);
+        } else if (s_Distance == 1) { // extract the cube from the data structure
 
             //////////////////////////////////////////////////////////
             // store the changes
             s_ChangeStore.fInput = (s_DiffVarNum != -1);
-            s_ChangeStore.p      = p;
+            s_ChangeStore.p = p;
             s_ChangeStore.PrevQa = s_q->a;
             s_ChangeStore.PrevPa = p->a;
             s_ChangeStore.PrevQq = s_q->q;
             s_ChangeStore.PrevPq = p->q;
             s_ChangeStore.PrevPz = p->z;
-            s_ChangeStore.Var    = s_DiffVarNum;
-            s_ChangeStore.Value  = s_DiffVarValueQ;
+            s_ChangeStore.Var = s_DiffVarNum;
+            s_ChangeStore.Value = s_DiffVarValueQ;
             s_ChangeStore.PrevID = s_q->ID;
             //////////////////////////////////////////////////////////
 
-            CubeExtract( s_q );
+            CubeExtract(s_q);
             // perform the EXOR of the two cubes and write the result into p
 
             // it is important that the resultant cube is written into p!!!
 
-            if ( s_DiffVarNum == -1 )
-            {
+            if (s_DiffVarNum == -1) {
                 int i;
                 // exor the output part
                 p->z = 0;
-                for ( i = 0; i < g_CoverInfo.nWordsOut; i++ )
-                {
+                for (i = 0; i < g_CoverInfo.nWordsOut; i++) {
                     p->pCubeDataOut[i] ^= s_q->pCubeDataOut[i];
                     p->z += BIT_COUNT(p->pCubeDataOut[i]);
                 }
-            }
-            else
-            {
+            } else {
                 // the cube has already been updated by GetDistancePlus()
 
                 // modify the parameters of the number of literals in the new cube
-//              p->a += s_UpdateLiterals[ s_DiffVarValueP ][ s_DiffVarValueQ ];
-                if ( s_DiffVarValueP_old == VAR_NEG || s_DiffVarValueP_old == VAR_POS )
+                //              p->a += s_UpdateLiterals[ s_DiffVarValueP ][ s_DiffVarValueQ ];
+                if (s_DiffVarValueP_old == VAR_NEG || s_DiffVarValueP_old == VAR_POS)
                     p->a--;
-                if ( s_DiffVarValueP_new == VAR_NEG || s_DiffVarValueP_new == VAR_POS )
+                if (s_DiffVarValueP_new == VAR_NEG || s_DiffVarValueP_new == VAR_POS)
                     p->a++;
                 p->q = ComputeQCostBits(p);
             }
 
             // move q to the free cube list
-            AddToFreeCubes( s_q );
+            AddToFreeCubes(s_q);
 
             // make sure that nobody with use the pairs created so far
-//          NewRangeReset();
+            //          NewRangeReset();
             // call the function again for the new cube
-            return 1 + CheckForCloseCubes( p, 1 );
-        }
-        else // if ( Distance == 0 )
-        {   // extract the second cube from the data structure and add them both to the free list
-            AddToFreeCubes( p );
-            AddToFreeCubes( CubeExtract( s_q ) );
+            return 1 + CheckForCloseCubes(p, 1);
+        } else // if ( Distance == 0 )
+        {      // extract the second cube from the data structure and add them both to the free list
+            AddToFreeCubes(p);
+            AddToFreeCubes(CubeExtract(s_q));
 
             // make sure that nobody with use the pairs created so far
             NewRangeReset();
             return 2;
         }
     }
-    
+
     // add the cube to the data structure if needed
-    if ( fAddCube )
-        CubeInsert( p );
+    if (fAddCube)
+        CubeInsert(p);
 
     // add temporarily stored new range of cube pairs to the queque
     NewRangeAdd();
@@ -747,31 +700,29 @@ int CheckForCloseCubes( Cube* p, int fAddCube )
     return 0;
 }
 
-void UndoRecentChanges()
-{
-    Cube * p, * q;
+void UndoRecentChanges() {
+    Cube *p, *q;
     // get back cube q that was deleted
     q = GetFreeCube();
     // restore the ID
     q->ID = s_ChangeStore.PrevID;
     // insert the cube into storage again
-    CubeInsert( q );
+    CubeInsert(q);
 
     // extract cube p
-    p = CubeExtract( s_ChangeStore.p );
+    p = CubeExtract(s_ChangeStore.p);
 
     // modify it back
-    if ( s_ChangeStore.fInput ) // the input has changed
+    if (s_ChangeStore.fInput) // the input has changed
     {
-        ExorVar( p, s_ChangeStore.Var, (varvalue)s_ChangeStore.Value );
+        ExorVar(p, s_ChangeStore.Var, (varvalue)s_ChangeStore.Value);
         p->a = s_ChangeStore.PrevPa;
         p->q = s_ChangeStore.PrevPq;
         // p->z did not change
-    }
-    else // if ( s_ChangeStore.fInput ) // the output has changed
+    } else // if ( s_ChangeStore.fInput ) // the output has changed
     {
         int i;
-        for ( i = 0; i < g_CoverInfo.nWordsOut; i++ )
+        for (i = 0; i < g_CoverInfo.nWordsOut; i++)
             p->pCubeDataOut[i] ^= q->pCubeDataOut[i];
         p->z = s_ChangeStore.PrevPz;
         // p->a did not change
@@ -789,16 +740,15 @@ void UndoRecentChanges()
 ///                 Memory Allocation/Delocation                ///
 ///////////////////////////////////////////////////////////////////
 
-int AllocateCubeSets( int nVarsIn, int nVarsOut )
-{
+int AllocateCubeSets(int nVarsIn, int nVarsOut) {
     s_List = NULL;
 
     // clean other data
     s_fDistEnable2 = 1;
     s_fDistEnable3 = 0;
     s_fDistEnable4 = 0;
-    memset( s_CubeGroup, 0, sizeof(void *) * 5 );
-    memset( s_fInserted, 0, sizeof(int) * 5 );
+    memset(s_CubeGroup, 0, sizeof(void*) * 5);
+    memset(s_fInserted, 0, sizeof(int) * 5);
     s_fDecreaseLiterals = 0;
     s_cEnquequed = 0;
     s_cAttempts = 0;
@@ -813,24 +763,22 @@ int AllocateCubeSets( int nVarsIn, int nVarsOut )
     return 4;
 }
 
-void DelocateCubeSets()
-{
+void DelocateCubeSets() {
 }
 
 ///////////////////////////////////////////////////////////////////
 ///                     Insertion Operators                     ///
 ///////////////////////////////////////////////////////////////////
 
-void CubeInsert( Cube* p )
+void CubeInsert(Cube* p)
 // inserts the cube into storage (puts it at the beginning of the list)
 {
-    assert( p->Prev == NULL && p->Next == NULL );
-    assert( p->ID );
+    assert(p->Prev == NULL && p->Next == NULL);
+    assert(p->ID);
 
-    if ( s_List == NULL )
+    if (s_List == NULL)
         s_List = p;
-    else
-    {
+    else {
         p->Next = s_List;
 
         s_List->Prev = p;
@@ -840,23 +788,23 @@ void CubeInsert( Cube* p )
     g_CoverInfo.nCubesInUse++;
 }
 
-Cube* CubeExtract( Cube* p )
+Cube* CubeExtract(Cube* p)
 // extracts the cube from storage
 {
-//  assert( p->Prev && p->Next ); // can be done only with rings
-    assert( p->ID );
+    //  assert( p->Prev && p->Next ); // can be done only with rings
+    assert(p->ID);
 
-//  if ( s_List == p )
-//      s_List = p->Next;
-//  if ( p->Prev )
-//      p->Prev->Next = p->Next;
+    //  if ( s_List == p )
+    //      s_List = p->Next;
+    //  if ( p->Prev )
+    //      p->Prev->Next = p->Next;
 
-    if ( s_List == p )
+    if (s_List == p)
         s_List = p->Next;
     else
         p->Prev->Next = p->Next;
 
-    if ( p->Next )
+    if (p->Next)
         p->Next->Prev = p->Prev;
 
     p->Prev = NULL;
@@ -880,21 +828,21 @@ Cube* s_pCubeLast;
 Cube* IterCubeSetStart()
 // starts an iterator that traverses all the cubes in the ring
 {
-    assert( s_pCubeLast == NULL );
+    assert(s_pCubeLast == NULL);
 
     // check whether the List has cubes
-    if ( s_List == NULL )
+    if (s_List == NULL)
         return NULL;
 
-    return ( s_pCubeLast = s_List );
+    return (s_pCubeLast = s_List);
 }
 
 Cube* IterCubeSetNext()
 // returns the next cube in the cube set
 // to use it again after it has returned NULL, first call IterCubeSetStart()
 {
-    assert( s_pCubeLast );
-    return ( s_pCubeLast = s_pCubeLast->Next );
+    assert(s_pCubeLast);
+    return (s_pCubeLast = s_pCubeLast->Next);
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -903,18 +851,18 @@ Cube* IterCubeSetNext()
 
 typedef struct
 {
-    Cube** pC1;      // the pointer to the first cube
-    Cube** pC2;      // the pointer to the second cube
-    byte*  ID1;      // the ID of the first cube
-    byte*  ID2;      // the ID of the second cube
-    int  PosOut;     // extract position
-    int  PosIn;      // insert position
-    int  PosCur;     // temporary insert position
-    int  PosMark;    // the marked position
-    int  fEmpty;     // this flag is 1 if there is nothing in the queque
+    Cube** pC1;  // the pointer to the first cube
+    Cube** pC2;  // the pointer to the second cube
+    byte* ID1;   // the ID of the first cube
+    byte* ID2;   // the ID of the second cube
+    int PosOut;  // extract position
+    int PosIn;   // insert position
+    int PosCur;  // temporary insert position
+    int PosMark; // the marked position
+    int fEmpty;  // this flag is 1 if there is nothing in the queque
 } que;
 
-static que s_Que[3];  // Dist-2, Dist-3, Dist-4 queques
+static que s_Que[3]; // Dist-2, Dist-3, Dist-4 queques
 
 // the number of allocated places
 //int s_nPosAlloc;
@@ -925,8 +873,7 @@ static que s_Que[3];  // Dist-2, Dist-3, Dist-4 queques
 //            Conditional Adding Cube Pairs To Queques              //
 //////////////////////////////////////////////////////////////////////
 
-int GetPosDiff( int PosBeg, int PosEnd )
-{
+int GetPosDiff(int PosBeg, int PosEnd) {
     return (PosEnd - PosBeg + s_nPosAlloc) % s_nPosAlloc;
 }
 
@@ -962,29 +909,26 @@ void NewRangeAdd()
     s_Que[2].PosIn = s_Que[2].PosCur;
 }
 
-void NewRangeInsertCubePair( cubedist Dist, Cube* p1, Cube* p2 )
+void NewRangeInsertCubePair(cubedist Dist, Cube* p1, Cube* p2)
 // insert one cube pair into the new range
 {
     que* p = &s_Que[Dist];
     int Pos = p->PosCur;
 
-    if ( p->fEmpty || Pos != p->PosOut )
-    {
+    if (p->fEmpty || Pos != p->PosOut) {
         p->pC1[Pos] = p1;
         p->pC2[Pos] = p2;
         p->ID1[Pos] = p1->ID;
         p->ID2[Pos] = p2->ID;
 
-        p->PosCur = (p->PosCur+1)%s_nPosAlloc;
-    }
-    else
+        p->PosCur = (p->PosCur + 1) % s_nPosAlloc;
+    } else
         assert(0);
-//      cout << endl << "DIST-" << (int)(Dist+2) << ": Have run out of queque space!" << endl;
+    //      cout << endl << "DIST-" << (int)(Dist+2) << ": Have run out of queque space!" << endl;
 }
 
-void PrintQuequeStats()
-{
-/*
+void PrintQuequeStats() {
+    /*
     cout << endl << "Queque statistics: ";
     cout << " Alloc = " << s_nPosAlloc;
     cout << "   DIST2 = " << GetPosDiff( s_Que[0].PosOut, s_Que[0].PosIn );
@@ -995,9 +939,8 @@ void PrintQuequeStats()
 */
 }
 
-int GetQuequeStats( cubedist Dist )
-{
-    return GetPosDiff( s_Que[Dist].PosOut, s_Que[Dist].PosIn );
+int GetQuequeStats(cubedist Dist) {
+    return GetPosDiff(s_Que[Dist].PosOut, s_Que[Dist].PosIn);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1008,64 +951,60 @@ int GetQuequeStats( cubedist Dist )
 // only one iterator can be active at a time
 static struct
 {
-    int fStarted;    // status of the iterator (1 if working)
-    cubedist Dist;   // the currently iterated queque
-    Cube** ppC1;     // the position where the first cube pointer goes
-    Cube** ppC2;     // the position where the second cube pointer goes
-    int PosStop;     // the stop position (to prevent the iterator from
-                     // choking when new pairs are added during iteration)
-    int CutValue;    // the number of literals below which the cubes are not used
+    int fStarted;  // status of the iterator (1 if working)
+    cubedist Dist; // the currently iterated queque
+    Cube** ppC1;   // the position where the first cube pointer goes
+    Cube** ppC2;   // the position where the second cube pointer goes
+    int PosStop;   // the stop position (to prevent the iterator from
+                   // choking when new pairs are added during iteration)
+    int CutValue;  // the number of literals below which the cubes are not used
 } s_Iter;
 
 static que* pQ;
 static Cube *p1, *p2;
 
-int IteratorCubePairStart( cubedist CubeDist, Cube** ppC1, Cube** ppC2 )
+int IteratorCubePairStart(cubedist CubeDist, Cube** ppC1, Cube** ppC2)
 // start an iterator through cubes of dist CubeDist,
 // the resulting pointers are written into ppC1 and ppC2
 // returns 1 if the first cube pair is found
 {
     int fEntryFound;
 
-    assert( s_Iter.fStarted == 0 );
-    assert( CubeDist >= 0 && CubeDist <= 2 );
+    assert(s_Iter.fStarted == 0);
+    assert(CubeDist >= 0 && CubeDist <= 2);
 
     s_Iter.fStarted = 1;
     s_Iter.Dist = CubeDist;
     s_Iter.ppC1 = ppC1;
     s_Iter.ppC2 = ppC2;
 
-    s_Iter.PosStop = s_Que[ CubeDist ].PosIn;
+    s_Iter.PosStop = s_Que[CubeDist].PosIn;
 
     // determine the cut value
-//  s_Iter.CutValue = s_nLiteralsInUse/s_nCubesInUse/2;
+    //  s_Iter.CutValue = s_nLiteralsInUse/s_nCubesInUse/2;
     s_Iter.CutValue = -1;
 
     fEntryFound = 0;
     // go through the entries while there is something in the queque
-    for ( pQ = &s_Que[ CubeDist ]; pQ->PosOut != s_Iter.PosStop; pQ->PosOut = (pQ->PosOut+1)%s_nPosAlloc )
-    {
-        p1 = pQ->pC1[ pQ->PosOut ];
-        p2 = pQ->pC2[ pQ->PosOut ];
+    for (pQ = &s_Que[CubeDist]; pQ->PosOut != s_Iter.PosStop; pQ->PosOut = (pQ->PosOut + 1) % s_nPosAlloc) {
+        p1 = pQ->pC1[pQ->PosOut];
+        p2 = pQ->pC2[pQ->PosOut];
 
         // check whether the entry is valid
-        if ( p1->ID == pQ->ID1[ pQ->PosOut ] && 
-             p2->ID == pQ->ID2[ pQ->PosOut ] ) //&&
-             //p1->x + p1->y + p2->x + p2->y > s_Iter.CutValue )
+        if (p1->ID == pQ->ID1[pQ->PosOut] && p2->ID == pQ->ID2[pQ->PosOut]) //&&
+                                                                            //p1->x + p1->y + p2->x + p2->y > s_Iter.CutValue )
         {
-             fEntryFound = 1;
-             break;
+            fEntryFound = 1;
+            break;
         }
     }
 
-    if ( fEntryFound )
-    { // write the result into the pick-up place
-        *ppC1 = pQ->pC1[ pQ->PosOut ];
-        *ppC2 = pQ->pC2[ pQ->PosOut ];
+    if (fEntryFound) { // write the result into the pick-up place
+        *ppC1 = pQ->pC1[pQ->PosOut];
+        *ppC2 = pQ->pC2[pQ->PosOut];
 
-        pQ->PosOut = (pQ->PosOut+1)%s_nPosAlloc;
-    }
-    else
+        pQ->PosOut = (pQ->PosOut + 1) % s_nPosAlloc;
+    } else
         s_Iter.fStarted = 0;
     return fEntryFound;
 }
@@ -1074,32 +1013,28 @@ int IteratorCubePairNext()
 // gives the next VALID cube pair (the previous one is automatically dequequed)
 {
     int fEntryFound = 0;
-    assert( s_Iter.fStarted );
+    assert(s_Iter.fStarted);
 
     // go through the entries while there is something in the queque
-    for ( pQ = &s_Que[ s_Iter.Dist ]; pQ->PosOut != s_Iter.PosStop; pQ->PosOut = (pQ->PosOut+1)%s_nPosAlloc )
-    {
-        p1 = pQ->pC1[ pQ->PosOut ];
-        p2 = pQ->pC2[ pQ->PosOut ];
+    for (pQ = &s_Que[s_Iter.Dist]; pQ->PosOut != s_Iter.PosStop; pQ->PosOut = (pQ->PosOut + 1) % s_nPosAlloc) {
+        p1 = pQ->pC1[pQ->PosOut];
+        p2 = pQ->pC2[pQ->PosOut];
 
         // check whether the entry is valid
-        if ( p1->ID == pQ->ID1[ pQ->PosOut ] && 
-             p2->ID == pQ->ID2[ pQ->PosOut ] ) //&&
-             //p1->x + p1->y + p2->x + p2->y > s_Iter.CutValue )
+        if (p1->ID == pQ->ID1[pQ->PosOut] && p2->ID == pQ->ID2[pQ->PosOut]) //&&
+                                                                            //p1->x + p1->y + p2->x + p2->y > s_Iter.CutValue )
         {
-             fEntryFound = 1;
-             break;
+            fEntryFound = 1;
+            break;
         }
     }
 
-    if ( fEntryFound )
-    { // write the result into the pick-up place
-        *(s_Iter.ppC1) = pQ->pC1[ pQ->PosOut ];
-        *(s_Iter.ppC2) = pQ->pC2[ pQ->PosOut ];
+    if (fEntryFound) { // write the result into the pick-up place
+        *(s_Iter.ppC1) = pQ->pC1[pQ->PosOut];
+        *(s_Iter.ppC2) = pQ->pC2[pQ->PosOut];
 
-        pQ->PosOut = (pQ->PosOut+1)%s_nPosAlloc;
-    }
-    else // iteration has finished
+        pQ->PosOut = (pQ->PosOut + 1) % s_nPosAlloc;
+    } else // iteration has finished
         s_Iter.fStarted = 0;
 
     return fEntryFound;
@@ -1109,48 +1044,44 @@ int IteratorCubePairNext()
 //                     Allocation/Delocation                        //
 //////////////////////////////////////////////////////////////////////
 
-int AllocateQueques( int nPlaces )
+int AllocateQueques(int nPlaces)
 // nPlaces should be approximately nCubes*nCubes/10
 // allocates memory for cube pair queques
 {
     int i;
-    s_nPosAlloc  = nPlaces;
+    s_nPosAlloc = nPlaces;
 
-    for ( i = 0; i < 3; i++ )
-    {
+    for (i = 0; i < 3; i++) {
         // clean data
-        memset( &s_Que[i], 0, sizeof(que) );
+        memset(&s_Que[i], 0, sizeof(que));
 
-        s_Que[i].pC1 = (Cube**) ABC_ALLOC( Cube*, nPlaces );
-        s_Que[i].pC2 = (Cube**) ABC_ALLOC( Cube*, nPlaces );
-        s_Que[i].ID1 = (byte*) ABC_ALLOC( byte, nPlaces );
-        s_Que[i].ID2 = (byte*) ABC_ALLOC( byte, nPlaces );
+        s_Que[i].pC1 = (Cube**)ABC_ALLOC(Cube*, nPlaces);
+        s_Que[i].pC2 = (Cube**)ABC_ALLOC(Cube*, nPlaces);
+        s_Que[i].ID1 = (byte*)ABC_ALLOC(byte, nPlaces);
+        s_Que[i].ID2 = (byte*)ABC_ALLOC(byte, nPlaces);
 
-        if ( s_Que[i].pC1==NULL || s_Que[i].pC2==NULL || s_Que[i].ID1==NULL || s_Que[i].ID2==NULL )
+        if (s_Que[i].pC1 == NULL || s_Que[i].pC2 == NULL || s_Que[i].ID1 == NULL || s_Que[i].ID2 == NULL)
             return 0;
 
         s_nPosMax[i] = 0;
         s_Que[i].fEmpty = 1;
     }
 
-    return nPlaces * (sizeof(Cube*) + sizeof(Cube*) + 2*sizeof(byte) );
+    return nPlaces * (sizeof(Cube*) + sizeof(Cube*) + 2 * sizeof(byte));
 }
 
-void DelocateQueques()
-{
+void DelocateQueques() {
     int i;
-    for ( i = 0; i < 3; i++ )
-    {
-        ABC_FREE( s_Que[i].pC1 );
-        ABC_FREE( s_Que[i].pC2 );
-        ABC_FREE( s_Que[i].ID1 );
-        ABC_FREE( s_Que[i].ID2 );
+    for (i = 0; i < 3; i++) {
+        ABC_FREE(s_Que[i].pC1);
+        ABC_FREE(s_Que[i].pC2);
+        ABC_FREE(s_Que[i].ID1);
+        ABC_FREE(s_Que[i].ID2);
     }
 }
 
 ///////////////////////////////////////////////////////////////////
 ////////////              End of File             /////////////////
 ///////////////////////////////////////////////////////////////////
-
 
 ABC_NAMESPACE_IMPL_END

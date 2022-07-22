@@ -61,13 +61,13 @@ extern cinfo g_CoverInfo;
 
 // cube cover memory allocation/delocation procedures
 // (called from the ExorMain module)
-int AllocateCover( int nCubes, int nWordsIn, int nWordsOut );
+int AllocateCover(int nCubes, int nWordsIn, int nWordsOut);
 void DelocateCover();
 
 // manipulation of the free cube list
 // (called from Pseudo-Kronecker, ExorList, and ExorLink modules)
-void AddToFreeCubes( Cube * pC );
-Cube * GetFreeCube();
+void AddToFreeCubes(Cube* pC);
+Cube* GetFreeCube();
 
 ////////////////////////////////////////////////////////////////////////
 ///                      EXPORTED VARIABLES                          ///
@@ -78,56 +78,55 @@ Cube * GetFreeCube();
 ////////////////////////////////////////////////////////////////////////
 
 // the pointer to the allocated memory
-Cube ** s_pCoverMemory;
+Cube** s_pCoverMemory;
 
 // the list of free cubes
-Cube * s_CubesFree;
+Cube* s_CubesFree;
 
 ///////////////////////////////////////////////////////////////////
 ///                  CUBE COVER MEMORY MANAGEMENT                //
 ///////////////////////////////////////////////////////////////////
 
-int AllocateCover( int nCubes, int nWordsIn, int nWordsOut )
+int AllocateCover(int nCubes, int nWordsIn, int nWordsOut)
 // uses the cover parameters nCubes and nWords
 // to allocate-and-clean the cover in one large piece
 {
     int OneCubeSize;
     int OneInputSetSize;
-    Cube ** pp;
+    Cube** pp;
     int TotalSize;
     int i, k;
 
     // determine the size of one cube WITH storage for bits
-    OneCubeSize = sizeof(Cube) + (nWordsIn+nWordsOut)*sizeof(unsigned);
-    // determine what is the amount of storage for the input part of the cube 
-    OneInputSetSize = nWordsIn*sizeof(unsigned);
+    OneCubeSize = sizeof(Cube) + (nWordsIn + nWordsOut) * sizeof(unsigned);
+    // determine what is the amount of storage for the input part of the cube
+    OneInputSetSize = nWordsIn * sizeof(unsigned);
 
     // allocate memory for the array of pointers
-    pp = (Cube **)ABC_ALLOC( Cube *, nCubes );
-    if ( pp == NULL )
+    pp = (Cube**)ABC_ALLOC(Cube*, nCubes);
+    if (pp == NULL)
         return 0;
 
     // determine the size of the total cube cover
-    TotalSize = nCubes*OneCubeSize;
+    TotalSize = nCubes * OneCubeSize;
     // allocate and clear memory for the cover in one large piece
-    pp[0] = (Cube *)ABC_ALLOC( char, TotalSize );
-    if ( pp[0] == NULL )
+    pp[0] = (Cube*)ABC_ALLOC(char, TotalSize);
+    if (pp[0] == NULL)
         return 0;
-    memset( pp[0], 0, (size_t)TotalSize );
+    memset(pp[0], 0, (size_t)TotalSize);
 
     // assign pointers to cubes and bit strings inside this piece
-    pp[0]->pCubeDataIn  = (unsigned*)(pp[0] + 1);
+    pp[0]->pCubeDataIn = (unsigned*)(pp[0] + 1);
     pp[0]->pCubeDataOut = (unsigned*)((char*)pp[0]->pCubeDataIn + OneInputSetSize);
-    for ( i = 1; i < nCubes; i++ )
-    {
-        pp[i] = (Cube *)((char*)pp[i-1] + OneCubeSize);
+    for (i = 1; i < nCubes; i++) {
+        pp[i] = (Cube*)((char*)pp[i - 1] + OneCubeSize);
         pp[i]->pCubeDataIn = (unsigned*)(pp[i] + 1);
         pp[i]->pCubeDataOut = (unsigned*)((char*)pp[i]->pCubeDataIn + OneInputSetSize);
     }
 
     // connect the cubes into the list using Next pointers
-    for ( k = 0; k < nCubes-1; k++ )
-        pp[k]->Next = pp[k+1];
+    for (k = 0; k < nCubes - 1; k++)
+        pp[k]->Next = pp[k + 1];
     // the last pointer is already set to NULL
 
     // assign the head of the free list
@@ -139,42 +138,39 @@ int AllocateCover( int nCubes, int nWordsIn, int nWordsOut )
     // save the pointer to the allocated memory
     s_pCoverMemory = pp;
 
-    assert ( g_CoverInfo.nCubesInUse + g_CoverInfo.nCubesFree == g_CoverInfo.nCubesAlloc );
+    assert(g_CoverInfo.nCubesInUse + g_CoverInfo.nCubesFree == g_CoverInfo.nCubesAlloc);
 
-    return nCubes*sizeof(Cube *) + TotalSize;
+    return nCubes * sizeof(Cube*) + TotalSize;
 }
 
-void DelocateCover()
-{
-    ABC_FREE( s_pCoverMemory[0] );
-    ABC_FREE( s_pCoverMemory );
+void DelocateCover() {
+    ABC_FREE(s_pCoverMemory[0]);
+    ABC_FREE(s_pCoverMemory);
 }
 
 ///////////////////////////////////////////////////////////////////
 ///           FREE CUBE LIST MANIPULATION FUNCTIONS             ///
 ///////////////////////////////////////////////////////////////////
 
-void AddToFreeCubes( Cube * p )
-{
-    assert( p );
-    assert( p->Prev == NULL ); // the cube should not be in use
-    assert( p->Next == NULL );
-    assert( p->ID );
+void AddToFreeCubes(Cube* p) {
+    assert(p);
+    assert(p->Prev == NULL); // the cube should not be in use
+    assert(p->Next == NULL);
+    assert(p->ID);
 
     p->Next = s_CubesFree;
     s_CubesFree = p;
 
-    // set the ID of the cube to 0, 
+    // set the ID of the cube to 0,
     // so that cube pair garbage collection could recognize it as different
     p->ID = 0;
 
     g_CoverInfo.nCubesFree++;
 }
 
-Cube * GetFreeCube()
-{
-    Cube * p;
-    assert( s_CubesFree );
+Cube* GetFreeCube() {
+    Cube* p;
+    assert(s_CubesFree);
     p = s_CubesFree;
     s_CubesFree = s_CubesFree->Next;
     p->Next = NULL;
@@ -185,6 +181,5 @@ Cube * GetFreeCube()
 ///////////////////////////////////////////////////////////////////
 ////////////              End of File             /////////////////
 ///////////////////////////////////////////////////////////////////
-
 
 ABC_NAMESPACE_IMPL_END

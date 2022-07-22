@@ -22,12 +22,11 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static void Min_EsopRewrite( Min_Man_t * p );
+static void Min_EsopRewrite(Min_Man_t* p);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -44,21 +43,19 @@ static void Min_EsopRewrite( Min_Man_t * p );
   SeeAlso     []
 
 ***********************************************************************/
-void Min_EsopMinimize( Min_Man_t * p )
-{
+void Min_EsopMinimize(Min_Man_t* p) {
     int nCubesInit, nCubesOld, nIter;
-    if ( p->nCubes < 3 )
+    if (p->nCubes < 3)
         return;
     nIter = 0;
     nCubesInit = p->nCubes;
     do {
         nCubesOld = p->nCubes;
-        Min_EsopRewrite( p );
+        Min_EsopRewrite(p);
         nIter++;
-    }
-    while ( 100.0*(nCubesOld - p->nCubes)/nCubesOld > 3.0 );
+    } while (100.0 * (nCubesOld - p->nCubes) / nCubesOld > 3.0);
 
-//    printf( "%d:%d->%d ", nIter, nCubesInit, p->nCubes );
+    //    printf( "%d:%d->%d ", nIter, nCubesInit, p->nCubes );
 }
 
 /**Function*************************************************************
@@ -76,10 +73,9 @@ void Min_EsopMinimize( Min_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Min_EsopRewrite( Min_Man_t * p )
-{
-    Min_Cube_t * pCube, ** ppPrev;
-    Min_Cube_t * pThis, ** ppPrevT;
+void Min_EsopRewrite(Min_Man_t* p) {
+    Min_Cube_t *pCube, **ppPrev;
+    Min_Cube_t *pThis, **ppPrevT;
     int v00, v01, v10, v11, Var0, Var1, Index, nCubesOld;
     int nPairs = 0;
 
@@ -89,47 +85,36 @@ void Min_EsopRewrite( Min_Man_t * p )
     p->pBubble->nLits = 0;
 
     // go through the cubes
-    while ( 1 )
-    {
+    while (1) {
         // get the index of the bubble
         Index = p->pBubble->nLits;
 
         // find the bubble
-        Min_CoverForEachCubePrev( p->ppStore[Index], pCube, ppPrev )
-            if ( pCube == p->pBubble )
-                break;
-        assert( pCube == p->pBubble );
+        Min_CoverForEachCubePrev(p->ppStore[Index], pCube, ppPrev) if (pCube == p->pBubble) break;
+        assert(pCube == p->pBubble);
 
         // remove the bubble, get the next cube after the bubble
         *ppPrev = p->pBubble->pNext;
         pCube = p->pBubble->pNext;
-        if ( pCube == NULL )
-            for ( Index++; Index <= p->nVars; Index++ )
-                if ( p->ppStore[Index] )
-                {
+        if (pCube == NULL)
+            for (Index++; Index <= p->nVars; Index++)
+                if (p->ppStore[Index]) {
                     ppPrev = &(p->ppStore[Index]);
                     pCube = p->ppStore[Index];
                     break;
                 }
         // stop if there is no more cubes
-        if ( pCube == NULL )
+        if (pCube == NULL)
             break;
 
         // find the first dist2 cube
-        Min_CoverForEachCubePrev( pCube->pNext, pThis, ppPrevT )
-            if ( Min_CubesDistTwo( pCube, pThis, &Var0, &Var1 ) )
-                break;
-        if ( pThis == NULL && Index < p->nVars )
-        Min_CoverForEachCubePrev( p->ppStore[Index+1], pThis, ppPrevT )
-            if ( Min_CubesDistTwo( pCube, pThis, &Var0, &Var1 ) )
-                break;
-        if ( pThis == NULL && Index < p->nVars - 1 )
-        Min_CoverForEachCubePrev( p->ppStore[Index+2], pThis, ppPrevT )
-            if ( Min_CubesDistTwo( pCube, pThis, &Var0, &Var1 ) )
-                break;
+        Min_CoverForEachCubePrev(pCube->pNext, pThis, ppPrevT) if (Min_CubesDistTwo(pCube, pThis, &Var0, &Var1)) break;
+        if (pThis == NULL && Index < p->nVars)
+            Min_CoverForEachCubePrev(p->ppStore[Index + 1], pThis, ppPrevT) if (Min_CubesDistTwo(pCube, pThis, &Var0, &Var1)) break;
+        if (pThis == NULL && Index < p->nVars - 1)
+            Min_CoverForEachCubePrev(p->ppStore[Index + 2], pThis, ppPrevT) if (Min_CubesDistTwo(pCube, pThis, &Var0, &Var1)) break;
         // continue if there is no dist2 cube
-        if ( pThis == NULL )
-        {
+        if (pThis == NULL) {
             // insert the bubble after the cube
             p->pBubble->pNext = pCube->pNext;
             pCube->pNext = p->pBubble;
@@ -151,57 +136,57 @@ void Min_EsopRewrite( Min_Man_t * p )
         // A{v00}     B{v01+v11}  +  A{v00+v10} B{v11}
 
         // save the dist2 parameters
-        v00 = Min_CubeGetVar( pCube, Var0 );
-        v01 = Min_CubeGetVar( pCube, Var1 );
-        v10 = Min_CubeGetVar( pThis, Var0 );
-        v11 = Min_CubeGetVar( pThis, Var1 );
-//printf( "\n" );
-//Min_CubeWrite( stdout, pCube );
-//Min_CubeWrite( stdout, pThis );
+        v00 = Min_CubeGetVar(pCube, Var0);
+        v01 = Min_CubeGetVar(pCube, Var1);
+        v10 = Min_CubeGetVar(pThis, Var0);
+        v11 = Min_CubeGetVar(pThis, Var1);
+        //printf( "\n" );
+        //Min_CubeWrite( stdout, pCube );
+        //Min_CubeWrite( stdout, pThis );
 
         // derive the first pair of resulting cubes
-        Min_CubeXorVar( pCube, Var0, v10 );
+        Min_CubeXorVar(pCube, Var0, v10);
         pCube->nLits -= (v00 != 3);
         pCube->nLits += ((v00 ^ v10) != 3);
-        Min_CubeXorVar( pThis, Var1, v01 );
+        Min_CubeXorVar(pThis, Var1, v01);
         pThis->nLits -= (v11 != 3);
         pThis->nLits += ((v01 ^ v11) != 3);
 
         // add the cubes
         nCubesOld = p->nCubes;
-        Min_EsopAddCube( p, pCube );
-        Min_EsopAddCube( p, pThis );
+        Min_EsopAddCube(p, pCube);
+        Min_EsopAddCube(p, pThis);
         // check if the cubes were absorbed
-        if ( p->nCubes < nCubesOld + 2 )
+        if (p->nCubes < nCubesOld + 2)
             continue;
 
         // pull out both cubes
-        assert( pThis == p->ppStore[pThis->nLits] );
+        assert(pThis == p->ppStore[pThis->nLits]);
         p->ppStore[pThis->nLits] = pThis->pNext;
-        assert( pCube == p->ppStore[pCube->nLits] );
+        assert(pCube == p->ppStore[pCube->nLits]);
         p->ppStore[pCube->nLits] = pCube->pNext;
         p->nCubes -= 2;
 
         // derive the second pair of resulting cubes
-        Min_CubeXorVar( pCube, Var0, v10 );
+        Min_CubeXorVar(pCube, Var0, v10);
         pCube->nLits -= ((v00 ^ v10) != 3);
         pCube->nLits += (v00 != 3);
-        Min_CubeXorVar( pCube, Var1, v11 );
+        Min_CubeXorVar(pCube, Var1, v11);
         pCube->nLits -= (v01 != 3);
         pCube->nLits += ((v01 ^ v11) != 3);
 
-        Min_CubeXorVar( pThis, Var0, v00 );
+        Min_CubeXorVar(pThis, Var0, v00);
         pThis->nLits -= (v10 != 3);
         pThis->nLits += ((v00 ^ v10) != 3);
-        Min_CubeXorVar( pThis, Var1, v01 );
+        Min_CubeXorVar(pThis, Var1, v01);
         pThis->nLits -= ((v01 ^ v11) != 3);
         pThis->nLits += (v11 != 3);
 
         // add them anyhow
-        Min_EsopAddCube( p, pCube );
-        Min_EsopAddCube( p, pThis );
+        Min_EsopAddCube(p, pCube);
+        Min_EsopAddCube(p, pThis);
     }
-//    printf( "Pairs = %d  ", nPairs );
+    //    printf( "Pairs = %d  ", nPairs );
 }
 
 /**Function*************************************************************
@@ -217,59 +202,50 @@ void Min_EsopRewrite( Min_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Min_EsopAddCubeInt( Min_Man_t * p, Min_Cube_t * pCube )
-{
-    Min_Cube_t * pThis, ** ppPrev;
+int Min_EsopAddCubeInt(Min_Man_t* p, Min_Cube_t* pCube) {
+    Min_Cube_t *pThis, **ppPrev;
     // try to find the identical cube
-    Min_CoverForEachCubePrev( p->ppStore[pCube->nLits], pThis, ppPrev )
-    {
-        if ( Min_CubesAreEqual( pCube, pThis ) )
-        {
+    Min_CoverForEachCubePrev(p->ppStore[pCube->nLits], pThis, ppPrev) {
+        if (Min_CubesAreEqual(pCube, pThis)) {
             *ppPrev = pThis->pNext;
-            Min_CubeRecycle( p, pCube );
-            Min_CubeRecycle( p, pThis );
+            Min_CubeRecycle(p, pCube);
+            Min_CubeRecycle(p, pThis);
             p->nCubes--;
             return 0;
         }
     }
     // find a distance-1 cube if it exists
-    if ( pCube->nLits < pCube->nVars )
-    Min_CoverForEachCubePrev( p->ppStore[pCube->nLits+1], pThis, ppPrev )
-    {
-        if ( Min_CubesDistOne( pCube, pThis, p->pTemp ) )
-        {
-            *ppPrev = pThis->pNext;
-            Min_CubesTransform( pCube, pThis, p->pTemp );
-            pCube->nLits++;
-            Min_CubeRecycle( p, pThis );
-            p->nCubes--;
-            return 1;
+    if (pCube->nLits < pCube->nVars)
+        Min_CoverForEachCubePrev(p->ppStore[pCube->nLits + 1], pThis, ppPrev) {
+            if (Min_CubesDistOne(pCube, pThis, p->pTemp)) {
+                *ppPrev = pThis->pNext;
+                Min_CubesTransform(pCube, pThis, p->pTemp);
+                pCube->nLits++;
+                Min_CubeRecycle(p, pThis);
+                p->nCubes--;
+                return 1;
+            }
         }
-    }
-    Min_CoverForEachCubePrev( p->ppStore[pCube->nLits], pThis, ppPrev )
-    {
-        if ( Min_CubesDistOne( pCube, pThis, p->pTemp ) )
-        {
+    Min_CoverForEachCubePrev(p->ppStore[pCube->nLits], pThis, ppPrev) {
+        if (Min_CubesDistOne(pCube, pThis, p->pTemp)) {
             *ppPrev = pThis->pNext;
-            Min_CubesTransform( pCube, pThis, p->pTemp );
+            Min_CubesTransform(pCube, pThis, p->pTemp);
             pCube->nLits--;
-            Min_CubeRecycle( p, pThis );
+            Min_CubeRecycle(p, pThis);
             p->nCubes--;
             return 1;
         }
     }
-    if ( pCube->nLits > 0 )
-    Min_CoverForEachCubePrev( p->ppStore[pCube->nLits-1], pThis, ppPrev )
-    {
-        if ( Min_CubesDistOne( pCube, pThis, p->pTemp ) )
-        {
-            *ppPrev = pThis->pNext;
-            Min_CubesTransform( pCube, pThis, p->pTemp );
-            Min_CubeRecycle( p, pThis );
-            p->nCubes--;
-            return 1;
+    if (pCube->nLits > 0)
+        Min_CoverForEachCubePrev(p->ppStore[pCube->nLits - 1], pThis, ppPrev) {
+            if (Min_CubesDistOne(pCube, pThis, p->pTemp)) {
+                *ppPrev = pThis->pNext;
+                Min_CubesTransform(pCube, pThis, p->pTemp);
+                Min_CubeRecycle(p, pThis);
+                p->nCubes--;
+                return 1;
+            }
         }
-    }
     // add the cube
     pCube->pNext = p->ppStore[pCube->nLits];
     p->ppStore[pCube->nLits] = pCube;
@@ -288,17 +264,15 @@ int Min_EsopAddCubeInt( Min_Man_t * p, Min_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Min_EsopAddCube( Min_Man_t * p, Min_Cube_t * pCube )
-{
-    assert( pCube != p->pBubble );
-    assert( (int)pCube->nLits == Min_CubeCountLits(pCube) );
-    while ( Min_EsopAddCubeInt( p, pCube ) );
+void Min_EsopAddCube(Min_Man_t* p, Min_Cube_t* pCube) {
+    assert(pCube != p->pBubble);
+    assert((int)pCube->nLits == Min_CubeCountLits(pCube));
+    while (Min_EsopAddCubeInt(p, pCube))
+        ;
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

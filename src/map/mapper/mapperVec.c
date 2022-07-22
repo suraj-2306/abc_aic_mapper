@@ -20,12 +20,11 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static int Map_NodeVecCompareLevels( Map_Node_t ** pp1, Map_Node_t ** pp2 );
+static int Map_NodeVecCompareLevels(Map_Node_t** pp1, Map_Node_t** pp2);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -42,15 +41,14 @@ static int Map_NodeVecCompareLevels( Map_Node_t ** pp1, Map_Node_t ** pp2 );
   SeeAlso     []
 
 ***********************************************************************/
-Map_NodeVec_t * Map_NodeVecAlloc( int nCap )
-{
-    Map_NodeVec_t * p;
-    p = ABC_ALLOC( Map_NodeVec_t, 1 );
-    if ( nCap > 0 && nCap < 16 )
+Map_NodeVec_t* Map_NodeVecAlloc(int nCap) {
+    Map_NodeVec_t* p;
+    p = ABC_ALLOC(Map_NodeVec_t, 1);
+    if (nCap > 0 && nCap < 16)
         nCap = 16;
-    p->nSize  = 0;
-    p->nCap   = nCap;
-    p->pArray = p->nCap? ABC_ALLOC( Map_Node_t *, p->nCap ) : NULL;
+    p->nSize = 0;
+    p->nCap = nCap;
+    p->pArray = p->nCap ? ABC_ALLOC(Map_Node_t*, p->nCap) : NULL;
     return p;
 }
 
@@ -65,12 +63,11 @@ Map_NodeVec_t * Map_NodeVecAlloc( int nCap )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeVecFree( Map_NodeVec_t * p )
-{
-    if ( p == NULL )
+void Map_NodeVecFree(Map_NodeVec_t* p) {
+    if (p == NULL)
         return;
-    ABC_FREE( p->pArray );
-    ABC_FREE( p );
+    ABC_FREE(p->pArray);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -84,10 +81,9 @@ void Map_NodeVecFree( Map_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Map_NodeVec_t * Map_NodeVecDup( Map_NodeVec_t * p )
-{
-    Map_NodeVec_t * pNew = Map_NodeVecAlloc( p->nSize );
-    memcpy( pNew->pArray, p->pArray, sizeof(int) * p->nSize );
+Map_NodeVec_t* Map_NodeVecDup(Map_NodeVec_t* p) {
+    Map_NodeVec_t* pNew = Map_NodeVecAlloc(p->nSize);
+    memcpy(pNew->pArray, p->pArray, sizeof(int) * p->nSize);
     pNew->nSize = p->nSize;
     return pNew;
 }
@@ -103,8 +99,7 @@ Map_NodeVec_t * Map_NodeVecDup( Map_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Map_Node_t ** Map_NodeVecReadArray( Map_NodeVec_t * p )
-{
+Map_Node_t** Map_NodeVecReadArray(Map_NodeVec_t* p) {
     return p->pArray;
 }
 
@@ -119,8 +114,7 @@ Map_Node_t ** Map_NodeVecReadArray( Map_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Map_NodeVecReadSize( Map_NodeVec_t * p )
-{
+int Map_NodeVecReadSize(Map_NodeVec_t* p) {
     return p->nSize;
 }
 
@@ -135,12 +129,11 @@ int Map_NodeVecReadSize( Map_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeVecGrow( Map_NodeVec_t * p, int nCapMin )
-{
-    if ( p->nCap >= nCapMin )
+void Map_NodeVecGrow(Map_NodeVec_t* p, int nCapMin) {
+    if (p->nCap >= nCapMin)
         return;
-    p->pArray = ABC_REALLOC( Map_Node_t *, p->pArray, nCapMin ); 
-    p->nCap   = nCapMin;
+    p->pArray = ABC_REALLOC(Map_Node_t*, p->pArray, nCapMin);
+    p->nCap = nCapMin;
 }
 
 /**Function*************************************************************
@@ -154,9 +147,8 @@ void Map_NodeVecGrow( Map_NodeVec_t * p, int nCapMin )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeVecShrink( Map_NodeVec_t * p, int nSizeNew )
-{
-    assert( p->nSize >= nSizeNew );
+void Map_NodeVecShrink(Map_NodeVec_t* p, int nSizeNew) {
+    assert(p->nSize >= nSizeNew);
     p->nSize = nSizeNew;
 }
 
@@ -171,8 +163,7 @@ void Map_NodeVecShrink( Map_NodeVec_t * p, int nSizeNew )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeVecClear( Map_NodeVec_t * p )
-{
+void Map_NodeVecClear(Map_NodeVec_t* p) {
     p->nSize = 0;
 }
 
@@ -187,14 +178,12 @@ void Map_NodeVecClear( Map_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeVecPush( Map_NodeVec_t * p, Map_Node_t * Entry )
-{
-    if ( p->nSize == p->nCap )
-    {
-        if ( p->nCap < 16 )
-            Map_NodeVecGrow( p, 16 );
+void Map_NodeVecPush(Map_NodeVec_t* p, Map_Node_t* Entry) {
+    if (p->nSize == p->nCap) {
+        if (p->nCap < 16)
+            Map_NodeVecGrow(p, 16);
         else
-            Map_NodeVecGrow( p, 2 * p->nCap );
+            Map_NodeVecGrow(p, 2 * p->nCap);
     }
     p->pArray[p->nSize++] = Entry;
 }
@@ -210,13 +199,12 @@ void Map_NodeVecPush( Map_NodeVec_t * p, Map_Node_t * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-int Map_NodeVecPushUnique( Map_NodeVec_t * p, Map_Node_t * Entry )
-{
+int Map_NodeVecPushUnique(Map_NodeVec_t* p, Map_Node_t* Entry) {
     int i;
-    for ( i = 0; i < p->nSize; i++ )
-        if ( p->pArray[i] == Entry )
+    for (i = 0; i < p->nSize; i++)
+        if (p->pArray[i] == Entry)
             return 1;
-    Map_NodeVecPush( p, Entry );
+    Map_NodeVecPush(p, Entry);
     return 0;
 }
 
@@ -231,8 +219,7 @@ int Map_NodeVecPushUnique( Map_NodeVec_t * p, Map_Node_t * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-Map_Node_t * Map_NodeVecPop( Map_NodeVec_t * p )
-{
+Map_Node_t* Map_NodeVecPop(Map_NodeVec_t* p) {
     return p->pArray[--p->nSize];
 }
 
@@ -247,15 +234,14 @@ Map_Node_t * Map_NodeVecPop( Map_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeVecRemove( Map_NodeVec_t * p, Map_Node_t * Entry )
-{
+void Map_NodeVecRemove(Map_NodeVec_t* p, Map_Node_t* Entry) {
     int i;
-    for ( i = 0; i < p->nSize; i++ )
-        if ( p->pArray[i] == Entry )
+    for (i = 0; i < p->nSize; i++)
+        if (p->pArray[i] == Entry)
             break;
-    assert( i < p->nSize );
-    for ( i++; i < p->nSize; i++ )
-        p->pArray[i-1] = p->pArray[i];
+    assert(i < p->nSize);
+    for (i++; i < p->nSize; i++)
+        p->pArray[i - 1] = p->pArray[i];
     p->nSize--;
 }
 
@@ -270,9 +256,8 @@ void Map_NodeVecRemove( Map_NodeVec_t * p, Map_Node_t * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeVecWriteEntry( Map_NodeVec_t * p, int i, Map_Node_t * Entry )
-{
-    assert( i >= 0 && i < p->nSize );
+void Map_NodeVecWriteEntry(Map_NodeVec_t* p, int i, Map_Node_t* Entry) {
+    assert(i >= 0 && i < p->nSize);
     p->pArray[i] = Entry;
 }
 
@@ -287,9 +272,8 @@ void Map_NodeVecWriteEntry( Map_NodeVec_t * p, int i, Map_Node_t * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-Map_Node_t * Map_NodeVecReadEntry( Map_NodeVec_t * p, int i )
-{
-    assert( i >= 0 && i < p->nSize );
+Map_Node_t* Map_NodeVecReadEntry(Map_NodeVec_t* p, int i) {
+    assert(i >= 0 && i < p->nSize);
     return p->pArray[i];
 }
 
@@ -304,10 +288,9 @@ Map_Node_t * Map_NodeVecReadEntry( Map_NodeVec_t * p, int i )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeVecSortByLevel( Map_NodeVec_t * p )
-{
-    qsort( (void *)p->pArray, (size_t)p->nSize, sizeof(Map_Node_t *), 
-            (int (*)(const void *, const void *)) Map_NodeVecCompareLevels );
+void Map_NodeVecSortByLevel(Map_NodeVec_t* p) {
+    qsort((void*)p->pArray, (size_t)p->nSize, sizeof(Map_Node_t*),
+          (int (*)(const void*, const void*))Map_NodeVecCompareLevels);
 }
 
 /**Function*************************************************************
@@ -321,19 +304,18 @@ void Map_NodeVecSortByLevel( Map_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Map_NodeVecCompareLevels( Map_Node_t ** pp1, Map_Node_t ** pp2 )
-{
+int Map_NodeVecCompareLevels(Map_Node_t** pp1, Map_Node_t** pp2) {
     int Level1 = Map_Regular(*pp1)->Level;
     int Level2 = Map_Regular(*pp2)->Level;
-    if ( Level1 < Level2 )
+    if (Level1 < Level2)
         return -1;
-    if ( Level1 > Level2 )
+    if (Level1 > Level2)
         return 1;
-    if ( Map_Regular(*pp1)->Num < Map_Regular(*pp2)->Num )
+    if (Map_Regular(*pp1)->Num < Map_Regular(*pp2)->Num)
         return -1;
-    if ( Map_Regular(*pp1)->Num > Map_Regular(*pp2)->Num )
+    if (Map_Regular(*pp1)->Num > Map_Regular(*pp2)->Num)
         return 1;
-    return 0; 
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -341,4 +323,3 @@ int Map_NodeVecCompareLevels( Map_Node_t ** pp1, Map_Node_t ** pp2 )
 ////////////////////////////////////////////////////////////////////////
 
 ABC_NAMESPACE_IMPL_END
-

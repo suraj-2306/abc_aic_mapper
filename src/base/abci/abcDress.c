@@ -23,15 +23,14 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static stmm_table * Abc_NtkDressDeriveMapping( Abc_Ntk_t * pNtk );
-static void         Abc_NtkDressTransferNames( Abc_Ntk_t * pNtk, stmm_table * tMapping, int fVerbose );
+static stmm_table* Abc_NtkDressDeriveMapping(Abc_Ntk_t* pNtk);
+static void Abc_NtkDressTransferNames(Abc_Ntk_t* pNtk, stmm_table* tMapping, int fVerbose);
 
-extern Abc_Ntk_t *  Abc_NtkIvyFraig( Abc_Ntk_t * pNtk, int nConfLimit, int fDoSparse, int fProve, int fTransfer, int fVerbose );
+extern Abc_Ntk_t* Abc_NtkIvyFraig(Abc_Ntk_t* pNtk, int nConfLimit, int fDoSparse, int fProve, int fTransfer, int fVerbose);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -48,72 +47,68 @@ extern Abc_Ntk_t *  Abc_NtkIvyFraig( Abc_Ntk_t * pNtk, int nConfLimit, int fDoSp
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_NtkDress( Abc_Ntk_t * pNtkLogic, char * pFileName, int fVerbose )
-{
-    Abc_Ntk_t * pNtkOrig, * pNtkLogicOrig;
-    Abc_Ntk_t * pMiter, * pMiterFraig;
-    stmm_table * tMapping;
+void Abc_NtkDress(Abc_Ntk_t* pNtkLogic, char* pFileName, int fVerbose) {
+    Abc_Ntk_t *pNtkOrig, *pNtkLogicOrig;
+    Abc_Ntk_t *pMiter, *pMiterFraig;
+    stmm_table* tMapping;
 
-    assert( Abc_NtkIsLogic(pNtkLogic) );
+    assert(Abc_NtkIsLogic(pNtkLogic));
 
     // get the original netlist
-    pNtkOrig = Io_ReadNetlist( pFileName, Io_ReadFileType(pFileName), 1 );
-    if ( pNtkOrig == NULL )
+    pNtkOrig = Io_ReadNetlist(pFileName, Io_ReadFileType(pFileName), 1);
+    if (pNtkOrig == NULL)
         return;
-    assert( Abc_NtkIsNetlist(pNtkOrig) );
+    assert(Abc_NtkIsNetlist(pNtkOrig));
 
     Abc_NtkCleanCopy(pNtkLogic);
     Abc_NtkCleanCopy(pNtkOrig);
 
     // convert it into the logic network
-    pNtkLogicOrig = Abc_NtkToLogic( pNtkOrig );
+    pNtkLogicOrig = Abc_NtkToLogic(pNtkOrig);
     // check that the networks have the same PIs/POs/latches
-    if ( !Abc_NtkCompareSignals( pNtkLogic, pNtkLogicOrig, 1, 1 ) )
-    {
-        Abc_NtkDelete( pNtkOrig );
-        Abc_NtkDelete( pNtkLogicOrig );
+    if (!Abc_NtkCompareSignals(pNtkLogic, pNtkLogicOrig, 1, 1)) {
+        Abc_NtkDelete(pNtkOrig);
+        Abc_NtkDelete(pNtkLogicOrig);
         return;
     }
 
     // convert the current logic network into an AIG
-    pMiter = Abc_NtkStrash( pNtkLogic, 1, 0, 0 );
+    pMiter = Abc_NtkStrash(pNtkLogic, 1, 0, 0);
 
     // convert it into the AIG and make the netlist point to the AIG
-    Abc_NtkAppend( pMiter, pNtkLogicOrig, 1 );
-    Abc_NtkTransferCopy( pNtkOrig );
-    Abc_NtkDelete( pNtkLogicOrig );
+    Abc_NtkAppend(pMiter, pNtkLogicOrig, 1);
+    Abc_NtkTransferCopy(pNtkOrig);
+    Abc_NtkDelete(pNtkLogicOrig);
 
-if ( fVerbose ) 
-{
-printf( "After mitering:\n" );
-printf( "Logic:  Nodes = %5d. Copy = %5d. \n", Abc_NtkNodeNum(pNtkLogic), Abc_NtkCountCopy(pNtkLogic) );
-printf( "Orig:   Nodes = %5d. Copy = %5d. \n", Abc_NtkNodeNum(pNtkOrig),  Abc_NtkCountCopy(pNtkOrig) );
-}
+    if (fVerbose) {
+        printf("After mitering:\n");
+        printf("Logic:  Nodes = %5d. Copy = %5d. \n", Abc_NtkNodeNum(pNtkLogic), Abc_NtkCountCopy(pNtkLogic));
+        printf("Orig:   Nodes = %5d. Copy = %5d. \n", Abc_NtkNodeNum(pNtkOrig), Abc_NtkCountCopy(pNtkOrig));
+    }
 
     // fraig the miter (miter nodes point to the fraiged miter)
-    pMiterFraig = Abc_NtkIvyFraig( pMiter, 100, 1, 0, 1, 0 );
+    pMiterFraig = Abc_NtkIvyFraig(pMiter, 100, 1, 0, 1, 0);
     // make netlists point to the fraiged miter
-    Abc_NtkTransferCopy( pNtkLogic );
-    Abc_NtkTransferCopy( pNtkOrig );
-    Abc_NtkDelete( pMiter );
+    Abc_NtkTransferCopy(pNtkLogic);
+    Abc_NtkTransferCopy(pNtkOrig);
+    Abc_NtkDelete(pMiter);
 
-if ( fVerbose ) 
-{
-printf( "After fraiging:\n" );
-printf( "Logic:  Nodes = %5d. Copy = %5d. \n", Abc_NtkNodeNum(pNtkLogic), Abc_NtkCountCopy(pNtkLogic) );
-printf( "Orig:   Nodes = %5d. Copy = %5d. \n", Abc_NtkNodeNum(pNtkOrig),  Abc_NtkCountCopy(pNtkOrig) );
-}
+    if (fVerbose) {
+        printf("After fraiging:\n");
+        printf("Logic:  Nodes = %5d. Copy = %5d. \n", Abc_NtkNodeNum(pNtkLogic), Abc_NtkCountCopy(pNtkLogic));
+        printf("Orig:   Nodes = %5d. Copy = %5d. \n", Abc_NtkNodeNum(pNtkOrig), Abc_NtkCountCopy(pNtkOrig));
+    }
 
     // derive mapping from the fraiged nodes into their prototype nodes in the original netlist
-    tMapping = Abc_NtkDressDeriveMapping( pNtkOrig );
+    tMapping = Abc_NtkDressDeriveMapping(pNtkOrig);
 
     // transfer the names to the new netlist
-    Abc_NtkDressTransferNames( pNtkLogic, tMapping, fVerbose );
+    Abc_NtkDressTransferNames(pNtkLogic, tMapping, fVerbose);
 
     // clean up
-    stmm_free_table( tMapping );
-    Abc_NtkDelete( pMiterFraig );
-    Abc_NtkDelete( pNtkOrig );
+    stmm_free_table(tMapping);
+    Abc_NtkDelete(pMiterFraig);
+    Abc_NtkDelete(pNtkOrig);
 }
 
 /**Function*************************************************************
@@ -127,24 +122,22 @@ printf( "Orig:   Nodes = %5d. Copy = %5d. \n", Abc_NtkNodeNum(pNtkOrig),  Abc_Nt
   SeeAlso     []
 
 ***********************************************************************/
-stmm_table * Abc_NtkDressDeriveMapping( Abc_Ntk_t * pNtk )
-{
-    stmm_table * tResult;
-    Abc_Obj_t * pNode, * pNodeMap, * pNodeFraig;
+stmm_table* Abc_NtkDressDeriveMapping(Abc_Ntk_t* pNtk) {
+    stmm_table* tResult;
+    Abc_Obj_t *pNode, *pNodeMap, *pNodeFraig;
     int i;
-    assert( Abc_NtkIsNetlist(pNtk) );
-    tResult = stmm_init_table(stmm_ptrcmp,stmm_ptrhash);
-    Abc_NtkForEachNode( pNtk, pNode, i )
-    {
+    assert(Abc_NtkIsNetlist(pNtk));
+    tResult = stmm_init_table(stmm_ptrcmp, stmm_ptrhash);
+    Abc_NtkForEachNode(pNtk, pNode, i) {
         // get the fraiged node
         pNodeFraig = Abc_ObjRegular(pNode->pCopy);
         // if this node is already mapped, skip
-        if ( stmm_is_member( tResult, (char *)pNodeFraig ) )
+        if (stmm_is_member(tResult, (char*)pNodeFraig))
             continue;
         // get the mapping of this node
-        pNodeMap = Abc_ObjNotCond( pNode, Abc_ObjIsComplement(pNode->pCopy) );
+        pNodeMap = Abc_ObjNotCond(pNode, Abc_ObjIsComplement(pNode->pCopy));
         // add the mapping
-        stmm_insert( tResult, (char *)pNodeFraig, (char *)pNodeMap );
+        stmm_insert(tResult, (char*)pNodeFraig, (char*)pNodeMap);
     }
     return tResult;
 }
@@ -160,48 +153,42 @@ stmm_table * Abc_NtkDressDeriveMapping( Abc_Ntk_t * pNtk )
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_NtkDressTransferNames( Abc_Ntk_t * pNtk, stmm_table * tMapping, int fVerbose )
-{
-    Abc_Obj_t * pNet, * pNode, * pNodeMap, * pNodeFraig;
-    char * pName;
+void Abc_NtkDressTransferNames(Abc_Ntk_t* pNtk, stmm_table* tMapping, int fVerbose) {
+    Abc_Obj_t *pNet, *pNode, *pNodeMap, *pNodeFraig;
+    char* pName;
     int i, Counter = 0, CounterInv = 0, CounterInit = stmm_count(tMapping);
-    assert( Abc_NtkIsLogic(pNtk) );
-    Abc_NtkForEachNode( pNtk, pNode, i )
-    {
+    assert(Abc_NtkIsLogic(pNtk));
+    Abc_NtkForEachNode(pNtk, pNode, i) {
         // if the node already has a name, quit
-        pName = Nm_ManFindNameById( pNtk->pManName, pNode->Id );
-        if ( pName != NULL )
+        pName = Nm_ManFindNameById(pNtk->pManName, pNode->Id);
+        if (pName != NULL)
             continue;
         // get the fraiged node
         pNodeFraig = Abc_ObjRegular(pNode->pCopy);
         // find the matching node of the original netlist
-        if ( !stmm_lookup( tMapping, (char *)pNodeFraig, (char **)&pNodeMap ) )
+        if (!stmm_lookup(tMapping, (char*)pNodeFraig, (char**)&pNodeMap))
             continue;
         // find the true match
-        pNodeMap = Abc_ObjNotCond( pNodeMap, Abc_ObjIsComplement(pNode->pCopy) );
+        pNodeMap = Abc_ObjNotCond(pNodeMap, Abc_ObjIsComplement(pNode->pCopy));
         // get the name
         pNet = Abc_ObjFanout0(Abc_ObjRegular(pNodeMap));
-        pName = Nm_ManFindNameById( pNet->pNtk->pManName, pNet->Id );
-        assert( pName != NULL );
+        pName = Nm_ManFindNameById(pNet->pNtk->pManName, pNet->Id);
+        assert(pName != NULL);
         // set the name
-        if ( Abc_ObjIsComplement(pNodeMap) )
-        {
-            Abc_ObjAssignName( pNode, pName, "_inv" );
+        if (Abc_ObjIsComplement(pNodeMap)) {
+            Abc_ObjAssignName(pNode, pName, "_inv");
             CounterInv++;
-        }
-        else
-        {
-            Abc_ObjAssignName( pNode, pName, NULL );
+        } else {
+            Abc_ObjAssignName(pNode, pName, NULL);
             Counter++;
         }
         // remove the name
-        stmm_delete( tMapping, (char **)&pNodeFraig, (char **)&pNodeMap );
+        stmm_delete(tMapping, (char**)&pNodeFraig, (char**)&pNodeMap);
     }
-    if ( fVerbose )
-    {
-        printf( "Total number of names collected = %5d.\n", CounterInit );
-        printf( "Total number of names assigned  = %5d. (Dir = %5d. Compl = %5d.)\n", 
-            Counter + CounterInv, Counter, CounterInv );
+    if (fVerbose) {
+        printf("Total number of names collected = %5d.\n", CounterInit);
+        printf("Total number of names assigned  = %5d. (Dir = %5d. Compl = %5d.)\n",
+               Counter + CounterInv, Counter, CounterInv);
     }
 }
 
@@ -209,6 +196,4 @@ void Abc_NtkDressTransferNames( Abc_Ntk_t * pNtk, stmm_table * tMapping, int fVe
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

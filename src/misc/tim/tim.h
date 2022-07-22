@@ -19,7 +19,7 @@
 ***********************************************************************/
 
 #ifndef ABC__aig__tim__tim_h
-#define ABC__aig__tim__tim_h
+#    define ABC__aig__tim__tim_h
 
 /*
     The data-structure Tim_Man_t implemented in this package stores two types 
@@ -89,13 +89,13 @@ ABC_NAMESPACE_HEADER_START
 ///                         BASIC TYPES                              ///
 ////////////////////////////////////////////////////////////////////////
 
-typedef struct Tim_Man_t_  Tim_Man_t;
+typedef struct Tim_Man_t_ Tim_Man_t;
 
 ////////////////////////////////////////////////////////////////////////
 ///                      MACRO DEFINITIONS                           ///
 ////////////////////////////////////////////////////////////////////////
 
-#define TIM_ETERNITY 1000000000
+#    define TIM_ETERNITY 1000000000
 
 ////////////////////////////////////////////////////////////////////////
 ///                             ITERATORS                            ///
@@ -110,75 +110,71 @@ typedef struct Tim_Man_t_  Tim_Man_t;
 ////////////////////////////////////////////////////////////////////////
 
 /*=== timBox.c ===========================================================*/
-extern void            Tim_ManCreateBox( Tim_Man_t * p, int firstIn, int nIns, int firstOut, int nOuts, int iDelayTable, int fBlack );
-extern int             Tim_ManBoxForCi( Tim_Man_t * p, int iCo );
-extern int             Tim_ManBoxForCo( Tim_Man_t * p, int iCi );
-extern int             Tim_ManBoxInputFirst( Tim_Man_t * p, int iBox );
-extern int             Tim_ManBoxInputLast( Tim_Man_t * p, int iBox );
-extern int             Tim_ManBoxOutputFirst( Tim_Man_t * p, int iBox );
-extern int             Tim_ManBoxOutputLast( Tim_Man_t * p, int iBox );
-extern int             Tim_ManBoxInputNum( Tim_Man_t * p, int iBox );
-extern int             Tim_ManBoxOutputNum( Tim_Man_t * p, int iBox );
-extern int             Tim_ManBoxDelayTableId( Tim_Man_t * p, int iBox );
-extern float *         Tim_ManBoxDelayTable( Tim_Man_t * p, int iBox );
-extern int             Tim_ManBoxIsBlack( Tim_Man_t * p, int iBox );
-extern int             Tim_ManBoxCopy( Tim_Man_t * p, int iBox );
-extern void            Tim_ManBoxSetCopy( Tim_Man_t * p, int iBox, int iCopy );
-extern int             Tim_ManBoxFindFromCiNum( Tim_Man_t * p, int iCiNum );
+extern void Tim_ManCreateBox(Tim_Man_t* p, int firstIn, int nIns, int firstOut, int nOuts, int iDelayTable, int fBlack);
+extern int Tim_ManBoxForCi(Tim_Man_t* p, int iCo);
+extern int Tim_ManBoxForCo(Tim_Man_t* p, int iCi);
+extern int Tim_ManBoxInputFirst(Tim_Man_t* p, int iBox);
+extern int Tim_ManBoxInputLast(Tim_Man_t* p, int iBox);
+extern int Tim_ManBoxOutputFirst(Tim_Man_t* p, int iBox);
+extern int Tim_ManBoxOutputLast(Tim_Man_t* p, int iBox);
+extern int Tim_ManBoxInputNum(Tim_Man_t* p, int iBox);
+extern int Tim_ManBoxOutputNum(Tim_Man_t* p, int iBox);
+extern int Tim_ManBoxDelayTableId(Tim_Man_t* p, int iBox);
+extern float* Tim_ManBoxDelayTable(Tim_Man_t* p, int iBox);
+extern int Tim_ManBoxIsBlack(Tim_Man_t* p, int iBox);
+extern int Tim_ManBoxCopy(Tim_Man_t* p, int iBox);
+extern void Tim_ManBoxSetCopy(Tim_Man_t* p, int iBox, int iCopy);
+extern int Tim_ManBoxFindFromCiNum(Tim_Man_t* p, int iCiNum);
 /*=== timDump.c ===========================================================*/
-extern Vec_Str_t *     Tim_ManSave( Tim_Man_t * p, int fHieOnly );
-extern Tim_Man_t *     Tim_ManLoad( Vec_Str_t * p, int fHieOnly );
+extern Vec_Str_t* Tim_ManSave(Tim_Man_t* p, int fHieOnly);
+extern Tim_Man_t* Tim_ManLoad(Vec_Str_t* p, int fHieOnly);
 /*=== timMan.c ===========================================================*/
-extern Tim_Man_t *     Tim_ManStart( int nCis, int nCos );
-extern Tim_Man_t *     Tim_ManDup( Tim_Man_t * p, int fUnitDelay );
-extern Tim_Man_t *     Tim_ManTrim( Tim_Man_t * p, Vec_Int_t * vBoxPres );
-extern Tim_Man_t *     Tim_ManReduce( Tim_Man_t * p, Vec_Int_t * vBoxesLeft, int nTermsDiff );
-extern Vec_Int_t *     Tim_ManAlignTwo( Tim_Man_t * pSpec, Tim_Man_t * pImpl );
-extern void            Tim_ManCreate( Tim_Man_t * p, void * pLib, Vec_Flt_t * vInArrs, Vec_Flt_t * vOutReqs );
-extern float *         Tim_ManGetArrTimes( Tim_Man_t * p );
-extern float *         Tim_ManGetReqTimes( Tim_Man_t * p );
-extern void            Tim_ManStop( Tim_Man_t * p );
-extern void            Tim_ManStopP( Tim_Man_t ** p );
-extern void            Tim_ManPrint( Tim_Man_t * p );
-extern void            Tim_ManPrintStats( Tim_Man_t * p, int nAnd2Delay );
-extern int             Tim_ManCiNum( Tim_Man_t * p );
-extern int             Tim_ManCoNum( Tim_Man_t * p );
-extern int             Tim_ManPiNum( Tim_Man_t * p );
-extern int             Tim_ManPoNum( Tim_Man_t * p );
-extern int             Tim_ManBoxNum( Tim_Man_t * p );
-extern int             Tim_ManBlackBoxNum( Tim_Man_t * p );
-extern void            Tim_ManBlackBoxIoNum( Tim_Man_t * p, int * pnBbIns, int * pnBbOuts );
-extern int             Tim_ManDelayTableNum( Tim_Man_t * p );
-extern void            Tim_ManSetDelayTables( Tim_Man_t * p, Vec_Ptr_t * vDelayTables );
-extern void            Tim_ManTravIdDisable( Tim_Man_t * p );
-extern void            Tim_ManTravIdEnable( Tim_Man_t * p );
+extern Tim_Man_t* Tim_ManStart(int nCis, int nCos);
+extern Tim_Man_t* Tim_ManDup(Tim_Man_t* p, int fUnitDelay);
+extern Tim_Man_t* Tim_ManTrim(Tim_Man_t* p, Vec_Int_t* vBoxPres);
+extern Tim_Man_t* Tim_ManReduce(Tim_Man_t* p, Vec_Int_t* vBoxesLeft, int nTermsDiff);
+extern Vec_Int_t* Tim_ManAlignTwo(Tim_Man_t* pSpec, Tim_Man_t* pImpl);
+extern void Tim_ManCreate(Tim_Man_t* p, void* pLib, Vec_Flt_t* vInArrs, Vec_Flt_t* vOutReqs);
+extern float* Tim_ManGetArrTimes(Tim_Man_t* p);
+extern float* Tim_ManGetReqTimes(Tim_Man_t* p);
+extern void Tim_ManStop(Tim_Man_t* p);
+extern void Tim_ManStopP(Tim_Man_t** p);
+extern void Tim_ManPrint(Tim_Man_t* p);
+extern void Tim_ManPrintStats(Tim_Man_t* p, int nAnd2Delay);
+extern int Tim_ManCiNum(Tim_Man_t* p);
+extern int Tim_ManCoNum(Tim_Man_t* p);
+extern int Tim_ManPiNum(Tim_Man_t* p);
+extern int Tim_ManPoNum(Tim_Man_t* p);
+extern int Tim_ManBoxNum(Tim_Man_t* p);
+extern int Tim_ManBlackBoxNum(Tim_Man_t* p);
+extern void Tim_ManBlackBoxIoNum(Tim_Man_t* p, int* pnBbIns, int* pnBbOuts);
+extern int Tim_ManDelayTableNum(Tim_Man_t* p);
+extern void Tim_ManSetDelayTables(Tim_Man_t* p, Vec_Ptr_t* vDelayTables);
+extern void Tim_ManTravIdDisable(Tim_Man_t* p);
+extern void Tim_ManTravIdEnable(Tim_Man_t* p);
 /*=== timTime.c ===========================================================*/
-extern void            Tim_ManInitPiArrival( Tim_Man_t * p, int iPi, float Delay );
-extern void            Tim_ManInitPoRequired( Tim_Man_t * p, int iPo, float Delay );
-extern void            Tim_ManInitPiArrivalAll( Tim_Man_t * p, float Delay );
-extern void            Tim_ManInitPoRequiredAll( Tim_Man_t * p, float Delay );
-extern void            Tim_ManSetCoArrival( Tim_Man_t * p, int iCo, float Delay );
-extern void            Tim_ManSetCiRequired( Tim_Man_t * p, int iCi, float Delay );
-extern void            Tim_ManSetCoRequired( Tim_Man_t * p, int iCo, float Delay );
-extern float           Tim_ManGetCiArrival( Tim_Man_t * p, int iCi );
-extern float           Tim_ManGetCoRequired( Tim_Man_t * p, int iCo );
+extern void Tim_ManInitPiArrival(Tim_Man_t* p, int iPi, float Delay);
+extern void Tim_ManInitPoRequired(Tim_Man_t* p, int iPo, float Delay);
+extern void Tim_ManInitPiArrivalAll(Tim_Man_t* p, float Delay);
+extern void Tim_ManInitPoRequiredAll(Tim_Man_t* p, float Delay);
+extern void Tim_ManSetCoArrival(Tim_Man_t* p, int iCo, float Delay);
+extern void Tim_ManSetCiRequired(Tim_Man_t* p, int iCi, float Delay);
+extern void Tim_ManSetCoRequired(Tim_Man_t* p, int iCo, float Delay);
+extern float Tim_ManGetCiArrival(Tim_Man_t* p, int iCi);
+extern float Tim_ManGetCoRequired(Tim_Man_t* p, int iCo);
 /*=== timTrav.c ===========================================================*/
-extern void            Tim_ManIncrementTravId( Tim_Man_t * p );
-extern void            Tim_ManSetCurrentTravIdBoxInputs( Tim_Man_t * p, int iBox );
-extern void            Tim_ManSetCurrentTravIdBoxOutputs( Tim_Man_t * p, int iBox );
-extern void            Tim_ManSetPreviousTravIdBoxInputs( Tim_Man_t * p, int iBox );
-extern void            Tim_ManSetPreviousTravIdBoxOutputs( Tim_Man_t * p, int iBox );
-extern int             Tim_ManIsCiTravIdCurrent( Tim_Man_t * p, int iCi );
-extern int             Tim_ManIsCoTravIdCurrent( Tim_Man_t * p, int iCo );
-
+extern void Tim_ManIncrementTravId(Tim_Man_t* p);
+extern void Tim_ManSetCurrentTravIdBoxInputs(Tim_Man_t* p, int iBox);
+extern void Tim_ManSetCurrentTravIdBoxOutputs(Tim_Man_t* p, int iBox);
+extern void Tim_ManSetPreviousTravIdBoxInputs(Tim_Man_t* p, int iBox);
+extern void Tim_ManSetPreviousTravIdBoxOutputs(Tim_Man_t* p, int iBox);
+extern int Tim_ManIsCiTravIdCurrent(Tim_Man_t* p, int iCi);
+extern int Tim_ManIsCoTravIdCurrent(Tim_Man_t* p, int iCo);
 
 ABC_NAMESPACE_HEADER_END
-
-
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

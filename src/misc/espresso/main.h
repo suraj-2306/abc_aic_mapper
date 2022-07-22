@@ -8,27 +8,61 @@
  *
  */
 enum keys {
-    KEY_ESPRESSO, KEY_PLA_verify, KEY_check, KEY_contain, KEY_d1merge,
-    KEY_disjoint, KEY_dsharp, KEY_echo, KEY_essen, KEY_exact, KEY_expand,
-    KEY_gasp, KEY_intersect, KEY_irred, KEY_lexsort, KEY_make_sparse,
-    KEY_map, KEY_mapdc, KEY_minterms, KEY_opo, KEY_opoall,
-    KEY_pair, KEY_pairall, KEY_primes, KEY_qm, KEY_reduce, KEY_sharp,
-    KEY_simplify, KEY_so, KEY_so_both, KEY_stats, KEY_super_gasp, KEY_taut,
-    KEY_test, KEY_equiv, KEY_union, KEY_verify, KEY_MANY_ESPRESSO,
-    KEY_separate, KEY_xor, KEY_d1merge_in, KEY_fsm,
+    KEY_ESPRESSO,
+    KEY_PLA_verify,
+    KEY_check,
+    KEY_contain,
+    KEY_d1merge,
+    KEY_disjoint,
+    KEY_dsharp,
+    KEY_echo,
+    KEY_essen,
+    KEY_exact,
+    KEY_expand,
+    KEY_gasp,
+    KEY_intersect,
+    KEY_irred,
+    KEY_lexsort,
+    KEY_make_sparse,
+    KEY_map,
+    KEY_mapdc,
+    KEY_minterms,
+    KEY_opo,
+    KEY_opoall,
+    KEY_pair,
+    KEY_pairall,
+    KEY_primes,
+    KEY_qm,
+    KEY_reduce,
+    KEY_sharp,
+    KEY_simplify,
+    KEY_so,
+    KEY_so_both,
+    KEY_stats,
+    KEY_super_gasp,
+    KEY_taut,
+    KEY_test,
+    KEY_equiv,
+    KEY_union,
+    KEY_verify,
+    KEY_MANY_ESPRESSO,
+    KEY_separate,
+    KEY_xor,
+    KEY_d1merge_in,
+    KEY_fsm,
     KEY_unknown
 };
 
 /* Lookup table for program options */
 struct {
-    char *name;
+    char* name;
     enum keys key;
     int num_plas;
     bool needs_offset;
     bool needs_dcset;
-} option_table [] = {
+} option_table[] = {
     /* ways to minimize functions */
-    "ESPRESSO", KEY_ESPRESSO, 1, TRUE, TRUE,    /* must be first */
+    "ESPRESSO", KEY_ESPRESSO, 1, TRUE, TRUE, /* must be first */
     "many", KEY_MANY_ESPRESSO, 1, TRUE, TRUE,
     "exact", KEY_exact, 1, TRUE, TRUE,
     "qm", KEY_qm, 1, TRUE, TRUE,
@@ -81,42 +115,85 @@ struct {
     "super_gasp", KEY_super_gasp, 1, TRUE, TRUE,
     "lexsort", KEY_lexsort, 1, FALSE, FALSE,
     "test", KEY_test, 1, TRUE, TRUE,
-    0, KEY_unknown, 0, FALSE, FALSE             /* must be last */
+    0, KEY_unknown, 0, FALSE, FALSE /* must be last */
 };
 
-
 struct {
-    char *name;
+    char* name;
     int value;
 } debug_table[] = {
-    "", EXPAND + ESSEN + IRRED + REDUCE + SPARSE + GASP + SHARP + MINCOV,
-    "compl",   COMPL,  "essen",       ESSEN,
-    "expand",  EXPAND, "expand1",     EXPAND1|EXPAND,
-    "irred",   IRRED,  "irred1",      IRRED1|IRRED,
-    "reduce",  REDUCE, "reduce1",     REDUCE1|REDUCE,
-    "mincov",  MINCOV, "mincov1",     MINCOV1|MINCOV,
-    "sparse",  SPARSE, "sharp",       SHARP,
-    "taut",    TAUT,   "gasp",        GASP,
-    "exact",   EXACT,
+    "",
+    EXPAND + ESSEN + IRRED + REDUCE + SPARSE + GASP + SHARP + MINCOV,
+    "compl",
+    COMPL,
+    "essen",
+    ESSEN,
+    "expand",
+    EXPAND,
+    "expand1",
+    EXPAND1 | EXPAND,
+    "irred",
+    IRRED,
+    "irred1",
+    IRRED1 | IRRED,
+    "reduce",
+    REDUCE,
+    "reduce1",
+    REDUCE1 | REDUCE,
+    "mincov",
+    MINCOV,
+    "mincov1",
+    MINCOV1 | MINCOV,
+    "sparse",
+    SPARSE,
+    "sharp",
+    SHARP,
+    "taut",
+    TAUT,
+    "gasp",
+    GASP,
+    "exact",
+    EXACT,
     0,
 };
 
-
 struct {
-    char *name;
-    int *variable;
+    char* name;
+    int* variable;
     int value;
 } esp_opt_table[] = {
-    "eat", &echo_comments, FALSE,
-    "eatdots", &echo_unknown_commands, FALSE,
-    "fast", &single_expand, TRUE,
-    "kiss", &kiss, TRUE,
-    "ness", &remove_essential, FALSE,
-    "nirr", &force_irredundant, FALSE,
-    "nunwrap", &unwrap_onset, FALSE,
-    "onset", &recompute_onset, TRUE,
-    "pos", &pos, TRUE,
-    "random", &use_random_order, TRUE,
-    "strong", &use_super_gasp, TRUE,
+    "eat",
+    &echo_comments,
+    FALSE,
+    "eatdots",
+    &echo_unknown_commands,
+    FALSE,
+    "fast",
+    &single_expand,
+    TRUE,
+    "kiss",
+    &kiss,
+    TRUE,
+    "ness",
+    &remove_essential,
+    FALSE,
+    "nirr",
+    &force_irredundant,
+    FALSE,
+    "nunwrap",
+    &unwrap_onset,
+    FALSE,
+    "onset",
+    &recompute_onset,
+    TRUE,
+    "pos",
+    &pos,
+    TRUE,
+    "random",
+    &use_random_order,
+    TRUE,
+    "strong",
+    &use_super_gasp,
+    TRUE,
     0,
 };

@@ -29,20 +29,19 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                      static functions                            ///
 ////////////////////////////////////////////////////////////////////////
 
-DdNode * GetSingleOutputFunction( DdManager * dd, DdNode ** pbOuts, int nOuts, DdNode ** pbVarsEnc, int nVarsEnc, int fVerbose );
-DdNode * GetSingleOutputFunctionRemapped( DdManager * dd, DdNode ** pOutputs, int nOuts, DdNode ** pbVarsEnc, int nVarsEnc );
-DdNode * GetSingleOutputFunctionRemappedNewDD( DdManager * dd, DdNode ** pOutputs, int nOuts, DdManager ** DdNew );
+DdNode* GetSingleOutputFunction(DdManager* dd, DdNode** pbOuts, int nOuts, DdNode** pbVarsEnc, int nVarsEnc, int fVerbose);
+DdNode* GetSingleOutputFunctionRemapped(DdManager* dd, DdNode** pOutputs, int nOuts, DdNode** pbVarsEnc, int nVarsEnc);
+DdNode* GetSingleOutputFunctionRemappedNewDD(DdManager* dd, DdNode** pOutputs, int nOuts, DdManager** DdNew);
 
-extern int CreateDecomposedNetwork( DdManager * dd, DdNode * aFunc, char ** pNames, int nNames, char * FileName, int nLutSize, int fCheck, int fVerbose );
+extern int CreateDecomposedNetwork(DdManager* dd, DdNode* aFunc, char** pNames, int nNames, char* FileName, int nLutSize, int fCheck, int fVerbose);
 
-void WriteSingleOutputFunctionBlif( DdManager * dd, DdNode * aFunc, char ** pNames, int nNames, char * FileName );
+void WriteSingleOutputFunctionBlif(DdManager* dd, DdNode* aFunc, char** pNames, int nNames, char* FileName);
 
-DdNode * Cudd_bddTransferPermute( DdManager * ddSource, DdManager * ddDestination, DdNode * f, int * Permute );
+DdNode* Cudd_bddTransferPermute(DdManager* ddSource, DdManager* ddDestination, DdNode* f, int* Permute);
 
 ////////////////////////////////////////////////////////////////////////
 ///                      static varibles                             ///
@@ -55,11 +54,19 @@ DdNode * Cudd_bddTransferPermute( DdManager * ddSource, DdManager * ddDestinatio
 ///                      debugging macros                            ///
 ////////////////////////////////////////////////////////////////////////
 
-#define PRD(p)       printf( "\nDECOMPOSITION TREE:\n\n" ); PrintDecEntry( (p), 0 ) 
-#define PRB_(f)       printf( #f " = " ); Cudd_bddPrint(dd,f); printf( "\n" )
-#define PRK(f,n)     Cudd_PrintKMap(stdout,dd,(f),Cudd_Not(f),(n),NULL,0); printf( "K-map for function" #f "\n\n" )
-#define PRK2(f,g,n)  Cudd_PrintKMap(stdout,dd,(f),(g),(n),NULL,0); printf( "K-map for function <" #f ", " #g ">\n\n" ) 
-
+#define PRD(p)                           \
+    printf("\nDECOMPOSITION TREE:\n\n"); \
+    PrintDecEntry((p), 0)
+#define PRB_(f)           \
+    printf(#f " = ");     \
+    Cudd_bddPrint(dd, f); \
+    printf("\n")
+#define PRK(f, n)                                               \
+    Cudd_PrintKMap(stdout, dd, (f), Cudd_Not(f), (n), NULL, 0); \
+    printf("K-map for function" #f "\n\n")
+#define PRK2(f, g, n)                                   \
+    Cudd_PrintKMap(stdout, dd, (f), (g), (n), NULL, 0); \
+    printf("K-map for function <" #f ", " #g ">\n\n")
 
 ////////////////////////////////////////////////////////////////////////
 ///                     EXTERNAL FUNCTIONS                           ///
@@ -76,115 +83,108 @@ DdNode * Cudd_bddTransferPermute( DdManager * ddSource, DdManager * ddDestinatio
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_CascadeExperiment( char * pFileGeneric, DdManager * dd, DdNode ** pOutputs, int nInputs, int nOutputs, int nLutSize, int fCheck, int fVerbose )
-{
+int Abc_CascadeExperiment(char* pFileGeneric, DdManager* dd, DdNode** pOutputs, int nInputs, int nOutputs, int nLutSize, int fCheck, int fVerbose) {
     int i;
     int nVars = nInputs;
     int nOuts = nOutputs;
     abctime clk1;
 
-    int      nVarsEnc;              // the number of additional variables to encode outputs
-    DdNode * pbVarsEnc[MAXOUTPUTS]; // the BDDs of the encoding vars
+    int nVarsEnc;                  // the number of additional variables to encode outputs
+    DdNode* pbVarsEnc[MAXOUTPUTS]; // the BDDs of the encoding vars
 
-    int      nNames;               // the total number of all inputs
-    char *   pNames[MAXINPUTS];     // the temporary storage for the input (and output encoding) names
+    int nNames;              // the total number of all inputs
+    char* pNames[MAXINPUTS]; // the temporary storage for the input (and output encoding) names
 
-    DdNode * aFunc;                 // the encoded 0-1 BDD containing all the outputs
+    DdNode* aFunc; // the encoded 0-1 BDD containing all the outputs
 
     char FileNameIni[100];
     char FileNameFin[100];
     char Buffer[100];
 
-    
-//pTable = fopen( "stats.txt", "a+" );
-//fprintf( pTable, "%s ", pFileGeneric );
-//fprintf( pTable, "%d ", nVars );
-//fprintf( pTable, "%d ", nOuts );
-
+    //pTable = fopen( "stats.txt", "a+" );
+    //fprintf( pTable, "%s ", pFileGeneric );
+    //fprintf( pTable, "%d ", nVars );
+    //fprintf( pTable, "%d ", nOuts );
 
     // assign the file names
-    strcpy( FileNameIni, pFileGeneric );
-    strcat( FileNameIni, "_ENC.blif" );
+    strcpy(FileNameIni, pFileGeneric);
+    strcat(FileNameIni, "_ENC.blif");
 
-    strcpy( FileNameFin, pFileGeneric );
-    strcat( FileNameFin, "_LUT.blif" );
-
+    strcpy(FileNameFin, pFileGeneric);
+    strcat(FileNameFin, "_LUT.blif");
 
     // create the variables to encode the outputs
-    nVarsEnc = Abc_Base2Log( nOuts );
-    for ( i = 0; i < nVarsEnc; i++ )
-        pbVarsEnc[i] = Cudd_bddNewVarAtLevel( dd, i );
-
+    nVarsEnc = Abc_Base2Log(nOuts);
+    for (i = 0; i < nVarsEnc; i++)
+        pbVarsEnc[i] = Cudd_bddNewVarAtLevel(dd, i);
 
     // store the input names
-    nNames  = nVars + nVarsEnc;
-    for ( i = 0; i < nVars; i++ )
-    {
-//      pNames[i] = Extra_UtilStrsav( pFunc->pInputNames[i] );
-        sprintf( Buffer, "pi%03d", i );
-        pNames[i] = Extra_UtilStrsav( Buffer );
+    nNames = nVars + nVarsEnc;
+    for (i = 0; i < nVars; i++) {
+        //      pNames[i] = Extra_UtilStrsav( pFunc->pInputNames[i] );
+        sprintf(Buffer, "pi%03d", i);
+        pNames[i] = Extra_UtilStrsav(Buffer);
     }
     // set the encoding variable name
-    for ( ; i < nNames; i++ )
-    {       
-        sprintf( Buffer, "OutEnc_%02d", i-nVars );
-        pNames[i] = Extra_UtilStrsav( Buffer );
+    for (; i < nNames; i++) {
+        sprintf(Buffer, "OutEnc_%02d", i - nVars);
+        pNames[i] = Extra_UtilStrsav(Buffer);
     }
 
-
     // print the variable order
-//  printf( "\n" );
-//  printf( "Variable order is: " );
-//  for ( i = 0; i < dd->size; i++ )
-//      printf( " %d", dd->invperm[i] );
-//  printf( "\n" );
+    //  printf( "\n" );
+    //  printf( "Variable order is: " );
+    //  for ( i = 0; i < dd->size; i++ )
+    //      printf( " %d", dd->invperm[i] );
+    //  printf( "\n" );
 
     // derive the single-output function
     clk1 = Abc_Clock();
-    aFunc = GetSingleOutputFunction( dd, pOutputs, nOuts, pbVarsEnc, nVarsEnc, fVerbose );  Cudd_Ref( aFunc );
-//  aFunc = GetSingleOutputFunctionRemapped( dd, pOutputs, nOuts, pbVarsEnc, nVarsEnc );  Cudd_Ref( aFunc );
-//  if ( fVerbose )
-//  printf( "Single-output function computation time = %.2f sec\n", (float)(Abc_Clock() - clk1)/(float)(CLOCKS_PER_SEC) );
- 
-//fprintf( pTable, "%d ", Cudd_SharingSize( pOutputs, nOutputs ) );
-//fprintf( pTable, "%d ", Extra_ProfileWidthSharingMax(dd, pOutputs, nOutputs) );
+    aFunc = GetSingleOutputFunction(dd, pOutputs, nOuts, pbVarsEnc, nVarsEnc, fVerbose);
+    Cudd_Ref(aFunc);
+    //  aFunc = GetSingleOutputFunctionRemapped( dd, pOutputs, nOuts, pbVarsEnc, nVarsEnc );  Cudd_Ref( aFunc );
+    //  if ( fVerbose )
+    //  printf( "Single-output function computation time = %.2f sec\n", (float)(Abc_Clock() - clk1)/(float)(CLOCKS_PER_SEC) );
+
+    //fprintf( pTable, "%d ", Cudd_SharingSize( pOutputs, nOutputs ) );
+    //fprintf( pTable, "%d ", Extra_ProfileWidthSharingMax(dd, pOutputs, nOutputs) );
 
     // dispose of the multiple-output function
-//  Extra_Dissolve( pFunc );
- 
+    //  Extra_Dissolve( pFunc );
+
     // reorder the single output function
-//    if ( fVerbose )
-//  printf( "Reordering variables...\n");
+    //    if ( fVerbose )
+    //  printf( "Reordering variables...\n");
     clk1 = Abc_Clock();
-//  if ( fVerbose )
-//  printf( "Node count before = %6d\n", Cudd_DagSize( aFunc ) );
-//  Cudd_ReduceHeap(dd, CUDD_REORDER_SIFT,1);
-    Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
-    Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
-//  Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
-//  Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
-//  Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
-//  Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
-    if ( fVerbose )
-    printf( "MTBDD reordered = %6d nodes\n", Cudd_DagSize( aFunc ) );
-    if ( fVerbose )
-    printf( "Variable reordering time = %.2f sec\n", (float)(Abc_Clock() - clk1)/(float)(CLOCKS_PER_SEC) );
-//  printf( "\n" );
-//  printf( "Variable order is: " );
-//  for ( i = 0; i < dd->size; i++ )
-//      printf( " %d", dd->invperm[i] );
-//  printf( "\n" );
-//fprintf( pTable, "%d ", Cudd_DagSize( aFunc ) );
-//fprintf( pTable, "%d ", Extra_ProfileWidthMax(dd, aFunc) );
+    //  if ( fVerbose )
+    //  printf( "Node count before = %6d\n", Cudd_DagSize( aFunc ) );
+    //  Cudd_ReduceHeap(dd, CUDD_REORDER_SIFT,1);
+    Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT, 1);
+    Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT, 1);
+    //  Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
+    //  Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
+    //  Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
+    //  Cudd_ReduceHeap(dd, CUDD_REORDER_SYMM_SIFT,1);
+    if (fVerbose)
+        printf("MTBDD reordered = %6d nodes\n", Cudd_DagSize(aFunc));
+    if (fVerbose)
+        printf("Variable reordering time = %.2f sec\n", (float)(Abc_Clock() - clk1) / (float)(CLOCKS_PER_SEC));
+    //  printf( "\n" );
+    //  printf( "Variable order is: " );
+    //  for ( i = 0; i < dd->size; i++ )
+    //      printf( " %d", dd->invperm[i] );
+    //  printf( "\n" );
+    //fprintf( pTable, "%d ", Cudd_DagSize( aFunc ) );
+    //fprintf( pTable, "%d ", Extra_ProfileWidthMax(dd, aFunc) );
 
     // write the single-output function into BLIF for verification
     clk1 = Abc_Clock();
-    if ( fCheck )
-    WriteSingleOutputFunctionBlif( dd, aFunc, pNames, nNames, FileNameIni );
-//    if ( fVerbose )
-//  printf( "Single-output function writing time = %.2f sec\n", (float)(Abc_Clock() - clk1)/(float)(CLOCKS_PER_SEC) );
+    if (fCheck)
+        WriteSingleOutputFunctionBlif(dd, aFunc, pNames, nNames, FileNameIni);
+    //    if ( fVerbose )
+    //  printf( "Single-output function writing time = %.2f sec\n", (float)(Abc_Clock() - clk1)/(float)(CLOCKS_PER_SEC) );
 
-/*
+    /*
     ///////////////////////////////////////////////////////////////////
     // verification of single output function
     clk1 = Abc_Clock();
@@ -218,10 +218,10 @@ int Abc_CascadeExperiment( char * pFileGeneric, DdManager * dd, DdNode ** pOutpu
     ///////////////////////////////////////////////////////////////////
 */
 
-    if ( !CreateDecomposedNetwork( dd, aFunc, pNames, nNames, FileNameFin, nLutSize, fCheck, fVerbose ) )
+    if (!CreateDecomposedNetwork(dd, aFunc, pNames, nNames, FileNameFin, nLutSize, fCheck, fVerbose))
         return 0;
 
-/*
+    /*
     ///////////////////////////////////////////////////////////////////
     // verification of the decomposed LUT network
     clk1 = Abc_Clock();
@@ -254,24 +254,22 @@ int Abc_CascadeExperiment( char * pFileGeneric, DdManager * dd, DdNode ** pOutpu
     printf( "Final verification time = %.2f sec\n", (float)(Abc_Clock() - clk1)/(float)(CLOCKS_PER_SEC) );
     ///////////////////////////////////////////////////////////////////
 */
- 
+
     // verify the results
-    if ( fCheck )
-    {
+    if (fCheck) {
         char Command[300];
-        sprintf( Command, "cec %s %s", FileNameIni, FileNameFin );
-        Cmd_CommandExecute( Abc_FrameGetGlobalFrame(), Command );
+        sprintf(Command, "cec %s %s", FileNameIni, FileNameFin);
+        Cmd_CommandExecute(Abc_FrameGetGlobalFrame(), Command);
     }
 
-    Cudd_RecursiveDeref( dd, aFunc );
+    Cudd_RecursiveDeref(dd, aFunc);
 
     // release the names
-    for ( i = 0; i < nNames; i++ )
-        ABC_FREE( pNames[i] );
+    for (i = 0; i < nNames; i++)
+        ABC_FREE(pNames[i]);
 
-
-//fprintf( pTable, "\n" );
-//fclose( pTable );
+    //fprintf( pTable, "\n" );
+    //fclose( pTable );
 
     return 1;
 }
@@ -452,7 +450,7 @@ void Experiment2( BFunc * pFunc )
 //fprintf( pTable, "\n" );
 //fclose( pTable );
 
-} 
+}
 
 #endif
 
@@ -474,24 +472,20 @@ void Experiment2( BFunc * pFunc )
 
 /////////////////////////////////////////////////////////////
 static int s_SuppSize[MAXOUTPUTS];
-int CompareSupports( int *ptrX, int *ptrY )
-{
-    return ( s_SuppSize[*ptrY] - s_SuppSize[*ptrX] );
+int CompareSupports(int* ptrX, int* ptrY) {
+    return (s_SuppSize[*ptrY] - s_SuppSize[*ptrX]);
 }
 /////////////////////////////////////////////////////////////
 
- 
 /////////////////////////////////////////////////////////////
 static int s_MintOnes[MAXOUTPUTS];
-int CompareMinterms( int *ptrX, int *ptrY )
-{
-    return ( s_MintOnes[*ptrY] - s_MintOnes[*ptrX] );
+int CompareMinterms(int* ptrX, int* ptrY) {
+    return (s_MintOnes[*ptrY] - s_MintOnes[*ptrX]);
 }
 /////////////////////////////////////////////////////////////
 
-int GrayCode ( int BinCode )
-{ 
-  return BinCode ^ ( BinCode >> 1 );
+int GrayCode(int BinCode) {
+    return BinCode ^ (BinCode >> 1);
 }
 
 /**Function*************************************************************
@@ -505,52 +499,53 @@ int GrayCode ( int BinCode )
   SeeAlso     []
 
 ***********************************************************************/
-DdNode * GetSingleOutputFunction( DdManager * dd, DdNode ** pbOuts, int nOuts, DdNode ** pbVarsEnc, int nVarsEnc, int fVerbose )
-{
+DdNode* GetSingleOutputFunction(DdManager* dd, DdNode** pbOuts, int nOuts, DdNode** pbVarsEnc, int nVarsEnc, int fVerbose) {
     int i;
-    DdNode * bResult, * aResult;
-    DdNode * bCube, * bTemp, * bProd;
+    DdNode *bResult, *aResult;
+    DdNode *bCube, *bTemp, *bProd;
 
     int Order[MAXOUTPUTS];
-//  int OrderMint[MAXOUTPUTS];
- 
+    //  int OrderMint[MAXOUTPUTS];
+
     // sort the output according to their support size
-    for ( i = 0; i < nOuts; i++ )
-    {
-        s_SuppSize[i] = Cudd_SupportSize( dd, pbOuts[i] );
-//      s_MintOnes[i] = BitCount8[i];
-        Order[i]      = i;
-//      OrderMint[i]  = i;
+    for (i = 0; i < nOuts; i++) {
+        s_SuppSize[i] = Cudd_SupportSize(dd, pbOuts[i]);
+        //      s_MintOnes[i] = BitCount8[i];
+        Order[i] = i;
+        //      OrderMint[i]  = i;
     }
-    
+
     // order the outputs
-    qsort( (void*)Order,     (size_t)nOuts, sizeof(int), (int(*)(const void*, const void*)) CompareSupports );
+    qsort((void*)Order, (size_t)nOuts, sizeof(int), (int (*)(const void*, const void*))CompareSupports);
     // order the outputs
-//  qsort( (void*)OrderMint, (size_t)nOuts, sizeof(int), (int(*)(const void*, const void*)) CompareMinterms );
+    //  qsort( (void*)OrderMint, (size_t)nOuts, sizeof(int), (int(*)(const void*, const void*)) CompareMinterms );
 
+    bResult = b0;
+    Cudd_Ref(bResult);
+    for (i = 0; i < nOuts; i++) {
+        //      bCube   = Cudd_bddBitsToCube( dd, OrderMint[i], nVarsEnc, pbVarsEnc );   Cudd_Ref( bCube );
+        //      bProd   = Cudd_bddAnd( dd, bCube, pbOuts[Order[nOuts-1-i]] );         Cudd_Ref( bProd );
+        bCube = Extra_bddBitsToCube(dd, i, nVarsEnc, pbVarsEnc, 1);
+        Cudd_Ref(bCube);
+        bProd = Cudd_bddAnd(dd, bCube, pbOuts[Order[i]]);
+        Cudd_Ref(bProd);
+        Cudd_RecursiveDeref(dd, bCube);
 
-    bResult = b0;   Cudd_Ref( bResult );
-    for ( i = 0; i < nOuts; i++ )
-    {
-//      bCube   = Cudd_bddBitsToCube( dd, OrderMint[i], nVarsEnc, pbVarsEnc );   Cudd_Ref( bCube );
-//      bProd   = Cudd_bddAnd( dd, bCube, pbOuts[Order[nOuts-1-i]] );         Cudd_Ref( bProd );
-        bCube   = Extra_bddBitsToCube( dd, i, nVarsEnc, pbVarsEnc, 1 );   Cudd_Ref( bCube );
-        bProd   = Cudd_bddAnd( dd, bCube, pbOuts[Order[i]] );         Cudd_Ref( bProd );
-        Cudd_RecursiveDeref( dd, bCube );
-
-        bResult = Cudd_bddOr( dd, bProd, bTemp = bResult );           Cudd_Ref( bResult );
-        Cudd_RecursiveDeref( dd, bTemp );
-        Cudd_RecursiveDeref( dd, bProd );
+        bResult = Cudd_bddOr(dd, bProd, bTemp = bResult);
+        Cudd_Ref(bResult);
+        Cudd_RecursiveDeref(dd, bTemp);
+        Cudd_RecursiveDeref(dd, bProd);
     }
 
     // convert to the ADD
-if ( fVerbose )
-printf( "Single BDD size = %6d nodes\n", Cudd_DagSize(bResult) );
-    aResult = Cudd_BddToAdd( dd, bResult );  Cudd_Ref( aResult );
-    Cudd_RecursiveDeref( dd, bResult );
-if ( fVerbose )
-printf( "MTBDD           = %6d nodes\n", Cudd_DagSize(aResult) );
-    Cudd_Deref( aResult );
+    if (fVerbose)
+        printf("Single BDD size = %6d nodes\n", Cudd_DagSize(bResult));
+    aResult = Cudd_BddToAdd(dd, bResult);
+    Cudd_Ref(aResult);
+    Cudd_RecursiveDeref(dd, bResult);
+    if (fVerbose)
+        printf("MTBDD           = %6d nodes\n", Cudd_DagSize(aResult));
+    Cudd_Deref(aResult);
     return aResult;
 }
 /*
@@ -582,12 +577,10 @@ DdNode * GetSingleOutputFunction( DdManager * dd, DdNode ** pbOuts, int nOuts, D
 }
 */
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        INPUT REMAPPING                           ///
 ////////////////////////////////////////////////////////////////////////
 
-
 /**Function*************************************************************
 
   Synopsis    []
@@ -599,52 +592,54 @@ DdNode * GetSingleOutputFunction( DdManager * dd, DdNode ** pbOuts, int nOuts, D
   SeeAlso     []
 
 ***********************************************************************/
-DdNode * GetSingleOutputFunctionRemapped( DdManager * dd, DdNode ** pOutputs, int nOuts, DdNode ** pbVarsEnc, int nVarsEnc )
+DdNode* GetSingleOutputFunctionRemapped(DdManager* dd, DdNode** pOutputs, int nOuts, DdNode** pbVarsEnc, int nVarsEnc)
 // returns the ADD of the remapped function
 {
     static int Permute[MAXINPUTS];
-    static DdNode * pRemapped[MAXOUTPUTS];
+    static DdNode* pRemapped[MAXOUTPUTS];
 
-    DdNode * bSupp, * bTemp;
+    DdNode *bSupp, *bTemp;
     int i, Counter;
-    DdNode * bFunc;
-    DdNode * aFunc;
+    DdNode* bFunc;
+    DdNode* aFunc;
 
     Cudd_AutodynDisable(dd);
 
     // perform the remapping
-    for ( i = 0; i < nOuts; i++ )
-    {
+    for (i = 0; i < nOuts; i++) {
         // get support
-        bSupp = Cudd_Support( dd, pOutputs[i] );    Cudd_Ref( bSupp );
+        bSupp = Cudd_Support(dd, pOutputs[i]);
+        Cudd_Ref(bSupp);
 
         // create the variable map
         Counter = 0;
-        for ( bTemp = bSupp; bTemp != dd->one; bTemp = cuddT(bTemp) )
+        for (bTemp = bSupp; bTemp != dd->one; bTemp = cuddT(bTemp))
             Permute[bTemp->index] = Counter++;
 
         // transfer the BDD and remap it
-        pRemapped[i] = Cudd_bddPermute( dd, pOutputs[i], Permute );  Cudd_Ref( pRemapped[i] );
+        pRemapped[i] = Cudd_bddPermute(dd, pOutputs[i], Permute);
+        Cudd_Ref(pRemapped[i]);
 
         // remove support
-        Cudd_RecursiveDeref( dd, bSupp );
+        Cudd_RecursiveDeref(dd, bSupp);
     }
-    
+
     // perform the encoding
-    bFunc = Extra_bddEncodingBinary( dd, pRemapped, nOuts, pbVarsEnc, nVarsEnc );   Cudd_Ref( bFunc );
+    bFunc = Extra_bddEncodingBinary(dd, pRemapped, nOuts, pbVarsEnc, nVarsEnc);
+    Cudd_Ref(bFunc);
 
     // convert to ADD
-    aFunc = Cudd_BddToAdd( dd, bFunc );  Cudd_Ref( aFunc );
-    Cudd_RecursiveDeref( dd, bFunc );
+    aFunc = Cudd_BddToAdd(dd, bFunc);
+    Cudd_Ref(aFunc);
+    Cudd_RecursiveDeref(dd, bFunc);
 
     // deref the intermediate results
-    for ( i = 0; i < nOuts; i++ )
-        Cudd_RecursiveDeref( dd, pRemapped[i] );
+    for (i = 0; i < nOuts; i++)
+        Cudd_RecursiveDeref(dd, pRemapped[i]);
 
-    Cudd_Deref( aFunc );
+    Cudd_Deref(aFunc);
     return aFunc;
 }
-
 
 /**Function*************************************************************
 
@@ -657,54 +652,54 @@ DdNode * GetSingleOutputFunctionRemapped( DdManager * dd, DdNode ** pOutputs, in
   SeeAlso     []
 
 ***********************************************************************/
-DdNode * GetSingleOutputFunctionRemappedNewDD( DdManager * dd, DdNode ** pOutputs, int nOuts, DdManager ** DdNew )
+DdNode* GetSingleOutputFunctionRemappedNewDD(DdManager* dd, DdNode** pOutputs, int nOuts, DdManager** DdNew)
 // returns the ADD of the remapped function
 {
     static int Permute[MAXINPUTS];
-    static DdNode * pRemapped[MAXOUTPUTS];
+    static DdNode* pRemapped[MAXOUTPUTS];
 
-    static DdNode * pbVarsEnc[MAXINPUTS];
+    static DdNode* pbVarsEnc[MAXINPUTS];
     int nVarsEnc;
 
-    DdManager * ddnew;
+    DdManager* ddnew;
 
-    DdNode * bSupp, * bTemp;
+    DdNode *bSupp, *bTemp;
     int i, v, Counter;
-    DdNode * bFunc;
+    DdNode* bFunc;
 
     // these are in the new manager
-    DdNode * bFuncNew;
-    DdNode * aFuncNew;
+    DdNode* bFuncNew;
+    DdNode* aFuncNew;
 
     int nVarsMax = 0;
 
     // perform the remapping and write the DDs into the new manager
-    for ( i = 0; i < nOuts; i++ )
-    {
+    for (i = 0; i < nOuts; i++) {
         // get support
-        bSupp = Cudd_Support( dd, pOutputs[i] );    Cudd_Ref( bSupp );
+        bSupp = Cudd_Support(dd, pOutputs[i]);
+        Cudd_Ref(bSupp);
 
         // create the variable map
         // to remap the DD into the upper part of the manager
         Counter = 0;
-        for ( bTemp = bSupp; bTemp != dd->one; bTemp = cuddT(bTemp) )
+        for (bTemp = bSupp; bTemp != dd->one; bTemp = cuddT(bTemp))
             Permute[bTemp->index] = dd->invperm[Counter++];
 
         // transfer the BDD and remap it
-        pRemapped[i] = Cudd_bddPermute( dd, pOutputs[i], Permute );  Cudd_Ref( pRemapped[i] );
+        pRemapped[i] = Cudd_bddPermute(dd, pOutputs[i], Permute);
+        Cudd_Ref(pRemapped[i]);
 
         // remove support
-        Cudd_RecursiveDeref( dd, bSupp );
-
+        Cudd_RecursiveDeref(dd, bSupp);
 
         // determine the largest support size
-        if ( nVarsMax < Counter )
+        if (nVarsMax < Counter)
             nVarsMax = Counter;
     }
-    
+
     // select the encoding variables to follow immediately after the original variables
     nVarsEnc = Abc_Base2Log(nOuts);
-/*
+    /*
     for ( v = 0; v < nVarsEnc; v++ )
         if ( nVarsMax + v < dd->size )
             pbVarsEnc[v] = dd->var[ dd->invperm[nVarsMax+v] ];
@@ -712,51 +707,49 @@ DdNode * GetSingleOutputFunctionRemappedNewDD( DdManager * dd, DdNode ** pOutput
             pbVarsEnc[v] = Cudd_bddNewVar( dd );
 */
     // create the new variables on top of the manager
-    for ( v = 0; v < nVarsEnc; v++ )
-        pbVarsEnc[v] = Cudd_bddNewVarAtLevel( dd, v );
+    for (v = 0; v < nVarsEnc; v++)
+        pbVarsEnc[v] = Cudd_bddNewVarAtLevel(dd, v);
 
-//fprintf( pTable, "%d ", Cudd_SharingSize( pRemapped, nOuts ) );
-//fprintf( pTable, "%d ", Extra_ProfileWidthSharingMax(dd, pRemapped, nOuts) );
-
+    //fprintf( pTable, "%d ", Cudd_SharingSize( pRemapped, nOuts ) );
+    //fprintf( pTable, "%d ", Extra_ProfileWidthSharingMax(dd, pRemapped, nOuts) );
 
     // perform the encoding
-    bFunc = Extra_bddEncodingBinary( dd, pRemapped, nOuts, pbVarsEnc, nVarsEnc );   Cudd_Ref( bFunc );
-
+    bFunc = Extra_bddEncodingBinary(dd, pRemapped, nOuts, pbVarsEnc, nVarsEnc);
+    Cudd_Ref(bFunc);
 
     // find the cross-manager permutation
-    // the variable from the level v in the old manager 
+    // the variable from the level v in the old manager
     // should become a variable number v in the new manager
-    for ( v = 0; v < nVarsMax + nVarsEnc; v++ )
+    for (v = 0; v < nVarsMax + nVarsEnc; v++)
         Permute[dd->invperm[v]] = v;
-
 
     ///////////////////////////////////////////////////////////////////////////////
     // start the new manager
-    ddnew = Cudd_Init( nVarsMax + nVarsEnc, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
-//  Cudd_AutodynDisable(ddnew);
+    ddnew = Cudd_Init(nVarsMax + nVarsEnc, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
+    //  Cudd_AutodynDisable(ddnew);
     Cudd_AutodynEnable(dd, CUDD_REORDER_SYMM_SIFT);
 
     // transfer it to the new manager
-    bFuncNew = Cudd_bddTransferPermute( dd, ddnew, bFunc, Permute );      Cudd_Ref( bFuncNew );
+    bFuncNew = Cudd_bddTransferPermute(dd, ddnew, bFunc, Permute);
+    Cudd_Ref(bFuncNew);
     ///////////////////////////////////////////////////////////////////////////////
 
-
     // deref the intermediate results in the old manager
-    Cudd_RecursiveDeref( dd, bFunc );
-    for ( i = 0; i < nOuts; i++ )
-        Cudd_RecursiveDeref( dd, pRemapped[i] );
-
+    Cudd_RecursiveDeref(dd, bFunc);
+    for (i = 0; i < nOuts; i++)
+        Cudd_RecursiveDeref(dd, pRemapped[i]);
 
     ///////////////////////////////////////////////////////////////////////////////
     // convert to ADD in the new manager
-    aFuncNew = Cudd_BddToAdd( ddnew, bFuncNew );  Cudd_Ref( aFuncNew );
-    Cudd_RecursiveDeref( ddnew, bFuncNew );
+    aFuncNew = Cudd_BddToAdd(ddnew, bFuncNew);
+    Cudd_Ref(aFuncNew);
+    Cudd_RecursiveDeref(ddnew, bFuncNew);
 
     // return the manager
     *DdNew = ddnew;
     ///////////////////////////////////////////////////////////////////////////////
 
-    Cudd_Deref( aFuncNew );
+    Cudd_Deref(aFuncNew);
     return aFuncNew;
 }
 
@@ -764,8 +757,7 @@ DdNode * GetSingleOutputFunctionRemappedNewDD( DdManager * dd, DdNode ** pOutput
 ///                        BLIF WRITING FUNCTIONS                    ///
 ////////////////////////////////////////////////////////////////////////
 
-void WriteDDintoBLIFfile( FILE * pFile, DdNode * Func, char * OutputName, char * Prefix, char ** InputNames );
-
+void WriteDDintoBLIFfile(FILE* pFile, DdNode* Func, char* OutputName, char* Prefix, char** InputNames);
 
 /**Function*************************************************************
 
@@ -778,27 +770,26 @@ void WriteDDintoBLIFfile( FILE * pFile, DdNode * Func, char * OutputName, char *
   SeeAlso     []
 
 ***********************************************************************/
-void WriteSingleOutputFunctionBlif( DdManager * dd, DdNode * aFunc, char ** pNames, int nNames, char * FileName )
-{
+void WriteSingleOutputFunctionBlif(DdManager* dd, DdNode* aFunc, char** pNames, int nNames, char* FileName) {
     int i;
-    FILE * pFile;
+    FILE* pFile;
 
     // start the file
-    pFile = fopen( FileName, "w" );
-    fprintf( pFile, ".model %s\n", FileName );
+    pFile = fopen(FileName, "w");
+    fprintf(pFile, ".model %s\n", FileName);
 
-    fprintf( pFile, ".inputs" );
-    for ( i = 0; i < nNames; i++ )
-        fprintf( pFile, " %s", pNames[i] );
-    fprintf( pFile, "\n" );
-    fprintf( pFile, ".outputs F" );
-    fprintf( pFile, "\n" );
+    fprintf(pFile, ".inputs");
+    for (i = 0; i < nNames; i++)
+        fprintf(pFile, " %s", pNames[i]);
+    fprintf(pFile, "\n");
+    fprintf(pFile, ".outputs F");
+    fprintf(pFile, "\n");
 
     // write the DD into the file
-    WriteDDintoBLIFfile( pFile, aFunc, "F", "", pNames );
+    WriteDDintoBLIFfile(pFile, aFunc, "F", "", pNames);
 
-    fprintf( pFile, ".end\n" );
-    fclose( pFile );
+    fprintf(pFile, ".end\n");
+    fclose(pFile);
 }
 
 /**Function*************************************************************
@@ -812,8 +803,8 @@ void WriteSingleOutputFunctionBlif( DdManager * dd, DdNode * aFunc, char ** pNam
   SeeAlso     []
 
 ***********************************************************************/
-void WriteDDintoBLIFfile( FILE * pFile, DdNode * Func, char * OutputName, char * Prefix, char ** InputNames )
-// writes the main part of the BLIF file 
+void WriteDDintoBLIFfile(FILE* pFile, DdNode* Func, char* OutputName, char* Prefix, char** InputNames)
+// writes the main part of the BLIF file
 // Func is a BDD or a 0-1 ADD to be written
 // OutputName is the name of the output
 // Prefix is attached to each intermendiate signal to make it unique
@@ -821,16 +812,16 @@ void WriteDDintoBLIFfile( FILE * pFile, DdNode * Func, char * OutputName, char *
 // (some part of the code is borrowed from Cudd_DumpDot())
 {
     int i;
-    st__table * visited;
-    st__generator * gen = NULL;
+    st__table* visited;
+    st__generator* gen = NULL;
     long refAddr, diff, mask;
-    DdNode * Node, * Else, * ElseR, * Then;
+    DdNode *Node, *Else, *ElseR, *Then;
 
     /* Initialize symbol table for visited nodes. */
-    visited = st__init_table( st__ptrcmp, st__ptrhash );
+    visited = st__init_table(st__ptrcmp, st__ptrhash);
 
     /* Collect all the nodes of this DD in the symbol table. */
-    cuddCollectNodes( Cudd_Regular(Func), visited );
+    cuddCollectNodes(Cudd_Regular(Func), visited);
 
     /* Find how many most significant hex digits are identical
        ** in the addresses of all the nodes. Build a mask based
@@ -844,87 +835,75 @@ void WriteDDintoBLIFfile( FILE * pFile, DdNode * Func, char * OutputName, char *
      */
 
     /* Find the bits that are different. */
-    refAddr = ( long )Cudd_Regular(Func);
+    refAddr = (long)Cudd_Regular(Func);
     diff = 0;
-    gen = st__init_gen( visited );
-    while ( st__gen( gen, ( const char ** ) &Node, NULL ) )
-    {
-        diff |= refAddr ^ ( long ) Node;
+    gen = st__init_gen(visited);
+    while (st__gen(gen, (const char**)&Node, NULL)) {
+        diff |= refAddr ^ (long)Node;
     }
-    st__free_gen( gen );
+    st__free_gen(gen);
     gen = NULL;
 
     /* Choose the mask. */
-    for ( i = 0; ( unsigned ) i < 8 * sizeof( long ); i += 4 )
-    {
-        mask = ( 1 << i ) - 1;
-        if ( diff <= mask )
+    for (i = 0; (unsigned)i < 8 * sizeof(long); i += 4) {
+        mask = (1 << i) - 1;
+        if (diff <= mask)
             break;
     }
 
-
     // write the buffer for the output
-    fprintf( pFile, ".names %s%lx %s\n", Prefix, ( mask & (long)Cudd_Regular(Func) ) / sizeof(DdNode), OutputName ); 
-    fprintf( pFile, "%s 1\n", (Cudd_IsComplement(Func))? "0": "1" );
+    fprintf(pFile, ".names %s%lx %s\n", Prefix, (mask & (long)Cudd_Regular(Func)) / sizeof(DdNode), OutputName);
+    fprintf(pFile, "%s 1\n", (Cudd_IsComplement(Func)) ? "0" : "1");
 
-
-    gen = st__init_gen( visited );
-    while ( st__gen( gen, ( const char ** ) &Node, NULL ) )
-    {
-        if ( Node->index == CUDD_MAXINDEX )
-        {
+    gen = st__init_gen(visited);
+    while (st__gen(gen, (const char**)&Node, NULL)) {
+        if (Node->index == CUDD_MAXINDEX) {
             // write the terminal node
-            fprintf( pFile, ".names %s%lx\n", Prefix, ( mask & (long)Node ) / sizeof(DdNode) );
-            fprintf( pFile, " %s\n", (cuddV(Node) == 0.0)? "0": "1" );
+            fprintf(pFile, ".names %s%lx\n", Prefix, (mask & (long)Node) / sizeof(DdNode));
+            fprintf(pFile, " %s\n", (cuddV(Node) == 0.0) ? "0" : "1");
             continue;
         }
 
-        Else  = cuddE(Node);
+        Else = cuddE(Node);
         ElseR = Cudd_Regular(Else);
-        Then  = cuddT(Node);
+        Then = cuddT(Node);
 
-        assert( InputNames[Node->index] );
-        if ( Else == ElseR )
-        { // no inverter
-            fprintf( pFile, ".names %s %s%lx %s%lx %s%lx\n", InputNames[Node->index],                           
-                              Prefix, ( mask & (long)ElseR ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)Then  ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)Node  ) / sizeof(DdNode)   );
-            fprintf( pFile, "01- 1\n" );
-            fprintf( pFile, "1-1 1\n" );
-        }
-        else
-        { // inverter
-            int * pSlot;
-            fprintf( pFile, ".names %s %s%lx_i %s%lx %s%lx\n", InputNames[Node->index],                         
-                              Prefix, ( mask & (long)ElseR ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)Then  ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)Node  ) / sizeof(DdNode)   );
-            fprintf( pFile, "01- 1\n" );
-            fprintf( pFile, "1-1 1\n" );
+        assert(InputNames[Node->index]);
+        if (Else == ElseR) { // no inverter
+            fprintf(pFile, ".names %s %s%lx %s%lx %s%lx\n", InputNames[Node->index],
+                    Prefix, (mask & (long)ElseR) / sizeof(DdNode),
+                    Prefix, (mask & (long)Then) / sizeof(DdNode),
+                    Prefix, (mask & (long)Node) / sizeof(DdNode));
+            fprintf(pFile, "01- 1\n");
+            fprintf(pFile, "1-1 1\n");
+        } else { // inverter
+            int* pSlot;
+            fprintf(pFile, ".names %s %s%lx_i %s%lx %s%lx\n", InputNames[Node->index],
+                    Prefix, (mask & (long)ElseR) / sizeof(DdNode),
+                    Prefix, (mask & (long)Then) / sizeof(DdNode),
+                    Prefix, (mask & (long)Node) / sizeof(DdNode));
+            fprintf(pFile, "01- 1\n");
+            fprintf(pFile, "1-1 1\n");
 
             // if the inverter is written, skip
-            if ( ! st__find( visited, (char *)ElseR, (char ***)&pSlot ) )
-                assert( 0 );
-            if ( *pSlot )
+            if (!st__find(visited, (char*)ElseR, (char***)&pSlot))
+                assert(0);
+            if (*pSlot)
                 continue;
             *pSlot = 1;
 
-            fprintf( pFile, ".names %s%lx %s%lx_i\n",  
-                              Prefix, ( mask & (long)ElseR  ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)ElseR  ) / sizeof(DdNode)   );
-            fprintf( pFile, "0 1\n" );
+            fprintf(pFile, ".names %s%lx %s%lx_i\n",
+                    Prefix, (mask & (long)ElseR) / sizeof(DdNode),
+                    Prefix, (mask & (long)ElseR) / sizeof(DdNode));
+            fprintf(pFile, "0 1\n");
         }
     }
-    st__free_gen( gen );
+    st__free_gen(gen);
     gen = NULL;
-    st__free_table( visited );
+    st__free_table(visited);
 }
 
-
-
-
-static DdManager * s_ddmin;
+static DdManager* s_ddmin;
 
 /**Function*************************************************************
 
@@ -937,8 +916,8 @@ static DdManager * s_ddmin;
   SeeAlso     []
 
 ***********************************************************************/
-void WriteDDintoBLIFfileReorder( DdManager * dd, FILE * pFile, DdNode * Func, char * OutputName, char * Prefix, char ** InputNames )
-// writes the main part of the BLIF file 
+void WriteDDintoBLIFfileReorder(DdManager* dd, FILE* pFile, DdNode* Func, char* OutputName, char* Prefix, char** InputNames)
+// writes the main part of the BLIF file
 // Func is a BDD or a 0-1 ADD to be written
 // OutputName is the name of the output
 // Prefix is attached to each intermendiate signal to make it unique
@@ -946,36 +925,34 @@ void WriteDDintoBLIFfileReorder( DdManager * dd, FILE * pFile, DdNode * Func, ch
 // (some part of the code is borrowed from Cudd_DumpDot())
 {
     int i;
-    st__table * visited;
-    st__generator * gen = NULL;
+    st__table* visited;
+    st__generator* gen = NULL;
     long refAddr, diff, mask;
-    DdNode * Node, * Else, * ElseR, * Then;
-
+    DdNode *Node, *Else, *ElseR, *Then;
 
     ///////////////////////////////////////////////////////////////
-    DdNode * bFmin;
+    DdNode* bFmin;
     abctime clk1;
 
-    if ( s_ddmin == NULL )
-        s_ddmin = Cudd_Init( dd->size, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
+    if (s_ddmin == NULL)
+        s_ddmin = Cudd_Init(dd->size, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
 
     clk1 = Abc_Clock();
-    bFmin = Cudd_bddTransfer( dd, s_ddmin, Func );  Cudd_Ref( bFmin );
+    bFmin = Cudd_bddTransfer(dd, s_ddmin, Func);
+    Cudd_Ref(bFmin);
 
     // reorder
-    printf( "Nodes before = %d.   ", Cudd_DagSize(bFmin) ); 
-    Cudd_ReduceHeap(s_ddmin,CUDD_REORDER_SYMM_SIFT,1);
-//  Cudd_ReduceHeap(s_ddmin,CUDD_REORDER_SYMM_SIFT_CONV,1);
-    printf( "Nodes after  = %d.  \n", Cudd_DagSize(bFmin) ); 
+    printf("Nodes before = %d.   ", Cudd_DagSize(bFmin));
+    Cudd_ReduceHeap(s_ddmin, CUDD_REORDER_SYMM_SIFT, 1);
+    //  Cudd_ReduceHeap(s_ddmin,CUDD_REORDER_SYMM_SIFT_CONV,1);
+    printf("Nodes after  = %d.  \n", Cudd_DagSize(bFmin));
     ///////////////////////////////////////////////////////////////
 
-
-
     /* Initialize symbol table for visited nodes. */
-    visited = st__init_table( st__ptrcmp, st__ptrhash );
+    visited = st__init_table(st__ptrcmp, st__ptrhash);
 
     /* Collect all the nodes of this DD in the symbol table. */
-    cuddCollectNodes( Cudd_Regular(bFmin), visited );
+    cuddCollectNodes(Cudd_Regular(bFmin), visited);
 
     /* Find how many most significant hex digits are identical
        ** in the addresses of all the nodes. Build a mask based
@@ -989,91 +966,78 @@ void WriteDDintoBLIFfileReorder( DdManager * dd, FILE * pFile, DdNode * Func, ch
      */
 
     /* Find the bits that are different. */
-    refAddr = ( long )Cudd_Regular(bFmin);
+    refAddr = (long)Cudd_Regular(bFmin);
     diff = 0;
-    gen = st__init_gen( visited );
-    while ( st__gen( gen, ( const char ** ) &Node, NULL ) )
-    {
-        diff |= refAddr ^ ( long ) Node;
+    gen = st__init_gen(visited);
+    while (st__gen(gen, (const char**)&Node, NULL)) {
+        diff |= refAddr ^ (long)Node;
     }
-    st__free_gen( gen );
+    st__free_gen(gen);
     gen = NULL;
 
     /* Choose the mask. */
-    for ( i = 0; ( unsigned ) i < 8 * sizeof( long ); i += 4 )
-    {
-        mask = ( 1 << i ) - 1;
-        if ( diff <= mask )
+    for (i = 0; (unsigned)i < 8 * sizeof(long); i += 4) {
+        mask = (1 << i) - 1;
+        if (diff <= mask)
             break;
     }
 
-
     // write the buffer for the output
-    fprintf( pFile, ".names %s%lx %s\n", Prefix, ( mask & (long)Cudd_Regular(bFmin) ) / sizeof(DdNode), OutputName ); 
-    fprintf( pFile, "%s 1\n", (Cudd_IsComplement(bFmin))? "0": "1" );
+    fprintf(pFile, ".names %s%lx %s\n", Prefix, (mask & (long)Cudd_Regular(bFmin)) / sizeof(DdNode), OutputName);
+    fprintf(pFile, "%s 1\n", (Cudd_IsComplement(bFmin)) ? "0" : "1");
 
-
-    gen = st__init_gen( visited );
-    while ( st__gen( gen, ( const char ** ) &Node, NULL ) )
-    {
-        if ( Node->index == CUDD_MAXINDEX )
-        {
+    gen = st__init_gen(visited);
+    while (st__gen(gen, (const char**)&Node, NULL)) {
+        if (Node->index == CUDD_MAXINDEX) {
             // write the terminal node
-            fprintf( pFile, ".names %s%lx\n", Prefix, ( mask & (long)Node ) / sizeof(DdNode) );
-            fprintf( pFile, " %s\n", (cuddV(Node) == 0.0)? "0": "1" );
+            fprintf(pFile, ".names %s%lx\n", Prefix, (mask & (long)Node) / sizeof(DdNode));
+            fprintf(pFile, " %s\n", (cuddV(Node) == 0.0) ? "0" : "1");
             continue;
         }
 
-        Else  = cuddE(Node);
+        Else = cuddE(Node);
         ElseR = Cudd_Regular(Else);
-        Then  = cuddT(Node);
+        Then = cuddT(Node);
 
-        assert( InputNames[Node->index] );
-        if ( Else == ElseR )
-        { // no inverter
-            fprintf( pFile, ".names %s %s%lx %s%lx %s%lx\n", InputNames[Node->index],                           
-                              Prefix, ( mask & (long)ElseR ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)Then  ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)Node  ) / sizeof(DdNode)   );
-            fprintf( pFile, "01- 1\n" );
-            fprintf( pFile, "1-1 1\n" );
-        }
-        else
-        { // inverter
-            fprintf( pFile, ".names %s %s%lx_i %s%lx %s%lx\n", InputNames[Node->index],                         
-                              Prefix, ( mask & (long)ElseR ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)Then  ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)Node  ) / sizeof(DdNode)   );
-            fprintf( pFile, "01- 1\n" );
-            fprintf( pFile, "1-1 1\n" );
+        assert(InputNames[Node->index]);
+        if (Else == ElseR) { // no inverter
+            fprintf(pFile, ".names %s %s%lx %s%lx %s%lx\n", InputNames[Node->index],
+                    Prefix, (mask & (long)ElseR) / sizeof(DdNode),
+                    Prefix, (mask & (long)Then) / sizeof(DdNode),
+                    Prefix, (mask & (long)Node) / sizeof(DdNode));
+            fprintf(pFile, "01- 1\n");
+            fprintf(pFile, "1-1 1\n");
+        } else { // inverter
+            fprintf(pFile, ".names %s %s%lx_i %s%lx %s%lx\n", InputNames[Node->index],
+                    Prefix, (mask & (long)ElseR) / sizeof(DdNode),
+                    Prefix, (mask & (long)Then) / sizeof(DdNode),
+                    Prefix, (mask & (long)Node) / sizeof(DdNode));
+            fprintf(pFile, "01- 1\n");
+            fprintf(pFile, "1-1 1\n");
 
-            fprintf( pFile, ".names %s%lx %s%lx_i\n",  
-                              Prefix, ( mask & (long)ElseR  ) / sizeof(DdNode),
-                              Prefix, ( mask & (long)ElseR  ) / sizeof(DdNode)   );
-            fprintf( pFile, "0 1\n" );
+            fprintf(pFile, ".names %s%lx %s%lx_i\n",
+                    Prefix, (mask & (long)ElseR) / sizeof(DdNode),
+                    Prefix, (mask & (long)ElseR) / sizeof(DdNode));
+            fprintf(pFile, "0 1\n");
         }
     }
-    st__free_gen( gen );
+    st__free_gen(gen);
     gen = NULL;
-    st__free_table( visited );
-
+    st__free_table(visited);
 
     //////////////////////////////////////////////////
-    Cudd_RecursiveDeref( s_ddmin, bFmin );
+    Cudd_RecursiveDeref(s_ddmin, bFmin);
     //////////////////////////////////////////////////
 }
-
-
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                    TRANSFER WITH MAPPING                         ///
 ////////////////////////////////////////////////////////////////////////
-static DdNode * cuddBddTransferPermuteRecur
-ARGS((DdManager * ddS, DdManager * ddD, DdNode * f, st__table * table, int * Permute ));
+static DdNode* cuddBddTransferPermuteRecur
+    ARGS((DdManager * ddS, DdManager* ddD, DdNode* f, st__table* table, int* Permute));
 
-static DdNode * cuddBddTransferPermute
-ARGS((DdManager * ddS, DdManager * ddD, DdNode * f, int * Permute));
+static DdNode* cuddBddTransferPermute
+    ARGS((DdManager * ddS, DdManager* ddD, DdNode* f, int* Permute));
 
 /**Function********************************************************************
 
@@ -1090,26 +1054,23 @@ ARGS((DdManager * ddS, DdManager * ddD, DdNode * f, int * Permute));
   SeeAlso     []
 
 ******************************************************************************/
-DdNode *
-Cudd_bddTransferPermute( DdManager * ddSource,
-                  DdManager * ddDestination, DdNode * f, int * Permute )
-{
-    DdNode *res;
-    do
-    {
+DdNode*
+Cudd_bddTransferPermute(DdManager* ddSource,
+                        DdManager* ddDestination,
+                        DdNode* f,
+                        int* Permute) {
+    DdNode* res;
+    do {
         ddDestination->reordered = 0;
-        res = cuddBddTransferPermute( ddSource, ddDestination, f, Permute );
-    }
-    while ( ddDestination->reordered == 1 );
-    return ( res );
+        res = cuddBddTransferPermute(ddSource, ddDestination, f, Permute);
+    } while (ddDestination->reordered == 1);
+    return (res);
 
-}                               /* end of Cudd_bddTransferPermute */
-
+} /* end of Cudd_bddTransferPermute */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -1124,49 +1085,46 @@ Cudd_bddTransferPermute( DdManager * ddSource,
   SeeAlso     [Cudd_bddTransferPermute]
 
 ******************************************************************************/
-DdNode *
-cuddBddTransferPermute( DdManager * ddS, DdManager * ddD, DdNode * f, int * Permute )
-{
-    DdNode *res;
-    st__table *table = NULL;
-    st__generator *gen = NULL;
+DdNode*
+cuddBddTransferPermute(DdManager* ddS, DdManager* ddD, DdNode* f, int* Permute) {
+    DdNode* res;
+    st__table* table = NULL;
+    st__generator* gen = NULL;
     DdNode *key, *value;
 
-    table = st__init_table( st__ptrcmp, st__ptrhash );
-    if ( table == NULL )
+    table = st__init_table(st__ptrcmp, st__ptrhash);
+    if (table == NULL)
         goto failure;
-    res = cuddBddTransferPermuteRecur( ddS, ddD, f, table, Permute );
-    if ( res != NULL )
-        cuddRef( res );
+    res = cuddBddTransferPermuteRecur(ddS, ddD, f, table, Permute);
+    if (res != NULL)
+        cuddRef(res);
 
     /* Dereference all elements in the table and dispose of the table.
        ** This must be done also if res is NULL to avoid leaks in case of
        ** reordering. */
-    gen = st__init_gen( table );
-    if ( gen == NULL )
+    gen = st__init_gen(table);
+    if (gen == NULL)
         goto failure;
-    while ( st__gen( gen, ( const char ** ) &key, ( char ** ) &value ) )
-    {
-        Cudd_RecursiveDeref( ddD, value );
+    while (st__gen(gen, (const char**)&key, (char**)&value)) {
+        Cudd_RecursiveDeref(ddD, value);
     }
-    st__free_gen( gen );
+    st__free_gen(gen);
     gen = NULL;
-    st__free_table( table );
+    st__free_table(table);
     table = NULL;
 
-    if ( res != NULL )
-        cuddDeref( res );
-    return ( res );
+    if (res != NULL)
+        cuddDeref(res);
+    return (res);
 
-  failure:
-    if ( table != NULL )
-        st__free_table( table );
-    if ( gen != NULL )
-        st__free_gen( gen );
-    return ( NULL );
+failure:
+    if (table != NULL)
+        st__free_table(table);
+    if (gen != NULL)
+        st__free_gen(gen);
+    return (NULL);
 
-}                               /* end of cuddBddTransferPermute */
-
+} /* end of cuddBddTransferPermute */
 
 /**Function********************************************************************
 
@@ -1180,86 +1138,78 @@ cuddBddTransferPermute( DdManager * ddS, DdManager * ddD, DdNode * f, int * Perm
   SeeAlso     [cuddBddTransferPermute]
 
 ******************************************************************************/
-static DdNode *
-cuddBddTransferPermuteRecur( DdManager * ddS,
-                      DdManager * ddD, DdNode * f, st__table * table, int * Permute )
-{
+static DdNode*
+cuddBddTransferPermuteRecur(DdManager* ddS,
+                            DdManager* ddD,
+                            DdNode* f,
+                            st__table* table,
+                            int* Permute) {
     DdNode *ft, *fe, *t, *e, *var, *res;
     DdNode *one, *zero;
     int index;
     int comple = 0;
 
-    statLine( ddD );
-    one = DD_ONE( ddD );
-    comple = Cudd_IsComplement( f );
+    statLine(ddD);
+    one = DD_ONE(ddD);
+    comple = Cudd_IsComplement(f);
 
     /* Trivial cases. */
-    if ( Cudd_IsConstant( f ) )
-        return ( Cudd_NotCond( one, comple ) );
+    if (Cudd_IsConstant(f))
+        return (Cudd_NotCond(one, comple));
 
     /* Make canonical to increase the utilization of the cache. */
-    f = Cudd_NotCond( f, comple );
+    f = Cudd_NotCond(f, comple);
     /* Now f is a regular pointer to a non-constant node. */
 
     /* Check the cache. */
-    if ( st__lookup( table, ( char * ) f, ( char ** ) &res ) )
-        return ( Cudd_NotCond( res, comple ) );
+    if (st__lookup(table, (char*)f, (char**)&res))
+        return (Cudd_NotCond(res, comple));
 
     /* Recursive step. */
     index = Permute[f->index];
-    ft = cuddT( f );
-    fe = cuddE( f );
+    ft = cuddT(f);
+    fe = cuddE(f);
 
-    t = cuddBddTransferPermuteRecur( ddS, ddD, ft, table, Permute );
-    if ( t == NULL )
-    {
-        return ( NULL );
+    t = cuddBddTransferPermuteRecur(ddS, ddD, ft, table, Permute);
+    if (t == NULL) {
+        return (NULL);
     }
-    cuddRef( t );
+    cuddRef(t);
 
-    e = cuddBddTransferPermuteRecur( ddS, ddD, fe, table, Permute );
-    if ( e == NULL )
-    {
-        Cudd_RecursiveDeref( ddD, t );
-        return ( NULL );
+    e = cuddBddTransferPermuteRecur(ddS, ddD, fe, table, Permute);
+    if (e == NULL) {
+        Cudd_RecursiveDeref(ddD, t);
+        return (NULL);
     }
-    cuddRef( e );
+    cuddRef(e);
 
-    zero = Cudd_Not( one );
-    var = cuddUniqueInter( ddD, index, one, zero );
-    if ( var == NULL )
-    {
-        Cudd_RecursiveDeref( ddD, t );
-        Cudd_RecursiveDeref( ddD, e );
-        return ( NULL );
+    zero = Cudd_Not(one);
+    var = cuddUniqueInter(ddD, index, one, zero);
+    if (var == NULL) {
+        Cudd_RecursiveDeref(ddD, t);
+        Cudd_RecursiveDeref(ddD, e);
+        return (NULL);
     }
-    res = cuddBddIteRecur( ddD, var, t, e );
-    if ( res == NULL )
-    {
-        Cudd_RecursiveDeref( ddD, t );
-        Cudd_RecursiveDeref( ddD, e );
-        return ( NULL );
+    res = cuddBddIteRecur(ddD, var, t, e);
+    if (res == NULL) {
+        Cudd_RecursiveDeref(ddD, t);
+        Cudd_RecursiveDeref(ddD, e);
+        return (NULL);
     }
-    cuddRef( res );
-    Cudd_RecursiveDeref( ddD, t );
-    Cudd_RecursiveDeref( ddD, e );
+    cuddRef(res);
+    Cudd_RecursiveDeref(ddD, t);
+    Cudd_RecursiveDeref(ddD, e);
 
-    if ( st__add_direct( table, ( char * ) f, ( char * ) res ) ==
-         st__OUT_OF_MEM )
-    {
-        Cudd_RecursiveDeref( ddD, res );
-        return ( NULL );
+    if (st__add_direct(table, (char*)f, (char*)res) == st__OUT_OF_MEM) {
+        Cudd_RecursiveDeref(ddD, res);
+        return (NULL);
     }
-    return ( Cudd_NotCond( res, comple ) );
+    return (Cudd_NotCond(res, comple));
 
-}                               /* end of cuddBddTransferPermuteRecur */
+} /* end of cuddBddTransferPermuteRecur */
 
 ////////////////////////////////////////////////////////////////////////
 ///                           END OF FILE                            ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
-
 ABC_NAMESPACE_IMPL_END
-

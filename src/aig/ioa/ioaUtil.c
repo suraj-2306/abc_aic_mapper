@@ -23,7 +23,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -43,19 +42,17 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-int Ioa_FileSize( char * pFileName )
-{
-    FILE * pFile;
+int Ioa_FileSize(char* pFileName) {
+    FILE* pFile;
     int nFileSize;
-    pFile = fopen( pFileName, "r" );
-    if ( pFile == NULL )
-    {
-        printf( "Ioa_FileSize(): The file is unavailable (absent or open).\n" );
+    pFile = fopen(pFileName, "r");
+    if (pFile == NULL) {
+        printf("Ioa_FileSize(): The file is unavailable (absent or open).\n");
         return 0;
     }
-    fseek( pFile, 0, SEEK_END );  
-    nFileSize = ftell( pFile ); 
-    fclose( pFile );
+    fseek(pFile, 0, SEEK_END);
+    nFileSize = ftell(pFile);
+    fclose(pFile);
     return nFileSize;
 }
 
@@ -70,11 +67,10 @@ int Ioa_FileSize( char * pFileName )
   SeeAlso     []
 
 ***********************************************************************/
-char * Ioa_FileNameGeneric( char * FileName )
-{
-    char * pDot, * pRes;
-    pRes = Abc_UtilStrsav( FileName );
-    if ( (pDot = strrchr( pRes, '.' )) )
+char* Ioa_FileNameGeneric(char* FileName) {
+    char *pDot, *pRes;
+    pRes = Abc_UtilStrsav(FileName);
+    if ((pDot = strrchr(pRes, '.')))
         *pDot = 0;
     return pRes;
 }
@@ -90,26 +86,21 @@ char * Ioa_FileNameGeneric( char * FileName )
   SeeAlso     []
 
 ***********************************************************************/
-char * Ioa_FileNameGenericAppend( char * pBase, char * pSuffix )
-{
+char* Ioa_FileNameGenericAppend(char* pBase, char* pSuffix) {
     static char Buffer[1000];
-    char * pDot;
-    if ( pBase == NULL )
-    {
-        strcpy( Buffer, pSuffix );
+    char* pDot;
+    if (pBase == NULL) {
+        strcpy(Buffer, pSuffix);
         return Buffer;
     }
-    strcpy( Buffer, pBase );
-    if ( (pDot = strrchr( Buffer, '.' )) )
+    strcpy(Buffer, pBase);
+    if ((pDot = strrchr(Buffer, '.')))
         *pDot = 0;
-    strcat( Buffer, pSuffix );
+    strcat(Buffer, pSuffix);
     // find the last occurrance of slash
-    for ( pDot = Buffer + strlen(Buffer) - 1; pDot >= Buffer; pDot-- )    
-        if (!((*pDot >= '0' && *pDot <= '9') ||
-              (*pDot >= 'a' && *pDot <= 'z') ||
-              (*pDot >= 'A' && *pDot <= 'Z') || 
-               *pDot == '_' || *pDot == '.') )
-               break;
+    for (pDot = Buffer + strlen(Buffer) - 1; pDot >= Buffer; pDot--)
+        if (!((*pDot >= '0' && *pDot <= '9') || (*pDot >= 'a' && *pDot <= 'z') || (*pDot >= 'A' && *pDot <= 'Z') || *pDot == '_' || *pDot == '.'))
+            break;
     return pDot + 1;
 }
 
@@ -124,16 +115,15 @@ char * Ioa_FileNameGenericAppend( char * pBase, char * pSuffix )
   SeeAlso     []
 
 ***********************************************************************/
-char * Ioa_TimeStamp()
-{
+char* Ioa_TimeStamp() {
     static char Buffer[100];
-    char * TimeStamp;
+    char* TimeStamp;
     time_t ltime;
     // get the current time
-    time( &ltime );
-    TimeStamp = asctime( localtime( &ltime ) );
-    TimeStamp[ strlen(TimeStamp) - 1 ] = 0;
-    strcpy( Buffer, TimeStamp );
+    time(&ltime);
+    TimeStamp = asctime(localtime(&ltime));
+    TimeStamp[strlen(TimeStamp) - 1] = 0;
+    strcpy(Buffer, TimeStamp);
     return Buffer;
 }
 
@@ -141,6 +131,4 @@ char * Ioa_TimeStamp()
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

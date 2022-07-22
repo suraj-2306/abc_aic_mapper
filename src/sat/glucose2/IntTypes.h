@@ -21,17 +21,17 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define Glucose_IntTypes_h
 
 #ifdef __sun
-    // Not sure if there are newer versions that support C99 headers. The
-    // needed features are implemented in the headers below though:
+// Not sure if there are newer versions that support C99 headers. The
+// needed features are implemented in the headers below though:
 
-#   include <sys/int_types.h>
-#   include <sys/int_fmtio.h>
-#   include <sys/int_limits.h>
+#    include <sys/int_types.h>
+#    include <sys/int_fmtio.h>
+#    include <sys/int_limits.h>
 
 #else
 
-#define __STDC_LIMIT_MACROS
-#   include "pstdint.h"
+#    define __STDC_LIMIT_MACROS
+#    include "pstdint.h"
 //#   include <inttypes.h>
 
 #endif
@@ -39,8 +39,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <limits.h>
 
 #ifndef PRIu64
-#define PRIu64 "lu"
-#define PRIi64 "ld"
+#    define PRIu64 "lu"
+#    define PRIi64 "ld"
 #endif
 //=================================================================================================
 

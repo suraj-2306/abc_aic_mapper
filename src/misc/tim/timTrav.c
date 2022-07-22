@@ -41,18 +41,16 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Tim_ManIncrementTravId( Tim_Man_t * p )
-{
+void Tim_ManIncrementTravId(Tim_Man_t* p) {
     int i;
-    if ( p->nTravIds >= (1<<30)-1 )
-    {
+    if (p->nTravIds >= (1 << 30) - 1) {
         p->nTravIds = 0;
-        for ( i = 0; i < p->nCis; i++ )
+        for (i = 0; i < p->nCis; i++)
             p->pCis[i].TravId = 0;
-        for ( i = 0; i < p->nCos; i++ )
+        for (i = 0; i < p->nCos; i++)
             p->pCos[i].TravId = 0;
     }
-    assert( p->nTravIds < (1<<30)-1 );
+    assert(p->nTravIds < (1 << 30) - 1);
     p->nTravIds++;
 }
 
@@ -67,14 +65,14 @@ void Tim_ManIncrementTravId( Tim_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Tim_ManSetCurrentTravIdBoxInputs( Tim_Man_t * p, int iBox )
-{
-    Tim_Box_t * pBox;
-    Tim_Obj_t * pObj;
+void Tim_ManSetCurrentTravIdBoxInputs(Tim_Man_t* p, int iBox) {
+    Tim_Box_t* pBox;
+    Tim_Obj_t* pObj;
     int i;
-    pBox = Tim_ManBox( p, iBox );
-    Tim_ManBoxForEachInput( p, pBox, pObj, i )
-        pObj->TravId = p->nTravIds;
+    pBox = Tim_ManBox(p, iBox);
+    Tim_ManBoxForEachInput(p, pBox, pObj, i)
+        pObj->TravId
+        = p->nTravIds;
 }
 
 /**Function*************************************************************
@@ -88,14 +86,14 @@ void Tim_ManSetCurrentTravIdBoxInputs( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-void Tim_ManSetCurrentTravIdBoxOutputs( Tim_Man_t * p, int iBox )
-{
-    Tim_Box_t * pBox;
-    Tim_Obj_t * pObj;
+void Tim_ManSetCurrentTravIdBoxOutputs(Tim_Man_t* p, int iBox) {
+    Tim_Box_t* pBox;
+    Tim_Obj_t* pObj;
     int i;
-    pBox = Tim_ManBox( p, iBox );
-    Tim_ManBoxForEachOutput( p, pBox, pObj, i )
-        pObj->TravId = p->nTravIds;
+    pBox = Tim_ManBox(p, iBox);
+    Tim_ManBoxForEachOutput(p, pBox, pObj, i)
+        pObj->TravId
+        = p->nTravIds;
 }
 
 /**Function*************************************************************
@@ -109,14 +107,14 @@ void Tim_ManSetCurrentTravIdBoxOutputs( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-void Tim_ManSetPreviousTravIdBoxInputs( Tim_Man_t * p, int iBox )
-{
-    Tim_Box_t * pBox;
-    Tim_Obj_t * pObj;
+void Tim_ManSetPreviousTravIdBoxInputs(Tim_Man_t* p, int iBox) {
+    Tim_Box_t* pBox;
+    Tim_Obj_t* pObj;
     int i;
-    pBox = Tim_ManBox( p, iBox );
-    Tim_ManBoxForEachInput( p, pBox, pObj, i )
-        pObj->TravId = p->nTravIds - 1;
+    pBox = Tim_ManBox(p, iBox);
+    Tim_ManBoxForEachInput(p, pBox, pObj, i)
+        pObj->TravId
+        = p->nTravIds - 1;
 }
 
 /**Function*************************************************************
@@ -130,14 +128,14 @@ void Tim_ManSetPreviousTravIdBoxInputs( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-void Tim_ManSetPreviousTravIdBoxOutputs( Tim_Man_t * p, int iBox )
-{
-    Tim_Box_t * pBox;
-    Tim_Obj_t * pObj;
+void Tim_ManSetPreviousTravIdBoxOutputs(Tim_Man_t* p, int iBox) {
+    Tim_Box_t* pBox;
+    Tim_Obj_t* pObj;
     int i;
-    pBox = Tim_ManBox( p, iBox );
-    Tim_ManBoxForEachOutput( p, pBox, pObj, i )
-        pObj->TravId = p->nTravIds - 1;
+    pBox = Tim_ManBox(p, iBox);
+    Tim_ManBoxForEachOutput(p, pBox, pObj, i)
+        pObj->TravId
+        = p->nTravIds - 1;
 }
 
 /**Function*************************************************************
@@ -151,10 +149,9 @@ void Tim_ManSetPreviousTravIdBoxOutputs( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManIsCiTravIdCurrent( Tim_Man_t * p, int iCi )
-{
-    assert( iCi < p->nCis );
-    assert( p->fUseTravId );
+int Tim_ManIsCiTravIdCurrent(Tim_Man_t* p, int iCi) {
+    assert(iCi < p->nCis);
+    assert(p->fUseTravId);
     return p->pCis[iCi].TravId == p->nTravIds;
 }
 
@@ -169,10 +166,9 @@ int Tim_ManIsCiTravIdCurrent( Tim_Man_t * p, int iCi )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManIsCoTravIdCurrent( Tim_Man_t * p, int iCo )
-{
-    assert( iCo < p->nCos );
-    assert( p->fUseTravId );
+int Tim_ManIsCoTravIdCurrent(Tim_Man_t* p, int iCo) {
+    assert(iCo < p->nCos);
+    assert(p->fUseTravId);
     return p->pCos[iCo].TravId == p->nTravIds;
 }
 
@@ -180,6 +176,4 @@ int Tim_ManIsCoTravIdCurrent( Tim_Man_t * p, int iCo )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

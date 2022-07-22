@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,13 +41,12 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Hop_Obj_t * Hop_ObjCreatePi( Hop_Man_t * p )
-{
-    Hop_Obj_t * pObj;
-    pObj = Hop_ManFetchMemory( p );
+Hop_Obj_t* Hop_ObjCreatePi(Hop_Man_t* p) {
+    Hop_Obj_t* pObj;
+    pObj = Hop_ManFetchMemory(p);
     pObj->Type = AIG_PI;
-    pObj->PioNum = Vec_PtrSize( p->vPis );
-    Vec_PtrPush( p->vPis, pObj );
+    pObj->PioNum = Vec_PtrSize(p->vPis);
+    Vec_PtrPush(p->vPis, pObj);
     p->nObjs[AIG_PI]++;
     return pObj;
 }
@@ -64,18 +62,17 @@ Hop_Obj_t * Hop_ObjCreatePi( Hop_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Hop_Obj_t * Hop_ObjCreatePo( Hop_Man_t * p, Hop_Obj_t * pDriver )
-{
-    Hop_Obj_t * pObj;
-    pObj = Hop_ManFetchMemory( p );
+Hop_Obj_t* Hop_ObjCreatePo(Hop_Man_t* p, Hop_Obj_t* pDriver) {
+    Hop_Obj_t* pObj;
+    pObj = Hop_ManFetchMemory(p);
     pObj->Type = AIG_PO;
-    Vec_PtrPush( p->vPos, pObj );
+    Vec_PtrPush(p->vPos, pObj);
     // add connections
     pObj->pFanin0 = pDriver;
-    if ( p->fRefCount )
-        Hop_ObjRef( Hop_Regular(pDriver) );
+    if (p->fRefCount)
+        Hop_ObjRef(Hop_Regular(pDriver));
     else
-        pObj->nRefs = Hop_ObjLevel( Hop_Regular(pDriver) );
+        pObj->nRefs = Hop_ObjLevel(Hop_Regular(pDriver));
     // set the phase
     pObj->fPhase = Hop_ObjPhaseCompl(pDriver);
     // update node counters of the manager
@@ -94,20 +91,19 @@ Hop_Obj_t * Hop_ObjCreatePo( Hop_Man_t * p, Hop_Obj_t * pDriver )
   SeeAlso     []
 
 ***********************************************************************/
-Hop_Obj_t * Hop_ObjCreate( Hop_Man_t * p, Hop_Obj_t * pGhost )
-{
-    Hop_Obj_t * pObj;
-    assert( !Hop_IsComplement(pGhost) );
-    assert( Hop_ObjIsNode(pGhost) );
-    assert( pGhost == &p->Ghost );
+Hop_Obj_t* Hop_ObjCreate(Hop_Man_t* p, Hop_Obj_t* pGhost) {
+    Hop_Obj_t* pObj;
+    assert(!Hop_IsComplement(pGhost));
+    assert(Hop_ObjIsNode(pGhost));
+    assert(pGhost == &p->Ghost);
     // get memory for the new object
-    pObj = Hop_ManFetchMemory( p );
+    pObj = Hop_ManFetchMemory(p);
     pObj->Type = pGhost->Type;
     // add connections
-    Hop_ObjConnect( p, pObj, pGhost->pFanin0, pGhost->pFanin1 );
+    Hop_ObjConnect(p, pObj, pGhost->pFanin0, pGhost->pFanin1);
     // update node counters of the manager
     p->nObjs[Hop_ObjType(pObj)]++;
-    assert( pObj->pData == NULL );
+    assert(pObj->pData == NULL);
     return pObj;
 }
 
@@ -122,27 +118,24 @@ Hop_Obj_t * Hop_ObjCreate( Hop_Man_t * p, Hop_Obj_t * pGhost )
   SeeAlso     []
 
 ***********************************************************************/
-void Hop_ObjConnect( Hop_Man_t * p, Hop_Obj_t * pObj, Hop_Obj_t * pFan0, Hop_Obj_t * pFan1 )
-{
-    assert( !Hop_IsComplement(pObj) );
-    assert( Hop_ObjIsNode(pObj) );
+void Hop_ObjConnect(Hop_Man_t* p, Hop_Obj_t* pObj, Hop_Obj_t* pFan0, Hop_Obj_t* pFan1) {
+    assert(!Hop_IsComplement(pObj));
+    assert(Hop_ObjIsNode(pObj));
     // add the first fanin
     pObj->pFanin0 = pFan0;
     pObj->pFanin1 = pFan1;
     // increment references of the fanins and add their fanouts
-    if ( p->fRefCount )
-    {
-        if ( pFan0 != NULL )
-            Hop_ObjRef( Hop_ObjFanin0(pObj) );
-        if ( pFan1 != NULL )
-            Hop_ObjRef( Hop_ObjFanin1(pObj) );
-    }
-    else
-        pObj->nRefs = Hop_ObjLevelNew( pObj );
+    if (p->fRefCount) {
+        if (pFan0 != NULL)
+            Hop_ObjRef(Hop_ObjFanin0(pObj));
+        if (pFan1 != NULL)
+            Hop_ObjRef(Hop_ObjFanin1(pObj));
+    } else
+        pObj->nRefs = Hop_ObjLevelNew(pObj);
     // set the phase
     pObj->fPhase = Hop_ObjPhaseCompl(pFan0) & Hop_ObjPhaseCompl(pFan1);
     // add the node to the structural hash table
-    Hop_TableInsert( p, pObj );
+    Hop_TableInsert(p, pObj);
 }
 
 /**Function*************************************************************
@@ -156,17 +149,16 @@ void Hop_ObjConnect( Hop_Man_t * p, Hop_Obj_t * pObj, Hop_Obj_t * pFan0, Hop_Obj
   SeeAlso     []
 
 ***********************************************************************/
-void Hop_ObjDisconnect( Hop_Man_t * p, Hop_Obj_t * pObj )
-{
-    assert( !Hop_IsComplement(pObj) );
-    assert( Hop_ObjIsNode(pObj) );
+void Hop_ObjDisconnect(Hop_Man_t* p, Hop_Obj_t* pObj) {
+    assert(!Hop_IsComplement(pObj));
+    assert(Hop_ObjIsNode(pObj));
     // remove connections
-    if ( pObj->pFanin0 != NULL )
+    if (pObj->pFanin0 != NULL)
         Hop_ObjDeref(Hop_ObjFanin0(pObj));
-    if ( pObj->pFanin1 != NULL )
+    if (pObj->pFanin1 != NULL)
         Hop_ObjDeref(Hop_ObjFanin1(pObj));
     // remove the node from the structural hash table
-    Hop_TableDelete( p, pObj );
+    Hop_TableDelete(p, pObj);
     // add the first fanin
     pObj->pFanin0 = NULL;
     pObj->pFanin1 = NULL;
@@ -183,21 +175,20 @@ void Hop_ObjDisconnect( Hop_Man_t * p, Hop_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-void Hop_ObjDelete( Hop_Man_t * p, Hop_Obj_t * pObj )
-{
-    assert( !Hop_IsComplement(pObj) );
-    assert( !Hop_ObjIsTerm(pObj) );
-    assert( Hop_ObjRefs(pObj) == 0 );
+void Hop_ObjDelete(Hop_Man_t* p, Hop_Obj_t* pObj) {
+    assert(!Hop_IsComplement(pObj));
+    assert(!Hop_ObjIsTerm(pObj));
+    assert(Hop_ObjRefs(pObj) == 0);
     // update node counters of the manager
     p->nObjs[pObj->Type]--;
     p->nDeleted++;
     // remove connections
-    Hop_ObjDisconnect( p, pObj );
+    Hop_ObjDisconnect(p, pObj);
     // remove PIs/POs from the arrays
-    if ( Hop_ObjIsPi(pObj) )
-        Vec_PtrRemove( p->vPis, pObj );
+    if (Hop_ObjIsPi(pObj))
+        Vec_PtrRemove(p->vPis, pObj);
     // free the node
-    Hop_ManRecycleMemory( p, pObj );
+    Hop_ManRecycleMemory(p, pObj);
 }
 
 /**Function*************************************************************
@@ -211,20 +202,19 @@ void Hop_ObjDelete( Hop_Man_t * p, Hop_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-void Hop_ObjDelete_rec( Hop_Man_t * p, Hop_Obj_t * pObj )
-{
-    Hop_Obj_t * pFanin0, * pFanin1;
-    assert( !Hop_IsComplement(pObj) );
-    if ( Hop_ObjIsConst1(pObj) || Hop_ObjIsPi(pObj) )
+void Hop_ObjDelete_rec(Hop_Man_t* p, Hop_Obj_t* pObj) {
+    Hop_Obj_t *pFanin0, *pFanin1;
+    assert(!Hop_IsComplement(pObj));
+    if (Hop_ObjIsConst1(pObj) || Hop_ObjIsPi(pObj))
         return;
-    assert( Hop_ObjIsNode(pObj) );
+    assert(Hop_ObjIsNode(pObj));
     pFanin0 = Hop_ObjFanin0(pObj);
     pFanin1 = Hop_ObjFanin1(pObj);
-    Hop_ObjDelete( p, pObj );
-    if ( pFanin0 && !Hop_ObjIsNone(pFanin0) && Hop_ObjRefs(pFanin0) == 0 )
-        Hop_ObjDelete_rec( p, pFanin0 );
-    if ( pFanin1 && !Hop_ObjIsNone(pFanin1) && Hop_ObjRefs(pFanin1) == 0 )
-        Hop_ObjDelete_rec( p, pFanin1 );
+    Hop_ObjDelete(p, pObj);
+    if (pFanin0 && !Hop_ObjIsNone(pFanin0) && Hop_ObjRefs(pFanin0) == 0)
+        Hop_ObjDelete_rec(p, pFanin0);
+    if (pFanin1 && !Hop_ObjIsNone(pFanin1) && Hop_ObjRefs(pFanin1) == 0)
+        Hop_ObjDelete_rec(p, pFanin1);
 }
 
 /**Function*************************************************************
@@ -238,12 +228,11 @@ void Hop_ObjDelete_rec( Hop_Man_t * p, Hop_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-Hop_Obj_t * Hop_ObjRepr( Hop_Obj_t * pObj )
-{
-    assert( !Hop_IsComplement(pObj) );
-    if ( pObj->pData == NULL || pObj->pData == pObj )
+Hop_Obj_t* Hop_ObjRepr(Hop_Obj_t* pObj) {
+    assert(!Hop_IsComplement(pObj));
+    if (pObj->pData == NULL || pObj->pData == pObj)
         return pObj;
-    return Hop_ObjRepr( (Hop_Obj_t *)pObj->pData );
+    return Hop_ObjRepr((Hop_Obj_t*)pObj->pData);
 }
 
 /**Function*************************************************************
@@ -257,14 +246,13 @@ Hop_Obj_t * Hop_ObjRepr( Hop_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-void Hop_ObjCreateChoice( Hop_Obj_t * pOld, Hop_Obj_t * pNew )
-{
-    Hop_Obj_t * pOldRepr;
-    Hop_Obj_t * pNewRepr;
-    assert( pOld != NULL && pNew != NULL );
+void Hop_ObjCreateChoice(Hop_Obj_t* pOld, Hop_Obj_t* pNew) {
+    Hop_Obj_t* pOldRepr;
+    Hop_Obj_t* pNewRepr;
+    assert(pOld != NULL && pNew != NULL);
     pOldRepr = Hop_ObjRepr(pOld);
     pNewRepr = Hop_ObjRepr(pNew);
-    if ( pNewRepr != pOldRepr )
+    if (pNewRepr != pOldRepr)
         pNewRepr->pData = pOldRepr;
 }
 
@@ -272,6 +260,4 @@ void Hop_ObjCreateChoice( Hop_Obj_t * pOld, Hop_Obj_t * pNew )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

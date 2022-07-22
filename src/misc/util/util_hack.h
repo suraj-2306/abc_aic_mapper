@@ -31,15 +31,15 @@
 
 ABC_NAMESPACE_HEADER_START
 
-#define NIL(type)           ((type *) 0)
+#define NIL(type) ((type*)0)
 
-#define util_cpu_time       Extra_CpuTime            
-#define getSoftDataLimit    Extra_GetSoftDataLimit   
-#define MMoutOfMemory       Extra_UtilMMoutOfMemory      
+#define util_cpu_time Extra_CpuTime
+#define getSoftDataLimit Extra_GetSoftDataLimit
+#define MMoutOfMemory Extra_UtilMMoutOfMemory
 
-extern abctime              Extra_CpuTime();
-extern int                  Extra_GetSoftDataLimit();
-extern void               (*Extra_UtilMMoutOfMemory)( long size );
+extern abctime Extra_CpuTime();
+extern int Extra_GetSoftDataLimit();
+extern void (*Extra_UtilMMoutOfMemory)(long size);
 
 ABC_NAMESPACE_HEADER_END
 

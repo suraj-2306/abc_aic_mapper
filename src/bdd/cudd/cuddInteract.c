@@ -79,29 +79,25 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
 #if SIZEOF_LONG == 8
-#define BPL 64
-#define LOGBPL 6
+#    define BPL 64
+#    define LOGBPL 6
 #else
-#define BPL 32
-#define LOGBPL 5
+#    define BPL 32
+#    define LOGBPL 5
 #endif
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -115,30 +111,26 @@ static char rcsid[] DD_UNUSED = "$Id: cuddInteract.c,v 1.12 2004/08/13 18:04:49 
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticStart*************************************************************/
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static void ddSuppInteract (DdNode *f, int *support);
-static void ddClearLocal (DdNode *f);
-static void ddUpdateInteract (DdManager *table, int *support);
-static void ddClearGlobal (DdManager *table);
+static void ddSuppInteract(DdNode* f, int* support);
+static void ddClearLocal(DdNode* f);
+static void ddUpdateInteract(DdManager* table, int* support);
+static void ddClearGlobal(DdManager* table);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -152,12 +144,10 @@ static void ddClearGlobal (DdManager *table);
   SeeAlso     []
 
 ******************************************************************************/
-void
-cuddSetInteract(
-  DdManager * table,
-  int  x,
-  int  y)
-{
+void cuddSetInteract(
+    DdManager* table,
+    int x,
+    int y) {
     int posn, word, bit;
 
 #ifdef DD_DEBUG
@@ -168,11 +158,10 @@ cuddSetInteract(
 
     posn = ((((table->size << 1) - x - 3) * x) >> 1) + y - 1;
     word = posn >> LOGBPL;
-    bit = posn & (BPL-1);
+    bit = posn & (BPL - 1);
     table->interact[word] |= 1L << bit;
 
 } /* end of cuddSetInteract */
-
 
 /**Function********************************************************************
 
@@ -187,12 +176,10 @@ cuddSetInteract(
   SeeAlso     []
 
 ******************************************************************************/
-int
-cuddTestInteract(
-  DdManager * table,
-  int  x,
-  int  y)
-{
+int cuddTestInteract(
+    DdManager* table,
+    int x,
+    int y) {
     int posn, word, bit, result;
 
     if (x > y) {
@@ -208,12 +195,11 @@ cuddTestInteract(
 
     posn = ((((table->size << 1) - x - 3) * x) >> 1) + y - 1;
     word = posn >> LOGBPL;
-    bit = posn & (BPL-1);
+    bit = posn & (BPL - 1);
     result = (table->interact[word] >> bit) & 1L;
-    return(result);
+    return (result);
 
 } /* end of cuddTestInteract */
-
 
 /**Function********************************************************************
 
@@ -233,35 +219,33 @@ cuddTestInteract(
   SeeAlso     []
 
 ******************************************************************************/
-int
-cuddInitInteract(
-  DdManager * table)
-{
-    int i,j,k;
+int cuddInitInteract(
+    DdManager* table) {
+    int i, j, k;
     ABC_UINT64_T words;
-    long *interact;
-    int *support;
-    DdNode *f;
-    DdNode *sentinel = &(table->sentinel);
-    DdNodePtr *nodelist;
+    long* interact;
+    int* support;
+    DdNode* f;
+    DdNode* sentinel = &(table->sentinel);
+    DdNodePtr* nodelist;
     int slots;
     int n = table->size;
 
-    words = ((n * (n-1)) >> (1 + LOGBPL)) + 1;
-    table->interact = interact = ABC_ALLOC(long,(unsigned)words);
+    words = ((n * (n - 1)) >> (1 + LOGBPL)) + 1;
+    table->interact = interact = ABC_ALLOC(long, (unsigned)words);
     if (interact == NULL) {
         table->errorCode = CUDD_MEMORY_OUT;
-        return(0);
+        return (0);
     }
     for (i = 0; i < words; i++) {
         interact[i] = 0;
     }
 
-    support = ABC_ALLOC(int,n);
+    support = ABC_ALLOC(int, n);
     if (support == NULL) {
         table->errorCode = CUDD_MEMORY_OUT;
         ABC_FREE(interact);
-        return(0);
+        return (0);
     }
 
     for (i = 0; i < n; i++) {
@@ -280,9 +264,9 @@ cuddInitInteract(
                     for (k = 0; k < n; k++) {
                         support[k] = 0;
                     }
-                    ddSuppInteract(f,support);
+                    ddSuppInteract(f, support);
                     ddClearLocal(f);
-                    ddUpdateInteract(table,support);
+                    ddUpdateInteract(table, support);
                 }
                 f = Cudd_Regular(f->next);
             }
@@ -291,15 +275,13 @@ cuddInitInteract(
     ddClearGlobal(table);
 
     ABC_FREE(support);
-    return(1);
+    return (1);
 
 } /* end of cuddInitInteract */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -315,23 +297,21 @@ cuddInitInteract(
 ******************************************************************************/
 static void
 ddSuppInteract(
-  DdNode * f,
-  int * support)
-{
+    DdNode* f,
+    int* support) {
     if (cuddIsConstant(f) || Cudd_IsComplement(cuddT(f))) {
         return;
     }
 
     support[f->index] = 1;
-    ddSuppInteract(cuddT(f),support);
-    ddSuppInteract(Cudd_Regular(cuddE(f)),support);
+    ddSuppInteract(cuddT(f), support);
+    ddSuppInteract(Cudd_Regular(cuddE(f)), support);
     /* mark as visited */
     cuddT(f) = Cudd_Complement(cuddT(f));
     f->next = Cudd_Complement(f->next);
     return;
 
 } /* end of ddSuppInteract */
-
 
 /**Function********************************************************************
 
@@ -346,8 +326,7 @@ ddSuppInteract(
 ******************************************************************************/
 static void
 ddClearLocal(
-  DdNode * f)
-{
+    DdNode* f) {
     if (cuddIsConstant(f) || !Cudd_IsComplement(cuddT(f))) {
         return;
     }
@@ -358,7 +337,6 @@ ddClearLocal(
     return;
 
 } /* end of ddClearLocal */
-
 
 /**Function********************************************************************
 
@@ -375,24 +353,22 @@ ddClearLocal(
 ******************************************************************************/
 static void
 ddUpdateInteract(
-  DdManager * table,
-  int * support)
-{
-    int i,j;
+    DdManager* table,
+    int* support) {
+    int i, j;
     int n = table->size;
 
-    for (i = 0; i < n-1; i++) {
+    for (i = 0; i < n - 1; i++) {
         if (support[i] == 1) {
-            for (j = i+1; j < n; j++) {
+            for (j = i + 1; j < n; j++) {
                 if (support[j] == 1) {
-                    cuddSetInteract(table,i,j);
+                    cuddSetInteract(table, i, j);
                 }
             }
         }
     }
 
 } /* end of ddUpdateInteract */
-
 
 /**Function********************************************************************
 
@@ -409,12 +385,11 @@ ddUpdateInteract(
 ******************************************************************************/
 static void
 ddClearGlobal(
-  DdManager * table)
-{
-    int i,j;
-    DdNode *f;
-    DdNode *sentinel = &(table->sentinel);
-    DdNodePtr *nodelist;
+    DdManager* table) {
+    int i, j;
+    DdNode* f;
+    DdNode* sentinel = &(table->sentinel);
+    DdNodePtr* nodelist;
     int slots;
 
     for (i = 0; i < table->size; i++) {
@@ -431,7 +406,4 @@ ddClearGlobal(
 
 } /* end of ddClearGlobal */
 
-
 ABC_NAMESPACE_IMPL_END
-
-

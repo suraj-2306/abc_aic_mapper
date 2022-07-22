@@ -17,13 +17,11 @@
   Revision    [$Id: abcInt.h,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
-#ifndef ABC__base__abc__abcInt_h
-#define ABC__base__abc__abcInt_h
 
+#ifndef ABC__base__abc__abcInt_h
+#    define ABC__base__abc__abcInt_h
 
 ABC_NAMESPACE_HEADER_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
@@ -33,7 +31,7 @@ ABC_NAMESPACE_HEADER_START
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
-#define ABC_NUM_STEPS  10
+#    define ABC_NUM_STEPS 10
 
 ////////////////////////////////////////////////////////////////////////
 ///                    STRUCTURE DEFINITIONS                         ///
@@ -47,8 +45,6 @@ ABC_NAMESPACE_HEADER_START
 ///                    FUNCTION DECLARATIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
 ABC_NAMESPACE_HEADER_END
 
 #endif
@@ -56,5 +52,3 @@ ABC_NAMESPACE_HEADER_END
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-
-

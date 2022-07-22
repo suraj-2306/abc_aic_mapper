@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -47,21 +46,20 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-reo_man * Extra_ReorderInit( int nDdVarsMax, int nNodesMax )
-{
-    reo_man * p;
+reo_man* Extra_ReorderInit(int nDdVarsMax, int nNodesMax) {
+    reo_man* p;
     // allocate and clean the data structure
-    p = ABC_ALLOC( reo_man, 1 );
-    memset( p, 0, sizeof(reo_man) );
-    // resize the manager to meet user's needs    
-    reoResizeStructures( p, nDdVarsMax, nNodesMax, 100 );
+    p = ABC_ALLOC(reo_man, 1);
+    memset(p, 0, sizeof(reo_man));
+    // resize the manager to meet user's needs
+    reoResizeStructures(p, nDdVarsMax, nNodesMax, 100);
     // set the defaults
-    p->fMinApl   = 0;
+    p->fMinApl = 0;
     p->fMinWidth = 0;
-    p->fRemapUp  = 0;
-    p->fVerbose  = 0;
-    p->fVerify   = 0;
-    p->nIters    = 1;
+    p->fRemapUp = 0;
+    p->fVerbose = 0;
+    p->fVerify = 0;
+    p->nIters = 1;
     return p;
 }
 
@@ -76,23 +74,22 @@ reo_man * Extra_ReorderInit( int nDdVarsMax, int nNodesMax )
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ReorderQuit( reo_man * p )
-{
-    ABC_FREE( p->pTops );
-    ABC_FREE( p->pSupp );
-    ABC_FREE( p->pOrderInt );
-    ABC_FREE( p->pWidthCofs );
-    ABC_FREE( p->pMapToPlanes );
-    ABC_FREE( p->pMapToDdVarsOrig );
-    ABC_FREE( p->pMapToDdVarsFinal );
-    ABC_FREE( p->pPlanes );
-    ABC_FREE( p->pVarCosts );
-    ABC_FREE( p->pLevelOrder );
-    ABC_FREE( p->HTable );
-    ABC_FREE( p->pRefNodes );
-    reoUnitsStopDispenser( p );
-    ABC_FREE( p->pMemChunks );
-    ABC_FREE( p );
+void Extra_ReorderQuit(reo_man* p) {
+    ABC_FREE(p->pTops);
+    ABC_FREE(p->pSupp);
+    ABC_FREE(p->pOrderInt);
+    ABC_FREE(p->pWidthCofs);
+    ABC_FREE(p->pMapToPlanes);
+    ABC_FREE(p->pMapToDdVarsOrig);
+    ABC_FREE(p->pMapToDdVarsFinal);
+    ABC_FREE(p->pPlanes);
+    ABC_FREE(p->pVarCosts);
+    ABC_FREE(p->pLevelOrder);
+    ABC_FREE(p->HTable);
+    ABC_FREE(p->pRefNodes);
+    reoUnitsStopDispenser(p);
+    ABC_FREE(p->pMemChunks);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -119,26 +116,18 @@ void Extra_ReorderQuit( reo_man * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ReorderSetMinimizationType( reo_man * p, reo_min_type fMinType )
-{
-    if ( fMinType == REO_MINIMIZE_NODES ) 
-    {
+void Extra_ReorderSetMinimizationType(reo_man* p, reo_min_type fMinType) {
+    if (fMinType == REO_MINIMIZE_NODES) {
         p->fMinWidth = 0;
-        p->fMinApl   = 0;
-    }
-    else if ( fMinType == REO_MINIMIZE_WIDTH )
-    {
+        p->fMinApl = 0;
+    } else if (fMinType == REO_MINIMIZE_WIDTH) {
         p->fMinWidth = 1;
-        p->fMinApl   = 0;
-    }
-    else if ( fMinType == REO_MINIMIZE_APL )
-    {
+        p->fMinApl = 0;
+    } else if (fMinType == REO_MINIMIZE_APL) {
         p->fMinWidth = 0;
-        p->fMinApl   = 1;
-    }
-    else 
-    {
-        assert( 0 );
+        p->fMinApl = 1;
+    } else {
+        assert(0);
     }
 }
 
@@ -169,8 +158,7 @@ void Extra_ReorderSetMinimizationType( reo_man * p, reo_min_type fMinType )
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ReorderSetRemapping( reo_man * p, int fRemapUp )
-{
+void Extra_ReorderSetRemapping(reo_man* p, int fRemapUp) {
     p->fRemapUp = fRemapUp;
 }
 
@@ -189,8 +177,7 @@ void Extra_ReorderSetRemapping( reo_man * p, int fRemapUp )
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ReorderSetIterations( reo_man * p, int nIters )
-{
+void Extra_ReorderSetIterations(reo_man* p, int nIters) {
     p->nIters = nIters;
 }
 
@@ -209,8 +196,7 @@ void Extra_ReorderSetIterations( reo_man * p, int nIters )
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ReorderSetVerification( reo_man * p, int fVerify )
-{
+void Extra_ReorderSetVerification(reo_man* p, int fVerify) {
     p->fVerify = fVerify;
 }
 
@@ -226,8 +212,7 @@ void Extra_ReorderSetVerification( reo_man * p, int fVerify )
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ReorderSetVerbosity( reo_man * p, int fVerbose )
-{
+void Extra_ReorderSetVerbosity(reo_man* p, int fVerbose) {
     p->fVerbose = fVerbose;
 }
 
@@ -259,11 +244,10 @@ void Extra_ReorderSetVerbosity( reo_man * p, int fVerbose )
   SeeAlso     []
 
 ***********************************************************************/
-DdNode * Extra_Reorder( reo_man * p, DdManager * dd, DdNode * Func, int * pOrder )
-{
-    DdNode * FuncRes;
-    Extra_ReorderArray( p, dd, &Func, &FuncRes, 1, pOrder );
-    Cudd_Deref( FuncRes );
+DdNode* Extra_Reorder(reo_man* p, DdManager* dd, DdNode* Func, int* pOrder) {
+    DdNode* FuncRes;
+    Extra_ReorderArray(p, dd, &Func, &FuncRes, 1, pOrder);
+    Cudd_Deref(FuncRes);
     return FuncRes;
 }
 
@@ -280,15 +264,12 @@ DdNode * Extra_Reorder( reo_man * p, DdManager * dd, DdNode * Func, int * pOrder
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ReorderArray( reo_man * p, DdManager * dd, DdNode * Funcs[], DdNode * FuncsRes[], int nFuncs, int * pOrder )
-{
-    reoReorderArray( p, dd, Funcs, FuncsRes, nFuncs, pOrder );
+void Extra_ReorderArray(reo_man* p, DdManager* dd, DdNode* Funcs[], DdNode* FuncsRes[], int nFuncs, int* pOrder) {
+    reoReorderArray(p, dd, Funcs, FuncsRes, nFuncs, pOrder);
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                         END OF FILE                              ///
 ////////////////////////////////////////////////////////////////////////
 
 ABC_NAMESPACE_IMPL_END
-

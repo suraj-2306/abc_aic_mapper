@@ -1,3 +1,7 @@
+Buildir
+Testing
+clang-format-all
+
 DebugLib/
 DebugExe/
 DebugExt/
@@ -59,8 +63,3 @@ tags
 
 /cmake
 /cscope
-
-*.swp
-*.swo
-
-*.__*

@@ -20,23 +20,20 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-struct ParseStackFnStruct
-{
-    void **     pData;        // the array of elements
-    int           Top;          // the index
-    int           Size;         // the stack size
+struct ParseStackFnStruct {
+    void** pData; // the array of elements
+    int Top;      // the index
+    int Size;     // the stack size
 };
 
-struct ParseStackOpStruct
-{
-    int *         pData;        // the array of elements
-    int           Top;          // the index
-    int           Size;         // the stack size
+struct ParseStackOpStruct {
+    int* pData; // the array of elements
+    int Top;    // the index
+    int Size;   // the stack size
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -54,12 +51,11 @@ struct ParseStackOpStruct
   SeeAlso     []
 
 ***********************************************************************/
-Parse_StackFn_t * Parse_StackFnStart( int nDepth )
-{
-    Parse_StackFn_t * p;
-    p = ABC_ALLOC( Parse_StackFn_t, 1 );
-    memset( p, 0, sizeof(Parse_StackFn_t) );
-    p->pData = ABC_ALLOC( void *, nDepth );
+Parse_StackFn_t* Parse_StackFnStart(int nDepth) {
+    Parse_StackFn_t* p;
+    p = ABC_ALLOC(Parse_StackFn_t, 1);
+    memset(p, 0, sizeof(Parse_StackFn_t));
+    p->pData = ABC_ALLOC(void*, nDepth);
     p->Size = nDepth;
     return p;
 }
@@ -75,8 +71,7 @@ Parse_StackFn_t * Parse_StackFnStart( int nDepth )
   SeeAlso     []
 
 ***********************************************************************/
-int Parse_StackFnIsEmpty( Parse_StackFn_t * p )
-{
+int Parse_StackFnIsEmpty(Parse_StackFn_t* p) {
     return (int)(p->Top == 0);
 }
 
@@ -91,14 +86,12 @@ int Parse_StackFnIsEmpty( Parse_StackFn_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Parse_StackFnPush( Parse_StackFn_t * p, void * bFunc )
-{
-    if ( p->Top >= p->Size )
-    {
-        printf( "Parse_StackFnPush(): Stack size is too small!\n" );
+void Parse_StackFnPush(Parse_StackFn_t* p, void* bFunc) {
+    if (p->Top >= p->Size) {
+        printf("Parse_StackFnPush(): Stack size is too small!\n");
         return;
     }
-    p->pData[ p->Top++ ] = bFunc;
+    p->pData[p->Top++] = bFunc;
 }
 
 /**Function*************************************************************
@@ -112,14 +105,12 @@ void Parse_StackFnPush( Parse_StackFn_t * p, void * bFunc )
   SeeAlso     []
 
 ***********************************************************************/
-void * Parse_StackFnPop( Parse_StackFn_t * p )
-{
-    if ( p->Top == 0 )
-    {
-        printf( "Parse_StackFnPush(): Trying to extract data from the empty stack!\n" );
+void* Parse_StackFnPop(Parse_StackFn_t* p) {
+    if (p->Top == 0) {
+        printf("Parse_StackFnPush(): Trying to extract data from the empty stack!\n");
         return NULL;
     }
-    return p->pData[ --p->Top ];
+    return p->pData[--p->Top];
 }
 
 /**Function*************************************************************
@@ -133,14 +124,10 @@ void * Parse_StackFnPop( Parse_StackFn_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Parse_StackFnFree( Parse_StackFn_t * p )
-{
-    ABC_FREE( p->pData );
-    ABC_FREE( p );
+void Parse_StackFnFree(Parse_StackFn_t* p) {
+    ABC_FREE(p->pData);
+    ABC_FREE(p);
 }
-
-
-
 
 /**Function*************************************************************
 
@@ -153,12 +140,11 @@ void Parse_StackFnFree( Parse_StackFn_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Parse_StackOp_t * Parse_StackOpStart( int nDepth )
-{
-    Parse_StackOp_t * p;
-    p = ABC_ALLOC( Parse_StackOp_t, 1 );
-    memset( p, 0, sizeof(Parse_StackOp_t) );
-    p->pData = ABC_ALLOC( int, nDepth );
+Parse_StackOp_t* Parse_StackOpStart(int nDepth) {
+    Parse_StackOp_t* p;
+    p = ABC_ALLOC(Parse_StackOp_t, 1);
+    memset(p, 0, sizeof(Parse_StackOp_t));
+    p->pData = ABC_ALLOC(int, nDepth);
     p->Size = nDepth;
     return p;
 }
@@ -174,8 +160,7 @@ Parse_StackOp_t * Parse_StackOpStart( int nDepth )
   SeeAlso     []
 
 ***********************************************************************/
-int Parse_StackOpIsEmpty( Parse_StackOp_t * p )
-{
+int Parse_StackOpIsEmpty(Parse_StackOp_t* p) {
     return (int)(p->Top == 0);
 }
 
@@ -190,14 +175,12 @@ int Parse_StackOpIsEmpty( Parse_StackOp_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Parse_StackOpPush( Parse_StackOp_t * p, int Oper )
-{
-    if ( p->Top >= p->Size )
-    {
-        printf( "Parse_StackOpPush(): Stack size is too small!\n" );
+void Parse_StackOpPush(Parse_StackOp_t* p, int Oper) {
+    if (p->Top >= p->Size) {
+        printf("Parse_StackOpPush(): Stack size is too small!\n");
         return;
     }
-    p->pData[ p->Top++ ] = Oper;
+    p->pData[p->Top++] = Oper;
 }
 
 /**Function*************************************************************
@@ -211,14 +194,12 @@ void Parse_StackOpPush( Parse_StackOp_t * p, int Oper )
   SeeAlso     []
 
 ***********************************************************************/
-int Parse_StackOpPop( Parse_StackOp_t * p )
-{
-    if ( p->Top == 0 )
-    {
-        printf( "Parse_StackOpPush(): Trying to extract data from the empty stack!\n" );
+int Parse_StackOpPop(Parse_StackOp_t* p) {
+    if (p->Top == 0) {
+        printf("Parse_StackOpPush(): Trying to extract data from the empty stack!\n");
         return -1;
     }
-    return p->pData[ --p->Top ];
+    return p->pData[--p->Top];
 }
 
 /**Function*************************************************************
@@ -232,17 +213,13 @@ int Parse_StackOpPop( Parse_StackOp_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Parse_StackOpFree( Parse_StackOp_t * p )
-{
-    ABC_FREE( p->pData );
-    ABC_FREE( p );
+void Parse_StackOpFree(Parse_StackOp_t* p) {
+    ABC_FREE(p->pData);
+    ABC_FREE(p);
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

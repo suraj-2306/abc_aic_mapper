@@ -57,23 +57,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -83,18 +77,16 @@ ABC_NAMESPACE_IMPL_START
 static char rcsid[] DD_UNUSED = "$Id: cuddSign.c,v 1.22 2009/02/20 02:14:58 fabio Exp $";
 #endif
 
-static int    size;
+static int size;
 
 #ifdef DD_STATS
-static int num_calls;   /* should equal 2n-1 (n is the # of nodes) */
+static int num_calls; /* should equal 2n-1 (n is the # of nodes) */
 static int table_mem;
 #endif
-
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
-
 
 /**AutomaticStart*************************************************************/
 
@@ -102,10 +94,9 @@ static int table_mem;
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static double * ddCofMintermAux (DdManager *dd, DdNode *node, st__table *table);
+static double* ddCofMintermAux(DdManager* dd, DdNode* node, st__table* table);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
@@ -127,34 +118,33 @@ static double * ddCofMintermAux (DdManager *dd, DdNode *node, st__table *table);
   SideEffects [None]
 
 ******************************************************************************/
-double *
+double*
 Cudd_CofMinterm(
-  DdManager * dd,
-  DdNode * node)
-{
-    st__table    *table;
-    double      *values;
-    double      *result = NULL;
-    int         i, firstLevel;
+    DdManager* dd,
+    DdNode* node) {
+    st__table* table;
+    double* values;
+    double* result = NULL;
+    int i, firstLevel;
 
 #ifdef DD_STATS
     long startTime;
     startTime = util_cpu_time();
     num_calls = 0;
-    table_mem = sizeof( st__table);
+    table_mem = sizeof(st__table);
 #endif
 
-    table = st__init_table( st__ptrcmp, st__ptrhash);
+    table = st__init_table(st__ptrcmp, st__ptrhash);
     if (table == NULL) {
-        (void) fprintf(dd->err,
-                       "out-of-memory, couldn't measure DD cofactors.\n");
+        (void)fprintf(dd->err,
+                      "out-of-memory, couldn't measure DD cofactors.\n");
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
     size = dd->size;
     values = ddCofMintermAux(dd, node, table);
     if (values != NULL) {
-        result = ABC_ALLOC(double,size + 1);
+        result = ABC_ALLOC(double, size + 1);
         if (result != NULL) {
 #ifdef DD_STATS
             table_mem += (size + 1) * sizeof(double);
@@ -162,9 +152,9 @@ Cudd_CofMinterm(
             if (Cudd_IsConstant(node))
                 firstLevel = 1;
             else
-                firstLevel = cuddI(dd,Cudd_Regular(node)->index);
+                firstLevel = cuddI(dd, Cudd_Regular(node)->index);
             for (i = 0; i < size; i++) {
-                if (i >= cuddI(dd,Cudd_Regular(node)->index)) {
+                if (i >= cuddI(dd, Cudd_Regular(node)->index)) {
                     result[dd->invperm[i]] = values[i - firstLevel];
                 } else {
                     result[dd->invperm[i]] = values[size - firstLevel];
@@ -177,36 +167,33 @@ Cudd_CofMinterm(
     }
 
 #ifdef DD_STATS
-    table_mem += table->num_bins * sizeof( st__table_entry *);
+    table_mem += table->num_bins * sizeof(st__table_entry*);
 #endif
     if (Cudd_Regular(node)->ref == 1) ABC_FREE(values);
     st__foreach(table, cuddStCountfree, NULL);
     st__free_table(table);
 #ifdef DD_STATS
-    (void) fprintf(dd->out,"Number of calls: %d\tTable memory: %d bytes\n",
+    (void)fprintf(dd->out, "Number of calls: %d\tTable memory: %d bytes\n",
                   num_calls, table_mem);
-    (void) fprintf(dd->out,"Time to compute measures: %s\n",
+    (void)fprintf(dd->out, "Time to compute measures: %s\n",
                   util_print_time(util_cpu_time() - startTime));
 #endif
     if (result == NULL) {
-        (void) fprintf(dd->out,
-                       "out-of-memory, couldn't measure DD cofactors.\n");
+        (void)fprintf(dd->out,
+                      "out-of-memory, couldn't measure DD cofactors.\n");
         dd->errorCode = CUDD_MEMORY_OUT;
     }
-    return(result);
+    return (result);
 
 } /* end of Cudd_CofMinterm */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -228,39 +215,38 @@ Cudd_CofMinterm(
   SeeAlso     []
 
 ******************************************************************************/
-static double *
+static double*
 ddCofMintermAux(
-  DdManager * dd,
-  DdNode * node,
-  st__table * table)
-{
-    DdNode      *N;             /* regular version of node */
-    DdNode      *Nv, *Nnv;
-    double      *values;
-    double      *valuesT, *valuesE;
-    int         i;
-    int         localSize, localSizeT, localSizeE;
-    double      vT, vE;
+    DdManager* dd,
+    DdNode* node,
+    st__table* table) {
+    DdNode* N; /* regular version of node */
+    DdNode *Nv, *Nnv;
+    double* values;
+    double *valuesT, *valuesE;
+    int i;
+    int localSize, localSizeT, localSizeE;
+    double vT, vE;
 
     statLine(dd);
 #ifdef DD_STATS
     num_calls++;
 #endif
 
-    if ( st__lookup(table, (const char *)node, (char **)&values)) {
-        return(values);
+    if (st__lookup(table, (const char*)node, (char**)&values)) {
+        return (values);
     }
 
     N = Cudd_Regular(node);
     if (cuddIsConstant(N)) {
         localSize = 1;
     } else {
-        localSize = size - cuddI(dd,N->index) + 1;
+        localSize = size - cuddI(dd, N->index) + 1;
     }
     values = ABC_ALLOC(double, localSize);
     if (values == NULL) {
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
 
     if (cuddIsConstant(N)) {
@@ -270,35 +256,33 @@ ddCofMintermAux(
             values[0] = 1.0;
         }
     } else {
-        Nv = Cudd_NotCond(cuddT(N),N!=node);
-        Nnv = Cudd_NotCond(cuddE(N),N!=node);
+        Nv = Cudd_NotCond(cuddT(N), N != node);
+        Nnv = Cudd_NotCond(cuddE(N), N != node);
 
         valuesT = ddCofMintermAux(dd, Nv, table);
-        if (valuesT == NULL) return(NULL);
+        if (valuesT == NULL) return (NULL);
         valuesE = ddCofMintermAux(dd, Nnv, table);
-        if (valuesE == NULL) return(NULL);
+        if (valuesE == NULL) return (NULL);
 
         if (Cudd_IsConstant(Nv)) {
             localSizeT = 1;
         } else {
-            localSizeT = size - cuddI(dd,Cudd_Regular(Nv)->index) + 1;
+            localSizeT = size - cuddI(dd, Cudd_Regular(Nv)->index) + 1;
         }
         if (Cudd_IsConstant(Nnv)) {
             localSizeE = 1;
         } else {
-            localSizeE = size - cuddI(dd,Cudd_Regular(Nnv)->index) + 1;
+            localSizeE = size - cuddI(dd, Cudd_Regular(Nnv)->index) + 1;
         }
         values[0] = valuesT[localSizeT - 1];
         for (i = 1; i < localSize; i++) {
-            if (i >= cuddI(dd,Cudd_Regular(Nv)->index) - cuddI(dd,N->index)) {
-                vT = valuesT[i - cuddI(dd,Cudd_Regular(Nv)->index) +
-                            cuddI(dd,N->index)];
+            if (i >= cuddI(dd, Cudd_Regular(Nv)->index) - cuddI(dd, N->index)) {
+                vT = valuesT[i - cuddI(dd, Cudd_Regular(Nv)->index) + cuddI(dd, N->index)];
             } else {
                 vT = valuesT[localSizeT - 1];
             }
-            if (i >= cuddI(dd,Cudd_Regular(Nnv)->index) - cuddI(dd,N->index)) {
-                vE = valuesE[i - cuddI(dd,Cudd_Regular(Nnv)->index) +
-                            cuddI(dd,N->index)];
+            if (i >= cuddI(dd, Cudd_Regular(Nnv)->index) - cuddI(dd, N->index)) {
+                vE = valuesE[i - cuddI(dd, Cudd_Regular(Nnv)->index) + cuddI(dd, N->index)];
             } else {
                 vE = valuesE[localSizeE - 1];
             }
@@ -309,18 +293,16 @@ ddCofMintermAux(
     }
 
     if (N->ref > 1) {
-        if ( st__add_direct(table, (char *) node, (char *) values) == st__OUT_OF_MEM) {
+        if (st__add_direct(table, (char*)node, (char*)values) == st__OUT_OF_MEM) {
             ABC_FREE(values);
-            return(NULL);
+            return (NULL);
         }
 #ifdef DD_STATS
-        table_mem += localSize * sizeof(double) + sizeof( st__table_entry);
+        table_mem += localSize * sizeof(double) + sizeof(st__table_entry);
 #endif
     }
-    return(values);
+    return (values);
 
 } /* end of ddCofMintermAux */
 
-
 ABC_NAMESPACE_IMPL_END
-

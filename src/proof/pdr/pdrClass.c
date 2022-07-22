@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,38 +41,39 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Pdr_ManRehashWithMap( Aig_Man_t * pAig, Vec_Int_t * vMap )
-{
-    Aig_Man_t * pFrames;
-    Aig_Obj_t * pObj;
+Aig_Man_t* Pdr_ManRehashWithMap(Aig_Man_t* pAig, Vec_Int_t* vMap) {
+    Aig_Man_t* pFrames;
+    Aig_Obj_t* pObj;
     int i, iReg;
-    assert( Vec_IntSize(vMap) == Aig_ManRegNum(pAig) );
+    assert(Vec_IntSize(vMap) == Aig_ManRegNum(pAig));
     // start the fraig package
-    pFrames = Aig_ManStart( Aig_ManObjNumMax(pAig) );
-    pFrames->pName = Abc_UtilStrsav( pAig->pName );
-    pFrames->pSpec = Abc_UtilStrsav( pAig->pSpec );
+    pFrames = Aig_ManStart(Aig_ManObjNumMax(pAig));
+    pFrames->pName = Abc_UtilStrsav(pAig->pName);
+    pFrames->pSpec = Abc_UtilStrsav(pAig->pSpec);
     // create CI mapping
-    Aig_ManCleanData( pAig );
+    Aig_ManCleanData(pAig);
     Aig_ManConst1(pAig)->pData = Aig_ManConst1(pFrames);
-    Aig_ManForEachCi( pAig, pObj, i )
-        pObj->pData = Aig_ObjCreateCi(pFrames);
-    Saig_ManForEachLo( pAig, pObj, i )
-    {
+    Aig_ManForEachCi(pAig, pObj, i)
+        pObj->pData
+        = Aig_ObjCreateCi(pFrames);
+    Saig_ManForEachLo(pAig, pObj, i) {
         iReg = Vec_IntEntry(vMap, i);
-        if ( iReg == -1 )
+        if (iReg == -1)
             pObj->pData = Aig_ManConst0(pFrames);
         else
             pObj->pData = Saig_ManLo(pAig, iReg)->pData;
     }
     // add internal nodes of this frame
-    Aig_ManForEachNode( pAig, pObj, i )
-        pObj->pData = Aig_And( pFrames, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj) );
+    Aig_ManForEachNode(pAig, pObj, i)
+        pObj->pData
+        = Aig_And(pFrames, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj));
     // add output nodes
-    Aig_ManForEachCo( pAig, pObj, i )
-        pObj->pData = Aig_ObjCreateCo( pFrames, Aig_ObjChild0Copy(pObj) );
+    Aig_ManForEachCo(pAig, pObj, i)
+        pObj->pData
+        = Aig_ObjCreateCo(pFrames, Aig_ObjChild0Copy(pObj));
     // finish off
-    Aig_ManCleanup( pFrames );
-    Aig_ManSetRegNum( pFrames, Aig_ManRegNum(pAig) );
+    Aig_ManCleanup(pFrames);
+    Aig_ManSetRegNum(pFrames, Aig_ManRegNum(pAig));
     return pFrames;
 }
 
@@ -88,28 +88,25 @@ Aig_Man_t * Pdr_ManRehashWithMap( Aig_Man_t * pAig, Vec_Int_t * vMap )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Int_t * Pdr_ManCreateMap( Aig_Man_t * p )
-{
-    Aig_Obj_t * pObj;
-    Vec_Int_t * vMap;
-    int * pLit2Id, Lit, i;
-    pLit2Id = ABC_ALLOC( int, Aig_ManObjNumMax(p) * 2 );
-    for ( i = 0; i < Aig_ManObjNumMax(p) * 2; i++ )
+Vec_Int_t* Pdr_ManCreateMap(Aig_Man_t* p) {
+    Aig_Obj_t* pObj;
+    Vec_Int_t* vMap;
+    int *pLit2Id, Lit, i;
+    pLit2Id = ABC_ALLOC(int, Aig_ManObjNumMax(p) * 2);
+    for (i = 0; i < Aig_ManObjNumMax(p) * 2; i++)
         pLit2Id[i] = -1;
-    vMap = Vec_IntAlloc( Aig_ManRegNum(p) );
-    Saig_ManForEachLi( p, pObj, i )
-    {
-        if ( Aig_ObjChild0(pObj) == Aig_ManConst0(p) )
-        {
-            Vec_IntPush( vMap, -1 );
+    vMap = Vec_IntAlloc(Aig_ManRegNum(p));
+    Saig_ManForEachLi(p, pObj, i) {
+        if (Aig_ObjChild0(pObj) == Aig_ManConst0(p)) {
+            Vec_IntPush(vMap, -1);
             continue;
         }
         Lit = 2 * Aig_ObjFaninId0(pObj) + Aig_ObjFaninC0(pObj);
-        if ( pLit2Id[Lit] < 0 ) // the first time
+        if (pLit2Id[Lit] < 0) // the first time
             pLit2Id[Lit] = i;
-        Vec_IntPush( vMap, pLit2Id[Lit] );
+        Vec_IntPush(vMap, pLit2Id[Lit]);
     }
-    ABC_FREE( pLit2Id );
+    ABC_FREE(pLit2Id);
     return vMap;
 }
 
@@ -124,12 +121,10 @@ Vec_Int_t * Pdr_ManCreateMap( Aig_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Pdr_ManCountMap( Vec_Int_t * vMap )
-{
+int Pdr_ManCountMap(Vec_Int_t* vMap) {
     int i, Entry, Counter = 0;
-    Vec_IntForEachEntry( vMap, Entry, i )
-        if ( Entry != i )
-            Counter++;
+    Vec_IntForEachEntry(vMap, Entry, i) if (Entry != i)
+        Counter++;
     return Counter;
 }
 
@@ -144,34 +139,30 @@ int Pdr_ManCountMap( Vec_Int_t * vMap )
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_ManPrintMap( Vec_Int_t * vMap )
-{
-    Vec_Int_t * vMarks;
+void Pdr_ManPrintMap(Vec_Int_t* vMap) {
+    Vec_Int_t* vMarks;
     int f, i, iClass, Entry, Counter = 0;
-    Abc_Print( 1, "    Consts: " );
-    Vec_IntForEachEntry( vMap, Entry, i )
-        if ( Entry == -1 )
-            Abc_Print( 1, "%d ", i );
-    Abc_Print( 1, "\n" );
-    vMarks = Vec_IntAlloc( 100 );
-    Vec_IntForEachEntry( vMap, iClass, f )
-    {
-        if ( iClass == -1 )
+    Abc_Print(1, "    Consts: ");
+    Vec_IntForEachEntry(vMap, Entry, i) if (Entry == -1)
+        Abc_Print(1, "%d ", i);
+    Abc_Print(1, "\n");
+    vMarks = Vec_IntAlloc(100);
+    Vec_IntForEachEntry(vMap, iClass, f) {
+        if (iClass == -1)
             continue;
-        if ( iClass == f )
+        if (iClass == f)
             continue;
         // check previous classes
-        if ( Vec_IntFind( vMarks, iClass ) >= 0 )
+        if (Vec_IntFind(vMarks, iClass) >= 0)
             continue;
-        Vec_IntPush( vMarks, iClass );
+        Vec_IntPush(vMarks, iClass);
         // print class
-        Abc_Print( 1, "    Class %d : ", iClass );
-        Vec_IntForEachEntry( vMap, Entry, i )
-            if ( Entry == iClass )
-                Abc_Print( 1, "%d ", i );
-        Abc_Print( 1, "\n" );
+        Abc_Print(1, "    Class %d : ", iClass);
+        Vec_IntForEachEntry(vMap, Entry, i) if (Entry == iClass)
+            Abc_Print(1, "%d ", i);
+        Abc_Print(1, "\n");
     }
-    Vec_IntFree( vMarks );
+    Vec_IntFree(vMarks);
 }
 
 /**Function*************************************************************
@@ -185,39 +176,35 @@ void Pdr_ManPrintMap( Vec_Int_t * vMap )
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_ManEquivClasses( Aig_Man_t * pAig )
-{
-    Vec_Int_t * vMap;
-    Aig_Man_t * pTemp;
+void Pdr_ManEquivClasses(Aig_Man_t* pAig) {
+    Vec_Int_t* vMap;
+    Aig_Man_t* pTemp;
     int f, nFrames = 100;
-    assert( Saig_ManRegNum(pAig) > 0 );
+    assert(Saig_ManRegNum(pAig) > 0);
     // start the map
-    vMap = Vec_IntAlloc( 0 );
-    Vec_IntFill( vMap, Aig_ManRegNum(pAig), -1 );
+    vMap = Vec_IntAlloc(0);
+    Vec_IntFill(vMap, Aig_ManRegNum(pAig), -1);
     // iterate and print changes
-    for ( f = 0; f < nFrames; f++ )
-    {
+    for (f = 0; f < nFrames; f++) {
         // implement variable map
-        pTemp = Pdr_ManRehashWithMap( pAig, vMap );
+        pTemp = Pdr_ManRehashWithMap(pAig, vMap);
         // report the result
-        Abc_Print( 1, "F =%4d : Total = %6d. Nodes = %6d. RedRegs = %6d. Prop = %s\n", 
-            f+1, Aig_ManNodeNum(pAig), Aig_ManNodeNum(pTemp), Pdr_ManCountMap(vMap), 
-            Aig_ObjChild0(Aig_ManCo(pTemp,0)) == Aig_ManConst0(pTemp) ? "proof" : "unknown" );
+        Abc_Print(1, "F =%4d : Total = %6d. Nodes = %6d. RedRegs = %6d. Prop = %s\n",
+                  f + 1, Aig_ManNodeNum(pAig), Aig_ManNodeNum(pTemp), Pdr_ManCountMap(vMap),
+                  Aig_ObjChild0(Aig_ManCo(pTemp, 0)) == Aig_ManConst0(pTemp) ? "proof" : "unknown");
         // recreate the map
-        Pdr_ManPrintMap( vMap );
-        Vec_IntFree( vMap );
-        vMap = Pdr_ManCreateMap( pTemp );
-        Aig_ManStop( pTemp );
-        if ( Pdr_ManCountMap(vMap) == 0 )
+        Pdr_ManPrintMap(vMap);
+        Vec_IntFree(vMap);
+        vMap = Pdr_ManCreateMap(pTemp);
+        Aig_ManStop(pTemp);
+        if (Pdr_ManCountMap(vMap) == 0)
             break;
     }
-    Vec_IntFree( vMap );
+    Vec_IntFree(vMap);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -31,18 +31,13 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_PinOut_t * MiMo_GateFindPinOut(MiMo_Gate_t *pGate, char *pName)
-{
+MiMo_PinOut_t* MiMo_GateFindPinOut(MiMo_Gate_t* pGate, char* pName) {
     // for now slow check, that name is not already defined
-    int i; 
-    MiMo_PinOut_t * pPinOut;
-    MiMo_GateForEachPinOut(pGate, pPinOut, i)
-        if( !strcmp(pPinOut->pName, pName) )
-            return pPinOut;
+    int i;
+    MiMo_PinOut_t* pPinOut;
+    MiMo_GateForEachPinOut(pGate, pPinOut, i) if (!strcmp(pPinOut->pName, pName)) return pPinOut;
     return NULL;
-
 }
- 
 
 /**Function*************************************************************
 
@@ -55,17 +50,13 @@ MiMo_PinOut_t * MiMo_GateFindPinOut(MiMo_Gate_t *pGate, char *pName)
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_PinIn_t * MiMo_GateFindPinIn(MiMo_Gate_t *pGate, char *pName)
-{
+MiMo_PinIn_t* MiMo_GateFindPinIn(MiMo_Gate_t* pGate, char* pName) {
     // for now slow check, that name is not already defined
-    int i; 
-    MiMo_PinIn_t * pPinIn;
-    MiMo_GateForEachPinIn(pGate, pPinIn, i)
-        if( !strcmp(pPinIn->pName, pName) )
-            return pPinIn;
+    int i;
+    MiMo_PinIn_t* pPinIn;
+    MiMo_GateForEachPinIn(pGate, pPinIn, i) if (!strcmp(pPinIn->pName, pName)) return pPinIn;
     return NULL;
 }
-
 
 /**Function*************************************************************
 
@@ -78,10 +69,9 @@ MiMo_PinIn_t * MiMo_GateFindPinIn(MiMo_Gate_t *pGate, char *pName)
   SeeAlso     []
 
 ***********************************************************************/
-void MiMo_DelayListSetDelay(MiMo_PinOut_t *pPinOut, MiMo_PinDelay_t * pLast, float delay){
-    MiMo_PinDelay_t * pDelayList = pPinOut->pDelayList;
-    while ( pDelayList && pDelayList != pLast )
-    {
+void MiMo_DelayListSetDelay(MiMo_PinOut_t* pPinOut, MiMo_PinDelay_t* pLast, float delay) {
+    MiMo_PinDelay_t* pDelayList = pPinOut->pDelayList;
+    while (pDelayList && pDelayList != pLast) {
         pDelayList->Delay = delay;
         pDelayList = pDelayList->pNext;
     }
@@ -98,22 +88,19 @@ void MiMo_DelayListSetDelay(MiMo_PinOut_t *pPinOut, MiMo_PinDelay_t * pLast, flo
   SeeAlso     []
 
 ***********************************************************************/
-int MiMo_DelayListAdd(MiMo_Gate_t *pGate, MiMo_PinOut_t * pToPinOut, char *pFromPinStr)
-{
-    MiMo_PinIn_t * pPinIn = MiMo_GateFindPinIn(pGate, pFromPinStr);
-    if ( pPinIn )
-    {
-        MiMo_PinDelay_t * pPinDelay = ABC_ALLOC(MiMo_PinDelay_t, 1);
+int MiMo_DelayListAdd(MiMo_Gate_t* pGate, MiMo_PinOut_t* pToPinOut, char* pFromPinStr) {
+    MiMo_PinIn_t* pPinIn = MiMo_GateFindPinIn(pGate, pFromPinStr);
+    if (pPinIn) {
+        MiMo_PinDelay_t* pPinDelay = ABC_ALLOC(MiMo_PinDelay_t, 1);
         pPinDelay->fFromPinOut = 0;
         pPinDelay->pFromPin = pPinIn;
         pPinDelay->pNext = pToPinOut->pDelayList;
         pToPinOut->pDelayList = pPinDelay;
         return 1;
     }
-    MiMo_PinOut_t * pPinOut =  MiMo_GateFindPinOut(pGate, pFromPinStr);
-    if ( pPinOut )
-    {
-        MiMo_PinDelay_t * pPinDelay = ABC_ALLOC(MiMo_PinDelay_t, 1);
+    MiMo_PinOut_t* pPinOut = MiMo_GateFindPinOut(pGate, pFromPinStr);
+    if (pPinOut) {
+        MiMo_PinDelay_t* pPinDelay = ABC_ALLOC(MiMo_PinDelay_t, 1);
         pPinDelay->fFromPinOut = 1;
         pPinDelay->pFromPin = pPinOut;
         pPinDelay->pNext = pToPinOut->pDelayList;
@@ -137,53 +124,44 @@ int MiMo_DelayListAdd(MiMo_Gate_t *pGate, MiMo_PinOut_t * pToPinOut, char *pFrom
 
 ***********************************************************************/
 
-int MiMo_LibCheck(MiMo_Library_t *pLib)
-{
+int MiMo_LibCheck(MiMo_Library_t* pLib) {
     int fOk = 1;
     int i, k;
-    MiMo_Gate_t * pGate;
-    MiMo_PinOut_t *pPinOut;
-    MiMo_LibForEachGate(pLib, pGate, i)
-    {
-        Vec_Int_t * vInSeen = Vec_IntStart ( Vec_PtrSize(pGate->pPinIns) );
-        // check that every output has some input 
-        MiMo_GateForEachPinOut(pGate, pPinOut, k)
-        {
-            if ( !pPinOut->pDelayList )
-            {
+    MiMo_Gate_t* pGate;
+    MiMo_PinOut_t* pPinOut;
+    MiMo_LibForEachGate(pLib, pGate, i) {
+        Vec_Int_t* vInSeen = Vec_IntStart(Vec_PtrSize(pGate->pPinIns));
+        // check that every output has some input
+        MiMo_GateForEachPinOut(pGate, pPinOut, k) {
+            if (!pPinOut->pDelayList) {
                 fOk = 0;
                 printf("Output pin %s in gate %s has no input\n", pGate->pName, pPinOut->pName);
             }
-            MiMo_PinDelay_t * pDelay = pPinOut->pDelayList;
-            while (pDelay)
-            {
-                if (pDelay->Delay < 0)
-                {
+            MiMo_PinDelay_t* pDelay = pPinOut->pDelayList;
+            while (pDelay) {
+                if (pDelay->Delay < 0) {
                     fOk = 0;
                     printf("Gate %s has from pin %s to pin %s a negative delay (%f)\n",
-                            pGate->pName, pPinOut->pName, MiMo_PinDelayInName(pDelay), pDelay->Delay);
+                           pGate->pName, pPinOut->pName, MiMo_PinDelayInName(pDelay), pDelay->Delay);
                 }
-                if ( ! pDelay->fFromPinOut )
-                    Vec_IntWriteEntry( vInSeen, ((MiMo_PinIn_t*)pDelay->pFromPin)->Id, 1);
+                if (!pDelay->fFromPinOut)
+                    Vec_IntWriteEntry(vInSeen, ((MiMo_PinIn_t*)pDelay->pFromPin)->Id, 1);
 
                 pDelay = pDelay->pNext;
             }
         }
         // check that every input is connected to some output
         int seen;
-        Vec_IntForEachEntry(vInSeen, seen, k)
-            if ( !seen )
-            {
-                fOk = 0;
-                printf("Gate %s has unconnected input pin %s\n", pGate->pName,
-                         ((MiMo_PinIn_t*)Vec_PtrEntry(pGate->pPinIns, k))->pName);
-            }
+        Vec_IntForEachEntry(vInSeen, seen, k) if (!seen) {
+            fOk = 0;
+            printf("Gate %s has unconnected input pin %s\n", pGate->pName,
+                   ((MiMo_PinIn_t*)Vec_PtrEntry(pGate->pPinIns, k))->pName);
+        }
         Vec_IntFree(vInSeen);
         // TODO: check that there is no cyclic output ...
     }
     return fOk;
 }
-
 
 /**Function*************************************************************
 
@@ -197,24 +175,20 @@ int MiMo_LibCheck(MiMo_Library_t *pLib)
   SeeAlso     []
 
 ***********************************************************************/
-void MiMo_PinCalcMaxDelay_rec(MiMo_PinOut_t *pPinOut)
-{
-    if ( pPinOut->MaxDelay >= 0)
+void MiMo_PinCalcMaxDelay_rec(MiMo_PinOut_t* pPinOut) {
+    if (pPinOut->MaxDelay >= 0)
         return;
-    MiMo_PinDelay_t * pDelay = pPinOut->pDelayList;
+    MiMo_PinDelay_t* pDelay = pPinOut->pDelayList;
     float maxDelay = -1;
-    while ( pDelay )
-    {
-        if (pDelay->fFromPinOut)
-        {
-            MiMo_PinOut_t *pPinOutIn = pDelay->pFromPin;
+    while (pDelay) {
+        if (pDelay->fFromPinOut) {
+            MiMo_PinOut_t* pPinOutIn = pDelay->pFromPin;
             MiMo_PinCalcMaxDelay_rec(pPinOutIn);
             float delay = pPinOutIn->MaxDelay + pDelay->Delay;
-            if ( maxDelay < delay)
+            if (maxDelay < delay)
                 maxDelay = delay;
-        } else
-        {
-            if ( maxDelay < pDelay->Delay )
+        } else {
+            if (maxDelay < pDelay->Delay)
                 maxDelay = pDelay->Delay;
         }
         pDelay = pDelay->pNext;
@@ -234,21 +208,19 @@ void MiMo_PinCalcMaxDelay_rec(MiMo_PinOut_t *pPinOut)
   SeeAlso     []
 
 ***********************************************************************/
-void MiMo_GateCalcMaxDelay(MiMo_Gate_t * pGate)
-{
+void MiMo_GateCalcMaxDelay(MiMo_Gate_t* pGate) {
     int i;
-    MiMo_PinOut_t *pPinOut;
+    MiMo_PinOut_t* pPinOut;
     MiMo_GateForEachPinOut(pGate, pPinOut, i)
-        pPinOut->MaxDelay = -1;
+        pPinOut->MaxDelay
+        = -1;
     float maxDelay = -1;
-    MiMo_GateForEachPinOut(pGate, pPinOut, i)
-    {
+    MiMo_GateForEachPinOut(pGate, pPinOut, i) {
         MiMo_PinCalcMaxDelay_rec(pPinOut);
         if (pPinOut->MaxDelay > maxDelay)
             maxDelay = pPinOut->MaxDelay;
     }
     pGate->MaxDelay = maxDelay;
 }
-
 
 ABC_NAMESPACE_IMPL_END

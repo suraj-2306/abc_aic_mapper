@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,16 +41,15 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopCreate( Kit_Sop_t * cResult, Vec_Int_t * vInput, int nVars, Vec_Int_t * vMemory )
-{
+void Kit_SopCreate(Kit_Sop_t* cResult, Vec_Int_t* vInput, int nVars, Vec_Int_t* vMemory) {
     unsigned uCube;
     int i;
     // start the cover
     cResult->nCubes = 0;
-    cResult->pCubes = Vec_IntFetch( vMemory, Vec_IntSize(vInput) );
+    cResult->pCubes = Vec_IntFetch(vMemory, Vec_IntSize(vInput));
     // add the cubes
-    Vec_IntForEachEntry( vInput, uCube, i )
-        Kit_SopPushCube( cResult, uCube );
+    Vec_IntForEachEntry(vInput, uCube, i)
+        Kit_SopPushCube(cResult, uCube);
 }
 
 /**Function*************************************************************
@@ -65,21 +63,19 @@ void Kit_SopCreate( Kit_Sop_t * cResult, Vec_Int_t * vInput, int nVars, Vec_Int_
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopCreateInverse( Kit_Sop_t * cResult, Vec_Int_t * vInput, int nLits, Vec_Int_t * vMemory )
-{
+void Kit_SopCreateInverse(Kit_Sop_t* cResult, Vec_Int_t* vInput, int nLits, Vec_Int_t* vMemory) {
     unsigned uCube, uMask = 0;
     int i, nCubes = Vec_IntSize(vInput);
     // start the cover
     cResult->nCubes = 0;
-    cResult->pCubes = Vec_IntFetch( vMemory, nCubes );
+    cResult->pCubes = Vec_IntFetch(vMemory, nCubes);
     // add the cubes
-//    Vec_IntForEachEntry( vInput, uCube, i )
-    for ( i = 0; i < nCubes; i++ )
-    {
-        uCube = Vec_IntEntry( vInput, i );
+    //    Vec_IntForEachEntry( vInput, uCube, i )
+    for (i = 0; i < nCubes; i++) {
+        uCube = Vec_IntEntry(vInput, i);
         uMask = ((uCube | (uCube >> 1)) & 0x55555555);
         uMask |= (uMask << 1);
-        Kit_SopPushCube( cResult, uCube ^ uMask );
+        Kit_SopPushCube(cResult, uCube ^ uMask);
     }
 }
 
@@ -94,16 +90,15 @@ void Kit_SopCreateInverse( Kit_Sop_t * cResult, Vec_Int_t * vInput, int nLits, V
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopDup( Kit_Sop_t * cResult, Kit_Sop_t * cSop, Vec_Int_t * vMemory )
-{
+void Kit_SopDup(Kit_Sop_t* cResult, Kit_Sop_t* cSop, Vec_Int_t* vMemory) {
     unsigned uCube;
     int i;
     // start the cover
     cResult->nCubes = 0;
-    cResult->pCubes = Vec_IntFetch( vMemory, Kit_SopCubeNum(cSop) );
+    cResult->pCubes = Vec_IntFetch(vMemory, Kit_SopCubeNum(cSop));
     // add the cubes
-    Kit_SopForEachCube( cSop, uCube, i )
-        Kit_SopPushCube( cResult, uCube );
+    Kit_SopForEachCube(cSop, uCube, i)
+        Kit_SopPushCube(cResult, uCube);
 }
 
 /**Function*************************************************************
@@ -118,18 +113,15 @@ void Kit_SopDup( Kit_Sop_t * cResult, Kit_Sop_t * cSop, Vec_Int_t * vMemory )
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopDivideByLiteralQuo( Kit_Sop_t * cSop, int iLit )
-{
+void Kit_SopDivideByLiteralQuo(Kit_Sop_t* cSop, int iLit) {
     unsigned uCube;
     int i, k = 0;
-    Kit_SopForEachCube( cSop, uCube, i )
-    {
-        if ( Kit_CubeHasLit(uCube, iLit) )
-            Kit_SopWriteCube( cSop, Kit_CubeRemLit(uCube, iLit), k++ );
+    Kit_SopForEachCube(cSop, uCube, i) {
+        if (Kit_CubeHasLit(uCube, iLit))
+            Kit_SopWriteCube(cSop, Kit_CubeRemLit(uCube, iLit), k++);
     }
-    Kit_SopShrink( cSop, k );
+    Kit_SopShrink(cSop, k);
 }
-
 
 /**Function*************************************************************
 
@@ -142,25 +134,23 @@ void Kit_SopDivideByLiteralQuo( Kit_Sop_t * cSop, int iLit )
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopDivideByCube( Kit_Sop_t * cSop, Kit_Sop_t * cDiv, Kit_Sop_t * vQuo, Kit_Sop_t * vRem, Vec_Int_t * vMemory )
-{
+void Kit_SopDivideByCube(Kit_Sop_t* cSop, Kit_Sop_t* cDiv, Kit_Sop_t* vQuo, Kit_Sop_t* vRem, Vec_Int_t* vMemory) {
     unsigned uCube, uDiv;
     int i;
     // get the only cube
-    assert( Kit_SopCubeNum(cDiv) == 1 );
+    assert(Kit_SopCubeNum(cDiv) == 1);
     uDiv = Kit_SopCube(cDiv, 0);
     // allocate covers
     vQuo->nCubes = 0;
-    vQuo->pCubes = Vec_IntFetch( vMemory, Kit_SopCubeNum(cSop) );
+    vQuo->pCubes = Vec_IntFetch(vMemory, Kit_SopCubeNum(cSop));
     vRem->nCubes = 0;
-    vRem->pCubes = Vec_IntFetch( vMemory, Kit_SopCubeNum(cSop) );
+    vRem->pCubes = Vec_IntFetch(vMemory, Kit_SopCubeNum(cSop));
     // sort the cubes
-    Kit_SopForEachCube( cSop, uCube, i )
-    {
-        if ( Kit_CubeContains( uCube, uDiv ) )
-            Kit_SopPushCube( vQuo, Kit_CubeSharp(uCube, uDiv) );
+    Kit_SopForEachCube(cSop, uCube, i) {
+        if (Kit_CubeContains(uCube, uDiv))
+            Kit_SopPushCube(vQuo, Kit_CubeSharp(uCube, uDiv));
         else
-            Kit_SopPushCube( vRem, uCube );
+            Kit_SopPushCube(vRem, uCube);
     }
 }
 
@@ -175,105 +165,94 @@ void Kit_SopDivideByCube( Kit_Sop_t * cSop, Kit_Sop_t * cDiv, Kit_Sop_t * vQuo, 
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopDivideInternal( Kit_Sop_t * cSop, Kit_Sop_t * cDiv, Kit_Sop_t * vQuo, Kit_Sop_t * vRem, Vec_Int_t * vMemory )
-{
+void Kit_SopDivideInternal(Kit_Sop_t* cSop, Kit_Sop_t* cDiv, Kit_Sop_t* vQuo, Kit_Sop_t* vRem, Vec_Int_t* vMemory) {
     unsigned uCube, uDiv;
     unsigned uCube2 = 0; // Suppress "might be used uninitialized"
     unsigned uDiv2, uQuo;
     int i, i2, k, k2, nCubesRem;
-    assert( Kit_SopCubeNum(cSop) >= Kit_SopCubeNum(cDiv) );
+    assert(Kit_SopCubeNum(cSop) >= Kit_SopCubeNum(cDiv));
     // consider special case
-    if ( Kit_SopCubeNum(cDiv) == 1 )
-    {
-        Kit_SopDivideByCube( cSop, cDiv, vQuo, vRem, vMemory );
+    if (Kit_SopCubeNum(cDiv) == 1) {
+        Kit_SopDivideByCube(cSop, cDiv, vQuo, vRem, vMemory);
         return;
     }
     // allocate quotient
     vQuo->nCubes = 0;
-    vQuo->pCubes = Vec_IntFetch( vMemory, Kit_SopCubeNum(cSop) / Kit_SopCubeNum(cDiv) );
+    vQuo->pCubes = Vec_IntFetch(vMemory, Kit_SopCubeNum(cSop) / Kit_SopCubeNum(cDiv));
     // for each cube of the cover
     // it either belongs to the quotient or to the remainder
-    Kit_SopForEachCube( cSop, uCube, i )
-    {
+    Kit_SopForEachCube(cSop, uCube, i) {
         // skip taken cubes
-        if ( Kit_CubeIsMarked(uCube) )
+        if (Kit_CubeIsMarked(uCube))
             continue;
         // find a matching cube in the divisor
         uDiv = ~0;
-        Kit_SopForEachCube( cDiv, uDiv, k )
-            if ( Kit_CubeContains( uCube, uDiv ) )
-                break;
-        // the cube is not found 
-        if ( k == Kit_SopCubeNum(cDiv) )
+        Kit_SopForEachCube(cDiv, uDiv, k) if (Kit_CubeContains(uCube, uDiv)) break;
+        // the cube is not found
+        if (k == Kit_SopCubeNum(cDiv))
             continue;
         // the quotient cube exists
-        uQuo = Kit_CubeSharp( uCube, uDiv );
+        uQuo = Kit_CubeSharp(uCube, uDiv);
         // find corresponding cubes for other cubes of the divisor
         uDiv2 = ~0;
-        Kit_SopForEachCube( cDiv, uDiv2, k2 )
-        {
-            if ( k2 == k )
+        Kit_SopForEachCube(cDiv, uDiv2, k2) {
+            if (k2 == k)
                 continue;
             // find a matching cube
-            Kit_SopForEachCube( cSop, uCube2, i2 )
-            {
+            Kit_SopForEachCube(cSop, uCube2, i2) {
                 // skip taken cubes
-                if ( Kit_CubeIsMarked(uCube2) )
+                if (Kit_CubeIsMarked(uCube2))
                     continue;
                 // check if the cube can be used
-                if ( Kit_CubeContains( uCube2, uDiv2 ) && uQuo == Kit_CubeSharp( uCube2, uDiv2 ) )
+                if (Kit_CubeContains(uCube2, uDiv2) && uQuo == Kit_CubeSharp(uCube2, uDiv2))
                     break;
             }
             // the case when the cube is not found
-            if ( i2 == Kit_SopCubeNum(cSop) )
+            if (i2 == Kit_SopCubeNum(cSop))
                 break;
         }
         // we did not find some cubes - continue looking at other cubes
-        if ( k2 != Kit_SopCubeNum(cDiv) )
+        if (k2 != Kit_SopCubeNum(cDiv))
             continue;
         // we found all cubes - add the quotient cube
-        Kit_SopPushCube( vQuo, uQuo );
+        Kit_SopPushCube(vQuo, uQuo);
 
         // mark the first cube
-        Kit_SopWriteCube( cSop, Kit_CubeMark(uCube), i );
+        Kit_SopWriteCube(cSop, Kit_CubeMark(uCube), i);
         // mark other cubes that have this quotient
-        Kit_SopForEachCube( cDiv, uDiv2, k2 )
-        {
-            if ( k2 == k )
+        Kit_SopForEachCube(cDiv, uDiv2, k2) {
+            if (k2 == k)
                 continue;
             // find a matching cube
-            Kit_SopForEachCube( cSop, uCube2, i2 )
-            {
+            Kit_SopForEachCube(cSop, uCube2, i2) {
                 // skip taken cubes
-                if ( Kit_CubeIsMarked(uCube2) )
+                if (Kit_CubeIsMarked(uCube2))
                     continue;
                 // check if the cube can be used
-                if ( Kit_CubeContains( uCube2, uDiv2 ) && uQuo == Kit_CubeSharp( uCube2, uDiv2 ) )
+                if (Kit_CubeContains(uCube2, uDiv2) && uQuo == Kit_CubeSharp(uCube2, uDiv2))
                     break;
             }
-            assert( i2 < Kit_SopCubeNum(cSop) );
-            // the cube is found, mark it 
+            assert(i2 < Kit_SopCubeNum(cSop));
+            // the cube is found, mark it
             // (later we will add all unmarked cubes to the remainder)
-            Kit_SopWriteCube( cSop, Kit_CubeMark(uCube2), i2 );
+            Kit_SopWriteCube(cSop, Kit_CubeMark(uCube2), i2);
         }
     }
     // determine the number of cubes in the remainder
     nCubesRem = Kit_SopCubeNum(cSop) - Kit_SopCubeNum(vQuo) * Kit_SopCubeNum(cDiv);
     // allocate remainder
     vRem->nCubes = 0;
-    vRem->pCubes = Vec_IntFetch( vMemory, nCubesRem );
-    // finally add the remaining unmarked cubes to the remainder 
+    vRem->pCubes = Vec_IntFetch(vMemory, nCubesRem);
+    // finally add the remaining unmarked cubes to the remainder
     // and clean the marked cubes in the cover
-    Kit_SopForEachCube( cSop, uCube, i )
-    {
-        if ( !Kit_CubeIsMarked(uCube) )
-        {
-            Kit_SopPushCube( vRem, uCube );
+    Kit_SopForEachCube(cSop, uCube, i) {
+        if (!Kit_CubeIsMarked(uCube)) {
+            Kit_SopPushCube(vRem, uCube);
             continue;
         }
-        Kit_SopWriteCube( cSop, Kit_CubeUnmark(uCube), i );
+        Kit_SopWriteCube(cSop, Kit_CubeUnmark(uCube), i);
     }
-    assert( nCubesRem == Kit_SopCubeNum(vRem) );
+    assert(nCubesRem == Kit_SopCubeNum(vRem));
 }
 
 /**Function*************************************************************
@@ -287,13 +266,13 @@ void Kit_SopDivideInternal( Kit_Sop_t * cSop, Kit_Sop_t * cDiv, Kit_Sop_t * vQuo
   SeeAlso     []
 
 ***********************************************************************/
-static inline unsigned Kit_SopCommonCube( Kit_Sop_t * cSop )
-{
+static inline unsigned Kit_SopCommonCube(Kit_Sop_t* cSop) {
     unsigned uMask, uCube;
     int i;
     uMask = ~(unsigned)0;
-    Kit_SopForEachCube( cSop, uCube, i )
-        uMask &= uCube;
+    Kit_SopForEachCube(cSop, uCube, i)
+        uMask
+        &= uCube;
     return uMask;
 }
 
@@ -308,16 +287,15 @@ static inline unsigned Kit_SopCommonCube( Kit_Sop_t * cSop )
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopMakeCubeFree( Kit_Sop_t * cSop )
-{
+void Kit_SopMakeCubeFree(Kit_Sop_t* cSop) {
     unsigned uMask, uCube;
     int i;
-    uMask = Kit_SopCommonCube( cSop );
-    if ( uMask == 0 )
+    uMask = Kit_SopCommonCube(cSop);
+    if (uMask == 0)
         return;
     // remove the common cube
-    Kit_SopForEachCube( cSop, uCube, i )
-        Kit_SopWriteCube( cSop, Kit_CubeSharp(uCube, uMask), i );
+    Kit_SopForEachCube(cSop, uCube, i)
+        Kit_SopWriteCube(cSop, Kit_CubeSharp(uCube, uMask), i);
 }
 
 /**Function*************************************************************
@@ -331,9 +309,8 @@ void Kit_SopMakeCubeFree( Kit_Sop_t * cSop )
   SeeAlso     []
 
 ***********************************************************************/
-int Kit_SopIsCubeFree( Kit_Sop_t * cSop )
-{
-    return Kit_SopCommonCube( cSop ) == 0;
+int Kit_SopIsCubeFree(Kit_Sop_t* cSop) {
+    return Kit_SopCommonCube(cSop) == 0;
 }
 
 /**Function*************************************************************
@@ -347,14 +324,12 @@ int Kit_SopIsCubeFree( Kit_Sop_t * cSop )
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopCommonCubeCover( Kit_Sop_t * cResult, Kit_Sop_t * cSop, Vec_Int_t * vMemory )
-{
-    assert( Kit_SopCubeNum(cSop) > 0 );
+void Kit_SopCommonCubeCover(Kit_Sop_t* cResult, Kit_Sop_t* cSop, Vec_Int_t* vMemory) {
+    assert(Kit_SopCubeNum(cSop) > 0);
     cResult->nCubes = 0;
-    cResult->pCubes = Vec_IntFetch( vMemory, 1 );
-    Kit_SopPushCube( cResult, Kit_SopCommonCube(cSop) );
+    cResult->pCubes = Vec_IntFetch(vMemory, 1);
+    Kit_SopPushCube(cResult, Kit_SopCommonCube(cSop));
 }
-
 
 /**Function*************************************************************
 
@@ -367,19 +342,16 @@ void Kit_SopCommonCubeCover( Kit_Sop_t * cResult, Kit_Sop_t * cSop, Vec_Int_t * 
   SeeAlso     []
 
 ***********************************************************************/
-int Kit_SopAnyLiteral( Kit_Sop_t * cSop, int nLits )
-{
+int Kit_SopAnyLiteral(Kit_Sop_t* cSop, int nLits) {
     unsigned uCube;
     int i, k, nLitsCur;
     // go through each literal
-    for ( i = 0; i < nLits; i++ )
-    {
+    for (i = 0; i < nLits; i++) {
         // go through all the cubes
         nLitsCur = 0;
-        Kit_SopForEachCube( cSop, uCube, k )
-            if ( Kit_CubeHasLit(uCube, i) )
-                nLitsCur++;
-        if ( nLitsCur > 1 )
+        Kit_SopForEachCube(cSop, uCube, k) if (Kit_CubeHasLit(uCube, i))
+            nLitsCur++;
+        if (nLitsCur > 1)
             return i;
     }
     return -1;
@@ -397,8 +369,7 @@ int Kit_SopAnyLiteral( Kit_Sop_t * cSop, int nLits )
   SeeAlso     []
 
 ***********************************************************************/
-int Kit_SopWorstLiteral( Kit_Sop_t * cSop, int nLits )
-{
+int Kit_SopWorstLiteral(Kit_Sop_t* cSop, int nLits) {
     unsigned uCube;
     int i, k, iMin, nLitsMin, nLitsCur;
     int fUseFirst = 1;
@@ -406,35 +377,28 @@ int Kit_SopWorstLiteral( Kit_Sop_t * cSop, int nLits )
     // go through each literal
     iMin = -1;
     nLitsMin = 1000000;
-    for ( i = 0; i < nLits; i++ )
-    {
+    for (i = 0; i < nLits; i++) {
         // go through all the cubes
         nLitsCur = 0;
-        Kit_SopForEachCube( cSop, uCube, k )
-            if ( Kit_CubeHasLit(uCube, i) )
-                nLitsCur++;
+        Kit_SopForEachCube(cSop, uCube, k) if (Kit_CubeHasLit(uCube, i))
+            nLitsCur++;
         // skip the literal that does not occur or occurs once
-        if ( nLitsCur < 2 )
+        if (nLitsCur < 2)
             continue;
         // check if this is the best literal
-        if ( fUseFirst )
-        {
-            if ( nLitsMin > nLitsCur )
-            {
+        if (fUseFirst) {
+            if (nLitsMin > nLitsCur) {
                 nLitsMin = nLitsCur;
                 iMin = i;
             }
-        }
-        else
-        {
-            if ( nLitsMin >= nLitsCur )
-            {
+        } else {
+            if (nLitsMin >= nLitsCur) {
                 nLitsMin = nLitsCur;
                 iMin = i;
             }
         }
     }
-    if ( nLitsMin < 1000000 )
+    if (nLitsMin < 1000000)
         return iMin;
     return -1;
 }
@@ -451,8 +415,7 @@ int Kit_SopWorstLiteral( Kit_Sop_t * cSop, int nLits )
   SeeAlso     []
 
 ***********************************************************************/
-int Kit_SopBestLiteral( Kit_Sop_t * cSop, int nLits, unsigned uMask )
-{
+int Kit_SopBestLiteral(Kit_Sop_t* cSop, int nLits, unsigned uMask) {
     unsigned uCube;
     int i, k, iMax, nLitsMax, nLitsCur;
     int fUseFirst = 1;
@@ -460,37 +423,30 @@ int Kit_SopBestLiteral( Kit_Sop_t * cSop, int nLits, unsigned uMask )
     // go through each literal
     iMax = -1;
     nLitsMax = -1;
-    for ( i = 0; i < nLits; i++ )
-    {
-        if ( !Kit_CubeHasLit(uMask, i) )
+    for (i = 0; i < nLits; i++) {
+        if (!Kit_CubeHasLit(uMask, i))
             continue;
         // go through all the cubes
         nLitsCur = 0;
-        Kit_SopForEachCube( cSop, uCube, k )
-            if ( Kit_CubeHasLit(uCube, i) )
-                nLitsCur++;
+        Kit_SopForEachCube(cSop, uCube, k) if (Kit_CubeHasLit(uCube, i))
+            nLitsCur++;
         // skip the literal that does not occur or occurs once
-        if ( nLitsCur < 2 )
+        if (nLitsCur < 2)
             continue;
         // check if this is the best literal
-        if ( fUseFirst )
-        {
-            if ( nLitsMax < nLitsCur )
-            {
+        if (fUseFirst) {
+            if (nLitsMax < nLitsCur) {
                 nLitsMax = nLitsCur;
                 iMax = i;
             }
-        }
-        else
-        {
-            if ( nLitsMax <= nLitsCur )
-            {
+        } else {
+            if (nLitsMax <= nLitsCur) {
                 nLitsMax = nLitsCur;
                 iMax = i;
             }
         }
     }
-    if ( nLitsMax >= 0 )
+    if (nLitsMax >= 0)
         return iMax;
     return -1;
 }
@@ -506,18 +462,17 @@ int Kit_SopBestLiteral( Kit_Sop_t * cSop, int nLits, unsigned uMask )
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopDivisorZeroKernel_rec( Kit_Sop_t * cSop, int nLits )
-{
+void Kit_SopDivisorZeroKernel_rec(Kit_Sop_t* cSop, int nLits) {
     int iLit;
     // find any literal that occurs at least two times
-    iLit = Kit_SopWorstLiteral( cSop, nLits );
-    if ( iLit == -1 )
+    iLit = Kit_SopWorstLiteral(cSop, nLits);
+    if (iLit == -1)
         return;
     // derive the cube-free quotient
-    Kit_SopDivideByLiteralQuo( cSop, iLit ); // the same cover
-    Kit_SopMakeCubeFree( cSop );             // the same cover
+    Kit_SopDivideByLiteralQuo(cSop, iLit); // the same cover
+    Kit_SopMakeCubeFree(cSop);             // the same cover
     // call recursively
-    Kit_SopDivisorZeroKernel_rec( cSop, nLits );    // the same cover
+    Kit_SopDivisorZeroKernel_rec(cSop, nLits); // the same cover
 }
 
 /**Function*************************************************************
@@ -531,20 +486,18 @@ void Kit_SopDivisorZeroKernel_rec( Kit_Sop_t * cSop, int nLits )
   SeeAlso     []
 
 ***********************************************************************/
-int Kit_SopDivisor( Kit_Sop_t * cResult, Kit_Sop_t * cSop, int nLits, Vec_Int_t * vMemory )
-{
-    if ( Kit_SopCubeNum(cSop) <= 1 )
+int Kit_SopDivisor(Kit_Sop_t* cResult, Kit_Sop_t* cSop, int nLits, Vec_Int_t* vMemory) {
+    if (Kit_SopCubeNum(cSop) <= 1)
         return 0;
-    if ( Kit_SopAnyLiteral( cSop, nLits ) == -1 )
+    if (Kit_SopAnyLiteral(cSop, nLits) == -1)
         return 0;
     // duplicate the cover
-    Kit_SopDup( cResult, cSop, vMemory );
+    Kit_SopDup(cResult, cSop, vMemory);
     // perform the kerneling
-    Kit_SopDivisorZeroKernel_rec( cResult, nLits );
-    assert( Kit_SopCubeNum(cResult) > 0 );
+    Kit_SopDivisorZeroKernel_rec(cResult, nLits);
+    assert(Kit_SopCubeNum(cResult) > 0);
     return 1;
 }
-
 
 /**Function*************************************************************
 
@@ -557,23 +510,19 @@ int Kit_SopDivisor( Kit_Sop_t * cResult, Kit_Sop_t * cSop, int nLits, Vec_Int_t 
   SeeAlso     []
 
 ***********************************************************************/
-void Kit_SopBestLiteralCover( Kit_Sop_t * cResult, Kit_Sop_t * cSop, unsigned uCube, int nLits, Vec_Int_t * vMemory )
-{
+void Kit_SopBestLiteralCover(Kit_Sop_t* cResult, Kit_Sop_t* cSop, unsigned uCube, int nLits, Vec_Int_t* vMemory) {
     int iLitBest;
     // get the best literal
-    iLitBest = Kit_SopBestLiteral( cSop, nLits, uCube );
+    iLitBest = Kit_SopBestLiteral(cSop, nLits, uCube);
     // start the cover
     cResult->nCubes = 0;
-    cResult->pCubes = Vec_IntFetch( vMemory, 1 );
+    cResult->pCubes = Vec_IntFetch(vMemory, 1);
     // set the cube
-    Kit_SopPushCube( cResult, Kit_CubeSetLit(0, iLitBest) );
+    Kit_SopPushCube(cResult, Kit_CubeSetLit(0, iLitBest));
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

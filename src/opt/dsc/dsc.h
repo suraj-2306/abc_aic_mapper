@@ -21,15 +21,14 @@
 ***********************************************************************/
 
 #ifndef ABC__DSC___h
-#define ABC__DSC___h
-
+#    define ABC__DSC___h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
 ////////////////////////////////////////////////////////////////////////
-#include <stdio.h>
-#include <string.h>
-#include "misc/util/abc_global.h"
+#    include <stdio.h>
+#    include <string.h>
+#    include "misc/util/abc_global.h"
 
 ////////////////////////////////////////////////////////////////////////
 ///                         PARAMETERS                               ///
@@ -37,8 +36,8 @@
 
 ABC_NAMESPACE_HEADER_START
 
-#define DSC_MAX_VAR        16 // should be 6 or more, i.e. DSC_MAX_VAR >= 6
-#define DSC_MAX_STR        DSC_MAX_VAR << 2 // DSC_MAX_VAR * 4
+#    define DSC_MAX_VAR 16               // should be 6 or more, i.e. DSC_MAX_VAR >= 6
+#    define DSC_MAX_STR DSC_MAX_VAR << 2 // DSC_MAX_VAR * 4
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
@@ -59,7 +58,7 @@ ABC_NAMESPACE_HEADER_START
  * truth-tables for negative and positive cofactors and
  * the boolean difference for each input variable
  */
-extern word * Dsc_alloc_pool(int nVars);
+extern word* Dsc_alloc_pool(int nVars);
 
 /**
  * This method implements the paper proposed by V. Callegaro, F. S. Marranghello, M. G. A. Martins, R. P. Ribas and A. I. Reis,
@@ -71,16 +70,16 @@ extern word * Dsc_alloc_pool(int nVars);
  * (the results presented on ICCD paper are running this method with NULL for the memory pool).
  * The method returns 0 if a full decomposition was found and a negative value otherwise.
  */
-extern int Dsc_Decompose(word * pTruth, const int nVarsInit, char * const pRes, word *pool);
+extern int Dsc_Decompose(word* pTruth, const int nVarsInit, char* const pRes, word* pool);
 
 /**
  * just free the memory pool
  */
-extern void Dsc_free_pool(word * pool);
+extern void Dsc_free_pool(word* pool);
 
-int * Dsc_ComputeMatches( char * p );
-int Dsc_CountAnds_rec( char * pStr, char ** p, int * pMatches );
-extern int Dsc_CountAnds( char * pDsd );
+int* Dsc_ComputeMatches(char* p);
+int Dsc_CountAnds_rec(char* pStr, char** p, int* pMatches);
+extern int Dsc_CountAnds(char* pDsd);
 
 ABC_NAMESPACE_HEADER_END
 

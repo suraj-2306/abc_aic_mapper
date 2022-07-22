@@ -41,36 +41,33 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Tim_ManCreateBox( Tim_Man_t * p, int firstIn, int nIns, int firstOut, int nOuts, int iDelayTable, int fBlack )
-{
-    Tim_Box_t * pBox;
+void Tim_ManCreateBox(Tim_Man_t* p, int firstIn, int nIns, int firstOut, int nOuts, int iDelayTable, int fBlack) {
+    Tim_Box_t* pBox;
     int i;
-    if ( p->vBoxes == NULL )
-        p->vBoxes = Vec_PtrAlloc( 100 );
-    pBox = (Tim_Box_t *)Mem_FlexEntryFetch( p->pMemObj, sizeof(Tim_Box_t) + sizeof(int) * (nIns+nOuts) );
-    memset( pBox, 0, sizeof(Tim_Box_t) );
-    pBox->iBox = Vec_PtrSize( p->vBoxes );
-    Vec_PtrPush( p->vBoxes, pBox );
+    if (p->vBoxes == NULL)
+        p->vBoxes = Vec_PtrAlloc(100);
+    pBox = (Tim_Box_t*)Mem_FlexEntryFetch(p->pMemObj, sizeof(Tim_Box_t) + sizeof(int) * (nIns + nOuts));
+    memset(pBox, 0, sizeof(Tim_Box_t));
+    pBox->iBox = Vec_PtrSize(p->vBoxes);
+    Vec_PtrPush(p->vBoxes, pBox);
     pBox->iDelayTable = iDelayTable;
-    pBox->nInputs  = nIns;
+    pBox->nInputs = nIns;
     pBox->nOutputs = nOuts;
     pBox->fBlack = fBlack;
-    for ( i = 0; i < nIns; i++ )
-    {
-        assert( firstIn+i < p->nCos );
-        pBox->Inouts[i] = firstIn+i;
-        p->pCos[firstIn+i].iObj2Box = pBox->iBox;
-        p->pCos[firstIn+i].iObj2Num = i;
+    for (i = 0; i < nIns; i++) {
+        assert(firstIn + i < p->nCos);
+        pBox->Inouts[i] = firstIn + i;
+        p->pCos[firstIn + i].iObj2Box = pBox->iBox;
+        p->pCos[firstIn + i].iObj2Num = i;
     }
-    for ( i = 0; i < nOuts; i++ )
-    {
-        assert( firstOut+i < p->nCis );
-        pBox->Inouts[nIns+i] = firstOut+i;
-        p->pCis[firstOut+i].iObj2Box = pBox->iBox;
-        p->pCis[firstOut+i].iObj2Num = i;
+    for (i = 0; i < nOuts; i++) {
+        assert(firstOut + i < p->nCis);
+        pBox->Inouts[nIns + i] = firstOut + i;
+        p->pCis[firstOut + i].iObj2Box = pBox->iBox;
+        p->pCis[firstOut + i].iObj2Num = i;
     }
-//    if ( pBox->iBox < 20 )
-//        printf( "%4d  %4d  %4d  %4d  \n", firstIn, nIns, firstOut, nOuts );
+    //    if ( pBox->iBox < 20 )
+    //        printf( "%4d  %4d  %4d  %4d  \n", firstIn, nIns, firstOut, nOuts );
 }
 
 /**Function*************************************************************
@@ -84,9 +81,8 @@ void Tim_ManCreateBox( Tim_Man_t * p, int firstIn, int nIns, int firstOut, int n
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxForCi( Tim_Man_t * p, int iCi )
-{
-    if ( iCi >= p->nCis )
+int Tim_ManBoxForCi(Tim_Man_t* p, int iCi) {
+    if (iCi >= p->nCis)
         return -1;
     return p->pCis[iCi].iObj2Box;
 }
@@ -102,9 +98,8 @@ int Tim_ManBoxForCi( Tim_Man_t * p, int iCi )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxForCo( Tim_Man_t * p, int iCo )
-{
-    if ( iCo >= p->nCos )
+int Tim_ManBoxForCo(Tim_Man_t* p, int iCo) {
+    if (iCo >= p->nCos)
         return -1;
     return p->pCos[iCo].iObj2Box;
 }
@@ -120,8 +115,7 @@ int Tim_ManBoxForCo( Tim_Man_t * p, int iCo )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxInputFirst( Tim_Man_t * p, int iBox )
-{
+int Tim_ManBoxInputFirst(Tim_Man_t* p, int iBox) {
     return Tim_ManBox(p, iBox)->Inouts[0];
 }
 
@@ -136,8 +130,7 @@ int Tim_ManBoxInputFirst( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxInputLast( Tim_Man_t * p, int iBox )
-{
+int Tim_ManBoxInputLast(Tim_Man_t* p, int iBox) {
     return Tim_ManBox(p, iBox)->Inouts[0] + Tim_ManBoxInputNum(p, iBox) - 1;
 }
 
@@ -152,8 +145,7 @@ int Tim_ManBoxInputLast( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxOutputFirst( Tim_Man_t * p, int iBox )
-{
+int Tim_ManBoxOutputFirst(Tim_Man_t* p, int iBox) {
     return Tim_ManBox(p, iBox)->Inouts[Tim_ManBox(p, iBox)->nInputs];
 }
 
@@ -168,8 +160,7 @@ int Tim_ManBoxOutputFirst( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxOutputLast( Tim_Man_t * p, int iBox )
-{
+int Tim_ManBoxOutputLast(Tim_Man_t* p, int iBox) {
     return Tim_ManBox(p, iBox)->Inouts[Tim_ManBox(p, iBox)->nInputs] + Tim_ManBoxOutputNum(p, iBox) - 1;
 }
 
@@ -184,8 +175,7 @@ int Tim_ManBoxOutputLast( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxInputNum( Tim_Man_t * p, int iBox )
-{
+int Tim_ManBoxInputNum(Tim_Man_t* p, int iBox) {
     return Tim_ManBox(p, iBox)->nInputs;
 }
 
@@ -200,8 +190,7 @@ int Tim_ManBoxInputNum( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxOutputNum( Tim_Man_t * p, int iBox )
-{
+int Tim_ManBoxOutputNum(Tim_Man_t* p, int iBox) {
     return Tim_ManBox(p, iBox)->nOutputs;
 }
 
@@ -216,8 +205,7 @@ int Tim_ManBoxOutputNum( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxDelayTableId( Tim_Man_t * p, int iBox )
-{
+int Tim_ManBoxDelayTableId(Tim_Man_t* p, int iBox) {
     return Tim_ManBox(p, iBox)->iDelayTable;
 }
 
@@ -232,15 +220,14 @@ int Tim_ManBoxDelayTableId( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-float * Tim_ManBoxDelayTable( Tim_Man_t * p, int iBox )
-{
-    float * pTable;
-    Tim_Box_t * pBox = Tim_ManBox(p, iBox);
-    if ( pBox->iDelayTable < 0 )
+float* Tim_ManBoxDelayTable(Tim_Man_t* p, int iBox) {
+    float* pTable;
+    Tim_Box_t* pBox = Tim_ManBox(p, iBox);
+    if (pBox->iDelayTable < 0)
         return NULL;
-    pTable = (float *)Vec_PtrEntry( p->vDelayTables, pBox->iDelayTable );
-    assert( (int)pTable[1] == pBox->nInputs );
-    assert( (int)pTable[2] == pBox->nOutputs );
+    pTable = (float*)Vec_PtrEntry(p->vDelayTables, pBox->iDelayTable);
+    assert((int)pTable[1] == pBox->nInputs);
+    assert((int)pTable[2] == pBox->nOutputs);
     return pTable;
 }
 
@@ -255,11 +242,9 @@ float * Tim_ManBoxDelayTable( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxIsBlack( Tim_Man_t * p, int iBox )
-{
+int Tim_ManBoxIsBlack(Tim_Man_t* p, int iBox) {
     return Tim_ManBox(p, iBox)->fBlack;
 }
-
 
 /**Function*************************************************************
 
@@ -272,8 +257,7 @@ int Tim_ManBoxIsBlack( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxCopy( Tim_Man_t * p, int iBox )
-{
+int Tim_ManBoxCopy(Tim_Man_t* p, int iBox) {
     return Tim_ManBox(p, iBox)->iCopy;
 }
 
@@ -288,8 +272,7 @@ int Tim_ManBoxCopy( Tim_Man_t * p, int iBox )
   SeeAlso     []
 
 ***********************************************************************/
-void Tim_ManBoxSetCopy( Tim_Man_t * p, int iBox, int iCopy )
-{
+void Tim_ManBoxSetCopy(Tim_Man_t* p, int iBox, int iCopy) {
     Tim_ManBox(p, iBox)->iCopy = iCopy;
 }
 
@@ -304,16 +287,13 @@ void Tim_ManBoxSetCopy( Tim_Man_t * p, int iBox, int iCopy )
   SeeAlso     []
 
 ***********************************************************************/
-int Tim_ManBoxFindFromCiNum( Tim_Man_t * p, int iCiNum )
-{
-    Tim_Box_t * pBox;
+int Tim_ManBoxFindFromCiNum(Tim_Man_t* p, int iCiNum) {
+    Tim_Box_t* pBox;
     int i;
-    assert( iCiNum >= 0 && iCiNum < Tim_ManCiNum(p) );
-    if ( iCiNum < Tim_ManPiNum(p) )
+    assert(iCiNum >= 0 && iCiNum < Tim_ManCiNum(p));
+    if (iCiNum < Tim_ManPiNum(p))
         return -1;
-    Tim_ManForEachBox( p, pBox, i )
-        if ( iCiNum < Tim_ManBoxOutputFirst(p, i) )
-            return i - 1;
+    Tim_ManForEachBox(p, pBox, i) if (iCiNum < Tim_ManBoxOutputFirst(p, i)) return i - 1;
     return -2;
 }
 
@@ -321,6 +301,4 @@ int Tim_ManBoxFindFromCiNum( Tim_Man_t * p, int iCiNum )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

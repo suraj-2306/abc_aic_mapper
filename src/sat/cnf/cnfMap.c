@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,20 +41,18 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Cnf_CutAssignAreaFlow( Cnf_Man_t * p, Dar_Cut_t * pCut, int * pAreaFlows )
-{
-    Aig_Obj_t * pLeaf;
+void Cnf_CutAssignAreaFlow(Cnf_Man_t* p, Dar_Cut_t* pCut, int* pAreaFlows) {
+    Aig_Obj_t* pLeaf;
     int i;
     pCut->Value = 0;
-//    pCut->uSign = 100 * Cnf_CutSopCost( p, pCut );
-    pCut->uSign = 10 * Cnf_CutSopCost( p, pCut );
-    Dar_CutForEachLeaf( p->pManAig, pCut, pLeaf, i )
-    {
+    //    pCut->uSign = 100 * Cnf_CutSopCost( p, pCut );
+    pCut->uSign = 10 * Cnf_CutSopCost(p, pCut);
+    Dar_CutForEachLeaf(p->pManAig, pCut, pLeaf, i) {
         pCut->Value += pLeaf->nRefs;
-        if ( !Aig_ObjIsNode(pLeaf) )
+        if (!Aig_ObjIsNode(pLeaf))
             continue;
-        assert( pLeaf->nRefs > 0 );
-        pCut->uSign += pAreaFlows[pLeaf->Id] / (pLeaf->nRefs? pLeaf->nRefs : 1);
+        assert(pLeaf->nRefs > 0);
+        pCut->uSign += pAreaFlows[pLeaf->Id] / (pLeaf->nRefs ? pLeaf->nRefs : 1);
     }
 }
 
@@ -70,18 +67,16 @@ void Cnf_CutAssignAreaFlow( Cnf_Man_t * p, Dar_Cut_t * pCut, int * pAreaFlows )
   SeeAlso     []
 
 ***********************************************************************/
-int Cnf_CutSuperAreaFlow( Vec_Ptr_t * vSuper, int * pAreaFlows )
-{
-    Aig_Obj_t * pLeaf;
+int Cnf_CutSuperAreaFlow(Vec_Ptr_t* vSuper, int* pAreaFlows) {
+    Aig_Obj_t* pLeaf;
     int i, nAreaFlow;
     nAreaFlow = 100 * (Vec_PtrSize(vSuper) + 1);
-    Vec_PtrForEachEntry( Aig_Obj_t *, vSuper, pLeaf, i )
-    {
+    Vec_PtrForEachEntry(Aig_Obj_t*, vSuper, pLeaf, i) {
         pLeaf = Aig_Regular(pLeaf);
-        if ( !Aig_ObjIsNode(pLeaf) )
+        if (!Aig_ObjIsNode(pLeaf))
             continue;
-        assert( pLeaf->nRefs > 0 );
-        nAreaFlow += pAreaFlows[pLeaf->Id] / (pLeaf->nRefs? pLeaf->nRefs : 1);
+        assert(pLeaf->nRefs > 0);
+        nAreaFlow += pAreaFlows[pLeaf->Id] / (pLeaf->nRefs ? pLeaf->nRefs : 1);
     }
     return nAreaFlow;
 }
@@ -97,51 +92,44 @@ int Cnf_CutSuperAreaFlow( Vec_Ptr_t * vSuper, int * pAreaFlows )
   SeeAlso     []
 
 ***********************************************************************/
-void Cnf_DeriveMapping( Cnf_Man_t * p )
-{
-    Vec_Ptr_t * vSuper;
-    Aig_Obj_t * pObj;
-    Dar_Cut_t * pCut, * pCutBest;
-    int i, k, AreaFlow, * pAreaFlows;
+void Cnf_DeriveMapping(Cnf_Man_t* p) {
+    Vec_Ptr_t* vSuper;
+    Aig_Obj_t* pObj;
+    Dar_Cut_t *pCut, *pCutBest;
+    int i, k, AreaFlow, *pAreaFlows;
     // allocate area flows
-    pAreaFlows = ABC_ALLOC( int, Aig_ManObjNumMax(p->pManAig) );
-    memset( pAreaFlows, 0, sizeof(int) * Aig_ManObjNumMax(p->pManAig) );
+    pAreaFlows = ABC_ALLOC(int, Aig_ManObjNumMax(p->pManAig));
+    memset(pAreaFlows, 0, sizeof(int) * Aig_ManObjNumMax(p->pManAig));
     // visit the nodes in the topological order and update their best cuts
-    vSuper = Vec_PtrAlloc( 100 );
-    Aig_ManForEachNode( p->pManAig, pObj, i )
-    {
+    vSuper = Vec_PtrAlloc(100);
+    Aig_ManForEachNode(p->pManAig, pObj, i) {
         // go through the cuts
         pCutBest = NULL;
-        Dar_ObjForEachCut( pObj, pCut, k )
-        {
+        Dar_ObjForEachCut(pObj, pCut, k) {
             pCut->fBest = 0;
-            if ( k == 0 )
+            if (k == 0)
                 continue;
-            Cnf_CutAssignAreaFlow( p, pCut, pAreaFlows );
-            if ( pCutBest == NULL || pCutBest->uSign > pCut->uSign || 
-                (pCutBest->uSign == pCut->uSign && pCutBest->Value < pCut->Value) )
-                 pCutBest = pCut;
+            Cnf_CutAssignAreaFlow(p, pCut, pAreaFlows);
+            if (pCutBest == NULL || pCutBest->uSign > pCut->uSign || (pCutBest->uSign == pCut->uSign && pCutBest->Value < pCut->Value))
+                pCutBest = pCut;
         }
         // check the big cut
-//        Aig_ObjCollectSuper( pObj, vSuper );
+        //        Aig_ObjCollectSuper( pObj, vSuper );
         // get the area flow of this cut
-//        AreaFlow = Cnf_CutSuperAreaFlow( vSuper, pAreaFlows );
+        //        AreaFlow = Cnf_CutSuperAreaFlow( vSuper, pAreaFlows );
         AreaFlow = ABC_INFINITY;
-        if ( AreaFlow >= (int)pCutBest->uSign )
-        {
+        if (AreaFlow >= (int)pCutBest->uSign) {
             pAreaFlows[pObj->Id] = pCutBest->uSign;
             pCutBest->fBest = 1;
-        }
-        else
-        {
+        } else {
             pAreaFlows[pObj->Id] = AreaFlow;
             pObj->fMarkB = 1; // mark the special node
         }
     }
-    Vec_PtrFree( vSuper );
-    ABC_FREE( pAreaFlows );
+    Vec_PtrFree(vSuper);
+    ABC_FREE(pAreaFlows);
 
-/*
+    /*
     // compute the area of mapping
     AreaFlow = 0;
     Aig_ManForEachCo( p->pManAig, pObj, i )
@@ -149,8 +137,6 @@ void Cnf_DeriveMapping( Cnf_Man_t * p )
     printf( "Area of the network = %d.\n", AreaFlow );
 */
 }
-
-
 
 #if 0
 
@@ -357,6 +343,4 @@ int Cnf_ManMapForCnf( Cnf_Man_t * p )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

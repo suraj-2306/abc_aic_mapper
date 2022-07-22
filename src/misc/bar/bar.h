@@ -17,14 +17,13 @@
   Revision    [$Id: bar.h,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
+
 #ifndef ABC__aig__bar__bar_h
-#define ABC__aig__bar__bar_h
+#    define ABC__aig__bar__bar_h
 
-
-#ifdef _WIN32
-#define inline __inline // compatible with MS VS 6.0
-#endif
+#    ifdef _WIN32
+#        define inline __inline // compatible with MS VS 6.0
+#    endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
@@ -34,17 +33,14 @@
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
 ABC_NAMESPACE_HEADER_START
 
-
-#define BAR_PROGRESS_USE   1
+#    define BAR_PROGRESS_USE 1
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
 ////////////////////////////////////////////////////////////////////////
- 
+
 typedef struct Bar_Progress_t_ Bar_Progress_t;
 
 ////////////////////////////////////////////////////////////////////////
@@ -56,25 +52,19 @@ typedef struct Bar_Progress_t_ Bar_Progress_t;
 ////////////////////////////////////////////////////////////////////////
 
 /*=== bar.c ==========================================================*/
-extern Bar_Progress_t *  Bar_ProgressStart( FILE * pFile, int nItemsTotal );
-extern void              Bar_ProgressStop( Bar_Progress_t * p );
-extern void              Bar_ProgressUpdate_int( Bar_Progress_t * p, int nItemsCur, char * pString );
+extern Bar_Progress_t* Bar_ProgressStart(FILE* pFile, int nItemsTotal);
+extern void Bar_ProgressStop(Bar_Progress_t* p);
+extern void Bar_ProgressUpdate_int(Bar_Progress_t* p, int nItemsCur, char* pString);
 
-static inline void       Bar_ProgressUpdate( Bar_Progress_t * p, int nItemsCur, char * pString ) {  
-    if ( BAR_PROGRESS_USE && p && (nItemsCur < *((int*)p)) ) return;
+static inline void Bar_ProgressUpdate(Bar_Progress_t* p, int nItemsCur, char* pString) {
+    if (BAR_PROGRESS_USE && p && (nItemsCur < *((int*)p))) return;
     Bar_ProgressUpdate_int(p, nItemsCur, pString);
 }
 
-
-
-
 ABC_NAMESPACE_HEADER_END
-
-
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

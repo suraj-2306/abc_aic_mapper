@@ -24,13 +24,13 @@
 #include <ctype.h>
 
 ABC_NAMESPACE_IMPL_START
-    // proper declaration of isspace
+// proper declaration of isspace
 
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static int CmdCommandPrintCompare( Abc_Command ** ppC1, Abc_Command ** ppC2 );
+static int CmdCommandPrintCompare(Abc_Command** ppC1, Abc_Command** ppC2);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -47,24 +47,21 @@ static int CmdCommandPrintCompare( Abc_Command ** ppC1, Abc_Command ** ppC2 );
   SeeAlso     []
 
 ***********************************************************************/
-int cmdCheckShellEscape( Abc_Frame_t * pAbc, int argc, char ** argv)
-{
+int cmdCheckShellEscape(Abc_Frame_t* pAbc, int argc, char** argv) {
     int RetValue;
-    if (argv[0][0] == '!') 
-    {
+    if (argv[0][0] == '!') {
         const int size = 4096;
         int i;
-        char * buffer = ABC_ALLOC(char, 10000);
-        strncpy (buffer, &argv[0][1], size);
-        for (i = 1; i < argc; ++i)
-        {
-                strncat (buffer, " ", size);
-                strncat (buffer, argv[i], size);
+        char* buffer = ABC_ALLOC(char, 10000);
+        strncpy(buffer, &argv[0][1], size);
+        for (i = 1; i < argc; ++i) {
+            strncat(buffer, " ", size);
+            strncat(buffer, argv[i], size);
         }
-        if (buffer[0] == 0) 
-            strncpy (buffer, "/bin/sh", size);
-        RetValue = system (buffer);
-        ABC_FREE( buffer );
+        if (buffer[0] == 0)
+            strncpy(buffer, "/bin/sh", size);
+        RetValue = system(buffer);
+        ABC_FREE(buffer);
 
         // NOTE: Since we reconstruct the cmdline by concatenating
         // the parts, we lose information. So a command like
@@ -72,9 +69,7 @@ int cmdCheckShellEscape( Abc_Frame_t * pAbc, int argc, char ** argv)
         // `ls file name` which is a BUG
 
         return 1;
-    }
-    else
-    {
+    } else {
         return 0;
     }
 }
@@ -90,77 +85,68 @@ int cmdCheckShellEscape( Abc_Frame_t * pAbc, int argc, char ** argv)
   SeeAlso     []
 
 ***********************************************************************/
-int CmdCommandDispatch( Abc_Frame_t * pAbc, int * pargc, char *** pargv )
-{
+int CmdCommandDispatch(Abc_Frame_t* pAbc, int* pargc, char*** pargv) {
     int argc = *pargc;
-    char ** argv = *pargv;
-    char ** argv2;
+    char** argv = *pargv;
+    char** argv2;
 
-    Abc_Ntk_t * pNetCopy;
-    int (*pFunc) ( Abc_Frame_t *, int, char ** );
-    Abc_Command * pCommand;
-    char * value;
+    Abc_Ntk_t* pNetCopy;
+    int (*pFunc)(Abc_Frame_t*, int, char**);
+    Abc_Command* pCommand;
+    char* value;
     int fError;
     double clk;
 
-    if ( argc == 0 )
+    if (argc == 0)
         return 0;
 
-    if ( cmdCheckShellEscape( pAbc, argc, argv ) == 1 )
+    if (cmdCheckShellEscape(pAbc, argc, argv) == 1)
         return 0;
 
     // get the command
-    if ( ! st__lookup( pAbc->tCommands, argv[0], (char **)&pCommand ) )
-    {   // the command is not in the table
+    if (!st__lookup(pAbc->tCommands, argv[0], (char**)&pCommand)) { // the command is not in the table
         // if there is only one word with an extension, assume this is file to be read
-        if ( argc == 1 && strstr( argv[0], "." ) )
-        {
+        if (argc == 1 && strstr(argv[0], ".")) {
             // add command 'read' assuming that this is the file name
-            argv2 = CmdAddToArgv( argc, argv );
-            CmdFreeArgv( argc, argv );
-            argc = argc+1;
+            argv2 = CmdAddToArgv(argc, argv);
+            CmdFreeArgv(argc, argv);
+            argc = argc + 1;
             argv = argv2;
             *pargc = argc;
             *pargv = argv;
-            if ( ! st__lookup( pAbc->tCommands, argv[0], (char **)&pCommand ) )
-                assert( 0 );
-        }
-        else
-        {
-            fprintf( pAbc->Err, "** cmd error: unknown command '%s'\n", argv[0] );
-            fprintf( pAbc->Err, "(this is likely caused by using an alias defined in \"abc.rc\"\n" );
-            fprintf( pAbc->Err, "without having this file in the current or parent directory)\n" );
+            if (!st__lookup(pAbc->tCommands, argv[0], (char**)&pCommand))
+                assert(0);
+        } else {
+            fprintf(pAbc->Err, "** cmd error: unknown command '%s'\n", argv[0]);
+            fprintf(pAbc->Err, "(this is likely caused by using an alias defined in \"abc.rc\"\n");
+            fprintf(pAbc->Err, "without having this file in the current or parent directory)\n");
             return 1;
         }
     }
 
     // get the backup network if the command is going to change the network
-    if ( pCommand->fChange ) 
-    {
-        if ( pAbc->pNtkCur && Abc_FrameIsFlagEnabled( "backup" ) )
-        {
-            pNetCopy = Abc_NtkDup( pAbc->pNtkCur );
-            Abc_FrameSetCurrentNetwork( pAbc, pNetCopy );
-            // swap the current network and the backup network 
+    if (pCommand->fChange) {
+        if (pAbc->pNtkCur && Abc_FrameIsFlagEnabled("backup")) {
+            pNetCopy = Abc_NtkDup(pAbc->pNtkCur);
+            Abc_FrameSetCurrentNetwork(pAbc, pNetCopy);
+            // swap the current network and the backup network
             // to prevent the effect of resetting the short names
-            Abc_FrameSwapCurrentAndBackup( pAbc );
+            Abc_FrameSwapCurrentAndBackup(pAbc);
         }
     }
 
     // execute the command
     clk = Extra_CpuTimeDouble();
-    pFunc = (int (*)(Abc_Frame_t *, int, char **))pCommand->pFunc;
-    fError = (*pFunc)( pAbc, argc, argv );
+    pFunc = (int (*)(Abc_Frame_t*, int, char**))pCommand->pFunc;
+    fError = (*pFunc)(pAbc, argc, argv);
     pAbc->TimeCommand += Extra_CpuTimeDouble() - clk;
 
-    // automatic execution of arbitrary command after each command 
-    // usually this is a passive command ... 
-    if ( fError == 0 && !pAbc->fAutoexac )
-    {
-        if ( st__lookup( pAbc->tFlags, "autoexec", &value ) )
-        {
+    // automatic execution of arbitrary command after each command
+    // usually this is a passive command ...
+    if (fError == 0 && !pAbc->fAutoexac) {
+        if (st__lookup(pAbc->tFlags, "autoexec", &value)) {
             pAbc->fAutoexac = 1;
-            fError = Cmd_CommandExecute( pAbc, value );
+            fError = Cmd_CommandExecute(pAbc, value);
             pAbc->fAutoexac = 0;
         }
     }
@@ -178,77 +164,64 @@ int CmdCommandDispatch( Abc_Frame_t * pAbc, int * pargc, char *** pargv )
   SeeAlso     []
 
 ***********************************************************************/
-const char * CmdSplitLine( Abc_Frame_t * pAbc, const char *sCommand, int *argc, char ***argv )
-{
+const char* CmdSplitLine(Abc_Frame_t* pAbc, const char* sCommand, int* argc, char*** argv) {
     const char *p, *start;
     char c;
     int i, j;
-    char *new_arg;
-    Vec_Ptr_t * vArgs;
+    char* new_arg;
+    Vec_Ptr_t* vArgs;
     int single_quote, double_quote;
 
-    vArgs = Vec_PtrAlloc( 10 );
+    vArgs = Vec_PtrAlloc(10);
 
     p = sCommand;
-    for ( ;; )
-    {
-        // skip leading white space 
-        while ( isspace( ( int ) *p ) )
-        {
+    for (;;) {
+        // skip leading white space
+        while (isspace((int)*p)) {
             p++;
         }
 
-        // skip until end of this token 
+        // skip until end of this token
         single_quote = double_quote = 0;
-        for ( start = p; ( c = *p ) != '\0'; p++ )
-        {
-            if ( c == ';' || c == '#' || isspace( ( int ) c ) )
-            {
-                if ( !single_quote && !double_quote )
-                {
+        for (start = p; (c = *p) != '\0'; p++) {
+            if (c == ';' || c == '#' || isspace((int)c)) {
+                if (!single_quote && !double_quote) {
                     break;
                 }
             }
-            if ( c == '\'' )
-            {
+            if (c == '\'') {
                 single_quote = !single_quote;
             }
-            if ( c == '"' )
-            {
+            if (c == '"') {
                 double_quote = !double_quote;
             }
         }
-        if ( single_quote || double_quote )
-        {
-            ( void ) fprintf( pAbc->Err, "** cmd warning: ignoring unbalanced quote ...\n" );
+        if (single_quote || double_quote) {
+            (void)fprintf(pAbc->Err, "** cmd warning: ignoring unbalanced quote ...\n");
         }
-        if ( start == p )
+        if (start == p)
             break;
 
-        new_arg = ABC_ALLOC( char, p - start + 1 );
+        new_arg = ABC_ALLOC(char, p - start + 1);
         j = 0;
-        for ( i = 0; i < p - start; i++ )
-        {
+        for (i = 0; i < p - start; i++) {
             c = start[i];
-            if ( ( c != '\'' ) && ( c != '\"' ) )
-            {
-                new_arg[j++] = isspace( ( int ) c ) ? ' ' : start[i];
+            if ((c != '\'') && (c != '\"')) {
+                new_arg[j++] = isspace((int)c) ? ' ' : start[i];
             }
         }
         new_arg[j] = '\0';
-        Vec_PtrPush( vArgs, new_arg );
+        Vec_PtrPush(vArgs, new_arg);
     }
 
     *argc = vArgs->nSize;
-    *argv = (char **)Vec_PtrReleaseArray( vArgs );
-    Vec_PtrFree( vArgs );
-    if ( *p == ';' )
-    {
+    *argv = (char**)Vec_PtrReleaseArray(vArgs);
+    Vec_PtrFree(vArgs);
+    if (*p == ';') {
         p++;
-    }
-    else if ( *p == '#' )
-    {
-        for ( ; *p != 0; p++ ); // skip to end of line 
+    } else if (*p == '#') {
+        for (; *p != 0; p++)
+            ; // skip to end of line
     }
     return p;
 }
@@ -264,107 +237,87 @@ const char * CmdSplitLine( Abc_Frame_t * pAbc, const char *sCommand, int *argc, 
   SeeAlso     []
 
 ***********************************************************************/
-int CmdApplyAlias( Abc_Frame_t * pAbc, int *argcp, char ***argvp, int *loop )
-{
+int CmdApplyAlias(Abc_Frame_t* pAbc, int* argcp, char*** argvp, int* loop) {
     int i, argc, stopit, added, offset, did_subst, subst, fError, newc, j;
-    const char *arg;
+    const char* arg;
     char **argv, **newv;
-    Abc_Alias *alias;
+    Abc_Alias* alias;
 
     argc = *argcp;
     argv = *argvp;
     stopit = 0;
-    for ( ; *loop < 200; ( *loop )++ )
-    {
-        if ( argc == 0 )
+    for (; *loop < 200; (*loop)++) {
+        if (argc == 0)
             return 0;
-        if ( stopit != 0 || st__lookup( pAbc->tAliases, argv[0],  (char **) &alias ) == 0 )
-        {
+        if (stopit != 0 || st__lookup(pAbc->tAliases, argv[0], (char**)&alias) == 0) {
             return 0;
         }
-        if ( strcmp( argv[0], alias->argv[0] ) == 0 )
-        {
+        if (strcmp(argv[0], alias->argv[0]) == 0) {
             stopit = 1;
         }
-        ABC_FREE( argv[0] );
+        ABC_FREE(argv[0]);
         added = alias->argc - 1;
 
         /* shift all the arguments to the right */
-        if ( added != 0 )
-        {
-            argv = ABC_REALLOC( char *, argv, argc + added );
-            for ( i = argc - 1; i >= 1; i-- )
-            {
+        if (added != 0) {
+            argv = ABC_REALLOC(char*, argv, argc + added);
+            for (i = argc - 1; i >= 1; i--) {
                 argv[i + added] = argv[i];
             }
-            for ( i = 1; i <= added; i++ )
-            {
+            for (i = 1; i <= added; i++) {
                 argv[i] = NULL;
             }
             argc += added;
         }
         subst = 0;
-        for ( i = 0, offset = 0; i < alias->argc; i++, offset++ )
-        {
-            arg = CmdHistorySubstitution( pAbc, alias->argv[i], &did_subst );
-            if ( arg == NULL )
-            {
+        for (i = 0, offset = 0; i < alias->argc; i++, offset++) {
+            arg = CmdHistorySubstitution(pAbc, alias->argv[i], &did_subst);
+            if (arg == NULL) {
                 *argcp = argc;
                 *argvp = argv;
-                return ( 1 );
+                return (1);
             }
-            if ( did_subst != 0 )
-            {
+            if (did_subst != 0) {
                 subst = 1;
             }
             fError = 0;
-            do
-            {
-                arg = CmdSplitLine( pAbc, arg, &newc, &newv );
+            do {
+                arg = CmdSplitLine(pAbc, arg, &newc, &newv);
                 /*
                  * If there's a complete `;' terminated command in `arg',
                  * when split_line() returns arg[0] != '\0'.
                  */
-                if ( arg[0] == '\0' )
-                { /* just a bunch of words */
+                if (arg[0] == '\0') { /* just a bunch of words */
                     break;
                 }
-                fError = CmdApplyAlias( pAbc, &newc, &newv, loop );
-                if ( fError == 0 )
-                {
-                       fError = CmdCommandDispatch( pAbc, &newc, &newv );
+                fError = CmdApplyAlias(pAbc, &newc, &newv, loop);
+                if (fError == 0) {
+                    fError = CmdCommandDispatch(pAbc, &newc, &newv);
                 }
-                CmdFreeArgv( newc, newv );
-            }
-            while ( fError == 0 );
-            if ( fError != 0 )
-            {
+                CmdFreeArgv(newc, newv);
+            } while (fError == 0);
+            if (fError != 0) {
                 *argcp = argc;
                 *argvp = argv;
-                return ( 1 );
+                return (1);
             }
             added = newc - 1;
-            if ( added != 0 )
-            {
-                argv = ABC_REALLOC( char *, argv, argc + added );
-                for ( j = argc - 1; j > offset; j-- )
-                {
+            if (added != 0) {
+                argv = ABC_REALLOC(char*, argv, argc + added);
+                for (j = argc - 1; j > offset; j--) {
                     argv[j + added] = argv[j];
                 }
                 argc += added;
             }
-            for ( j = 0; j <= added; j++ )
-            {
+            for (j = 0; j <= added; j++) {
                 argv[j + offset] = newv[j];
             }
-            ABC_FREE( newv );
+            ABC_FREE(newv);
             offset += added;
         }
-        if ( subst == 1 )
-        {
-            for ( i = offset; i < argc; i++ )
-            {
-                ABC_FREE( argv[i] );
+        if (subst == 1) {
+            for (i = offset; i < argc; i++) {
+                ABC_FREE(argv[i]);
             }
             argc = offset;
         }
@@ -372,7 +325,7 @@ int CmdApplyAlias( Abc_Frame_t * pAbc, int *argcp, char ***argvp, int *loop )
         *argvp = argv;
     }
 
-    fprintf( pAbc->Err, "** cmd warning: alias loop\n" );
+    fprintf(pAbc->Err, "** cmd warning: alias loop\n");
     return 1;
 }
 
@@ -387,9 +340,8 @@ int CmdApplyAlias( Abc_Frame_t * pAbc, int *argcp, char ***argvp, int *loop )
   SeeAlso     []
 
 ***********************************************************************/
-char * CmdHistorySubstitution( Abc_Frame_t * pAbc, char *line, int *changed )
-{
-    // as of today, no history substitution 
+char* CmdHistorySubstitution(Abc_Frame_t* pAbc, char* line, int* changed) {
+    // as of today, no history substitution
     *changed = 0;
     return line;
 }
@@ -405,45 +357,38 @@ char * CmdHistorySubstitution( Abc_Frame_t * pAbc, char *line, int *changed )
   SeeAlso     []
 
 ***********************************************************************/
-FILE * CmdFileOpen( Abc_Frame_t * pAbc, char *sFileName, char *sMode, char **pFileNameReal, int silent )
-{
-    char * sRealName, * sPathUsr, * sPathLib, * sPathAll;
-    FILE * pFile;
-    
+FILE* CmdFileOpen(Abc_Frame_t* pAbc, char* sFileName, char* sMode, char** pFileNameReal, int silent) {
+    char *sRealName, *sPathUsr, *sPathLib, *sPathAll;
+    FILE* pFile;
+
     if (strcmp(sFileName, "-") == 0) {
         if (strcmp(sMode, "w") == 0) {
-            sRealName = Extra_UtilStrsav( "stdout" );
+            sRealName = Extra_UtilStrsav("stdout");
             pFile = stdout;
-        }
-        else {
-            sRealName = Extra_UtilStrsav( "stdin" );
+        } else {
+            sRealName = Extra_UtilStrsav("stdin");
             pFile = stdin;
         }
-    }
-    else {
+    } else {
         sRealName = NULL;
         if (strcmp(sMode, "r") == 0) {
-            
             /* combine both pathes if exist */
-            sPathUsr = Cmd_FlagReadByName(pAbc,"open_path");
-            sPathLib = Cmd_FlagReadByName(pAbc,"lib_path");
-            
-            if ( sPathUsr == NULL && sPathLib == NULL ) {
+            sPathUsr = Cmd_FlagReadByName(pAbc, "open_path");
+            sPathLib = Cmd_FlagReadByName(pAbc, "lib_path");
+
+            if (sPathUsr == NULL && sPathLib == NULL) {
                 sPathAll = NULL;
+            } else if (sPathUsr == NULL) {
+                sPathAll = Extra_UtilStrsav(sPathLib);
+            } else if (sPathLib == NULL) {
+                sPathAll = Extra_UtilStrsav(sPathUsr);
+            } else {
+                sPathAll = ABC_ALLOC(char, strlen(sPathLib) + strlen(sPathUsr) + 5);
+                sprintf(sPathAll, "%s:%s", sPathUsr, sPathLib);
             }
-            else if ( sPathUsr == NULL ) {
-                sPathAll = Extra_UtilStrsav( sPathLib );
-            }
-            else if ( sPathLib == NULL ) {
-                sPathAll = Extra_UtilStrsav( sPathUsr );
-            }
-            else {
-                sPathAll = ABC_ALLOC( char, strlen(sPathLib)+strlen(sPathUsr)+5 );
-                sprintf( sPathAll, "%s:%s",sPathUsr, sPathLib );
-            }
-            if ( sPathAll != NULL ) {
+            if (sPathAll != NULL) {
                 sRealName = Extra_UtilFileSearch(sFileName, sPathAll, "r");
-                ABC_FREE( sPathAll );
+                ABC_FREE(sPathAll);
             }
         }
         if (sRealName == NULL) {
@@ -451,23 +396,21 @@ FILE * CmdFileOpen( Abc_Frame_t * pAbc, char *sFileName, char *sMode, char **pFi
         }
 
         if ((pFile = fopen(sRealName, sMode)) == NULL) {
-            if (! silent) {
-//                perror(sRealName);
-                Abc_Print( 1, "Cannot open file \"%s\".\n", sRealName );
+            if (!silent) {
+                //                perror(sRealName);
+                Abc_Print(1, "Cannot open file \"%s\".\n", sRealName);
             }
-        }
-        else
-        {
+        } else {
             // print the path/name of the resource file 'abc.rc' that is being loaded
-            if ( !silent && strlen(sRealName) >= 6 && strcmp( sRealName + strlen(sRealName) - 6, "abc.rc" ) == 0 )            
-                Abc_Print( 1, "Loading resource file \"%s\".\n", sRealName );
+            if (!silent && strlen(sRealName) >= 6 && strcmp(sRealName + strlen(sRealName) - 6, "abc.rc") == 0)
+                Abc_Print(1, "Loading resource file \"%s\".\n", sRealName);
         }
     }
-    if ( pFileNameReal )
+    if (pFileNameReal)
         *pFileNameReal = sRealName;
     else
         ABC_FREE(sRealName);
-    
+
     return pFile;
 }
 
@@ -482,19 +425,17 @@ FILE * CmdFileOpen( Abc_Frame_t * pAbc, char *sFileName, char *sMode, char **pFi
   SeeAlso     []
 
 ***********************************************************************/
-void CmdFreeArgv( int argc, char **argv )
-{
+void CmdFreeArgv(int argc, char** argv) {
     int i;
-    for ( i = 0; i < argc; i++ )
-        ABC_FREE( argv[i] );
-    ABC_FREE( argv );
+    for (i = 0; i < argc; i++)
+        ABC_FREE(argv[i]);
+    ABC_FREE(argv);
 }
-char ** CmdDupArgv( int argc, char **argv )
-{
-    char ** argvNew = ABC_ALLOC( char *, argc );
+char** CmdDupArgv(int argc, char** argv) {
+    char** argvNew = ABC_ALLOC(char*, argc);
     int i;
-    for ( i = 0; i < argc; i++ )
-        argvNew[i] = Abc_UtilStrsav( argv[i] );
+    for (i = 0; i < argc; i++)
+        argvNew[i] = Abc_UtilStrsav(argv[i]);
     return argvNew;
 }
 
@@ -509,15 +450,14 @@ char ** CmdDupArgv( int argc, char **argv )
   SeeAlso     []
 
 ***********************************************************************/
-char ** CmdAddToArgv( int argc, char ** argv )
-{
-    char ** argv2;
+char** CmdAddToArgv(int argc, char** argv) {
+    char** argv2;
     int i;
-    argv2 = ABC_ALLOC( char *, argc + 1 ); 
-    argv2[0] = Extra_UtilStrsav( "read" ); 
-//    argv2[0] = Extra_UtilStrsav( "&r" ); 
-    for ( i = 0; i < argc; i++ )
-        argv2[i+1] = Extra_UtilStrsav( argv[i] ); 
+    argv2 = ABC_ALLOC(char*, argc + 1);
+    argv2[0] = Extra_UtilStrsav("read");
+    //    argv2[0] = Extra_UtilStrsav( "&r" );
+    for (i = 0; i < argc; i++)
+        argv2[i + 1] = Extra_UtilStrsav(argv[i]);
     return argv2;
 }
 
@@ -532,13 +472,11 @@ char ** CmdAddToArgv( int argc, char ** argv )
   SeeAlso     []
 
 ***********************************************************************/
-void CmdCommandFree( Abc_Command * pCommand )
-{
-    ABC_FREE( pCommand->sGroup );
-    ABC_FREE( pCommand->sName );
-    ABC_FREE( pCommand );
+void CmdCommandFree(Abc_Command* pCommand) {
+    ABC_FREE(pCommand->sGroup);
+    ABC_FREE(pCommand->sName);
+    ABC_FREE(pCommand);
 }
-
 
 /**Function*************************************************************
 
@@ -551,107 +489,98 @@ void CmdCommandFree( Abc_Command * pCommand )
   SeeAlso     []
 
 ***********************************************************************/
-void CmdCommandPrint( Abc_Frame_t * pAbc, int fPrintAll, int fDetails )
-{
-    const char *key;
-    char *value;
-    st__generator * gen;
-    Abc_Command ** ppCommands;
-    Abc_Command * pCommands;
+void CmdCommandPrint(Abc_Frame_t* pAbc, int fPrintAll, int fDetails) {
+    const char* key;
+    char* value;
+    st__generator* gen;
+    Abc_Command** ppCommands;
+    Abc_Command* pCommands;
     int nCommands, iGroupStart, i, j;
-    char * sGroupCur;
+    char* sGroupCur;
     int LenghtMax, nColumns, iCom = 0;
-    FILE *backupErr = pAbc->Err;
+    FILE* backupErr = pAbc->Err;
 
     // put all commands into one array
-    nCommands = st__count( pAbc->tCommands );
-    ppCommands = ABC_ALLOC( Abc_Command *, nCommands );
+    nCommands = st__count(pAbc->tCommands);
+    ppCommands = ABC_ALLOC(Abc_Command*, nCommands);
     i = 0;
-    st__foreach_item( pAbc->tCommands, gen, &key, &value )
-    {
-        pCommands = (Abc_Command *)value;
-        if ( fPrintAll || pCommands->sName[0] != '_' )
+    st__foreach_item(pAbc->tCommands, gen, &key, &value) {
+        pCommands = (Abc_Command*)value;
+        if (fPrintAll || pCommands->sName[0] != '_')
             ppCommands[i++] = pCommands;
     }
     nCommands = i;
 
     // sort command by group and then by name, alphabetically
-    qsort( (void *)ppCommands, (size_t)nCommands, sizeof(Abc_Command *), 
-            (int (*)(const void *, const void *)) CmdCommandPrintCompare );
-    assert( CmdCommandPrintCompare( ppCommands, ppCommands + nCommands - 1 ) <= 0 );
+    qsort((void*)ppCommands, (size_t)nCommands, sizeof(Abc_Command*),
+          (int (*)(const void*, const void*))CmdCommandPrintCompare);
+    assert(CmdCommandPrintCompare(ppCommands, ppCommands + nCommands - 1) <= 0);
 
     // get the longest command name
     LenghtMax = 0;
-    for ( i = 0; i < nCommands; i++ )
-        if ( LenghtMax < (int)strlen(ppCommands[i]->sName) )
-             LenghtMax = (int)strlen(ppCommands[i]->sName); 
+    for (i = 0; i < nCommands; i++)
+        if (LenghtMax < (int)strlen(ppCommands[i]->sName))
+            LenghtMax = (int)strlen(ppCommands[i]->sName);
     // get the number of columns
     nColumns = 79 / (LenghtMax + 2);
 
-    // print the starting message 
-    fprintf( pAbc->Out, "      Welcome to ABC compiled on %s %s!", __DATE__, __TIME__ );
+    // print the starting message
+    fprintf(pAbc->Out, "      Welcome to ABC compiled on %s %s!", __DATE__, __TIME__);
 
     // print the command by group
     sGroupCur = NULL;
     iGroupStart = 0;
     pAbc->Err = pAbc->Out;
-    for ( i = 0; i < nCommands; i++ )
-        if ( sGroupCur && strcmp( sGroupCur, ppCommands[i]->sGroup ) == 0 )
-        { // this command belongs to the same group as the previous one
-            if ( iCom++ % nColumns == 0 )
-                fprintf( pAbc->Out, "\n" ); 
+    for (i = 0; i < nCommands; i++)
+        if (sGroupCur && strcmp(sGroupCur, ppCommands[i]->sGroup) == 0) { // this command belongs to the same group as the previous one
+            if (iCom++ % nColumns == 0)
+                fprintf(pAbc->Out, "\n");
             // print this command
-            fprintf( pAbc->Out, " %-*s", LenghtMax, ppCommands[i]->sName );
-        }
-        else
-        { // this command starts the new group of commands
+            fprintf(pAbc->Out, " %-*s", LenghtMax, ppCommands[i]->sName);
+        } else { // this command starts the new group of commands
             // start the new group
-            if ( fDetails && i != iGroupStart )
-            { // print help messages for all commands in the previous groups
-                fprintf( pAbc->Out, "\n" );
-                for ( j = iGroupStart; j < i; j++ )
-                {
-                    char *tmp_cmd;
-                    fprintf( pAbc->Out, "\n" );
+            if (fDetails && i != iGroupStart) { // print help messages for all commands in the previous groups
+                fprintf(pAbc->Out, "\n");
+                for (j = iGroupStart; j < i; j++) {
+                    char* tmp_cmd;
+                    fprintf(pAbc->Out, "\n");
                     // fprintf( pAbc->Out, "--- %s ---\n", ppCommands[j]->sName );
-                    tmp_cmd = ABC_ALLOC(char, strlen(ppCommands[j]->sName)+4);
-                    (void) sprintf(tmp_cmd, "%s -h", ppCommands[j]->sName);
-                    (void) Cmd_CommandExecute( pAbc, tmp_cmd );
+                    tmp_cmd = ABC_ALLOC(char, strlen(ppCommands[j]->sName) + 4);
+                    (void)sprintf(tmp_cmd, "%s -h", ppCommands[j]->sName);
+                    (void)Cmd_CommandExecute(pAbc, tmp_cmd);
                     ABC_FREE(tmp_cmd);
                 }
-                fprintf( pAbc->Out, "\n" );
-                fprintf( pAbc->Out, "   ----------------------------------------------------------------------" );
+                fprintf(pAbc->Out, "\n");
+                fprintf(pAbc->Out, "   ----------------------------------------------------------------------");
                 iGroupStart = i;
             }
-            fprintf( pAbc->Out, "\n" );
-            fprintf( pAbc->Out, "\n" );
-            fprintf( pAbc->Out, "%s commands:\n", ppCommands[i]->sGroup );
+            fprintf(pAbc->Out, "\n");
+            fprintf(pAbc->Out, "\n");
+            fprintf(pAbc->Out, "%s commands:\n", ppCommands[i]->sGroup);
             // print this command
-            fprintf( pAbc->Out, " %-*s", LenghtMax, ppCommands[i]->sName );
+            fprintf(pAbc->Out, " %-*s", LenghtMax, ppCommands[i]->sName);
             // remember current command group
             sGroupCur = ppCommands[i]->sGroup;
             // reset the command counter
             iCom = 1;
         }
-    if ( fDetails && i != iGroupStart )
-    { // print help messages for all commands in the previous groups
-        fprintf( pAbc->Out, "\n" );
-        for ( j = iGroupStart; j < i; j++ )
-        {
-            char *tmp_cmd;
-            fprintf( pAbc->Out, "\n" );
+    if (fDetails && i != iGroupStart) { // print help messages for all commands in the previous groups
+        fprintf(pAbc->Out, "\n");
+        for (j = iGroupStart; j < i; j++) {
+            char* tmp_cmd;
+            fprintf(pAbc->Out, "\n");
             // fprintf( pAbc->Out, "--- %s ---\n", ppCommands[j]->sName );
-            tmp_cmd = ABC_ALLOC(char, strlen(ppCommands[j]->sName)+4);
-            (void) sprintf(tmp_cmd, "%s -h", ppCommands[j]->sName);
-            (void) Cmd_CommandExecute( pAbc, tmp_cmd );
+            tmp_cmd = ABC_ALLOC(char, strlen(ppCommands[j]->sName) + 4);
+            (void)sprintf(tmp_cmd, "%s -h", ppCommands[j]->sName);
+            (void)Cmd_CommandExecute(pAbc, tmp_cmd);
             ABC_FREE(tmp_cmd);
         }
     }
     pAbc->Err = backupErr;
-    fprintf( pAbc->Out, "\n" );
-    ABC_FREE( ppCommands );
+    fprintf(pAbc->Out, "\n");
+    ABC_FREE(ppCommands);
 }
- 
+
 /**Function*************************************************************
 
   Synopsis    [Comparision function used for sorting commands.]
@@ -663,35 +592,34 @@ void CmdCommandPrint( Abc_Frame_t * pAbc, int fPrintAll, int fDetails )
   SeeAlso     []
 
 ***********************************************************************/
-int CmdCommandPrintCompare( Abc_Command ** ppC1, Abc_Command ** ppC2 )
-{
-    Abc_Command * pC1 = *ppC1;
-    Abc_Command * pC2 = *ppC2;
+int CmdCommandPrintCompare(Abc_Command** ppC1, Abc_Command** ppC2) {
+    Abc_Command* pC1 = *ppC1;
+    Abc_Command* pC2 = *ppC2;
     int RetValue;
 
-    RetValue = strcmp( pC1->sGroup, pC2->sGroup );
-    if ( RetValue < 0 )
+    RetValue = strcmp(pC1->sGroup, pC2->sGroup);
+    if (RetValue < 0)
         return -1;
-    if ( RetValue > 0 )
+    if (RetValue > 0)
         return 1;
     // the command belong to the same group
 
     // put commands with "_" at the end of the list
-    if ( pC1->sName[0] != '_' && pC2->sName[0] == '_' )
+    if (pC1->sName[0] != '_' && pC2->sName[0] == '_')
         return -1;
-    if ( pC1->sName[0] == '_' && pC2->sName[0] != '_' )
+    if (pC1->sName[0] == '_' && pC2->sName[0] != '_')
         return 1;
 
-    RetValue = strcmp( pC1->sName, pC2->sName );
-    if ( RetValue < 0 )
+    RetValue = strcmp(pC1->sName, pC2->sName);
+    if (RetValue < 0)
         return -1;
-    if ( RetValue > 0 )
+    if (RetValue > 0)
         return 1;
-     // should not be two indentical commands
-    assert( 0 );
+    // should not be two indentical commands
+    assert(0);
     return 0;
 }
- 
+
 /**Function*************************************************************
 
   Synopsis    [Comparision function used for sorting commands.]
@@ -703,9 +631,8 @@ int CmdCommandPrintCompare( Abc_Command ** ppC1, Abc_Command ** ppC2 )
   SeeAlso     []
 
 ***********************************************************************/
-int CmdNamePrintCompare( char ** ppC1, char ** ppC2 )
-{
-    return strcmp( *ppC1, *ppC2 );
+int CmdNamePrintCompare(char** ppC1, char** ppC2) {
+    return strcmp(*ppC1, *ppC2);
 }
 
 /**Function*************************************************************
@@ -719,38 +646,36 @@ int CmdNamePrintCompare( char ** ppC1, char ** ppC2 )
   SeeAlso     []
 
 ***********************************************************************/
-void CmdPrintTable( st__table * tTable, int fAliases )
-{
-    st__generator * gen;
-    const char ** ppNames;
-    const char * key;
+void CmdPrintTable(st__table* tTable, int fAliases) {
+    st__generator* gen;
+    const char** ppNames;
+    const char* key;
     char* value;
     int nNames, i;
 
     // collect keys in the array
-    ppNames = ABC_ALLOC( const char *, st__count(tTable) );
+    ppNames = ABC_ALLOC(const char*, st__count(tTable));
     nNames = 0;
-    st__foreach_item( tTable, gen, &key, &value )
-        ppNames[nNames++] = key;
+    st__foreach_item(tTable, gen, &key, &value)
+        ppNames[nNames++]
+        = key;
 
     // sort array by name
-    qsort( (void *)ppNames, (size_t)nNames, sizeof(char *), 
-        (int (*)(const void *, const void *))CmdNamePrintCompare );
+    qsort((void*)ppNames, (size_t)nNames, sizeof(char*),
+          (int (*)(const void*, const void*))CmdNamePrintCompare);
 
     // print in this order
-    for ( i = 0; i < nNames; i++ )
-    {
-        st__lookup( tTable, ppNames[i], &value );
-        if ( fAliases )
-            CmdCommandAliasPrint( Abc_FrameGetGlobalFrame(), (Abc_Alias *)value );
+    for (i = 0; i < nNames; i++) {
+        st__lookup(tTable, ppNames[i], &value);
+        if (fAliases)
+            CmdCommandAliasPrint(Abc_FrameGetGlobalFrame(), (Abc_Alias*)value);
         else
-            fprintf( stdout, "%-15s %-15s\n", ppNames[i], value );
+            fprintf(stdout, "%-15s %-15s\n", ppNames[i], value);
     }
-    ABC_FREE( ppNames );
+    ABC_FREE(ppNames);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 ABC_NAMESPACE_IMPL_END
-

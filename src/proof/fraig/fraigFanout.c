@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 #ifdef FRAIG_ENABLE_FANOUTS
 
 ////////////////////////////////////////////////////////////////////////
@@ -42,47 +41,39 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeAddFaninFanout( Fraig_Node_t * pFanin, Fraig_Node_t * pFanout )
-{
-    Fraig_Node_t * pPivot;
+void Fraig_NodeAddFaninFanout(Fraig_Node_t* pFanin, Fraig_Node_t* pFanout) {
+    Fraig_Node_t* pPivot;
 
     // pFanins is a fanin of pFanout
-    assert( !Fraig_IsComplement(pFanin) );
-    assert( !Fraig_IsComplement(pFanout) );
-    assert( Fraig_Regular(pFanout->p1) == pFanin || Fraig_Regular(pFanout->p2) == pFanin );
+    assert(!Fraig_IsComplement(pFanin));
+    assert(!Fraig_IsComplement(pFanout));
+    assert(Fraig_Regular(pFanout->p1) == pFanin || Fraig_Regular(pFanout->p2) == pFanin);
 
     pPivot = pFanin->pFanPivot;
-    if ( pPivot == NULL )
-    {
+    if (pPivot == NULL) {
         pFanin->pFanPivot = pFanout;
         return;
     }
 
-    if ( Fraig_Regular(pPivot->p1) == pFanin )
-    {
-        if ( Fraig_Regular(pFanout->p1) == pFanin )
-        {
+    if (Fraig_Regular(pPivot->p1) == pFanin) {
+        if (Fraig_Regular(pFanout->p1) == pFanin) {
             pFanout->pFanFanin1 = pPivot->pFanFanin1;
-            pPivot->pFanFanin1  = pFanout;
-        }
-        else // if ( Fraig_Regular(pFanout->p2) == pFanin )
+            pPivot->pFanFanin1 = pFanout;
+        } else // if ( Fraig_Regular(pFanout->p2) == pFanin )
         {
             pFanout->pFanFanin2 = pPivot->pFanFanin1;
-            pPivot->pFanFanin1  = pFanout;
+            pPivot->pFanFanin1 = pFanout;
         }
-    }
-    else // if ( Fraig_Regular(pPivot->p2) == pFanin )
+    } else // if ( Fraig_Regular(pPivot->p2) == pFanin )
     {
-        assert( Fraig_Regular(pPivot->p2) == pFanin );
-        if ( Fraig_Regular(pFanout->p1) == pFanin )
-        {
+        assert(Fraig_Regular(pPivot->p2) == pFanin);
+        if (Fraig_Regular(pFanout->p1) == pFanin) {
             pFanout->pFanFanin1 = pPivot->pFanFanin2;
-            pPivot->pFanFanin2  = pFanout;
-        }
-        else // if ( Fraig_Regular(pFanout->p2) == pFanin )
+            pPivot->pFanFanin2 = pFanout;
+        } else // if ( Fraig_Regular(pFanout->p2) == pFanin )
         {
             pFanout->pFanFanin2 = pPivot->pFanFanin2;
-            pPivot->pFanFanin2  = pFanout;
+            pPivot->pFanFanin2 = pFanout;
         }
     }
 }
@@ -98,20 +89,18 @@ void Fraig_NodeAddFaninFanout( Fraig_Node_t * pFanin, Fraig_Node_t * pFanout )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeRemoveFaninFanout( Fraig_Node_t * pFanin, Fraig_Node_t * pFanoutToRemove )
-{
-    Fraig_Node_t * pFanout, * pFanout2, ** ppFanList;
+void Fraig_NodeRemoveFaninFanout(Fraig_Node_t* pFanin, Fraig_Node_t* pFanoutToRemove) {
+    Fraig_Node_t *pFanout, *pFanout2, **ppFanList;
     // start the linked list of fanouts
-    ppFanList = &pFanin->pFanPivot; 
+    ppFanList = &pFanin->pFanPivot;
     // go through the fanouts
-    Fraig_NodeForEachFanoutSafe( pFanin, pFanout, pFanout2 )
-    {
+    Fraig_NodeForEachFanoutSafe(pFanin, pFanout, pFanout2) {
         // skip the fanout-to-remove
-        if ( pFanout == pFanoutToRemove )
+        if (pFanout == pFanoutToRemove)
             continue;
         // add useful fanouts to the list
         *ppFanList = pFanout;
-        ppFanList = Fraig_NodeReadNextFanoutPlace( pFanin, pFanout );
+        ppFanList = Fraig_NodeReadNextFanoutPlace(pFanin, pFanout);
     }
     *ppFanList = NULL;
 }
@@ -127,27 +116,25 @@ void Fraig_NodeRemoveFaninFanout( Fraig_Node_t * pFanin, Fraig_Node_t * pFanoutT
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeTransferFanout( Fraig_Node_t * pNodeFrom, Fraig_Node_t * pNodeTo )
-{
-    Fraig_Node_t * pFanout;
-    assert( pNodeTo->pFanPivot == NULL );
-    assert( pNodeTo->pFanFanin1 == NULL );
-    assert( pNodeTo->pFanFanin2 == NULL );
+void Fraig_NodeTransferFanout(Fraig_Node_t* pNodeFrom, Fraig_Node_t* pNodeTo) {
+    Fraig_Node_t* pFanout;
+    assert(pNodeTo->pFanPivot == NULL);
+    assert(pNodeTo->pFanFanin1 == NULL);
+    assert(pNodeTo->pFanFanin2 == NULL);
     // go through the fanouts and update their fanins
-    Fraig_NodeForEachFanout( pNodeFrom, pFanout )
-    {
-        if ( Fraig_Regular(pFanout->p1) == pNodeFrom )
-            pFanout->p1 = Fraig_NotCond( pNodeTo, Fraig_IsComplement(pFanout->p1) );
-        else if ( Fraig_Regular(pFanout->p2) == pNodeFrom )
-            pFanout->p2 = Fraig_NotCond( pNodeTo, Fraig_IsComplement(pFanout->p2) );            
+    Fraig_NodeForEachFanout(pNodeFrom, pFanout) {
+        if (Fraig_Regular(pFanout->p1) == pNodeFrom)
+            pFanout->p1 = Fraig_NotCond(pNodeTo, Fraig_IsComplement(pFanout->p1));
+        else if (Fraig_Regular(pFanout->p2) == pNodeFrom)
+            pFanout->p2 = Fraig_NotCond(pNodeTo, Fraig_IsComplement(pFanout->p2));
     }
     // move the pointers
-    pNodeTo->pFanPivot  = pNodeFrom->pFanPivot;  
-    pNodeTo->pFanFanin1 = pNodeFrom->pFanFanin1; 
+    pNodeTo->pFanPivot = pNodeFrom->pFanPivot;
+    pNodeTo->pFanFanin1 = pNodeFrom->pFanFanin1;
     pNodeTo->pFanFanin2 = pNodeFrom->pFanFanin2;
-    pNodeFrom->pFanPivot  = NULL; 
-    pNodeFrom->pFanFanin1 = NULL; 
-    pNodeFrom->pFanFanin2 = NULL;  
+    pNodeFrom->pFanPivot = NULL;
+    pNodeFrom->pFanFanin1 = NULL;
+    pNodeFrom->pFanFanin2 = NULL;
 }
 
 /**Function*************************************************************
@@ -161,11 +148,10 @@ void Fraig_NodeTransferFanout( Fraig_Node_t * pNodeFrom, Fraig_Node_t * pNodeTo 
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_NodeGetFanoutNum( Fraig_Node_t * pNode )
-{
-    Fraig_Node_t * pFanout;
+int Fraig_NodeGetFanoutNum(Fraig_Node_t* pNode) {
+    Fraig_Node_t* pFanout;
     int Counter = 0;
-    Fraig_NodeForEachFanout( pNode, pFanout )
+    Fraig_NodeForEachFanout(pNode, pFanout)
         Counter++;
     return Counter;
 }
@@ -177,4 +163,3 @@ int Fraig_NodeGetFanoutNum( Fraig_Node_t * pNode )
 #endif
 
 ABC_NAMESPACE_IMPL_END
-

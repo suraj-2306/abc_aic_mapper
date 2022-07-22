@@ -17,10 +17,9 @@
   Revision    [$Id: bblif.h,v 1.00 2009/02/28 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
-#ifndef ABC__aig__bbl__bblif_h
-#define ABC__aig__bbl__bblif_h
 
+#ifndef ABC__aig__bbl__bblif_h
+#    define ABC__aig__bbl__bblif_h
 
 /*
     This file (taken together with "bblif.c") implements a stand-alone 
@@ -187,26 +186,23 @@
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
 ABC_NAMESPACE_HEADER_START
 
-
-#ifdef _WIN32
-#define inline __inline
-#endif
+#    ifdef _WIN32
+#        define inline __inline
+#    endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
 ////////////////////////////////////////////////////////////////////////
 
 // object types
-typedef enum { 
-    BBL_OBJ_NONE,                // 0: non-existent object
-    BBL_OBJ_CI,                  // 1: primary input
-    BBL_OBJ_CO,                  // 2: primary output
-    BBL_OBJ_NODE,                // 3: buffer node
-    BBL_OBJ_VOID                 // 4: unused object
+typedef enum {
+    BBL_OBJ_NONE, // 0: non-existent object
+    BBL_OBJ_CI,   // 1: primary input
+    BBL_OBJ_CO,   // 2: primary output
+    BBL_OBJ_NODE, // 3: buffer node
+    BBL_OBJ_VOID  // 4: unused object
 } Bbl_Type_t;
 
 // data manager
@@ -224,62 +220,56 @@ typedef struct Bbl_Obj_t_ Bbl_Obj_t;
 ////////////////////////////////////////////////////////////////////////
 
 // (1) creating the data manager in the application code
-extern Bbl_Man_t * Bbl_ManStart( char * pName );
-extern void        Bbl_ManCreateObject( Bbl_Man_t * p, Bbl_Type_t Type, int ObjId, int nFanins, char * pSop );
-extern void        Bbl_ManAddFanin( Bbl_Man_t * p, int ObjId, int FaninId );
-extern int         Bbl_ManCheck( Bbl_Man_t * p );
-extern void        Bbl_ManPrintStats( Bbl_Man_t * p );
-extern void        Bbl_ManStop( Bbl_Man_t * p );
+extern Bbl_Man_t* Bbl_ManStart(char* pName);
+extern void Bbl_ManCreateObject(Bbl_Man_t* p, Bbl_Type_t Type, int ObjId, int nFanins, char* pSop);
+extern void Bbl_ManAddFanin(Bbl_Man_t* p, int ObjId, int FaninId);
+extern int Bbl_ManCheck(Bbl_Man_t* p);
+extern void Bbl_ManPrintStats(Bbl_Man_t* p);
+extern void Bbl_ManStop(Bbl_Man_t* p);
 
 // (2) writing the data manager into file
-extern void        Bbl_ManDumpBinaryBlif( Bbl_Man_t * p, char * pFileName );
+extern void Bbl_ManDumpBinaryBlif(Bbl_Man_t* p, char* pFileName);
 
 // (3) reading the data manager from file
-extern Bbl_Man_t * Bbl_ManReadBinaryBlif( char * pFileName );
+extern Bbl_Man_t* Bbl_ManReadBinaryBlif(char* pFileName);
 
 // (4) returning the mapped network after reading the data manaager from file
-extern char *      Bbl_ManName( Bbl_Man_t * p );
-extern int         Bbl_ObjIsInput( Bbl_Obj_t * p );
-extern int         Bbl_ObjIsOutput( Bbl_Obj_t * p );
-extern int         Bbl_ObjIsLut( Bbl_Obj_t * p );
-extern int         Bbl_ObjId( Bbl_Obj_t * p );
-extern int         Bbl_ObjIdOriginal( Bbl_Man_t * pMan, Bbl_Obj_t * p );
-extern int         Bbl_ObjFaninNumber( Bbl_Obj_t * p );
-extern char *      Bbl_ObjSop( Bbl_Man_t * pMan, Bbl_Obj_t * p );
+extern char* Bbl_ManName(Bbl_Man_t* p);
+extern int Bbl_ObjIsInput(Bbl_Obj_t* p);
+extern int Bbl_ObjIsOutput(Bbl_Obj_t* p);
+extern int Bbl_ObjIsLut(Bbl_Obj_t* p);
+extern int Bbl_ObjId(Bbl_Obj_t* p);
+extern int Bbl_ObjIdOriginal(Bbl_Man_t* pMan, Bbl_Obj_t* p);
+extern int Bbl_ObjFaninNumber(Bbl_Obj_t* p);
+extern char* Bbl_ObjSop(Bbl_Man_t* pMan, Bbl_Obj_t* p);
 
 // for the use in iterators only
-extern Bbl_Obj_t * Bbl_ManObjFirst( Bbl_Man_t * p );
-extern Bbl_Obj_t * Bbl_ManObjNext( Bbl_Man_t * p, Bbl_Obj_t * pObj );
-extern Bbl_Obj_t * Bbl_ObjFaninFirst( Bbl_Obj_t * p );
-extern Bbl_Obj_t * Bbl_ObjFaninNext( Bbl_Obj_t * p, Bbl_Obj_t * pPrev );
+extern Bbl_Obj_t* Bbl_ManObjFirst(Bbl_Man_t* p);
+extern Bbl_Obj_t* Bbl_ManObjNext(Bbl_Man_t* p, Bbl_Obj_t* pObj);
+extern Bbl_Obj_t* Bbl_ObjFaninFirst(Bbl_Obj_t* p);
+extern Bbl_Obj_t* Bbl_ObjFaninNext(Bbl_Obj_t* p, Bbl_Obj_t* pPrev);
 
 // iterator through the objects
-#define Bbl_ManForEachObj( p, pObj )                \
-    for ( pObj = Bbl_ManObjFirst(p); pObj; pObj = Bbl_ManObjNext(p, pObj) )
+#    define Bbl_ManForEachObj(p, pObj) \
+        for (pObj = Bbl_ManObjFirst(p); pObj; pObj = Bbl_ManObjNext(p, pObj))
 // iterator through the fanins fo the an object
-#define Bbl_ObjForEachFanin( pObj, pFanin )         \
-    for ( pFanin = Bbl_ObjFaninFirst(pObj); pFanin; pFanin = Bbl_ObjFaninNext(pObj, pFanin) )
+#    define Bbl_ObjForEachFanin(pObj, pFanin) \
+        for (pFanin = Bbl_ObjFaninFirst(pObj); pFanin; pFanin = Bbl_ObjFaninNext(pObj, pFanin))
 
 // these additional procedures are provided to transform truth tables into SOPs, and vice versa
-extern char *      Bbl_ManTruthToSop( unsigned * pTruth, int nVars );
-extern unsigned *  Bbl_ManSopToTruth( char * pSop, int nVars );
+extern char* Bbl_ManTruthToSop(unsigned* pTruth, int nVars);
+extern unsigned* Bbl_ManSopToTruth(char* pSop, int nVars);
 
 // write text BLIF file for debugging
-extern void        Bbl_ManDumpBlif( Bbl_Man_t * p, char * pFileName );
+extern void Bbl_ManDumpBlif(Bbl_Man_t* p, char* pFileName);
 
 // a simple demo procedure
-extern void        Bbl_ManSimpleDemo();
-
-
-
+extern void Bbl_ManSimpleDemo();
 
 ABC_NAMESPACE_HEADER_END
-
-
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

@@ -48,14 +48,11 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_CommandCfs( Gia_Man_t * pGia, int Limit, int Reps, int UnseenUse, int RareUse, int fReplaceRare, int fConstSim, int fDagNodes, float FlipProb, int fVerbose )
-{
+void Extra_CommandCfs(Gia_Man_t* pGia, int Limit, int Reps, int UnseenUse, int RareUse, int fReplaceRare, int fConstSim, int fDagNodes, float FlipProb, int fVerbose) {
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

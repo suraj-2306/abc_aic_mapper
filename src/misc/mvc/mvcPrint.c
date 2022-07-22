@@ -22,12 +22,11 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static void Mvc_CubePrintBinary( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube );
+static void Mvc_CubePrintBinary(Mvc_Cover_t* pCover, Mvc_Cube_t* pCube);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -44,26 +43,23 @@ static void Mvc_CubePrintBinary( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube );
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverPrint( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
+void Mvc_CoverPrint(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
     int i;
     // print general statistics
-    printf( "The cover contains %d cubes (%d bits and %d words)\n", 
-        pCover->lCubes.nItems, pCover->nBits, pCover->nWords );
+    printf("The cover contains %d cubes (%d bits and %d words)\n",
+           pCover->lCubes.nItems, pCover->nBits, pCover->nWords);
     // iterate through the cubes
-    Mvc_CoverForEachCube( pCover, pCube )
-        Mvc_CubePrint( pCover, pCube );
+    Mvc_CoverForEachCube(pCover, pCube)
+        Mvc_CubePrint(pCover, pCube);
 
-    if ( pCover->pLits )
-    {
-        for ( i = 0; i < pCover->nBits; i++ )
-            printf( " %d", pCover->pLits[i] );
-        printf( "\n" ); 
+    if (pCover->pLits) {
+        for (i = 0; i < pCover->nBits; i++)
+            printf(" %d", pCover->pLits[i]);
+        printf("\n");
     }
-    printf( "End of cover printout\n" ); 
+    printf("End of cover printout\n");
 }
-
 
 /**Function*************************************************************
 
@@ -76,16 +72,14 @@ void Mvc_CoverPrint( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CubePrint( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
-{
+void Mvc_CubePrint(Mvc_Cover_t* pCover, Mvc_Cube_t* pCube) {
     int iBit, Value;
     // iterate through the literals
-//    printf( "Size = %2d   ", Mvc_CubeReadSize(pCube) );
-    Mvc_CubeForEachBit( pCover, pCube, iBit, Value )
-        printf( "%c", '0' + Value );
-    printf( "\n" );
+    //    printf( "Size = %2d   ", Mvc_CubeReadSize(pCube) );
+    Mvc_CubeForEachBit(pCover, pCube, iBit, Value)
+        printf("%c", '0' + Value);
+    printf("\n");
 }
-
 
 /**Function*************************************************************
 
@@ -98,26 +92,23 @@ void Mvc_CubePrint( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverPrintBinary( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
+void Mvc_CoverPrintBinary(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
     int i;
     // print general statistics
-    printf( "The cover contains %d cubes (%d bits and %d words)\n", 
-        pCover->lCubes.nItems, pCover->nBits, pCover->nWords );
+    printf("The cover contains %d cubes (%d bits and %d words)\n",
+           pCover->lCubes.nItems, pCover->nBits, pCover->nWords);
     // iterate through the cubes
-    Mvc_CoverForEachCube( pCover, pCube )
-        Mvc_CubePrintBinary( pCover, pCube );
+    Mvc_CoverForEachCube(pCover, pCube)
+        Mvc_CubePrintBinary(pCover, pCube);
 
-    if ( pCover->pLits )
-    {
-        for ( i = 0; i < pCover->nBits; i++ )
-            printf( " %d", pCover->pLits[i] );
-        printf( "\n" ); 
+    if (pCover->pLits) {
+        for (i = 0; i < pCover->nBits; i++)
+            printf(" %d", pCover->pLits[i]);
+        printf("\n");
     }
-    printf( "End of cover printout\n" ); 
+    printf("End of cover printout\n");
 }
-
 
 /**Function*************************************************************
 
@@ -130,22 +121,20 @@ void Mvc_CoverPrintBinary( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CubePrintBinary( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
-{
+void Mvc_CubePrintBinary(Mvc_Cover_t* pCover, Mvc_Cube_t* pCube) {
     int iVar, Value;
     // iterate through the literals
-//    printf( "Size = %2d   ", Mvc_CubeReadSize(pCube) );
-    Mvc_CubeForEachVarValue( pCover, pCube, iVar, Value )
-    {
-        assert( Value != 0 );
-        if ( Value == 3 )
-            printf( "-" );
-        else if ( Value == 1 )
-            printf( "0" );
-        else 
-            printf( "1" );
+    //    printf( "Size = %2d   ", Mvc_CubeReadSize(pCube) );
+    Mvc_CubeForEachVarValue(pCover, pCube, iVar, Value) {
+        assert(Value != 0);
+        if (Value == 3)
+            printf("-");
+        else if (Value == 1)
+            printf("0");
+        else
+            printf("1");
     }
-    printf( "\n" );
+    printf("\n");
 }
 
 #if 0
@@ -220,6 +209,4 @@ void Mvc_CubePrintMv( Mvc_Data_t * pData, Mvc_Cover_t * pCover, Mvc_Cube_t * pCu
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -61,22 +61,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -90,21 +85,17 @@ static char rcsid[] DD_UNUSED = "$Id: cuddCof.c,v 1.9 2004/08/13 18:04:47 fabio 
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticStart*************************************************************/
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -119,33 +110,30 @@ static char rcsid[] DD_UNUSED = "$Id: cuddCof.c,v 1.9 2004/08/13 18:04:47 fabio 
   SeeAlso     [Cudd_bddConstrain Cudd_bddRestrict]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Cofactor(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    DdNode *res,*zero;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    DdNode *res, *zero;
 
     zero = Cudd_Not(DD_ONE(dd));
     if (g == zero || g == DD_ZERO(dd)) {
-        (void) fprintf(dd->err,"Cudd_Cofactor: Invalid restriction 1\n");
+        (void)fprintf(dd->err, "Cudd_Cofactor: Invalid restriction 1\n");
         dd->errorCode = CUDD_INVALID_ARG;
-        return(NULL);
+        return (NULL);
     }
     do {
         dd->reordered = 0;
-        res = cuddCofactorRecur(dd,f,g);
+        res = cuddCofactorRecur(dd, f, g);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_Cofactor */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -158,13 +146,11 @@ Cudd_Cofactor(
   SeeAlso     []
 
 ******************************************************************************/
-void
-cuddGetBranches(
-  DdNode * g,
-  DdNode ** g1,
-  DdNode ** g0)
-{
-    DdNode      *G = Cudd_Regular(g);
+void cuddGetBranches(
+    DdNode* g,
+    DdNode** g1,
+    DdNode** g0) {
+    DdNode* G = Cudd_Regular(g);
 
     *g1 = cuddT(G);
     *g0 = cuddE(G);
@@ -174,7 +160,6 @@ cuddGetBranches(
     }
 
 } /* end of cuddGetBranches */
-
 
 /**Function********************************************************************
 
@@ -189,30 +174,27 @@ cuddGetBranches(
   SeeAlso     []
 
 ******************************************************************************/
-int
-cuddCheckCube(
-  DdManager * dd,
-  DdNode * g)
-{
-    DdNode *g1,*g0,*one,*zero;
-    
+int cuddCheckCube(
+    DdManager* dd,
+    DdNode* g) {
+    DdNode *g1, *g0, *one, *zero;
+
     one = DD_ONE(dd);
-    if (g == one) return(1);
-    if (Cudd_IsConstant(g)) return(0);
+    if (g == one) return (1);
+    if (Cudd_IsConstant(g)) return (0);
 
     zero = Cudd_Not(one);
-    cuddGetBranches(g,&g1,&g0);
+    cuddGetBranches(g, &g1, &g0);
 
     if (g0 == zero) {
-        return(cuddCheckCube(dd, g1));
+        return (cuddCheckCube(dd, g1));
     }
     if (g1 == zero) {
-        return(cuddCheckCube(dd, g0));
+        return (cuddCheckCube(dd, g0));
     }
-    return(0);
+    return (0);
 
 } /* end of cuddCheckCube */
-
 
 /**Function********************************************************************
 
@@ -226,19 +208,18 @@ cuddCheckCube(
   SeeAlso     [Cudd_Cofactor]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddCofactorRecur(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    DdNode *one,*zero,*F,*G,*g1,*g0,*f1,*f0,*t,*e,*r;
-    unsigned int topf,topg;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    DdNode *one, *zero, *F, *G, *g1, *g0, *f1, *f0, *t, *e, *r;
+    unsigned int topf, topg;
     int comple;
 
     statLine(dd);
     F = Cudd_Regular(f);
-    if (cuddIsConstant(F)) return(f);
+    if (cuddIsConstant(F)) return (f);
 
     one = DD_ONE(dd);
 
@@ -246,13 +227,13 @@ cuddCofactorRecur(
     ** recursively maintained by it. Therefore it suffices to test g
     ** against one to make sure it is not constant.
     */
-    if (g == one) return(f);
+    if (g == one) return (f);
     /* From now on, f and g are known not to be constants. */
 
     comple = f != F;
-    r = cuddCacheLookup2(dd,Cudd_Cofactor,F,g);
+    r = cuddCacheLookup2(dd, Cudd_Cofactor, F, g);
     if (r != NULL) {
-        return(Cudd_NotCond(r,comple));
+        return (Cudd_NotCond(r, comple));
     }
 
     topf = dd->perm[F->index];
@@ -265,13 +246,18 @@ cuddCofactorRecur(
     ** remembers whether we have to complement the result or not.
     */
     if (topf <= topg) {
-        f1 = cuddT(F); f0 = cuddE(F);
+        f1 = cuddT(F);
+        f0 = cuddE(F);
     } else {
         f1 = f0 = F;
     }
     if (topg <= topf) {
-        g1 = cuddT(G); g0 = cuddE(G);
-        if (g != G) { g1 = Cudd_Not(g1); g0 = Cudd_Not(g0); }
+        g1 = cuddT(G);
+        g0 = cuddE(G);
+        if (g != G) {
+            g1 = Cudd_Not(g1);
+            g0 = Cudd_Not(g0);
+        }
     } else {
         g1 = g0 = g;
     }
@@ -283,53 +269,49 @@ cuddCofactorRecur(
         } else if (g1 == zero || g1 == DD_ZERO(dd)) {
             r = cuddCofactorRecur(dd, f0, g0);
         } else {
-            (void) fprintf(dd->out,
-                           "Cudd_Cofactor: Invalid restriction 2\n");
+            (void)fprintf(dd->out,
+                          "Cudd_Cofactor: Invalid restriction 2\n");
             dd->errorCode = CUDD_INVALID_ARG;
-            return(NULL);
+            return (NULL);
         }
-        if (r == NULL) return(NULL);
+        if (r == NULL) return (NULL);
     } else /* if (topf < topg) */ {
         t = cuddCofactorRecur(dd, f1, g);
-        if (t == NULL) return(NULL);
+        if (t == NULL) return (NULL);
         cuddRef(t);
         e = cuddCofactorRecur(dd, f0, g);
         if (e == NULL) {
             Cudd_RecursiveDeref(dd, t);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(e);
 
         if (t == e) {
             r = t;
         } else if (Cudd_IsComplement(t)) {
-            r = cuddUniqueInter(dd,(int)F->index,Cudd_Not(t),Cudd_Not(e));
+            r = cuddUniqueInter(dd, (int)F->index, Cudd_Not(t), Cudd_Not(e));
             if (r != NULL)
                 r = Cudd_Not(r);
         } else {
-            r = cuddUniqueInter(dd,(int)F->index,t,e);
+            r = cuddUniqueInter(dd, (int)F->index, t, e);
         }
         if (r == NULL) {
-            Cudd_RecursiveDeref(dd ,e);
-            Cudd_RecursiveDeref(dd ,t);
-            return(NULL);
+            Cudd_RecursiveDeref(dd, e);
+            Cudd_RecursiveDeref(dd, t);
+            return (NULL);
         }
         cuddDeref(t);
         cuddDeref(e);
     }
 
-    cuddCacheInsert2(dd,Cudd_Cofactor,F,g,r);
+    cuddCacheInsert2(dd, Cudd_Cofactor, F, g, r);
 
-    return(Cudd_NotCond(r,comple));
+    return (Cudd_NotCond(r, comple));
 
 } /* end of cuddCofactorRecur */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-
 ABC_NAMESPACE_IMPL_END
-
-

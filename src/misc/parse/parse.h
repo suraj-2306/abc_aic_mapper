@@ -17,11 +17,9 @@
 ***********************************************************************/
 
 #ifndef ABC__bdd__parse__parse_h
-#define ABC__bdd__parse__parse_h
-
+#    define ABC__bdd__parse__parse_h
 
 ABC_NAMESPACE_HEADER_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
@@ -48,10 +46,7 @@ ABC_NAMESPACE_HEADER_START
 ////////////////////////////////////////////////////////////////////////
 
 /*=== parseCore.c =============================================================*/
-extern DdNode * Parse_FormulaParser( FILE * pOutput, char * pFormula, int nVars, int nRanks, 
-      char * ppVarNames[], DdManager * dd, DdNode * pbVars[] );
-
-
+extern DdNode* Parse_FormulaParser(FILE* pOutput, char* pFormula, int nVars, int nRanks, char* ppVarNames[], DdManager* dd, DdNode* pbVars[]);
 
 ABC_NAMESPACE_HEADER_END
 

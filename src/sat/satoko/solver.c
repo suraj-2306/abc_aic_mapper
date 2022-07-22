@@ -29,8 +29,7 @@ ABC_NAMESPACE_IMPL_START
  *  variables in its reason are either present in that clause or (recursevely)
  *  redundant.
  */
-static inline int lit_is_removable(solver_t* s, unsigned lit, unsigned min_level)
-{
+static inline int lit_is_removable(solver_t* s, unsigned lit, unsigned min_level) {
     unsigned top = vec_uint_size(s->tagged);
 
     assert(lit_reason(s, lit) != UNDEF);
@@ -39,8 +38,8 @@ static inline int lit_is_removable(solver_t* s, unsigned lit, unsigned min_level
     while (vec_uint_size(s->stack)) {
         unsigned i;
         unsigned var = vec_uint_pop_back(s->stack);
-        struct clause *c = clause_fetch(s, var_reason(s, var));
-        unsigned *lits = &(c->data[0].lit);
+        struct clause* c = clause_fetch(s, var_reason(s, var));
+        unsigned* lits = &(c->data[0].lit);
 
         assert(var_reason(s, var) != UNDEF);
         if (c->size == 2 && lit_value(s, lits[0]) == SATOKO_LIT_FALSE) {
@@ -85,8 +84,7 @@ static inline int lit_is_removable(solver_t* s, unsigned lit, unsigned min_level
  * - It's the number of variables in the final conflict clause that come from
  * different decision levels
  */
-static inline unsigned clause_clac_lbd(solver_t *s, unsigned *lits, unsigned size)
-{
+static inline unsigned clause_clac_lbd(solver_t* s, unsigned* lits, unsigned size) {
     unsigned i;
     unsigned lbd = 0;
 
@@ -101,13 +99,12 @@ static inline unsigned clause_clac_lbd(solver_t *s, unsigned *lits, unsigned siz
     return lbd;
 }
 
-static inline void clause_bin_resolution(solver_t *s, vec_uint_t *clause_lits)
-{
-    unsigned *lits = vec_uint_data(clause_lits);
+static inline void clause_bin_resolution(solver_t* s, vec_uint_t* clause_lits) {
+    unsigned* lits = vec_uint_data(clause_lits);
     unsigned counter, sz, i;
     unsigned lit;
     unsigned neg_lit = lit_compl(lits[0]);
-    struct watcher *w;
+    struct watcher* w;
 
     s->cur_stamp++;
     vec_uint_foreach(clause_lits, lit, i)
@@ -116,8 +113,7 @@ static inline void clause_bin_resolution(solver_t *s, vec_uint_t *clause_lits)
     counter = 0;
     watch_list_foreach_bin(s->watches, w, neg_lit) {
         unsigned imp_lit = w->blocker;
-        if (vec_uint_at(s->stamps, lit2var(imp_lit)) == s->cur_stamp &&
-            lit_value(s, imp_lit) == SATOKO_LIT_TRUE) {
+        if (vec_uint_at(s->stamps, lit2var(imp_lit)) == s->cur_stamp && lit_value(s, imp_lit) == SATOKO_LIT_TRUE) {
             counter++;
             vec_uint_assign(s->stamps, lit2var(imp_lit), (s->cur_stamp - 1));
         }
@@ -134,10 +130,9 @@ static inline void clause_bin_resolution(solver_t *s, vec_uint_t *clause_lits)
     }
 }
 
-static inline void clause_minimize(solver_t *s, vec_uint_t *clause_lits)
-{
+static inline void clause_minimize(solver_t* s, vec_uint_t* clause_lits) {
     unsigned i, j;
-    unsigned *lits = vec_uint_data(clause_lits);
+    unsigned* lits = vec_uint_data(clause_lits);
     unsigned min_level = 0;
     unsigned clause_size;
 
@@ -156,34 +151,31 @@ static inline void clause_minimize(solver_t *s, vec_uint_t *clause_lits)
 
     /* Binary Resolution */
     clause_size = vec_uint_size(clause_lits);
-    if (clause_size <= s->opts.clause_max_sz_bin_resol &&
-        clause_clac_lbd(s, lits, clause_size) <= s->opts.clause_min_lbd_bin_resol)
+    if (clause_size <= s->opts.clause_max_sz_bin_resol && clause_clac_lbd(s, lits, clause_size) <= s->opts.clause_min_lbd_bin_resol)
         clause_bin_resolution(s, clause_lits);
 }
 
-static inline void clause_realloc(struct cdb *dest, struct cdb *src, unsigned *cref)
-{
+static inline void clause_realloc(struct cdb* dest, struct cdb* src, unsigned* cref) {
     unsigned new_cref;
-    struct clause *new_clause;
-    struct clause *old_clause = cdb_handler(src, *cref);
+    struct clause* new_clause;
+    struct clause* old_clause = cdb_handler(src, *cref);
 
     if (old_clause->f_reallocd) {
-        *cref = (unsigned) old_clause->size;
+        *cref = (unsigned)old_clause->size;
         return;
     }
     new_cref = cdb_append(dest, 3 + old_clause->f_learnt + old_clause->size);
     new_clause = cdb_handler(dest, new_cref);
     memcpy(new_clause, old_clause, (size_t)((3 + old_clause->f_learnt + old_clause->size) * 4));
     old_clause->f_reallocd = 1;
-    old_clause->size = (unsigned) new_cref;
+    old_clause->size = (unsigned)new_cref;
     *cref = new_cref;
 }
 
 //===------------------------------------------------------------------------===
 // Solver internal functions
 //===------------------------------------------------------------------------===
-static inline unsigned solver_decide(solver_t *s)
-{
+static inline unsigned solver_decide(solver_t* s) {
     unsigned next_var = UNDEF;
 
     while (next_var == UNDEF || var_value(s, next_var) != SATOKO_VAR_UNASSING) {
@@ -198,8 +190,7 @@ static inline unsigned solver_decide(solver_t *s)
     return var2lit(next_var, satoko_var_polarity(s, next_var));
 }
 
-static inline void solver_new_decision(solver_t *s, unsigned lit)
-{
+static inline void solver_new_decision(solver_t* s, unsigned lit) {
     if (solver_has_marks(s) && !var_mark(s, lit2var(lit)))
         return;
     assert(var_value(s, lit2var(lit)) == SATOKO_VAR_UNASSING);
@@ -208,25 +199,24 @@ static inline void solver_new_decision(solver_t *s, unsigned lit)
 }
 
 /* Calculate Backtrack Level from the learnt clause */
-static inline unsigned solver_calc_bt_level(solver_t *s, vec_uint_t *learnt)
-{
+static inline unsigned solver_calc_bt_level(solver_t* s, vec_uint_t* learnt) {
     unsigned i, tmp;
-        unsigned i_max = 1;
-    unsigned *lits = vec_uint_data(learnt);
-        unsigned max = lit_dlevel(s, lits[1]);
+    unsigned i_max = 1;
+    unsigned* lits = vec_uint_data(learnt);
+    unsigned max = lit_dlevel(s, lits[1]);
 
     if (vec_uint_size(learnt) == 1)
         return 0;
     for (i = 2; i < vec_uint_size(learnt); i++) {
         if (lit_dlevel(s, lits[i]) > max) {
-            max   = lit_dlevel(s, lits[i]);
+            max = lit_dlevel(s, lits[i]);
             i_max = i;
         }
     }
-        tmp         = lits[1];
-        lits[1]     = lits[i_max];
-        lits[i_max] = tmp;
-        return lit_dlevel(s, lits[1]);
+    tmp = lits[1];
+    lits[1] = lits[i_max];
+    lits[i_max] = tmp;
+    return lit_dlevel(s, lits[1]);
 }
 
 /**
@@ -250,11 +240,9 @@ static inline unsigned solver_calc_bt_level(solver_t *s, vec_uint_t *learnt)
  *  variable.
  *
  */
-static inline void solver_analyze(solver_t *s, unsigned cref, vec_uint_t *learnt,
-                      unsigned *bt_level, unsigned *lbd)
-{
+static inline void solver_analyze(solver_t* s, unsigned cref, vec_uint_t* learnt, unsigned* bt_level, unsigned* lbd) {
     unsigned i;
-    unsigned *trail = vec_uint_data(s->trail);
+    unsigned* trail = vec_uint_data(s->trail);
     unsigned idx = vec_uint_size(s->trail) - 1;
     unsigned n_paths = 0;
     unsigned p = UNDEF;
@@ -262,8 +250,8 @@ static inline void solver_analyze(solver_t *s, unsigned cref, vec_uint_t *learnt
 
     vec_uint_push_back(learnt, UNDEF);
     do {
-        struct clause *clause;
-        unsigned *lits;
+        struct clause* clause;
+        unsigned* lits;
         unsigned j;
 
         assert(cref != UNDEF);
@@ -272,7 +260,7 @@ static inline void solver_analyze(solver_t *s, unsigned cref, vec_uint_t *learnt
 
         if (p != UNDEF && clause->size == 2 && lit_value(s, lits[0]) == SATOKO_LIT_FALSE) {
             assert(lit_value(s, lits[1]) == SATOKO_LIT_TRUE);
-            stk_swap(unsigned, lits[0], lits[1] );
+            stk_swap(unsigned, lits[0], lits[1]);
         }
 
         if (clause->f_learnt)
@@ -301,7 +289,8 @@ static inline void solver_analyze(solver_t *s, unsigned cref, vec_uint_t *learnt
                 vec_uint_push_back(learnt, lits[j]);
         }
 
-        while (!vec_char_at(s->seen, lit2var(trail[idx--])));
+        while (!vec_char_at(s->seen, lit2var(trail[idx--])))
+            ;
 
         p = trail[idx + 1];
         cref = lit_reason(s, p);
@@ -326,21 +315,15 @@ static inline void solver_analyze(solver_t *s, unsigned cref, vec_uint_t *learnt
     vec_uint_clear(s->tagged);
 }
 
-static inline int solver_rst(solver_t *s)
-{
-    return b_queue_is_valid(s->bq_lbd) &&
-           (((long)b_queue_avg(s->bq_lbd) * s->opts.f_rst) > (s->sum_lbd / s->stats.n_conflicts));
+static inline int solver_rst(solver_t* s) {
+    return b_queue_is_valid(s->bq_lbd) && (((long)b_queue_avg(s->bq_lbd) * s->opts.f_rst) > (s->sum_lbd / s->stats.n_conflicts));
 }
 
-static inline int solver_block_rst(solver_t *s)
-{
-    return s->stats.n_conflicts > (int)s->opts.fst_block_rst &&
-           b_queue_is_valid(s->bq_lbd) &&
-           ((long)vec_uint_size(s->trail) > (s->opts.b_rst * (long)b_queue_avg(s->bq_trail)));
+static inline int solver_block_rst(solver_t* s) {
+    return s->stats.n_conflicts > (int)s->opts.fst_block_rst && b_queue_is_valid(s->bq_lbd) && ((long)vec_uint_size(s->trail) > (s->opts.b_rst * (long)b_queue_avg(s->bq_trail)));
 }
 
-static inline void solver_handle_conflict(solver_t *s, unsigned confl_cref)
-{
+static inline void solver_handle_conflict(solver_t* s, unsigned confl_cref) {
     unsigned bt_level;
     unsigned lbd;
     unsigned cref;
@@ -360,8 +343,7 @@ static inline void solver_handle_conflict(solver_t *s, unsigned confl_cref)
     clause_act_decay(s);
 }
 
-static inline void solver_analyze_final(solver_t *s, unsigned lit)
-{
+static inline void solver_analyze_final(solver_t* s, unsigned lit) {
     unsigned i;
 
     // printf("[Satoko] Analize final..\n");
@@ -371,7 +353,7 @@ static inline void solver_analyze_final(solver_t *s, unsigned lit)
     if (solver_dlevel(s) == 0)
         return;
     vec_char_assign(s->seen, lit2var(lit), 1);
-    for (i = vec_uint_size(s->trail); i --> vec_uint_at(s->trail_lim, 0);) {
+    for (i = vec_uint_size(s->trail); i-- > vec_uint_at(s->trail_lim, 0);) {
         unsigned var = lit2var(vec_uint_at(s->trail, i));
 
         if (vec_char_at(s->seen, var)) {
@@ -381,7 +363,7 @@ static inline void solver_analyze_final(solver_t *s, unsigned lit)
                 vec_uint_push_back(s->final_conflict, lit_compl(vec_uint_at(s->trail, i)));
             } else {
                 unsigned j;
-                struct clause *clause = clause_fetch(s, reason);
+                struct clause* clause = clause_fetch(s, reason);
                 for (j = (clause->size == 2 ? 0 : 1); j < clause->size; j++) {
                     if (lit_dlevel(s, clause->data[j].lit) > 0)
                         vec_char_assign(s->seen, lit2var(clause->data[j].lit), 1);
@@ -394,17 +376,16 @@ static inline void solver_analyze_final(solver_t *s, unsigned lit)
     // solver_debug_check_unsat(s);
 }
 
-static inline void solver_garbage_collect(solver_t *s)
-{
+static inline void solver_garbage_collect(solver_t* s) {
     unsigned i;
-    unsigned *array;
-    struct cdb *new_cdb = cdb_alloc(cdb_capacity(s->all_clauses) - cdb_wasted(s->all_clauses));
+    unsigned* array;
+    struct cdb* new_cdb = cdb_alloc(cdb_capacity(s->all_clauses) - cdb_wasted(s->all_clauses));
 
     if (s->book_cdb)
         s->book_cdb = 0;
 
     for (i = 0; i < 2 * vec_char_size(s->assigns); i++) {
-        struct watcher *w;
+        struct watcher* w;
         watch_list_foreach(s->watches, w, i)
             clause_realloc(new_cdb, s->all_clauses, &(w->cref));
     }
@@ -426,22 +407,22 @@ static inline void solver_garbage_collect(solver_t *s)
     s->all_clauses = new_cdb;
 }
 
-static inline void solver_reduce_cdb(solver_t *s)
-{
+static inline void solver_reduce_cdb(solver_t* s) {
     unsigned i, limit;
     unsigned n_learnts = vec_uint_size(s->learnts);
     unsigned cref;
-    struct clause *clause;
-    struct clause **learnts_cls;
+    struct clause* clause;
+    struct clause** learnts_cls;
 
-    learnts_cls = satoko_alloc(struct clause *, n_learnts);
+    learnts_cls = satoko_alloc(struct clause*, n_learnts);
     vec_uint_foreach_start(s->learnts, cref, i, s->book_cl_lrnt)
-        learnts_cls[i] = clause_fetch(s, cref);
+        learnts_cls[i]
+        = clause_fetch(s, cref);
 
     limit = (unsigned)(n_learnts * s->opts.learnt_ratio);
 
-    satoko_sort((void **)learnts_cls, n_learnts,
-            (int (*)(const void *, const void *)) clause_compare);
+    satoko_sort((void**)learnts_cls, n_learnts,
+                (int (*)(const void*, const void*))clause_compare);
 
     if (learnts_cls[n_learnts / 2]->lbd <= 3)
         s->RC2 += s->opts.inc_special_reduce;
@@ -451,7 +432,7 @@ static inline void solver_reduce_cdb(solver_t *s)
     vec_uint_clear(s->learnts);
     for (i = 0; i < n_learnts; i++) {
         clause = learnts_cls[i];
-        cref = cdb_cref(s->all_clauses, (unsigned *)clause);
+        cref = cdb_cref(s->all_clauses, (unsigned*)clause);
         assert(clause->f_mark == 0);
         if (clause->f_deletable && clause->lbd > 2 && clause->size > 2 && lit_reason(s, clause->data[0].lit) != cref && (i < limit)) {
             clause->f_mark = 1;
@@ -480,9 +461,8 @@ static inline void solver_reduce_cdb(solver_t *s)
 //===------------------------------------------------------------------------===
 // Solver external functions
 //===------------------------------------------------------------------------===
-unsigned solver_clause_create(solver_t *s, vec_uint_t *lits, unsigned f_learnt)
-{
-    struct clause *clause;
+unsigned solver_clause_create(solver_t* s, vec_uint_t* lits, unsigned f_learnt) {
+    struct clause* clause;
     unsigned cref;
     unsigned n_words;
 
@@ -512,13 +492,12 @@ unsigned solver_clause_create(solver_t *s, vec_uint_t *lits, unsigned f_learnt)
     return cref;
 }
 
-void solver_cancel_until(solver_t *s, unsigned level)
-{
+void solver_cancel_until(solver_t* s, unsigned level) {
     unsigned i;
 
     if (solver_dlevel(s) <= level)
         return;
-    for (i = vec_uint_size(s->trail); i --> vec_uint_at(s->trail_lim, level);) {
+    for (i = vec_uint_size(s->trail); i-- > vec_uint_at(s->trail_lim, level);) {
         unsigned var = lit2var(vec_uint_at(s->trail, i));
 
         vec_char_assign(s->assigns, var, SATOKO_VAR_UNASSING);
@@ -531,18 +510,17 @@ void solver_cancel_until(solver_t *s, unsigned level)
     vec_uint_shrink(s->trail_lim, level);
 }
 
-unsigned solver_propagate(solver_t *s)
-{
+unsigned solver_propagate(solver_t* s) {
     unsigned conf_cref = UNDEF;
-    unsigned *lits;
+    unsigned* lits;
     unsigned neg_lit;
     unsigned n_propagations = 0;
 
     while (s->i_qhead < vec_uint_size(s->trail)) {
         unsigned p = vec_uint_at(s->trail, s->i_qhead++);
-        struct watch_list *ws;
-        struct watcher *begin;
-        struct watcher *end;
+        struct watch_list* ws;
+        struct watcher* begin;
+        struct watcher* end;
         struct watcher *i, *j;
 
         n_propagations++;
@@ -559,7 +537,7 @@ unsigned solver_propagate(solver_t *s)
         begin = watch_list_array(ws);
         end = begin + watch_list_size(ws);
         for (i = j = begin + ws->n_bin; i < end;) {
-            struct clause *clause;
+            struct clause* clause;
             struct watcher w;
 
             if (solver_has_marks(s) && !var_mark(s, lit2var(i->blocker))) {
@@ -624,8 +602,7 @@ unsigned solver_propagate(solver_t *s)
     return conf_cref;
 }
 
-char solver_search(solver_t *s)
-{
+char solver_search(solver_t* s) {
     s->stats.n_starts++;
     while (1) {
         unsigned confl_cref = solver_propagate(s);
@@ -644,8 +621,7 @@ char solver_search(solver_t *s)
             /* No conflict */
             unsigned next_lit;
 
-            if (solver_rst(s) || solver_check_limits(s) == 0 || solver_stop(s) || 
-                (s->nRuntimeLimit && (s->stats.n_conflicts & 63) == 0 && Abc_Clock() > s->nRuntimeLimit)) {
+            if (solver_rst(s) || solver_check_limits(s) == 0 || solver_stop(s) || (s->nRuntimeLimit && (s->stats.n_conflicts & 63) == 0 && Abc_Clock() > s->nRuntimeLimit)) {
                 b_queue_clean(s->bq_lbd);
                 solver_cancel_until(s, 0);
                 return SATOKO_UNDEC;
@@ -654,8 +630,7 @@ char solver_search(solver_t *s)
                 satoko_simplify(s);
 
             /* Reduce the set of learnt clauses */
-            if (s->opts.learnt_ratio && vec_uint_size(s->learnts) > 100 &&
-                s->stats.n_conflicts >= s->n_confl_bfr_reduce) {
+            if (s->opts.learnt_ratio && vec_uint_size(s->learnts) > 100 && s->stats.n_conflicts >= s->n_confl_bfr_reduce) {
                 s->RC1 = (s->stats.n_conflicts / s->RC2) + 1;
                 solver_reduce_cdb(s);
                 s->RC2 += s->opts.inc_reduce;
@@ -675,7 +650,6 @@ char solver_search(solver_t *s)
                     next_lit = lit;
                     break;
                 }
-
             }
             if (next_lit == UNDEF) {
                 s->stats.n_decisions++;
@@ -693,11 +667,10 @@ char solver_search(solver_t *s)
 //===------------------------------------------------------------------------===
 // Debug procedures
 //===------------------------------------------------------------------------===
-void solver_debug_check_trail(solver_t *s)
-{
+void solver_debug_check_trail(solver_t* s) {
     unsigned i;
-    unsigned *array;
-    vec_uint_t *trail_dup = vec_uint_alloc(0);
+    unsigned* array;
+    vec_uint_t* trail_dup = vec_uint_alloc(0);
     fprintf(stdout, "[Satoko] Checking for trail(%u) inconsistencies...\n", vec_uint_size(s->trail));
     vec_uint_duplicate(trail_dup, s->trail);
     vec_uint_sort(trail_dup, 1);
@@ -719,17 +692,15 @@ void solver_debug_check_trail(solver_t *s)
     fprintf(stdout, "[Satoko] Trail OK.\n");
     vec_uint_print(trail_dup);
     vec_uint_free(trail_dup);
-
 }
 
-void solver_debug_check_clauses(solver_t *s)
-{
+void solver_debug_check_clauses(solver_t* s) {
     unsigned cref, i;
 
     fprintf(stdout, "[Satoko] Checking clauses (%d)...\n", vec_uint_size(s->originals));
     vec_uint_foreach(s->originals, cref, i) {
         unsigned j;
-        struct clause *clause = clause_fetch(s, cref);
+        struct clause* clause = clause_fetch(s, cref);
         for (j = 0; j < clause->size; j++) {
             if (vec_uint_find(s->trail, lit_compl(clause->data[j].lit))) {
                 continue;
@@ -746,14 +717,13 @@ void solver_debug_check_clauses(solver_t *s)
     fprintf(stdout, "[Satoko] All SAT - OK\n");
 }
 
-void solver_debug_check(solver_t *s, int result)
-{
+void solver_debug_check(solver_t* s, int result) {
     unsigned cref, i;
     solver_debug_check_trail(s);
     fprintf(stdout, "[Satoko] Checking clauses (%d)... \n", vec_uint_size(s->originals));
     vec_uint_foreach(s->originals, cref, i) {
         unsigned j;
-        struct clause *clause = clause_fetch(s, cref);
+        struct clause* clause = clause_fetch(s, cref);
         for (j = 0; j < clause->size; j++) {
             if (vec_uint_find(s->trail, clause->data[j].lit)) {
                 break;

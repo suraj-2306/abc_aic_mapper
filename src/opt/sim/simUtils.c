@@ -23,21 +23,19 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
- 
+
 static int bit_count[256] = {
-  0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
-  1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
-  1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
-  2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
-  1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
-  2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
-  2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
-  3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,4,5,5,6,5,6,6,7,5,6,6,7,6,7,7,8
-};
+    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8};
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -54,17 +52,16 @@ static int bit_count[256] = {
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Ptr_t * Sim_UtilInfoAlloc( int nSize, int nWords, int fClean )
-{
-    Vec_Ptr_t * vInfo;
+Vec_Ptr_t* Sim_UtilInfoAlloc(int nSize, int nWords, int fClean) {
+    Vec_Ptr_t* vInfo;
     int i;
-    assert( nSize > 0 && nWords > 0 );
-    vInfo = Vec_PtrAlloc( nSize );
-    vInfo->pArray[0] = ABC_ALLOC( unsigned, nSize * nWords );
-    if ( fClean )
-        memset( vInfo->pArray[0], 0, sizeof(unsigned) * nSize * nWords );
-    for ( i = 1; i < nSize; i++ )
-        vInfo->pArray[i] = ((unsigned *)vInfo->pArray[i-1]) + nWords;
+    assert(nSize > 0 && nWords > 0);
+    vInfo = Vec_PtrAlloc(nSize);
+    vInfo->pArray[0] = ABC_ALLOC(unsigned, nSize* nWords);
+    if (fClean)
+        memset(vInfo->pArray[0], 0, sizeof(unsigned) * nSize * nWords);
+    for (i = 1; i < nSize; i++)
+        vInfo->pArray[i] = ((unsigned*)vInfo->pArray[i - 1]) + nWords;
     vInfo->nSize = nSize;
     return vInfo;
 }
@@ -80,10 +77,9 @@ Vec_Ptr_t * Sim_UtilInfoAlloc( int nSize, int nWords, int fClean )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilInfoFree( Vec_Ptr_t * p )
-{
-    ABC_FREE( p->pArray[0] );
-    Vec_PtrFree( p );
+void Sim_UtilInfoFree(Vec_Ptr_t* p) {
+    ABC_FREE(p->pArray[0]);
+    Vec_PtrFree(p);
 }
 
 /**Function*************************************************************
@@ -97,10 +93,9 @@ void Sim_UtilInfoFree( Vec_Ptr_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilInfoAdd( unsigned * pInfo1, unsigned * pInfo2, int nWords )
-{
+void Sim_UtilInfoAdd(unsigned* pInfo1, unsigned* pInfo2, int nWords) {
     int w;
-    for ( w = 0; w < nWords; w++ )
+    for (w = 0; w < nWords; w++)
         pInfo1[w] |= pInfo2[w];
 }
 
@@ -115,16 +110,15 @@ void Sim_UtilInfoAdd( unsigned * pInfo1, unsigned * pInfo2, int nWords )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilInfoDetectDiffs( unsigned * pInfo1, unsigned * pInfo2, int nWords, Vec_Int_t * vDiffs )
-{
+void Sim_UtilInfoDetectDiffs(unsigned* pInfo1, unsigned* pInfo2, int nWords, Vec_Int_t* vDiffs) {
     int w, b;
     unsigned uMask;
     vDiffs->nSize = 0;
-    for ( w = 0; w < nWords; w++ )
-        if ( (uMask = (pInfo2[w] ^ pInfo1[w])) )
-            for ( b = 0; b < 32; b++ )
-                if ( uMask & (1 << b) )
-                    Vec_IntPush( vDiffs, 32*w + b );
+    for (w = 0; w < nWords; w++)
+        if ((uMask = (pInfo2[w] ^ pInfo1[w])))
+            for (b = 0; b < 32; b++)
+                if (uMask & (1 << b))
+                    Vec_IntPush(vDiffs, 32 * w + b);
 }
 
 /**Function*************************************************************
@@ -138,16 +132,15 @@ void Sim_UtilInfoDetectDiffs( unsigned * pInfo1, unsigned * pInfo2, int nWords, 
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilInfoDetectNews( unsigned * pInfo1, unsigned * pInfo2, int nWords, Vec_Int_t * vDiffs )
-{
+void Sim_UtilInfoDetectNews(unsigned* pInfo1, unsigned* pInfo2, int nWords, Vec_Int_t* vDiffs) {
     int w, b;
     unsigned uMask;
     vDiffs->nSize = 0;
-    for ( w = 0; w < nWords; w++ )
-        if ( (uMask = (pInfo2[w] & ~pInfo1[w])) )
-            for ( b = 0; b < 32; b++ )
-                if ( uMask & (1 << b) )
-                    Vec_IntPush( vDiffs, 32*w + b );
+    for (w = 0; w < nWords; w++)
+        if ((uMask = (pInfo2[w] & ~pInfo1[w])))
+            for (b = 0; b < 32; b++)
+                if (uMask & (1 << b))
+                    Vec_IntPush(vDiffs, 32 * w + b);
 }
 
 /**Function*************************************************************
@@ -161,13 +154,12 @@ void Sim_UtilInfoDetectNews( unsigned * pInfo1, unsigned * pInfo2, int nWords, V
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilInfoFlip( Sim_Man_t * p, Abc_Obj_t * pNode )
-{
-    unsigned * pSimInfo1, * pSimInfo2;
+void Sim_UtilInfoFlip(Sim_Man_t* p, Abc_Obj_t* pNode) {
+    unsigned *pSimInfo1, *pSimInfo2;
     int k;
-    pSimInfo1 = (unsigned *)p->vSim0->pArray[pNode->Id];
-    pSimInfo2 = (unsigned *)p->vSim1->pArray[pNode->Id];
-    for ( k = 0; k < p->nSimWords; k++ )
+    pSimInfo1 = (unsigned*)p->vSim0->pArray[pNode->Id];
+    pSimInfo2 = (unsigned*)p->vSim1->pArray[pNode->Id];
+    for (k = 0; k < p->nSimWords; k++)
         pSimInfo2[k] = ~pSimInfo1[k];
 }
 
@@ -182,14 +174,13 @@ void Sim_UtilInfoFlip( Sim_Man_t * p, Abc_Obj_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilInfoCompare( Sim_Man_t * p, Abc_Obj_t * pNode )
-{
-    unsigned * pSimInfo1, * pSimInfo2;
+int Sim_UtilInfoCompare(Sim_Man_t* p, Abc_Obj_t* pNode) {
+    unsigned *pSimInfo1, *pSimInfo2;
     int k;
-    pSimInfo1 = (unsigned *)p->vSim0->pArray[pNode->Id];
-    pSimInfo2 = (unsigned *)p->vSim1->pArray[pNode->Id];
-    for ( k = 0; k < p->nSimWords; k++ )
-        if ( pSimInfo2[k] != pSimInfo1[k] )
+    pSimInfo1 = (unsigned*)p->vSim0->pArray[pNode->Id];
+    pSimInfo2 = (unsigned*)p->vSim1->pArray[pNode->Id];
+    for (k = 0; k < p->nSimWords; k++)
+        if (pSimInfo2[k] != pSimInfo1[k])
             return 0;
     return 1;
 }
@@ -205,16 +196,15 @@ int Sim_UtilInfoCompare( Sim_Man_t * p, Abc_Obj_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilSimulate( Sim_Man_t * p, int fType )
-{
-    Abc_Obj_t * pNode;
+void Sim_UtilSimulate(Sim_Man_t* p, int fType) {
+    Abc_Obj_t* pNode;
     int i;
     // simulate the internal nodes
-    Abc_NtkForEachNode( p->pNtk, pNode, i )
-        Sim_UtilSimulateNode( p, pNode, fType, fType, fType );
+    Abc_NtkForEachNode(p->pNtk, pNode, i)
+        Sim_UtilSimulateNode(p, pNode, fType, fType, fType);
     // assign simulation info of the CO nodes
-    Abc_NtkForEachCo( p->pNtk, pNode, i )
-        Sim_UtilSimulateNode( p, pNode, fType, fType, fType );
+    Abc_NtkForEachCo(p->pNtk, pNode, i)
+        Sim_UtilSimulateNode(p, pNode, fType, fType, fType);
 }
 
 /**Function*************************************************************
@@ -228,63 +218,59 @@ void Sim_UtilSimulate( Sim_Man_t * p, int fType )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilSimulateNode( Sim_Man_t * p, Abc_Obj_t * pNode, int fType, int fType1, int fType2 )
-{
-    unsigned * pSimmNode, * pSimmNode1, * pSimmNode2;
+void Sim_UtilSimulateNode(Sim_Man_t* p, Abc_Obj_t* pNode, int fType, int fType1, int fType2) {
+    unsigned *pSimmNode, *pSimmNode1, *pSimmNode2;
     int k, fComp1, fComp2;
     // simulate the internal nodes
-    if ( Abc_ObjIsNode(pNode) )
-    {
-        if ( fType )
-            pSimmNode  = (unsigned *)p->vSim1->pArray[ pNode->Id ];
+    if (Abc_ObjIsNode(pNode)) {
+        if (fType)
+            pSimmNode = (unsigned*)p->vSim1->pArray[pNode->Id];
         else
-            pSimmNode  = (unsigned *)p->vSim0->pArray[ pNode->Id ];
+            pSimmNode = (unsigned*)p->vSim0->pArray[pNode->Id];
 
-        if ( fType1 )
-            pSimmNode1 = (unsigned *)p->vSim1->pArray[ Abc_ObjFaninId0(pNode) ];
+        if (fType1)
+            pSimmNode1 = (unsigned*)p->vSim1->pArray[Abc_ObjFaninId0(pNode)];
         else
-            pSimmNode1 = (unsigned *)p->vSim0->pArray[ Abc_ObjFaninId0(pNode) ];
+            pSimmNode1 = (unsigned*)p->vSim0->pArray[Abc_ObjFaninId0(pNode)];
 
-        if ( fType2 )
-            pSimmNode2 = (unsigned *)p->vSim1->pArray[ Abc_ObjFaninId1(pNode) ];
+        if (fType2)
+            pSimmNode2 = (unsigned*)p->vSim1->pArray[Abc_ObjFaninId1(pNode)];
         else
-            pSimmNode2 = (unsigned *)p->vSim0->pArray[ Abc_ObjFaninId1(pNode) ];
+            pSimmNode2 = (unsigned*)p->vSim0->pArray[Abc_ObjFaninId1(pNode)];
 
         fComp1 = Abc_ObjFaninC0(pNode);
         fComp2 = Abc_ObjFaninC1(pNode);
-        if ( fComp1 && fComp2 )
-            for ( k = 0; k < p->nSimWords; k++ )
+        if (fComp1 && fComp2)
+            for (k = 0; k < p->nSimWords; k++)
                 pSimmNode[k] = ~pSimmNode1[k] & ~pSimmNode2[k];
-        else if ( fComp1 && !fComp2 )
-            for ( k = 0; k < p->nSimWords; k++ )
-                pSimmNode[k] = ~pSimmNode1[k] &  pSimmNode2[k];
-        else if ( !fComp1 && fComp2 )
-            for ( k = 0; k < p->nSimWords; k++ )
-                pSimmNode[k] =  pSimmNode1[k] & ~pSimmNode2[k];
+        else if (fComp1 && !fComp2)
+            for (k = 0; k < p->nSimWords; k++)
+                pSimmNode[k] = ~pSimmNode1[k] & pSimmNode2[k];
+        else if (!fComp1 && fComp2)
+            for (k = 0; k < p->nSimWords; k++)
+                pSimmNode[k] = pSimmNode1[k] & ~pSimmNode2[k];
         else // if ( fComp1 && fComp2 )
-            for ( k = 0; k < p->nSimWords; k++ )
-                pSimmNode[k] =  pSimmNode1[k] &  pSimmNode2[k];
-    }
-    else 
-    {
-        assert( Abc_ObjFaninNum(pNode) == 1 );
-        if ( fType )
-            pSimmNode  = (unsigned *)p->vSim1->pArray[ pNode->Id ];
+            for (k = 0; k < p->nSimWords; k++)
+                pSimmNode[k] = pSimmNode1[k] & pSimmNode2[k];
+    } else {
+        assert(Abc_ObjFaninNum(pNode) == 1);
+        if (fType)
+            pSimmNode = (unsigned*)p->vSim1->pArray[pNode->Id];
         else
-            pSimmNode  = (unsigned *)p->vSim0->pArray[ pNode->Id ];
+            pSimmNode = (unsigned*)p->vSim0->pArray[pNode->Id];
 
-        if ( fType1 )
-            pSimmNode1 = (unsigned *)p->vSim1->pArray[ Abc_ObjFaninId0(pNode) ];
+        if (fType1)
+            pSimmNode1 = (unsigned*)p->vSim1->pArray[Abc_ObjFaninId0(pNode)];
         else
-            pSimmNode1 = (unsigned *)p->vSim0->pArray[ Abc_ObjFaninId0(pNode) ];
+            pSimmNode1 = (unsigned*)p->vSim0->pArray[Abc_ObjFaninId0(pNode)];
 
         fComp1 = Abc_ObjFaninC0(pNode);
-        if ( fComp1 )
-            for ( k = 0; k < p->nSimWords; k++ )
+        if (fComp1)
+            for (k = 0; k < p->nSimWords; k++)
                 pSimmNode[k] = ~pSimmNode1[k];
-        else 
-            for ( k = 0; k < p->nSimWords; k++ )
-                pSimmNode[k] =  pSimmNode1[k];
+        else
+            for (k = 0; k < p->nSimWords; k++)
+                pSimmNode[k] = pSimmNode1[k];
     }
 }
 
@@ -299,32 +285,31 @@ void Sim_UtilSimulateNode( Sim_Man_t * p, Abc_Obj_t * pNode, int fType, int fTyp
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilSimulateNodeOne( Abc_Obj_t * pNode, Vec_Ptr_t * vSimInfo, int nSimWords, int nOffset )
-{
-    unsigned * pSimmNode, * pSimmNode1, * pSimmNode2;
+void Sim_UtilSimulateNodeOne(Abc_Obj_t* pNode, Vec_Ptr_t* vSimInfo, int nSimWords, int nOffset) {
+    unsigned *pSimmNode, *pSimmNode1, *pSimmNode2;
     int k, fComp1, fComp2;
     // simulate the internal nodes
-    assert( Abc_ObjIsNode(pNode) );
-    pSimmNode  = (unsigned *)Vec_PtrEntry(vSimInfo, pNode->Id);
-    pSimmNode1 = (unsigned *)Vec_PtrEntry(vSimInfo, Abc_ObjFaninId0(pNode));
-    pSimmNode2 = (unsigned *)Vec_PtrEntry(vSimInfo, Abc_ObjFaninId1(pNode));
-    pSimmNode  += nOffset;
+    assert(Abc_ObjIsNode(pNode));
+    pSimmNode = (unsigned*)Vec_PtrEntry(vSimInfo, pNode->Id);
+    pSimmNode1 = (unsigned*)Vec_PtrEntry(vSimInfo, Abc_ObjFaninId0(pNode));
+    pSimmNode2 = (unsigned*)Vec_PtrEntry(vSimInfo, Abc_ObjFaninId1(pNode));
+    pSimmNode += nOffset;
     pSimmNode1 += nOffset;
     pSimmNode2 += nOffset;
     fComp1 = Abc_ObjFaninC0(pNode);
     fComp2 = Abc_ObjFaninC1(pNode);
-    if ( fComp1 && fComp2 )
-        for ( k = 0; k < nSimWords; k++ )
+    if (fComp1 && fComp2)
+        for (k = 0; k < nSimWords; k++)
             pSimmNode[k] = ~pSimmNode1[k] & ~pSimmNode2[k];
-    else if ( fComp1 && !fComp2 )
-        for ( k = 0; k < nSimWords; k++ )
-            pSimmNode[k] = ~pSimmNode1[k] &  pSimmNode2[k];
-    else if ( !fComp1 && fComp2 )
-        for ( k = 0; k < nSimWords; k++ )
-            pSimmNode[k] =  pSimmNode1[k] & ~pSimmNode2[k];
+    else if (fComp1 && !fComp2)
+        for (k = 0; k < nSimWords; k++)
+            pSimmNode[k] = ~pSimmNode1[k] & pSimmNode2[k];
+    else if (!fComp1 && fComp2)
+        for (k = 0; k < nSimWords; k++)
+            pSimmNode[k] = pSimmNode1[k] & ~pSimmNode2[k];
     else // if ( fComp1 && fComp2 )
-        for ( k = 0; k < nSimWords; k++ )
-            pSimmNode[k] =  pSimmNode1[k] &  pSimmNode2[k];
+        for (k = 0; k < nSimWords; k++)
+            pSimmNode[k] = pSimmNode1[k] & pSimmNode2[k];
 }
 
 /**Function*************************************************************
@@ -338,23 +323,22 @@ void Sim_UtilSimulateNodeOne( Abc_Obj_t * pNode, Vec_Ptr_t * vSimInfo, int nSimW
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilTransferNodeOne( Abc_Obj_t * pNode, Vec_Ptr_t * vSimInfo, int nSimWords, int nOffset, int fShift )
-{
-    unsigned * pSimmNode, * pSimmNode1;
+void Sim_UtilTransferNodeOne(Abc_Obj_t* pNode, Vec_Ptr_t* vSimInfo, int nSimWords, int nOffset, int fShift) {
+    unsigned *pSimmNode, *pSimmNode1;
     int k, fComp1;
     // simulate the internal nodes
-    assert( Abc_ObjIsCo(pNode) );
-    pSimmNode  = (unsigned *)Vec_PtrEntry(vSimInfo, pNode->Id);
-    pSimmNode1 = (unsigned *)Vec_PtrEntry(vSimInfo, Abc_ObjFaninId0(pNode));
-    pSimmNode  += nOffset + (fShift > 0)*nSimWords;
+    assert(Abc_ObjIsCo(pNode));
+    pSimmNode = (unsigned*)Vec_PtrEntry(vSimInfo, pNode->Id);
+    pSimmNode1 = (unsigned*)Vec_PtrEntry(vSimInfo, Abc_ObjFaninId0(pNode));
+    pSimmNode += nOffset + (fShift > 0) * nSimWords;
     pSimmNode1 += nOffset;
     fComp1 = Abc_ObjFaninC0(pNode);
-    if ( fComp1 )
-        for ( k = 0; k < nSimWords; k++ )
+    if (fComp1)
+        for (k = 0; k < nSimWords; k++)
             pSimmNode[k] = ~pSimmNode1[k];
-    else 
-        for ( k = 0; k < nSimWords; k++ )
-            pSimmNode[k] =  pSimmNode1[k];
+    else
+        for (k = 0; k < nSimWords; k++)
+            pSimmNode[k] = pSimmNode1[k];
 }
 
 /**Function*************************************************************
@@ -368,22 +352,20 @@ void Sim_UtilTransferNodeOne( Abc_Obj_t * pNode, Vec_Ptr_t * vSimInfo, int nSimW
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilCountSuppSizes( Sim_Man_t * p, int fStruct )
-{
-    Abc_Obj_t * pNode, * pNodeCi;
+int Sim_UtilCountSuppSizes(Sim_Man_t* p, int fStruct) {
+    Abc_Obj_t *pNode, *pNodeCi;
     int i, v, Counter;
     Counter = 0;
-    if ( fStruct )
-    {
-        Abc_NtkForEachCo( p->pNtk, pNode, i )
-            Abc_NtkForEachCi( p->pNtk, pNodeCi, v )
-                Counter += Sim_SuppStrHasVar( p->vSuppStr, pNode, v );
-    }
-    else
-    {
-        Abc_NtkForEachCo( p->pNtk, pNode, i )
-            Abc_NtkForEachCi( p->pNtk, pNodeCi, v )
-                Counter += Sim_SuppFunHasVar( p->vSuppFun, i, v );
+    if (fStruct) {
+        Abc_NtkForEachCo(p->pNtk, pNode, i)
+            Abc_NtkForEachCi(p->pNtk, pNodeCi, v)
+                Counter
+            += Sim_SuppStrHasVar(p->vSuppStr, pNode, v);
+    } else {
+        Abc_NtkForEachCo(p->pNtk, pNode, i)
+            Abc_NtkForEachCi(p->pNtk, pNodeCi, v)
+                Counter
+            += Sim_SuppFunHasVar(p->vSuppFun, i, v);
     }
     return Counter;
 }
@@ -399,16 +381,15 @@ int Sim_UtilCountSuppSizes( Sim_Man_t * p, int fStruct )
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilCountOnes( unsigned * pSimInfo, int nSimWords )
-{
-    unsigned char * pBytes;
+int Sim_UtilCountOnes(unsigned* pSimInfo, int nSimWords) {
+    unsigned char* pBytes;
     int nOnes, nBytes, i;
-    pBytes = (unsigned char *)pSimInfo;
+    pBytes = (unsigned char*)pSimInfo;
     nBytes = 4 * nSimWords;
-    nOnes  = 0;
-    for ( i = 0; i < nBytes; i++ )
-        nOnes += bit_count[ pBytes[i] ];
-    return nOnes;    
+    nOnes = 0;
+    for (i = 0; i < nBytes; i++)
+        nOnes += bit_count[pBytes[i]];
+    return nOnes;
 }
 
 /**Function*************************************************************
@@ -422,14 +403,13 @@ int Sim_UtilCountOnes( unsigned * pSimInfo, int nSimWords )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Int_t * Sim_UtilCountOnesArray( Vec_Ptr_t * vInfo, int nSimWords )
-{
-    Vec_Int_t * vCounters;
-    unsigned * pSimInfo;
+Vec_Int_t* Sim_UtilCountOnesArray(Vec_Ptr_t* vInfo, int nSimWords) {
+    Vec_Int_t* vCounters;
+    unsigned* pSimInfo;
     int i;
-    vCounters = Vec_IntStart( Vec_PtrSize(vInfo) );
-    Vec_PtrForEachEntry( unsigned *, vInfo, pSimInfo, i )
-        Vec_IntWriteEntry( vCounters, i, Sim_UtilCountOnes(pSimInfo, nSimWords) );
+    vCounters = Vec_IntStart(Vec_PtrSize(vInfo));
+    Vec_PtrForEachEntry(unsigned*, vInfo, pSimInfo, i)
+        Vec_IntWriteEntry(vCounters, i, Sim_UtilCountOnes(pSimInfo, nSimWords));
     return vCounters;
 }
 
@@ -444,10 +424,9 @@ Vec_Int_t * Sim_UtilCountOnesArray( Vec_Ptr_t * vInfo, int nSimWords )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilSetRandom( unsigned * pPatRand, int nSimWords )
-{
+void Sim_UtilSetRandom(unsigned* pPatRand, int nSimWords) {
     int k;
-    for ( k = 0; k < nSimWords; k++ )
+    for (k = 0; k < nSimWords; k++)
         pPatRand[k] = SIM_RANDOM_UNSIGNED;
 }
 
@@ -462,10 +441,9 @@ void Sim_UtilSetRandom( unsigned * pPatRand, int nSimWords )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilSetCompl( unsigned * pPatRand, int nSimWords )
-{
+void Sim_UtilSetCompl(unsigned* pPatRand, int nSimWords) {
     int k;
-    for ( k = 0; k < nSimWords; k++ )
+    for (k = 0; k < nSimWords; k++)
         pPatRand[k] = ~pPatRand[k];
 }
 
@@ -480,13 +458,12 @@ void Sim_UtilSetCompl( unsigned * pPatRand, int nSimWords )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilSetConst( unsigned * pPatRand, int nSimWords, int fConst1 )
-{
+void Sim_UtilSetConst(unsigned* pPatRand, int nSimWords, int fConst1) {
     int k;
-    for ( k = 0; k < nSimWords; k++ )
+    for (k = 0; k < nSimWords; k++)
         pPatRand[k] = 0;
-    if ( fConst1 )
-        Sim_UtilSetCompl( pPatRand, nSimWords );
+    if (fConst1)
+        Sim_UtilSetCompl(pPatRand, nSimWords);
 }
 
 /**Function*************************************************************
@@ -500,11 +477,10 @@ void Sim_UtilSetConst( unsigned * pPatRand, int nSimWords, int fConst1 )
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilInfoIsEqual( unsigned * pPats1, unsigned * pPats2, int nSimWords )
-{
+int Sim_UtilInfoIsEqual(unsigned* pPats1, unsigned* pPats2, int nSimWords) {
     int k;
-    for ( k = 0; k < nSimWords; k++ )
-        if ( pPats1[k] != pPats2[k] )
+    for (k = 0; k < nSimWords; k++)
+        if (pPats1[k] != pPats2[k])
             return 0;
     return 1;
 }
@@ -520,11 +496,10 @@ int Sim_UtilInfoIsEqual( unsigned * pPats1, unsigned * pPats2, int nSimWords )
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilInfoIsImp( unsigned * pPats1, unsigned * pPats2, int nSimWords )
-{
+int Sim_UtilInfoIsImp(unsigned* pPats1, unsigned* pPats2, int nSimWords) {
     int k;
-    for ( k = 0; k < nSimWords; k++ )
-        if ( pPats1[k] & ~pPats2[k] )
+    for (k = 0; k < nSimWords; k++)
+        if (pPats1[k] & ~pPats2[k])
             return 0;
     return 1;
 }
@@ -540,11 +515,10 @@ int Sim_UtilInfoIsImp( unsigned * pPats1, unsigned * pPats2, int nSimWords )
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilInfoIsClause( unsigned * pPats1, unsigned * pPats2, int nSimWords )
-{
+int Sim_UtilInfoIsClause(unsigned* pPats1, unsigned* pPats2, int nSimWords) {
     int k;
-    for ( k = 0; k < nSimWords; k++ )
-        if ( ~pPats1[k] & ~pPats2[k] )
+    for (k = 0; k < nSimWords; k++)
+        if (~pPats1[k] & ~pPats2[k])
             return 0;
     return 1;
 }
@@ -560,16 +534,14 @@ int Sim_UtilInfoIsClause( unsigned * pPats1, unsigned * pPats2, int nSimWords )
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilCountAllPairs( Vec_Ptr_t * vSuppFun, int nSimWords, Vec_Int_t * vCounters )
-{
-    unsigned * pSupp;
+int Sim_UtilCountAllPairs(Vec_Ptr_t* vSuppFun, int nSimWords, Vec_Int_t* vCounters) {
+    unsigned* pSupp;
     int Counter, nOnes, nPairs, i;
     Counter = 0;
-    Vec_PtrForEachEntry( unsigned *, vSuppFun, pSupp, i )
-    {
-        nOnes  = Sim_UtilCountOnes( pSupp, nSimWords );
+    Vec_PtrForEachEntry(unsigned*, vSuppFun, pSupp, i) {
+        nOnes = Sim_UtilCountOnes(pSupp, nSimWords);
         nPairs = nOnes * (nOnes - 1) / 2;
-        Vec_IntWriteEntry( vCounters, i, nPairs );
+        Vec_IntWriteEntry(vCounters, i, nPairs);
         Counter += nPairs;
     }
     return Counter;
@@ -586,16 +558,16 @@ int Sim_UtilCountAllPairs( Vec_Ptr_t * vSuppFun, int nSimWords, Vec_Int_t * vCou
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilCountPairsOne( Extra_BitMat_t * pMat, Vec_Int_t * vSupport )
-{
+int Sim_UtilCountPairsOne(Extra_BitMat_t* pMat, Vec_Int_t* vSupport) {
     int i, k, Index1, Index2;
     int Counter = 0;
-//    int Counter2;
-    Vec_IntForEachEntry( vSupport, i, Index1 )
-    Vec_IntForEachEntryStart( vSupport, k, Index2, Index1+1 )
-        Counter += Extra_BitMatrixLookup1( pMat, i, k );
-//    Counter2 = Extra_BitMatrixCountOnesUpper(pMat);
-//    assert( Counter == Counter2 );
+    //    int Counter2;
+    Vec_IntForEachEntry(vSupport, i, Index1)
+        Vec_IntForEachEntryStart(vSupport, k, Index2, Index1 + 1)
+            Counter
+        += Extra_BitMatrixLookup1(pMat, i, k);
+    //    Counter2 = Extra_BitMatrixCountOnesUpper(pMat);
+    //    assert( Counter == Counter2 );
     return Counter;
 }
 
@@ -610,13 +582,11 @@ int Sim_UtilCountPairsOne( Extra_BitMat_t * pMat, Vec_Int_t * vSupport )
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilCountPairsOnePrint( Extra_BitMat_t * pMat, Vec_Int_t * vSupport )
-{
+int Sim_UtilCountPairsOnePrint(Extra_BitMat_t* pMat, Vec_Int_t* vSupport) {
     int i, k, Index1, Index2;
-    Vec_IntForEachEntry( vSupport, i, Index1 )
-    Vec_IntForEachEntryStart( vSupport, k, Index2, Index1+1 )
-        if ( Extra_BitMatrixLookup1( pMat, i, k ) )
-            printf( "(%d,%d) ", i, k );
+    Vec_IntForEachEntry(vSupport, i, Index1)
+        Vec_IntForEachEntryStart(vSupport, k, Index2, Index1 + 1) if (Extra_BitMatrixLookup1(pMat, i, k))
+            printf("(%d,%d) ", i, k);
     return 0;
 }
 
@@ -631,18 +601,16 @@ int Sim_UtilCountPairsOnePrint( Extra_BitMat_t * pMat, Vec_Int_t * vSupport )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilCountPairsAllPrint( Sym_Man_t * p )
-{
+void Sim_UtilCountPairsAllPrint(Sym_Man_t* p) {
     int i;
     abctime clk;
-clk = Abc_Clock();
-    for ( i = 0; i < p->nOutputs; i++ )
-    {
-        printf( "Output %2d :", i );
-        Sim_UtilCountPairsOnePrint( (Extra_BitMat_t *)Vec_PtrEntry(p->vMatrSymms, i), Vec_VecEntryInt(p->vSupports, i) );
-        printf( "\n" );
+    clk = Abc_Clock();
+    for (i = 0; i < p->nOutputs; i++) {
+        printf("Output %2d :", i);
+        Sim_UtilCountPairsOnePrint((Extra_BitMat_t*)Vec_PtrEntry(p->vMatrSymms, i), Vec_VecEntryInt(p->vSupports, i));
+        printf("\n");
     }
-p->timeCount += Abc_Clock() - clk;
+    p->timeCount += Abc_Clock() - clk;
 }
 
 /**Function*************************************************************
@@ -656,37 +624,34 @@ p->timeCount += Abc_Clock() - clk;
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_UtilCountPairsAll( Sym_Man_t * p )
-{
+void Sim_UtilCountPairsAll(Sym_Man_t* p) {
     int nPairsTotal, nPairsSym, nPairsNonSym, i;
     abctime clk;
-clk = Abc_Clock();
-    p->nPairsSymm    = 0;
+    clk = Abc_Clock();
+    p->nPairsSymm = 0;
     p->nPairsNonSymm = 0;
-    for ( i = 0; i < p->nOutputs; i++ )
-    {
-        nPairsTotal  = Vec_IntEntry(p->vPairsTotal, i);
-        nPairsSym    = Vec_IntEntry(p->vPairsSym,   i);
-        nPairsNonSym = Vec_IntEntry(p->vPairsNonSym,i);
-        assert( nPairsTotal >= nPairsSym + nPairsNonSym ); 
-        if ( nPairsTotal == nPairsSym + nPairsNonSym )
-        {
-            p->nPairsSymm    += nPairsSym;
+    for (i = 0; i < p->nOutputs; i++) {
+        nPairsTotal = Vec_IntEntry(p->vPairsTotal, i);
+        nPairsSym = Vec_IntEntry(p->vPairsSym, i);
+        nPairsNonSym = Vec_IntEntry(p->vPairsNonSym, i);
+        assert(nPairsTotal >= nPairsSym + nPairsNonSym);
+        if (nPairsTotal == nPairsSym + nPairsNonSym) {
+            p->nPairsSymm += nPairsSym;
             p->nPairsNonSymm += nPairsNonSym;
             continue;
         }
-        nPairsSym    = Sim_UtilCountPairsOne( (Extra_BitMat_t *)Vec_PtrEntry(p->vMatrSymms,   i), Vec_VecEntryInt(p->vSupports, i) );
-        nPairsNonSym = Sim_UtilCountPairsOne( (Extra_BitMat_t *)Vec_PtrEntry(p->vMatrNonSymms,i), Vec_VecEntryInt(p->vSupports, i) );
-        assert( nPairsTotal >= nPairsSym + nPairsNonSym ); 
-        Vec_IntWriteEntry( p->vPairsSym,    i, nPairsSym );
-        Vec_IntWriteEntry( p->vPairsNonSym, i, nPairsNonSym );
-        p->nPairsSymm    += nPairsSym;
+        nPairsSym = Sim_UtilCountPairsOne((Extra_BitMat_t*)Vec_PtrEntry(p->vMatrSymms, i), Vec_VecEntryInt(p->vSupports, i));
+        nPairsNonSym = Sim_UtilCountPairsOne((Extra_BitMat_t*)Vec_PtrEntry(p->vMatrNonSymms, i), Vec_VecEntryInt(p->vSupports, i));
+        assert(nPairsTotal >= nPairsSym + nPairsNonSym);
+        Vec_IntWriteEntry(p->vPairsSym, i, nPairsSym);
+        Vec_IntWriteEntry(p->vPairsNonSym, i, nPairsNonSym);
+        p->nPairsSymm += nPairsSym;
         p->nPairsNonSymm += nPairsNonSym;
-//        printf( "%d ", nPairsTotal - nPairsSym - nPairsNonSym );
+        //        printf( "%d ", nPairsTotal - nPairsSym - nPairsNonSym );
     }
-//printf( "\n" );
-    p->nPairsRem = p->nPairsTotal-p->nPairsSymm-p->nPairsNonSymm;
-p->timeCount += Abc_Clock() - clk;
+    //printf( "\n" );
+    p->nPairsRem = p->nPairsTotal - p->nPairsSymm - p->nPairsNonSymm;
+    p->timeCount += Abc_Clock() - clk;
 }
 
 /**Function*************************************************************
@@ -700,11 +665,10 @@ p->timeCount += Abc_Clock() - clk;
   SeeAlso     []
 
 ***********************************************************************/
-int Sim_UtilMatrsAreDisjoint( Sym_Man_t * p )
-{
+int Sim_UtilMatrsAreDisjoint(Sym_Man_t* p) {
     int i;
-    for ( i = 0; i < p->nOutputs; i++ )
-        if ( !Extra_BitMatrixIsDisjoint( (Extra_BitMat_t *)Vec_PtrEntry(p->vMatrSymms,i), (Extra_BitMat_t *)Vec_PtrEntry(p->vMatrNonSymms,i) ) )
+    for (i = 0; i < p->nOutputs; i++)
+        if (!Extra_BitMatrixIsDisjoint((Extra_BitMat_t*)Vec_PtrEntry(p->vMatrSymms, i), (Extra_BitMat_t*)Vec_PtrEntry(p->vMatrNonSymms, i)))
             return 0;
     return 1;
 }
@@ -713,6 +677,4 @@ int Sim_UtilMatrsAreDisjoint( Sym_Man_t * p )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

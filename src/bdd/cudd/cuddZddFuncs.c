@@ -80,22 +80,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -109,21 +104,17 @@ static char rcsid[] DD_UNUSED = "$Id: cuddZddFuncs.c,v 1.16 2008/04/25 07:39:33 
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticStart*************************************************************/
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -141,22 +132,20 @@ static char rcsid[] DD_UNUSED = "$Id: cuddZddFuncs.c,v 1.16 2008/04/25 07:39:33 
   SeeAlso     [Cudd_zddUnateProduct]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_zddProduct(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    DdNode      *res;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
         res = cuddZddProduct(dd, f, g);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_zddProduct */
-
 
 /**Function********************************************************************
 
@@ -172,22 +161,20 @@ Cudd_zddProduct(
   SeeAlso     [Cudd_zddProduct]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_zddUnateProduct(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    DdNode      *res;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
         res = cuddZddUnateProduct(dd, f, g);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_zddUnateProduct */
-
 
 /**Function********************************************************************
 
@@ -206,22 +193,20 @@ Cudd_zddUnateProduct(
   SeeAlso     [Cudd_zddDivide]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_zddWeakDiv(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    DdNode      *res;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
         res = cuddZddWeakDiv(dd, f, g);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_zddWeakDiv */
-
 
 /**Function********************************************************************
 
@@ -237,22 +222,20 @@ Cudd_zddWeakDiv(
   SeeAlso     [Cudd_zddWeakDiv]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_zddDivide(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    DdNode      *res;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
         res = cuddZddDivide(dd, f, g);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_zddDivide */
-
 
 /**Function********************************************************************
 
@@ -266,22 +249,20 @@ Cudd_zddDivide(
   SeeAlso     [Cudd_zddWeakDiv]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_zddWeakDivF(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    DdNode      *res;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
         res = cuddZddWeakDivF(dd, f, g);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_zddWeakDivF */
-
 
 /**Function********************************************************************
 
@@ -295,22 +276,20 @@ Cudd_zddWeakDivF(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_zddDivideF(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    DdNode      *res;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
         res = cuddZddDivideF(dd, f, g);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_zddDivideF */
-
 
 /**Function********************************************************************
 
@@ -328,26 +307,25 @@ Cudd_zddDivideF(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_zddComplement(
-  DdManager *dd,
-  DdNode *node)
-{
-    DdNode      *b, *isop, *zdd_I;
+    DdManager* dd,
+    DdNode* node) {
+    DdNode *b, *isop, *zdd_I;
 
     /* Check cache */
     zdd_I = cuddCacheLookup1Zdd(dd, cuddZddComplement, node);
     if (zdd_I)
-        return(zdd_I);
+        return (zdd_I);
 
     b = Cudd_MakeBddFromZddCover(dd, node);
     if (!b)
-        return(NULL);
+        return (NULL);
     Cudd_Ref(b);
     isop = Cudd_zddIsop(dd, Cudd_Not(b), Cudd_Not(b), &zdd_I);
     if (!isop) {
         Cudd_RecursiveDeref(dd, b);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(isop);
     Cudd_Ref(zdd_I);
@@ -356,14 +334,12 @@ Cudd_zddComplement(
 
     cuddCacheInsert1(dd, cuddZddComplement, node, zdd_I);
     Cudd_Deref(zdd_I);
-    return(zdd_I);
+    return (zdd_I);
 } /* end of Cudd_zddComplement */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -376,45 +352,44 @@ Cudd_zddComplement(
   SeeAlso     [Cudd_zddProduct]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddZddProduct(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    int         v, top_f, top_g;
-    DdNode      *tmp, *term1, *term2, *term3;
-    DdNode      *f0, *f1, *fd, *g0, *g1, *gd;
-    DdNode      *R0, *R1, *Rd, *N0, *N1;
-    DdNode      *r;
-    DdNode      *one = DD_ONE(dd);
-    DdNode      *zero = DD_ZERO(dd);
-    int         flag;
-    int         pv, nv;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    int v, top_f, top_g;
+    DdNode *tmp, *term1, *term2, *term3;
+    DdNode *f0, *f1, *fd, *g0, *g1, *gd;
+    DdNode *R0, *R1, *Rd, *N0, *N1;
+    DdNode* r;
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = DD_ZERO(dd);
+    int flag;
+    int pv, nv;
 
     statLine(dd);
     if (f == zero || g == zero)
-        return(zero);
+        return (zero);
     if (f == one)
-        return(g);
+        return (g);
     if (g == one)
-        return(f);
+        return (f);
 
     top_f = dd->permZ[f->index];
     top_g = dd->permZ[g->index];
 
     if (top_f > top_g)
-        return(cuddZddProduct(dd, g, f));
+        return (cuddZddProduct(dd, g, f));
 
     /* Check cache */
     r = cuddCacheLookup2Zdd(dd, cuddZddProduct, f, g);
     if (r)
-        return(r);
+        return (r);
 
-    v = f->index;       /* either yi or zi */
+    v = f->index; /* either yi or zi */
     flag = cuddZddGetCofactors3(dd, f, v, &f1, &f0, &fd);
     if (flag == 1)
-        return(NULL);
+        return (NULL);
     Cudd_Ref(f1);
     Cudd_Ref(f0);
     Cudd_Ref(fd);
@@ -423,7 +398,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, f1);
         Cudd_RecursiveDerefZdd(dd, f0);
         Cudd_RecursiveDerefZdd(dd, fd);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(g1);
     Cudd_Ref(g0);
@@ -439,7 +414,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, g1);
         Cudd_RecursiveDerefZdd(dd, g0);
         Cudd_RecursiveDerefZdd(dd, gd);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Rd);
 
@@ -452,7 +427,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, g0);
         Cudd_RecursiveDerefZdd(dd, gd);
         Cudd_RecursiveDerefZdd(dd, Rd);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term1);
     term2 = cuddZddProduct(dd, f0, gd);
@@ -465,7 +440,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, gd);
         Cudd_RecursiveDerefZdd(dd, Rd);
         Cudd_RecursiveDerefZdd(dd, term1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term2);
     term3 = cuddZddProduct(dd, fd, g0);
@@ -479,7 +454,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, Rd);
         Cudd_RecursiveDerefZdd(dd, term1);
         Cudd_RecursiveDerefZdd(dd, term2);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term3);
     Cudd_RecursiveDerefZdd(dd, f0);
@@ -494,7 +469,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, term1);
         Cudd_RecursiveDerefZdd(dd, term2);
         Cudd_RecursiveDerefZdd(dd, term3);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(tmp);
     Cudd_RecursiveDerefZdd(dd, term1);
@@ -508,7 +483,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, Rd);
         Cudd_RecursiveDerefZdd(dd, term3);
         Cudd_RecursiveDerefZdd(dd, tmp);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(R0);
     Cudd_RecursiveDerefZdd(dd, tmp);
@@ -521,7 +496,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, gd);
         Cudd_RecursiveDerefZdd(dd, Rd);
         Cudd_RecursiveDerefZdd(dd, R0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(N0);
     Cudd_RecursiveDerefZdd(dd, R0);
@@ -534,7 +509,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, g1);
         Cudd_RecursiveDerefZdd(dd, gd);
         Cudd_RecursiveDerefZdd(dd, N0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term1);
     term2 = cuddZddProduct(dd, f1, gd);
@@ -545,7 +520,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, gd);
         Cudd_RecursiveDerefZdd(dd, N0);
         Cudd_RecursiveDerefZdd(dd, term1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term2);
     term3 = cuddZddProduct(dd, fd, g1);
@@ -557,7 +532,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, N0);
         Cudd_RecursiveDerefZdd(dd, term1);
         Cudd_RecursiveDerefZdd(dd, term2);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term3);
     Cudd_RecursiveDerefZdd(dd, f1);
@@ -570,7 +545,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, term1);
         Cudd_RecursiveDerefZdd(dd, term2);
         Cudd_RecursiveDerefZdd(dd, term3);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(tmp);
     Cudd_RecursiveDerefZdd(dd, term1);
@@ -580,7 +555,7 @@ cuddZddProduct(
         Cudd_RecursiveDerefZdd(dd, N0);
         Cudd_RecursiveDerefZdd(dd, term3);
         Cudd_RecursiveDerefZdd(dd, tmp);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(R1);
     Cudd_RecursiveDerefZdd(dd, tmp);
@@ -589,7 +564,7 @@ cuddZddProduct(
     if (N1 == NULL) {
         Cudd_RecursiveDerefZdd(dd, N0);
         Cudd_RecursiveDerefZdd(dd, R1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(N1);
     Cudd_RecursiveDerefZdd(dd, R1);
@@ -597,10 +572,9 @@ cuddZddProduct(
 
     cuddCacheInsert2(dd, cuddZddProduct, f, g, N1);
     Cudd_Deref(N1);
-    return(N1);
+    return (N1);
 
 } /* end of cuddZddProduct */
-
 
 /**Function********************************************************************
 
@@ -613,51 +587,50 @@ cuddZddProduct(
   SeeAlso     [Cudd_zddUnateProduct]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddZddUnateProduct(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    int         v, top_f, top_g;
-    DdNode      *term1, *term2, *term3, *term4;
-    DdNode      *sum1, *sum2;
-    DdNode      *f0, *f1, *g0, *g1;
-    DdNode      *r;
-    DdNode      *one = DD_ONE(dd);
-    DdNode      *zero = DD_ZERO(dd);
-    int         flag;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    int v, top_f, top_g;
+    DdNode *term1, *term2, *term3, *term4;
+    DdNode *sum1, *sum2;
+    DdNode *f0, *f1, *g0, *g1;
+    DdNode* r;
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = DD_ZERO(dd);
+    int flag;
 
     statLine(dd);
     if (f == zero || g == zero)
-        return(zero);
+        return (zero);
     if (f == one)
-        return(g);
+        return (g);
     if (g == one)
-        return(f);
+        return (f);
 
     top_f = dd->permZ[f->index];
     top_g = dd->permZ[g->index];
 
     if (top_f > top_g)
-        return(cuddZddUnateProduct(dd, g, f));
+        return (cuddZddUnateProduct(dd, g, f));
 
     /* Check cache */
     r = cuddCacheLookup2Zdd(dd, cuddZddUnateProduct, f, g);
     if (r)
-        return(r);
+        return (r);
 
-    v = f->index;       /* either yi or zi */
+    v = f->index; /* either yi or zi */
     flag = cuddZddGetCofactors2(dd, f, v, &f1, &f0);
     if (flag == 1)
-        return(NULL);
+        return (NULL);
     Cudd_Ref(f1);
     Cudd_Ref(f0);
     flag = cuddZddGetCofactors2(dd, g, v, &g1, &g0);
     if (flag == 1) {
         Cudd_RecursiveDerefZdd(dd, f1);
         Cudd_RecursiveDerefZdd(dd, f0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(g1);
     Cudd_Ref(g0);
@@ -668,7 +641,7 @@ cuddZddUnateProduct(
         Cudd_RecursiveDerefZdd(dd, f0);
         Cudd_RecursiveDerefZdd(dd, g1);
         Cudd_RecursiveDerefZdd(dd, g0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term1);
     term2 = cuddZddUnateProduct(dd, f1, g0);
@@ -678,7 +651,7 @@ cuddZddUnateProduct(
         Cudd_RecursiveDerefZdd(dd, g1);
         Cudd_RecursiveDerefZdd(dd, g0);
         Cudd_RecursiveDerefZdd(dd, term1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term2);
     term3 = cuddZddUnateProduct(dd, f0, g1);
@@ -689,7 +662,7 @@ cuddZddUnateProduct(
         Cudd_RecursiveDerefZdd(dd, g0);
         Cudd_RecursiveDerefZdd(dd, term1);
         Cudd_RecursiveDerefZdd(dd, term2);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term3);
     term4 = cuddZddUnateProduct(dd, f0, g0);
@@ -701,7 +674,7 @@ cuddZddUnateProduct(
         Cudd_RecursiveDerefZdd(dd, term1);
         Cudd_RecursiveDerefZdd(dd, term2);
         Cudd_RecursiveDerefZdd(dd, term3);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term4);
     Cudd_RecursiveDerefZdd(dd, f1);
@@ -714,7 +687,7 @@ cuddZddUnateProduct(
         Cudd_RecursiveDerefZdd(dd, term2);
         Cudd_RecursiveDerefZdd(dd, term3);
         Cudd_RecursiveDerefZdd(dd, term4);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(sum1);
     Cudd_RecursiveDerefZdd(dd, term1);
@@ -724,7 +697,7 @@ cuddZddUnateProduct(
         Cudd_RecursiveDerefZdd(dd, term3);
         Cudd_RecursiveDerefZdd(dd, term4);
         Cudd_RecursiveDerefZdd(dd, sum1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(sum2);
     Cudd_RecursiveDerefZdd(dd, sum1);
@@ -733,7 +706,7 @@ cuddZddUnateProduct(
     if (r == NULL) {
         Cudd_RecursiveDerefZdd(dd, term4);
         Cudd_RecursiveDerefZdd(dd, sum2);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(r);
     Cudd_RecursiveDerefZdd(dd, sum2);
@@ -741,10 +714,9 @@ cuddZddUnateProduct(
 
     cuddCacheInsert2(dd, cuddZddUnateProduct, f, g, r);
     Cudd_Deref(r);
-    return(r);
+    return (r);
 
 } /* end of cuddZddUnateProduct */
-
 
 /**Function********************************************************************
 
@@ -757,38 +729,37 @@ cuddZddUnateProduct(
   SeeAlso     [Cudd_zddWeakDiv]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddZddWeakDiv(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    int         v;
-    DdNode      *one = DD_ONE(dd);
-    DdNode      *zero = DD_ZERO(dd);
-    DdNode      *f0, *f1, *fd, *g0, *g1, *gd;
-    DdNode      *q, *tmp;
-    DdNode      *r;
-    int         flag;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    int v;
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = DD_ZERO(dd);
+    DdNode *f0, *f1, *fd, *g0, *g1, *gd;
+    DdNode *q, *tmp;
+    DdNode* r;
+    int flag;
 
     statLine(dd);
     if (g == one)
-        return(f);
+        return (f);
     if (f == zero || f == one)
-        return(zero);
+        return (zero);
     if (f == g)
-        return(one);
+        return (one);
 
     /* Check cache. */
     r = cuddCacheLookup2Zdd(dd, cuddZddWeakDiv, f, g);
     if (r)
-        return(r);
+        return (r);
 
     v = g->index;
 
     flag = cuddZddGetCofactors3(dd, f, v, &f1, &f0, &fd);
     if (flag == 1)
-        return(NULL);
+        return (NULL);
     Cudd_Ref(f1);
     Cudd_Ref(f0);
     Cudd_Ref(fd);
@@ -797,7 +768,7 @@ cuddZddWeakDiv(
         Cudd_RecursiveDerefZdd(dd, f1);
         Cudd_RecursiveDerefZdd(dd, f0);
         Cudd_RecursiveDerefZdd(dd, fd);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(g1);
     Cudd_Ref(g0);
@@ -814,11 +785,10 @@ cuddZddWeakDiv(
             Cudd_RecursiveDerefZdd(dd, g1);
             Cudd_RecursiveDerefZdd(dd, g0);
             Cudd_RecursiveDerefZdd(dd, gd);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(q);
-    }
-    else
+    } else
         Cudd_Ref(q);
     Cudd_RecursiveDerefZdd(dd, f0);
     Cudd_RecursiveDerefZdd(dd, g0);
@@ -830,7 +800,7 @@ cuddZddWeakDiv(
         Cudd_RecursiveDerefZdd(dd, gd);
         cuddCacheInsert2(dd, cuddZddWeakDiv, f, g, zero);
         Cudd_Deref(q);
-        return(zero);
+        return (zero);
     }
 
     if (g1 != zero) {
@@ -841,7 +811,7 @@ cuddZddWeakDiv(
             Cudd_RecursiveDerefZdd(dd, g1);
             Cudd_RecursiveDerefZdd(dd, fd);
             Cudd_RecursiveDerefZdd(dd, gd);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(tmp);
         Cudd_RecursiveDerefZdd(dd, f1);
@@ -853,13 +823,12 @@ cuddZddWeakDiv(
             if (q == NULL) {
                 Cudd_RecursiveDerefZdd(dd, fd);
                 Cudd_RecursiveDerefZdd(dd, gd);
-                return(NULL);
+                return (NULL);
             }
             Cudd_Ref(q);
             Cudd_RecursiveDerefZdd(dd, tmp);
         }
-    }
-    else {
+    } else {
         Cudd_RecursiveDerefZdd(dd, f1);
         Cudd_RecursiveDerefZdd(dd, g1);
     }
@@ -869,7 +838,7 @@ cuddZddWeakDiv(
         Cudd_RecursiveDerefZdd(dd, gd);
         cuddCacheInsert2(dd, cuddZddWeakDiv, f, g, zero);
         Cudd_Deref(q);
-        return(zero);
+        return (zero);
     }
 
     if (gd != zero) {
@@ -878,7 +847,7 @@ cuddZddWeakDiv(
         if (tmp == NULL) {
             Cudd_RecursiveDerefZdd(dd, fd);
             Cudd_RecursiveDerefZdd(dd, gd);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(tmp);
         Cudd_RecursiveDerefZdd(dd, fd);
@@ -889,23 +858,21 @@ cuddZddWeakDiv(
             q = cuddZddIntersect(dd, q, tmp);
             if (q == NULL) {
                 Cudd_RecursiveDerefZdd(dd, tmp);
-                return(NULL);
+                return (NULL);
             }
             Cudd_Ref(q);
             Cudd_RecursiveDerefZdd(dd, tmp);
         }
-    }
-    else {
+    } else {
         Cudd_RecursiveDerefZdd(dd, fd);
         Cudd_RecursiveDerefZdd(dd, gd);
     }
 
     cuddCacheInsert2(dd, cuddZddWeakDiv, f, g, q);
     Cudd_Deref(q);
-    return(q);
+    return (q);
 
 } /* end of cuddZddWeakDiv */
-
 
 /**Function********************************************************************
 
@@ -918,34 +885,33 @@ cuddZddWeakDiv(
   SeeAlso     [Cudd_zddWeakDivF]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddZddWeakDivF(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    int         v, top_f, top_g, vf, vg;
-    DdNode      *one = DD_ONE(dd);
-    DdNode      *zero = DD_ZERO(dd);
-    DdNode      *f0, *f1, *fd, *g0, *g1, *gd;
-    DdNode      *q, *tmp;
-    DdNode      *r;
-    DdNode      *term1, *term0, *termd;
-    int         flag;
-    int         pv, nv;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    int v, top_f, top_g, vf, vg;
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = DD_ZERO(dd);
+    DdNode *f0, *f1, *fd, *g0, *g1, *gd;
+    DdNode *q, *tmp;
+    DdNode* r;
+    DdNode *term1, *term0, *termd;
+    int flag;
+    int pv, nv;
 
     statLine(dd);
     if (g == one)
-        return(f);
+        return (f);
     if (f == zero || f == one)
-        return(zero);
+        return (zero);
     if (f == g)
-        return(one);
+        return (one);
 
     /* Check cache. */
     r = cuddCacheLookup2Zdd(dd, cuddZddWeakDivF, f, g);
     if (r)
-        return(r);
+        return (r);
 
     top_f = dd->permZ[f->index];
     top_g = dd->permZ[g->index];
@@ -957,7 +923,7 @@ cuddZddWeakDivF(
         v = f->index;
         flag = cuddZddGetCofactors3(dd, f, v, &f1, &f0, &fd);
         if (flag == 1)
-            return(NULL);
+            return (NULL);
         Cudd_Ref(f1);
         Cudd_Ref(f0);
         Cudd_Ref(fd);
@@ -970,7 +936,7 @@ cuddZddWeakDivF(
             Cudd_RecursiveDerefZdd(dd, f1);
             Cudd_RecursiveDerefZdd(dd, f0);
             Cudd_RecursiveDerefZdd(dd, fd);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(term1);
         Cudd_RecursiveDerefZdd(dd, f1);
@@ -979,7 +945,7 @@ cuddZddWeakDivF(
             Cudd_RecursiveDerefZdd(dd, f0);
             Cudd_RecursiveDerefZdd(dd, fd);
             Cudd_RecursiveDerefZdd(dd, term1);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(term0);
         Cudd_RecursiveDerefZdd(dd, f0);
@@ -988,7 +954,7 @@ cuddZddWeakDivF(
             Cudd_RecursiveDerefZdd(dd, fd);
             Cudd_RecursiveDerefZdd(dd, term1);
             Cudd_RecursiveDerefZdd(dd, term0);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(termd);
         Cudd_RecursiveDerefZdd(dd, fd);
@@ -998,7 +964,7 @@ cuddZddWeakDivF(
             Cudd_RecursiveDerefZdd(dd, term1);
             Cudd_RecursiveDerefZdd(dd, term0);
             Cudd_RecursiveDerefZdd(dd, termd);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(tmp);
         Cudd_RecursiveDerefZdd(dd, term0);
@@ -1007,7 +973,7 @@ cuddZddWeakDivF(
         if (q == NULL) {
             Cudd_RecursiveDerefZdd(dd, term1);
             Cudd_RecursiveDerefZdd(dd, tmp);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(q);
         Cudd_RecursiveDerefZdd(dd, term1);
@@ -1015,7 +981,7 @@ cuddZddWeakDivF(
 
         cuddCacheInsert2(dd, cuddZddWeakDivF, f, g, q);
         Cudd_Deref(q);
-        return(q);
+        return (q);
     }
 
     if (v == top_f)
@@ -1025,7 +991,7 @@ cuddZddWeakDivF(
 
     flag = cuddZddGetCofactors3(dd, f, v, &f1, &f0, &fd);
     if (flag == 1)
-        return(NULL);
+        return (NULL);
     Cudd_Ref(f1);
     Cudd_Ref(f0);
     Cudd_Ref(fd);
@@ -1034,7 +1000,7 @@ cuddZddWeakDivF(
         Cudd_RecursiveDerefZdd(dd, f1);
         Cudd_RecursiveDerefZdd(dd, f0);
         Cudd_RecursiveDerefZdd(dd, fd);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(g1);
     Cudd_Ref(g0);
@@ -1051,11 +1017,10 @@ cuddZddWeakDivF(
             Cudd_RecursiveDerefZdd(dd, g1);
             Cudd_RecursiveDerefZdd(dd, g0);
             Cudd_RecursiveDerefZdd(dd, gd);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(q);
-    }
-    else
+    } else
         Cudd_Ref(q);
     Cudd_RecursiveDerefZdd(dd, f0);
     Cudd_RecursiveDerefZdd(dd, g0);
@@ -1067,7 +1032,7 @@ cuddZddWeakDivF(
         Cudd_RecursiveDerefZdd(dd, gd);
         cuddCacheInsert2(dd, cuddZddWeakDivF, f, g, zero);
         Cudd_Deref(q);
-        return(zero);
+        return (zero);
     }
 
     if (g1 != zero) {
@@ -1078,7 +1043,7 @@ cuddZddWeakDivF(
             Cudd_RecursiveDerefZdd(dd, g1);
             Cudd_RecursiveDerefZdd(dd, fd);
             Cudd_RecursiveDerefZdd(dd, gd);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(tmp);
         Cudd_RecursiveDerefZdd(dd, f1);
@@ -1090,13 +1055,12 @@ cuddZddWeakDivF(
             if (q == NULL) {
                 Cudd_RecursiveDerefZdd(dd, fd);
                 Cudd_RecursiveDerefZdd(dd, gd);
-                return(NULL);
+                return (NULL);
             }
             Cudd_Ref(q);
             Cudd_RecursiveDerefZdd(dd, tmp);
         }
-    }
-    else {
+    } else {
         Cudd_RecursiveDerefZdd(dd, f1);
         Cudd_RecursiveDerefZdd(dd, g1);
     }
@@ -1106,7 +1070,7 @@ cuddZddWeakDivF(
         Cudd_RecursiveDerefZdd(dd, gd);
         cuddCacheInsert2(dd, cuddZddWeakDivF, f, g, zero);
         Cudd_Deref(q);
-        return(zero);
+        return (zero);
     }
 
     if (gd != zero) {
@@ -1115,7 +1079,7 @@ cuddZddWeakDivF(
         if (tmp == NULL) {
             Cudd_RecursiveDerefZdd(dd, fd);
             Cudd_RecursiveDerefZdd(dd, gd);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(tmp);
         Cudd_RecursiveDerefZdd(dd, fd);
@@ -1126,23 +1090,21 @@ cuddZddWeakDivF(
             q = cuddZddIntersect(dd, q, tmp);
             if (q == NULL) {
                 Cudd_RecursiveDerefZdd(dd, tmp);
-                return(NULL);
+                return (NULL);
             }
             Cudd_Ref(q);
             Cudd_RecursiveDerefZdd(dd, tmp);
         }
-    }
-    else {
+    } else {
         Cudd_RecursiveDerefZdd(dd, fd);
         Cudd_RecursiveDerefZdd(dd, gd);
     }
 
     cuddCacheInsert2(dd, cuddZddWeakDivF, f, g, q);
     Cudd_Deref(q);
-    return(q);
+    return (q);
 
 } /* end of cuddZddWeakDivF */
-
 
 /**Function********************************************************************
 
@@ -1155,44 +1117,43 @@ cuddZddWeakDivF(
   SeeAlso     [Cudd_zddDivide]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddZddDivide(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    int         v;
-    DdNode      *one = DD_ONE(dd);
-    DdNode      *zero = DD_ZERO(dd);
-    DdNode      *f0, *f1, *g0, *g1;
-    DdNode      *q, *r, *tmp;
-    int         flag;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    int v;
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = DD_ZERO(dd);
+    DdNode *f0, *f1, *g0, *g1;
+    DdNode *q, *r, *tmp;
+    int flag;
 
     statLine(dd);
     if (g == one)
-        return(f);
+        return (f);
     if (f == zero || f == one)
-        return(zero);
+        return (zero);
     if (f == g)
-        return(one);
+        return (one);
 
     /* Check cache. */
     r = cuddCacheLookup2Zdd(dd, cuddZddDivide, f, g);
     if (r)
-        return(r);
+        return (r);
 
     v = g->index;
 
     flag = cuddZddGetCofactors2(dd, f, v, &f1, &f0);
     if (flag == 1)
-        return(NULL);
+        return (NULL);
     Cudd_Ref(f1);
     Cudd_Ref(f0);
-    flag = cuddZddGetCofactors2(dd, g, v, &g1, &g0);    /* g1 != zero */
+    flag = cuddZddGetCofactors2(dd, g, v, &g1, &g0); /* g1 != zero */
     if (flag == 1) {
         Cudd_RecursiveDerefZdd(dd, f1);
         Cudd_RecursiveDerefZdd(dd, f0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(g1);
     Cudd_Ref(g0);
@@ -1203,7 +1164,7 @@ cuddZddDivide(
         Cudd_RecursiveDerefZdd(dd, f0);
         Cudd_RecursiveDerefZdd(dd, g1);
         Cudd_RecursiveDerefZdd(dd, g0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(r);
 
@@ -1215,7 +1176,7 @@ cuddZddDivide(
             Cudd_RecursiveDerefZdd(dd, f0);
             Cudd_RecursiveDerefZdd(dd, g1);
             Cudd_RecursiveDerefZdd(dd, g0);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(q);
         r = cuddZddIntersect(dd, r, q);
@@ -1225,7 +1186,7 @@ cuddZddDivide(
             Cudd_RecursiveDerefZdd(dd, g1);
             Cudd_RecursiveDerefZdd(dd, g0);
             Cudd_RecursiveDerefZdd(dd, q);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(r);
         Cudd_RecursiveDerefZdd(dd, q);
@@ -1236,13 +1197,12 @@ cuddZddDivide(
     Cudd_RecursiveDerefZdd(dd, f0);
     Cudd_RecursiveDerefZdd(dd, g1);
     Cudd_RecursiveDerefZdd(dd, g0);
-    
+
     cuddCacheInsert2(dd, cuddZddDivide, f, g, r);
     Cudd_Deref(r);
-    return(r);
+    return (r);
 
 } /* end of cuddZddDivide */
-
 
 /**Function********************************************************************
 
@@ -1255,44 +1215,43 @@ cuddZddDivide(
   SeeAlso     [Cudd_zddDivideF]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddZddDivideF(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    int         v;
-    DdNode      *one = DD_ONE(dd);
-    DdNode      *zero = DD_ZERO(dd);
-    DdNode      *f0, *f1, *g0, *g1;
-    DdNode      *q, *r, *tmp;
-    int         flag;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    int v;
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = DD_ZERO(dd);
+    DdNode *f0, *f1, *g0, *g1;
+    DdNode *q, *r, *tmp;
+    int flag;
 
     statLine(dd);
     if (g == one)
-        return(f);
+        return (f);
     if (f == zero || f == one)
-        return(zero);
+        return (zero);
     if (f == g)
-        return(one);
+        return (one);
 
     /* Check cache. */
     r = cuddCacheLookup2Zdd(dd, cuddZddDivideF, f, g);
     if (r)
-        return(r);
+        return (r);
 
     v = g->index;
 
     flag = cuddZddGetCofactors2(dd, f, v, &f1, &f0);
     if (flag == 1)
-        return(NULL);
+        return (NULL);
     Cudd_Ref(f1);
     Cudd_Ref(f0);
-    flag = cuddZddGetCofactors2(dd, g, v, &g1, &g0);    /* g1 != zero */
+    flag = cuddZddGetCofactors2(dd, g, v, &g1, &g0); /* g1 != zero */
     if (flag == 1) {
         Cudd_RecursiveDerefZdd(dd, f1);
         Cudd_RecursiveDerefZdd(dd, f0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(g1);
     Cudd_Ref(g0);
@@ -1303,7 +1262,7 @@ cuddZddDivideF(
         Cudd_RecursiveDerefZdd(dd, f0);
         Cudd_RecursiveDerefZdd(dd, g1);
         Cudd_RecursiveDerefZdd(dd, g0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(r);
 
@@ -1315,7 +1274,7 @@ cuddZddDivideF(
             Cudd_RecursiveDerefZdd(dd, f0);
             Cudd_RecursiveDerefZdd(dd, g1);
             Cudd_RecursiveDerefZdd(dd, g0);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(q);
         r = cuddZddIntersect(dd, r, q);
@@ -1325,7 +1284,7 @@ cuddZddDivideF(
             Cudd_RecursiveDerefZdd(dd, g1);
             Cudd_RecursiveDerefZdd(dd, g0);
             Cudd_RecursiveDerefZdd(dd, q);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(r);
         Cudd_RecursiveDerefZdd(dd, q);
@@ -1336,13 +1295,12 @@ cuddZddDivideF(
     Cudd_RecursiveDerefZdd(dd, f0);
     Cudd_RecursiveDerefZdd(dd, g1);
     Cudd_RecursiveDerefZdd(dd, g0);
-    
+
     cuddCacheInsert2(dd, cuddZddDivideF, f, g, r);
     Cudd_Deref(r);
-    return(r);
+    return (r);
 
 } /* end of cuddZddDivideF */
-
 
 /**Function********************************************************************
 
@@ -1356,19 +1314,17 @@ cuddZddDivideF(
   SeeAlso     [cuddZddGetCofactors2]
 
 ******************************************************************************/
-int
-cuddZddGetCofactors3(
-  DdManager * dd,
-  DdNode * f,
-  int  v,
-  DdNode ** f1,
-  DdNode ** f0,
-  DdNode ** fd)
-{
-    DdNode      *pc, *nc;
-    DdNode      *zero = DD_ZERO(dd);
-    int         top, hv, ht, pv, nv;
-    int         level;
+int cuddZddGetCofactors3(
+    DdManager* dd,
+    DdNode* f,
+    int v,
+    DdNode** f1,
+    DdNode** f0,
+    DdNode** fd) {
+    DdNode *pc, *nc;
+    DdNode* zero = DD_ZERO(dd);
+    int top, hv, ht, pv, nv;
+    int level;
 
     top = dd->permZ[f->index];
     level = dd->permZ[v];
@@ -1379,8 +1335,7 @@ cuddZddGetCofactors3(
         *f1 = zero;
         *f0 = zero;
         *fd = f;
-    }
-    else {
+    } else {
         pv = cuddZddGetPosVarIndex(dd, v);
         nv = cuddZddGetNegVarIndex(dd, v);
 
@@ -1388,12 +1343,12 @@ cuddZddGetCofactors3(
         if (cuddZddGetPosVarLevel(dd, v) < cuddZddGetNegVarLevel(dd, v)) {
             pc = cuddZddSubset1(dd, f, pv);
             if (pc == NULL)
-                return(1);
+                return (1);
             Cudd_Ref(pc);
             nc = cuddZddSubset0(dd, f, pv);
             if (nc == NULL) {
                 Cudd_RecursiveDerefZdd(dd, pc);
-                return(1);
+                return (1);
             }
             Cudd_Ref(nc);
 
@@ -1401,7 +1356,7 @@ cuddZddGetCofactors3(
             if (*f1 == NULL) {
                 Cudd_RecursiveDerefZdd(dd, pc);
                 Cudd_RecursiveDerefZdd(dd, nc);
-                return(1);
+                return (1);
             }
             Cudd_Ref(*f1);
             *f0 = cuddZddSubset1(dd, nc, nv);
@@ -1409,7 +1364,7 @@ cuddZddGetCofactors3(
                 Cudd_RecursiveDerefZdd(dd, pc);
                 Cudd_RecursiveDerefZdd(dd, nc);
                 Cudd_RecursiveDerefZdd(dd, *f1);
-                return(1);
+                return (1);
             }
             Cudd_Ref(*f0);
 
@@ -1419,18 +1374,18 @@ cuddZddGetCofactors3(
                 Cudd_RecursiveDerefZdd(dd, nc);
                 Cudd_RecursiveDerefZdd(dd, *f1);
                 Cudd_RecursiveDerefZdd(dd, *f0);
-                return(1);
+                return (1);
             }
             Cudd_Ref(*fd);
         } else {
             pc = cuddZddSubset1(dd, f, nv);
             if (pc == NULL)
-                return(1);
+                return (1);
             Cudd_Ref(pc);
             nc = cuddZddSubset0(dd, f, nv);
             if (nc == NULL) {
                 Cudd_RecursiveDerefZdd(dd, pc);
-                return(1);
+                return (1);
             }
             Cudd_Ref(nc);
 
@@ -1438,7 +1393,7 @@ cuddZddGetCofactors3(
             if (*f0 == NULL) {
                 Cudd_RecursiveDerefZdd(dd, pc);
                 Cudd_RecursiveDerefZdd(dd, nc);
-                return(1);
+                return (1);
             }
             Cudd_Ref(*f0);
             *f1 = cuddZddSubset1(dd, nc, pv);
@@ -1446,7 +1401,7 @@ cuddZddGetCofactors3(
                 Cudd_RecursiveDerefZdd(dd, pc);
                 Cudd_RecursiveDerefZdd(dd, nc);
                 Cudd_RecursiveDerefZdd(dd, *f0);
-                return(1);
+                return (1);
             }
             Cudd_Ref(*f1);
 
@@ -1456,7 +1411,7 @@ cuddZddGetCofactors3(
                 Cudd_RecursiveDerefZdd(dd, nc);
                 Cudd_RecursiveDerefZdd(dd, *f1);
                 Cudd_RecursiveDerefZdd(dd, *f0);
-                return(1);
+                return (1);
             }
             Cudd_Ref(*fd);
         }
@@ -1467,10 +1422,9 @@ cuddZddGetCofactors3(
         Cudd_Deref(*f0);
         Cudd_Deref(*fd);
     }
-    return(0);
+    return (0);
 
 } /* end of cuddZddGetCofactors3 */
-
 
 /**Function********************************************************************
 
@@ -1483,26 +1437,23 @@ cuddZddGetCofactors3(
   SeeAlso     [cuddZddGetCofactors3]
 
 ******************************************************************************/
-int
-cuddZddGetCofactors2(
-  DdManager * dd,
-  DdNode * f,
-  int  v,
-  DdNode ** f1,
-  DdNode ** f0)
-{
+int cuddZddGetCofactors2(
+    DdManager* dd,
+    DdNode* f,
+    int v,
+    DdNode** f1,
+    DdNode** f0) {
     *f1 = cuddZddSubset1(dd, f, v);
     if (*f1 == NULL)
-        return(1);
+        return (1);
     *f0 = cuddZddSubset0(dd, f, v);
     if (*f0 == NULL) {
         Cudd_RecursiveDerefZdd(dd, *f1);
-        return(1);
+        return (1);
     }
-    return(0);
+    return (0);
 
 } /* end of cuddZddGetCofactors2 */
-
 
 /**Function********************************************************************
 
@@ -1518,26 +1469,25 @@ cuddZddGetCofactors2(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddZddComplement(
-  DdManager * dd,
-  DdNode *node)
-{
-    DdNode      *b, *isop, *zdd_I;
+    DdManager* dd,
+    DdNode* node) {
+    DdNode *b, *isop, *zdd_I;
 
     /* Check cache */
     zdd_I = cuddCacheLookup1Zdd(dd, cuddZddComplement, node);
     if (zdd_I)
-        return(zdd_I);
+        return (zdd_I);
 
     b = cuddMakeBddFromZddCover(dd, node);
     if (!b)
-        return(NULL);
+        return (NULL);
     cuddRef(b);
     isop = cuddZddIsop(dd, Cudd_Not(b), Cudd_Not(b), &zdd_I);
     if (!isop) {
         Cudd_RecursiveDeref(dd, b);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(isop);
     cuddRef(zdd_I);
@@ -1546,9 +1496,8 @@ cuddZddComplement(
 
     cuddCacheInsert1(dd, cuddZddComplement, node, zdd_I);
     cuddDeref(zdd_I);
-    return(zdd_I);
+    return (zdd_I);
 } /* end of cuddZddComplement */
-
 
 /**Function********************************************************************
 
@@ -1561,15 +1510,12 @@ cuddZddComplement(
   SeeAlso     []
 
 ******************************************************************************/
-int
-cuddZddGetPosVarIndex(
-  DdManager * dd,
-  int index)
-{
+int cuddZddGetPosVarIndex(
+    DdManager* dd,
+    int index) {
     int pv = (index >> 1) << 1;
-    return(pv);
+    return (pv);
 } /* end of cuddZddGetPosVarIndex */
-
 
 /**Function********************************************************************
 
@@ -1582,15 +1528,12 @@ cuddZddGetPosVarIndex(
   SeeAlso     []
 
 ******************************************************************************/
-int
-cuddZddGetNegVarIndex(
-  DdManager * dd,
-  int index)
-{
+int cuddZddGetNegVarIndex(
+    DdManager* dd,
+    int index) {
     int nv = index | 0x1;
-    return(nv);
+    return (nv);
 } /* end of cuddZddGetPosVarIndex */
-
 
 /**Function********************************************************************
 
@@ -1603,15 +1546,12 @@ cuddZddGetNegVarIndex(
   SeeAlso     []
 
 ******************************************************************************/
-int
-cuddZddGetPosVarLevel(
-  DdManager * dd,
-  int index)
-{
+int cuddZddGetPosVarLevel(
+    DdManager* dd,
+    int index) {
     int pv = cuddZddGetPosVarIndex(dd, index);
-    return(dd->permZ[pv]);
+    return (dd->permZ[pv]);
 } /* end of cuddZddGetPosVarLevel */
-
 
 /**Function********************************************************************
 
@@ -1624,15 +1564,11 @@ cuddZddGetPosVarLevel(
   SeeAlso     []
 
 ******************************************************************************/
-int
-cuddZddGetNegVarLevel(
-  DdManager * dd,
-  int index)
-{
+int cuddZddGetNegVarLevel(
+    DdManager* dd,
+    int index) {
     int nv = cuddZddGetNegVarIndex(dd, index);
-    return(dd->permZ[nv]);
+    return (dd->permZ[nv]);
 } /* end of cuddZddGetNegVarLevel */
 
-
 ABC_NAMESPACE_IMPL_END
-

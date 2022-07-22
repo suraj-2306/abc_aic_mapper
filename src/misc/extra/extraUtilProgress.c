@@ -24,22 +24,20 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-struct ProgressBarStruct
-{
-    int              nItemsNext;   // the number of items for the next update of the progress bar
-    int              nItemsTotal;  // the total number of items
-    int              posTotal;     // the total number of positions
-    int              posCur;       // the current position
-    FILE *           pFile;        // the output stream 
+struct ProgressBarStruct {
+    int nItemsNext;  // the number of items for the next update of the progress bar
+    int nItemsTotal; // the total number of items
+    int posTotal;    // the total number of positions
+    int posCur;      // the current position
+    FILE* pFile;     // the output stream
 };
 
-static void Extra_ProgressBarShow( ProgressBar * p, char * pString );
-static void Extra_ProgressBarClean( ProgressBar * p );
+static void Extra_ProgressBarShow(ProgressBar* p, char* pString);
+static void Extra_ProgressBarClean(ProgressBar* p);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -59,18 +57,17 @@ static void Extra_ProgressBarClean( ProgressBar * p );
   SeeAlso     []
 
 ***********************************************************************/
-ProgressBar * Extra_ProgressBarStart( FILE * pFile, int nItemsTotal )
-{
-    ProgressBar * p;
-    if ( !Abc_FrameShowProgress(Abc_FrameGetGlobalFrame()) ) return NULL;
-    p = ABC_ALLOC( ProgressBar, 1 );
-    memset( p, 0, sizeof(ProgressBar) );
-    p->pFile       = pFile;
+ProgressBar* Extra_ProgressBarStart(FILE* pFile, int nItemsTotal) {
+    ProgressBar* p;
+    if (!Abc_FrameShowProgress(Abc_FrameGetGlobalFrame())) return NULL;
+    p = ABC_ALLOC(ProgressBar, 1);
+    memset(p, 0, sizeof(ProgressBar));
+    p->pFile = pFile;
     p->nItemsTotal = nItemsTotal;
-    p->posTotal    = 78;
-    p->posCur      = 1;
-    p->nItemsNext  = (int)((7.0+p->posCur)*p->nItemsTotal/p->posTotal);
-    Extra_ProgressBarShow( p, NULL );
+    p->posTotal = 78;
+    p->posCur = 1;
+    p->nItemsNext = (int)((7.0 + p->posCur) * p->nItemsTotal / p->posTotal);
+    Extra_ProgressBarShow(p, NULL);
     return p;
 }
 
@@ -85,24 +82,19 @@ ProgressBar * Extra_ProgressBarStart( FILE * pFile, int nItemsTotal )
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ProgressBarUpdate_int( ProgressBar * p, int nItemsCur, char * pString )
-{
-    if ( p == NULL ) return;
-    if ( nItemsCur < p->nItemsNext )
+void Extra_ProgressBarUpdate_int(ProgressBar* p, int nItemsCur, char* pString) {
+    if (p == NULL) return;
+    if (nItemsCur < p->nItemsNext)
         return;
-    if ( nItemsCur >= p->nItemsTotal )
-    {
+    if (nItemsCur >= p->nItemsTotal) {
         p->posCur = 78;
         p->nItemsNext = 0x7FFFFFFF;
-    }
-    else
-    {
+    } else {
         p->posCur += 7;
-        p->nItemsNext = (int)((7.0+p->posCur)*p->nItemsTotal/p->posTotal);
+        p->nItemsNext = (int)((7.0 + p->posCur) * p->nItemsTotal / p->posTotal);
     }
-    Extra_ProgressBarShow( p, pString );
+    Extra_ProgressBarShow(p, pString);
 }
-
 
 /**Function*************************************************************
 
@@ -115,11 +107,10 @@ void Extra_ProgressBarUpdate_int( ProgressBar * p, int nItemsCur, char * pString
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ProgressBarStop( ProgressBar * p )
-{
-    if ( p == NULL ) return;
-    Extra_ProgressBarClean( p );
-    ABC_FREE( p );
+void Extra_ProgressBarStop(ProgressBar* p) {
+    if (p == NULL) return;
+    Extra_ProgressBarClean(p);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -133,23 +124,22 @@ void Extra_ProgressBarStop( ProgressBar * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ProgressBarShow( ProgressBar * p, char * pString )
-{
+void Extra_ProgressBarShow(ProgressBar* p, char* pString) {
     int i;
-    if ( p == NULL ) 
+    if (p == NULL)
         return;
-    if ( Abc_FrameIsBatchMode() )
+    if (Abc_FrameIsBatchMode())
         return;
-    if ( pString )
-        fprintf( p->pFile, "%s ", pString );
-    for ( i = (pString? strlen(pString) + 1 : 0); i < p->posCur; i++ )
-        fprintf( p->pFile, "-" );
-    if ( i == p->posCur )
-        fprintf( p->pFile, ">" );
-    for ( i++  ; i <= p->posTotal; i++ )
-        fprintf( p->pFile, " " );
-    fprintf( p->pFile, "\r" );
-    fflush( stdout );
+    if (pString)
+        fprintf(p->pFile, "%s ", pString);
+    for (i = (pString ? strlen(pString) + 1 : 0); i < p->posCur; i++)
+        fprintf(p->pFile, "-");
+    if (i == p->posCur)
+        fprintf(p->pFile, ">");
+    for (i++; i <= p->posTotal; i++)
+        fprintf(p->pFile, " ");
+    fprintf(p->pFile, "\r");
+    fflush(stdout);
 }
 
 /**Function*************************************************************
@@ -163,23 +153,20 @@ void Extra_ProgressBarShow( ProgressBar * p, char * pString )
   SeeAlso     []
 
 ***********************************************************************/
-void Extra_ProgressBarClean( ProgressBar * p )
-{
+void Extra_ProgressBarClean(ProgressBar* p) {
     int i;
-    if ( p == NULL ) 
+    if (p == NULL)
         return;
-    if ( Abc_FrameIsBatchMode() )
+    if (Abc_FrameIsBatchMode())
         return;
-    for ( i = 0; i <= p->posTotal; i++ )
-        fprintf( p->pFile, " " );
-    fprintf( p->pFile, "\r" );
-    fflush( stdout );
+    for (i = 0; i <= p->posTotal; i++)
+        fprintf(p->pFile, " ");
+    fprintf(p->pFile, "\r");
+    fflush(stdout);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

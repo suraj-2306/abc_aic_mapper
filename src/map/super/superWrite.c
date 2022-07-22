@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 /*
     One record in the supergate library file consists of:
 
@@ -50,7 +49,6 @@ ABC_NAMESPACE_IMPL_START
     For the definition of gate dominance see pliGenCheckDominance().
 */
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -71,11 +69,8 @@ ABC_NAMESPACE_IMPL_START
 
 ***********************************************************************/
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

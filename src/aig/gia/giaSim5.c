@@ -27,9 +27,9 @@ ABC_NAMESPACE_IMPL_START
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-void Sim_Init( Abc_Frame_t * pAbc ) {}
-void Sim_End( Abc_Frame_t * pAbc )  {}
-void Gia_DatFree( Gia_Dat_t * p )   {}
+void Sim_Init(Abc_Frame_t* pAbc) {}
+void Sim_End(Abc_Frame_t* pAbc) {}
+void Gia_DatFree(Gia_Dat_t* p) {}
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -51,6 +51,4 @@ void Gia_DatFree( Gia_Dat_t * p )   {}
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

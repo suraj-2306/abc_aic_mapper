@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,15 +41,14 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Msat_ClauseVec_t * Msat_ClauseVecAlloc( int nCap )
-{
-    Msat_ClauseVec_t * p;
-    p = ABC_ALLOC( Msat_ClauseVec_t, 1 );
-    if ( nCap > 0 && nCap < 16 )
+Msat_ClauseVec_t* Msat_ClauseVecAlloc(int nCap) {
+    Msat_ClauseVec_t* p;
+    p = ABC_ALLOC(Msat_ClauseVec_t, 1);
+    if (nCap > 0 && nCap < 16)
         nCap = 16;
-    p->nSize  = 0;
-    p->nCap   = nCap;
-    p->pArray = p->nCap? ABC_ALLOC( Msat_Clause_t *, p->nCap ) : NULL;
+    p->nSize = 0;
+    p->nCap = nCap;
+    p->pArray = p->nCap ? ABC_ALLOC(Msat_Clause_t*, p->nCap) : NULL;
     return p;
 }
 
@@ -65,10 +63,9 @@ Msat_ClauseVec_t * Msat_ClauseVecAlloc( int nCap )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_ClauseVecFree( Msat_ClauseVec_t * p )
-{
-    ABC_FREE( p->pArray );
-    ABC_FREE( p );
+void Msat_ClauseVecFree(Msat_ClauseVec_t* p) {
+    ABC_FREE(p->pArray);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -82,8 +79,7 @@ void Msat_ClauseVecFree( Msat_ClauseVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Msat_Clause_t ** Msat_ClauseVecReadArray( Msat_ClauseVec_t * p )
-{
+Msat_Clause_t** Msat_ClauseVecReadArray(Msat_ClauseVec_t* p) {
     return p->pArray;
 }
 
@@ -98,8 +94,7 @@ Msat_Clause_t ** Msat_ClauseVecReadArray( Msat_ClauseVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_ClauseVecReadSize( Msat_ClauseVec_t * p )
-{
+int Msat_ClauseVecReadSize(Msat_ClauseVec_t* p) {
     return p->nSize;
 }
 
@@ -114,12 +109,11 @@ int Msat_ClauseVecReadSize( Msat_ClauseVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_ClauseVecGrow( Msat_ClauseVec_t * p, int nCapMin )
-{
-    if ( p->nCap >= nCapMin )
+void Msat_ClauseVecGrow(Msat_ClauseVec_t* p, int nCapMin) {
+    if (p->nCap >= nCapMin)
         return;
-    p->pArray = ABC_REALLOC( Msat_Clause_t *, p->pArray, nCapMin ); 
-    p->nCap   = nCapMin;
+    p->pArray = ABC_REALLOC(Msat_Clause_t*, p->pArray, nCapMin);
+    p->nCap = nCapMin;
 }
 
 /**Function*************************************************************
@@ -133,9 +127,8 @@ void Msat_ClauseVecGrow( Msat_ClauseVec_t * p, int nCapMin )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_ClauseVecShrink( Msat_ClauseVec_t * p, int nSizeNew )
-{
-    assert( p->nSize >= nSizeNew );
+void Msat_ClauseVecShrink(Msat_ClauseVec_t* p, int nSizeNew) {
+    assert(p->nSize >= nSizeNew);
     p->nSize = nSizeNew;
 }
 
@@ -150,8 +143,7 @@ void Msat_ClauseVecShrink( Msat_ClauseVec_t * p, int nSizeNew )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_ClauseVecClear( Msat_ClauseVec_t * p )
-{
+void Msat_ClauseVecClear(Msat_ClauseVec_t* p) {
     p->nSize = 0;
 }
 
@@ -166,14 +158,12 @@ void Msat_ClauseVecClear( Msat_ClauseVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_ClauseVecPush( Msat_ClauseVec_t * p, Msat_Clause_t * Entry )
-{
-    if ( p->nSize == p->nCap )
-    {
-        if ( p->nCap < 16 )
-            Msat_ClauseVecGrow( p, 16 );
+void Msat_ClauseVecPush(Msat_ClauseVec_t* p, Msat_Clause_t* Entry) {
+    if (p->nSize == p->nCap) {
+        if (p->nCap < 16)
+            Msat_ClauseVecGrow(p, 16);
         else
-            Msat_ClauseVecGrow( p, 2 * p->nCap );
+            Msat_ClauseVecGrow(p, 2 * p->nCap);
     }
     p->pArray[p->nSize++] = Entry;
 }
@@ -189,8 +179,7 @@ void Msat_ClauseVecPush( Msat_ClauseVec_t * p, Msat_Clause_t * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-Msat_Clause_t * Msat_ClauseVecPop( Msat_ClauseVec_t * p )
-{
+Msat_Clause_t* Msat_ClauseVecPop(Msat_ClauseVec_t* p) {
     return p->pArray[--p->nSize];
 }
 
@@ -205,9 +194,8 @@ Msat_Clause_t * Msat_ClauseVecPop( Msat_ClauseVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_ClauseVecWriteEntry( Msat_ClauseVec_t * p, int i, Msat_Clause_t * Entry )
-{
-    assert( i >= 0 && i < p->nSize );
+void Msat_ClauseVecWriteEntry(Msat_ClauseVec_t* p, int i, Msat_Clause_t* Entry) {
+    assert(i >= 0 && i < p->nSize);
     p->pArray[i] = Entry;
 }
 
@@ -222,9 +210,8 @@ void Msat_ClauseVecWriteEntry( Msat_ClauseVec_t * p, int i, Msat_Clause_t * Entr
   SeeAlso     []
 
 ***********************************************************************/
-Msat_Clause_t * Msat_ClauseVecReadEntry( Msat_ClauseVec_t * p, int i )
-{
-    assert( i >= 0 && i < p->nSize );
+Msat_Clause_t* Msat_ClauseVecReadEntry(Msat_ClauseVec_t* p, int i) {
+    assert(i >= 0 && i < p->nSize);
     return p->pArray[i];
 }
 
@@ -232,6 +219,4 @@ Msat_Clause_t * Msat_ClauseVecReadEntry( Msat_ClauseVec_t * p, int i )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

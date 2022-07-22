@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -40,15 +39,14 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Fraig_NodeVec_t * Fraig_NodeVecAlloc( int nCap )
-{
-    Fraig_NodeVec_t * p;
-    p = ABC_ALLOC( Fraig_NodeVec_t, 1 );
-    if ( nCap > 0 && nCap < 8 )
+Fraig_NodeVec_t* Fraig_NodeVecAlloc(int nCap) {
+    Fraig_NodeVec_t* p;
+    p = ABC_ALLOC(Fraig_NodeVec_t, 1);
+    if (nCap > 0 && nCap < 8)
         nCap = 8;
-    p->nSize  = 0;
-    p->nCap   = nCap;
-    p->pArray = p->nCap? ABC_ALLOC( Fraig_Node_t *, p->nCap ) : NULL;
+    p->nSize = 0;
+    p->nCap = nCap;
+    p->pArray = p->nCap ? ABC_ALLOC(Fraig_Node_t*, p->nCap) : NULL;
     return p;
 }
 
@@ -63,10 +61,9 @@ Fraig_NodeVec_t * Fraig_NodeVecAlloc( int nCap )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecFree( Fraig_NodeVec_t * p )
-{
-    ABC_FREE( p->pArray );
-    ABC_FREE( p );
+void Fraig_NodeVecFree(Fraig_NodeVec_t* p) {
+    ABC_FREE(p->pArray);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -80,14 +77,13 @@ void Fraig_NodeVecFree( Fraig_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Fraig_NodeVec_t * Fraig_NodeVecDup( Fraig_NodeVec_t * pVec )
-{
-    Fraig_NodeVec_t * p;
-    p = ABC_ALLOC( Fraig_NodeVec_t, 1 );
-    p->nSize  = pVec->nSize;
-    p->nCap   = pVec->nCap;
-    p->pArray = p->nCap? ABC_ALLOC( Fraig_Node_t *, p->nCap ) : NULL;
-    memcpy( p->pArray, pVec->pArray, sizeof(Fraig_Node_t *) * pVec->nSize );
+Fraig_NodeVec_t* Fraig_NodeVecDup(Fraig_NodeVec_t* pVec) {
+    Fraig_NodeVec_t* p;
+    p = ABC_ALLOC(Fraig_NodeVec_t, 1);
+    p->nSize = pVec->nSize;
+    p->nCap = pVec->nCap;
+    p->pArray = p->nCap ? ABC_ALLOC(Fraig_Node_t*, p->nCap) : NULL;
+    memcpy(p->pArray, pVec->pArray, sizeof(Fraig_Node_t*) * pVec->nSize);
     return p;
 }
 
@@ -102,8 +98,7 @@ Fraig_NodeVec_t * Fraig_NodeVecDup( Fraig_NodeVec_t * pVec )
   SeeAlso     []
 
 ***********************************************************************/
-Fraig_Node_t ** Fraig_NodeVecReadArray( Fraig_NodeVec_t * p )
-{
+Fraig_Node_t** Fraig_NodeVecReadArray(Fraig_NodeVec_t* p) {
     return p->pArray;
 }
 
@@ -118,8 +113,7 @@ Fraig_Node_t ** Fraig_NodeVecReadArray( Fraig_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_NodeVecReadSize( Fraig_NodeVec_t * p )
-{
+int Fraig_NodeVecReadSize(Fraig_NodeVec_t* p) {
     return p->nSize;
 }
 
@@ -134,12 +128,11 @@ int Fraig_NodeVecReadSize( Fraig_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecGrow( Fraig_NodeVec_t * p, int nCapMin )
-{
-    if ( p->nCap >= nCapMin )
+void Fraig_NodeVecGrow(Fraig_NodeVec_t* p, int nCapMin) {
+    if (p->nCap >= nCapMin)
         return;
-    p->pArray = ABC_REALLOC( Fraig_Node_t *, p->pArray, nCapMin ); 
-    p->nCap   = nCapMin;
+    p->pArray = ABC_REALLOC(Fraig_Node_t*, p->pArray, nCapMin);
+    p->nCap = nCapMin;
 }
 
 /**Function*************************************************************
@@ -153,9 +146,8 @@ void Fraig_NodeVecGrow( Fraig_NodeVec_t * p, int nCapMin )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecShrink( Fraig_NodeVec_t * p, int nSizeNew )
-{
-    assert( p->nSize >= nSizeNew );
+void Fraig_NodeVecShrink(Fraig_NodeVec_t* p, int nSizeNew) {
+    assert(p->nSize >= nSizeNew);
     p->nSize = nSizeNew;
 }
 
@@ -170,8 +162,7 @@ void Fraig_NodeVecShrink( Fraig_NodeVec_t * p, int nSizeNew )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecClear( Fraig_NodeVec_t * p )
-{
+void Fraig_NodeVecClear(Fraig_NodeVec_t* p) {
     p->nSize = 0;
 }
 
@@ -186,14 +177,12 @@ void Fraig_NodeVecClear( Fraig_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecPush( Fraig_NodeVec_t * p, Fraig_Node_t * Entry )
-{
-    if ( p->nSize == p->nCap )
-    {
-        if ( p->nCap < 16 )
-            Fraig_NodeVecGrow( p, 16 );
+void Fraig_NodeVecPush(Fraig_NodeVec_t* p, Fraig_Node_t* Entry) {
+    if (p->nSize == p->nCap) {
+        if (p->nCap < 16)
+            Fraig_NodeVecGrow(p, 16);
         else
-            Fraig_NodeVecGrow( p, 2 * p->nCap );
+            Fraig_NodeVecGrow(p, 2 * p->nCap);
     }
     p->pArray[p->nSize++] = Entry;
 }
@@ -209,13 +198,12 @@ void Fraig_NodeVecPush( Fraig_NodeVec_t * p, Fraig_Node_t * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_NodeVecPushUnique( Fraig_NodeVec_t * p, Fraig_Node_t * Entry )
-{
+int Fraig_NodeVecPushUnique(Fraig_NodeVec_t* p, Fraig_Node_t* Entry) {
     int i;
-    for ( i = 0; i < p->nSize; i++ )
-        if ( p->pArray[i] == Entry )
+    for (i = 0; i < p->nSize; i++)
+        if (p->pArray[i] == Entry)
             return 1;
-    Fraig_NodeVecPush( p, Entry );
+    Fraig_NodeVecPush(p, Entry);
     return 0;
 }
 
@@ -230,20 +218,18 @@ int Fraig_NodeVecPushUnique( Fraig_NodeVec_t * p, Fraig_Node_t * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecPushOrder( Fraig_NodeVec_t * p, Fraig_Node_t * pNode )
-{
-    Fraig_Node_t * pNode1, * pNode2;
+void Fraig_NodeVecPushOrder(Fraig_NodeVec_t* p, Fraig_Node_t* pNode) {
+    Fraig_Node_t *pNode1, *pNode2;
     int i;
-    Fraig_NodeVecPush( p, pNode );
+    Fraig_NodeVecPush(p, pNode);
     // find the p of the node
-    for ( i = p->nSize-1; i > 0; i-- )
-    {
-        pNode1 = p->pArray[i  ];
-        pNode2 = p->pArray[i-1];
-        if ( pNode1 >= pNode2 )
+    for (i = p->nSize - 1; i > 0; i--) {
+        pNode1 = p->pArray[i];
+        pNode2 = p->pArray[i - 1];
+        if (pNode1 >= pNode2)
             break;
-        p->pArray[i  ] = pNode2;
-        p->pArray[i-1] = pNode1;
+        p->pArray[i] = pNode2;
+        p->pArray[i - 1] = pNode1;
     }
 }
 
@@ -258,13 +244,12 @@ void Fraig_NodeVecPushOrder( Fraig_NodeVec_t * p, Fraig_Node_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_NodeVecPushUniqueOrder( Fraig_NodeVec_t * p, Fraig_Node_t * pNode )
-{
+int Fraig_NodeVecPushUniqueOrder(Fraig_NodeVec_t* p, Fraig_Node_t* pNode) {
     int i;
-    for ( i = 0; i < p->nSize; i++ )
-        if ( p->pArray[i] == pNode )
+    for (i = 0; i < p->nSize; i++)
+        if (p->pArray[i] == pNode)
             return 1;
-    Fraig_NodeVecPushOrder( p, pNode );
+    Fraig_NodeVecPushOrder(p, pNode);
     return 0;
 }
 
@@ -279,20 +264,18 @@ int Fraig_NodeVecPushUniqueOrder( Fraig_NodeVec_t * p, Fraig_Node_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecPushOrderByLevel( Fraig_NodeVec_t * p, Fraig_Node_t * pNode )
-{
-    Fraig_Node_t * pNode1, * pNode2;
+void Fraig_NodeVecPushOrderByLevel(Fraig_NodeVec_t* p, Fraig_Node_t* pNode) {
+    Fraig_Node_t *pNode1, *pNode2;
     int i;
-    Fraig_NodeVecPush( p, pNode );
+    Fraig_NodeVecPush(p, pNode);
     // find the p of the node
-    for ( i = p->nSize-1; i > 0; i-- )
-    {
-        pNode1 = p->pArray[i  ];
-        pNode2 = p->pArray[i-1];
-        if ( Fraig_Regular(pNode1)->Level <= Fraig_Regular(pNode2)->Level )
+    for (i = p->nSize - 1; i > 0; i--) {
+        pNode1 = p->pArray[i];
+        pNode2 = p->pArray[i - 1];
+        if (Fraig_Regular(pNode1)->Level <= Fraig_Regular(pNode2)->Level)
             break;
-        p->pArray[i  ] = pNode2;
-        p->pArray[i-1] = pNode1;
+        p->pArray[i] = pNode2;
+        p->pArray[i - 1] = pNode1;
     }
 }
 
@@ -307,13 +290,12 @@ void Fraig_NodeVecPushOrderByLevel( Fraig_NodeVec_t * p, Fraig_Node_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_NodeVecPushUniqueOrderByLevel( Fraig_NodeVec_t * p, Fraig_Node_t * pNode )
-{
+int Fraig_NodeVecPushUniqueOrderByLevel(Fraig_NodeVec_t* p, Fraig_Node_t* pNode) {
     int i;
-    for ( i = 0; i < p->nSize; i++ )
-        if ( p->pArray[i] == pNode )
+    for (i = 0; i < p->nSize; i++)
+        if (p->pArray[i] == pNode)
             return 1;
-    Fraig_NodeVecPushOrderByLevel( p, pNode );
+    Fraig_NodeVecPushOrderByLevel(p, pNode);
     return 0;
 }
 
@@ -328,8 +310,7 @@ int Fraig_NodeVecPushUniqueOrderByLevel( Fraig_NodeVec_t * p, Fraig_Node_t * pNo
   SeeAlso     []
 
 ***********************************************************************/
-Fraig_Node_t * Fraig_NodeVecPop( Fraig_NodeVec_t * p )
-{
+Fraig_Node_t* Fraig_NodeVecPop(Fraig_NodeVec_t* p) {
     return p->pArray[--p->nSize];
 }
 
@@ -344,15 +325,14 @@ Fraig_Node_t * Fraig_NodeVecPop( Fraig_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecRemove( Fraig_NodeVec_t * p, Fraig_Node_t * Entry )
-{
+void Fraig_NodeVecRemove(Fraig_NodeVec_t* p, Fraig_Node_t* Entry) {
     int i;
-    for ( i = 0; i < p->nSize; i++ )
-        if ( p->pArray[i] == Entry )
+    for (i = 0; i < p->nSize; i++)
+        if (p->pArray[i] == Entry)
             break;
-    assert( i < p->nSize );
-    for ( i++; i < p->nSize; i++ )
-        p->pArray[i-1] = p->pArray[i];
+    assert(i < p->nSize);
+    for (i++; i < p->nSize; i++)
+        p->pArray[i - 1] = p->pArray[i];
     p->nSize--;
 }
 
@@ -367,9 +347,8 @@ void Fraig_NodeVecRemove( Fraig_NodeVec_t * p, Fraig_Node_t * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecWriteEntry( Fraig_NodeVec_t * p, int i, Fraig_Node_t * Entry )
-{
-    assert( i >= 0 && i < p->nSize );
+void Fraig_NodeVecWriteEntry(Fraig_NodeVec_t* p, int i, Fraig_Node_t* Entry) {
+    assert(i >= 0 && i < p->nSize);
     p->pArray[i] = Entry;
 }
 
@@ -384,9 +363,8 @@ void Fraig_NodeVecWriteEntry( Fraig_NodeVec_t * p, int i, Fraig_Node_t * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-Fraig_Node_t * Fraig_NodeVecReadEntry( Fraig_NodeVec_t * p, int i )
-{
-    assert( i >= 0 && i < p->nSize );
+Fraig_Node_t* Fraig_NodeVecReadEntry(Fraig_NodeVec_t* p, int i) {
+    assert(i >= 0 && i < p->nSize);
     return p->pArray[i];
 }
 
@@ -401,15 +379,14 @@ Fraig_Node_t * Fraig_NodeVecReadEntry( Fraig_NodeVec_t * p, int i )
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_NodeVecCompareLevelsIncreasing( Fraig_Node_t ** pp1, Fraig_Node_t ** pp2 )
-{
+int Fraig_NodeVecCompareLevelsIncreasing(Fraig_Node_t** pp1, Fraig_Node_t** pp2) {
     int Level1 = Fraig_Regular(*pp1)->Level;
     int Level2 = Fraig_Regular(*pp2)->Level;
-    if ( Level1 < Level2 )
+    if (Level1 < Level2)
         return -1;
-    if ( Level1 > Level2 )
+    if (Level1 > Level2)
         return 1;
-    return 0; 
+    return 0;
 }
 
 /**Function*************************************************************
@@ -423,15 +400,14 @@ int Fraig_NodeVecCompareLevelsIncreasing( Fraig_Node_t ** pp1, Fraig_Node_t ** p
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_NodeVecCompareLevelsDecreasing( Fraig_Node_t ** pp1, Fraig_Node_t ** pp2 )
-{
+int Fraig_NodeVecCompareLevelsDecreasing(Fraig_Node_t** pp1, Fraig_Node_t** pp2) {
     int Level1 = Fraig_Regular(*pp1)->Level;
     int Level2 = Fraig_Regular(*pp2)->Level;
-    if ( Level1 > Level2 )
+    if (Level1 > Level2)
         return -1;
-    if ( Level1 < Level2 )
+    if (Level1 < Level2)
         return 1;
-    return 0; 
+    return 0;
 }
 
 /**Function*************************************************************
@@ -445,15 +421,14 @@ int Fraig_NodeVecCompareLevelsDecreasing( Fraig_Node_t ** pp1, Fraig_Node_t ** p
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_NodeVecCompareNumbers( Fraig_Node_t ** pp1, Fraig_Node_t ** pp2 )
-{
+int Fraig_NodeVecCompareNumbers(Fraig_Node_t** pp1, Fraig_Node_t** pp2) {
     int Num1 = Fraig_Regular(*pp1)->Num;
     int Num2 = Fraig_Regular(*pp2)->Num;
-    if ( Num1 < Num2 )
+    if (Num1 < Num2)
         return -1;
-    if ( Num1 > Num2 )
+    if (Num1 > Num2)
         return 1;
-    return 0; 
+    return 0;
 }
 
 /**Function*************************************************************
@@ -467,24 +442,23 @@ int Fraig_NodeVecCompareNumbers( Fraig_Node_t ** pp1, Fraig_Node_t ** pp2 )
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_NodeVecCompareRefCounts( Fraig_Node_t ** pp1, Fraig_Node_t ** pp2 )
-{
+int Fraig_NodeVecCompareRefCounts(Fraig_Node_t** pp1, Fraig_Node_t** pp2) {
     int nRefs1 = Fraig_Regular(*pp1)->nRefs;
     int nRefs2 = Fraig_Regular(*pp2)->nRefs;
 
-    if ( nRefs1 < nRefs2 )
+    if (nRefs1 < nRefs2)
         return -1;
-    if ( nRefs1 > nRefs2 )
+    if (nRefs1 > nRefs2)
         return 1;
 
     nRefs1 = Fraig_Regular(*pp1)->Level;
     nRefs2 = Fraig_Regular(*pp2)->Level;
 
-    if ( nRefs1 < nRefs2 )
+    if (nRefs1 < nRefs2)
         return -1;
-    if ( nRefs1 > nRefs2 )
+    if (nRefs1 > nRefs2)
         return 1;
-    return 0; 
+    return 0;
 }
 
 /**Function*************************************************************
@@ -498,14 +472,13 @@ int Fraig_NodeVecCompareRefCounts( Fraig_Node_t ** pp1, Fraig_Node_t ** pp2 )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecSortByLevel( Fraig_NodeVec_t * p, int fIncreasing )
-{
-    if ( fIncreasing )
-        qsort( (void *)p->pArray, (size_t)p->nSize, sizeof(Fraig_Node_t *), 
-                (int (*)(const void *, const void *)) Fraig_NodeVecCompareLevelsIncreasing );
-    else 
-        qsort( (void *)p->pArray, (size_t)p->nSize, sizeof(Fraig_Node_t *), 
-                (int (*)(const void *, const void *)) Fraig_NodeVecCompareLevelsDecreasing );
+void Fraig_NodeVecSortByLevel(Fraig_NodeVec_t* p, int fIncreasing) {
+    if (fIncreasing)
+        qsort((void*)p->pArray, (size_t)p->nSize, sizeof(Fraig_Node_t*),
+              (int (*)(const void*, const void*))Fraig_NodeVecCompareLevelsIncreasing);
+    else
+        qsort((void*)p->pArray, (size_t)p->nSize, sizeof(Fraig_Node_t*),
+              (int (*)(const void*, const void*))Fraig_NodeVecCompareLevelsDecreasing);
 }
 
 /**Function*************************************************************
@@ -519,10 +492,9 @@ void Fraig_NodeVecSortByLevel( Fraig_NodeVec_t * p, int fIncreasing )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecSortByNumber( Fraig_NodeVec_t * p )
-{
-    qsort( (void *)p->pArray, (size_t)p->nSize, sizeof(Fraig_Node_t *), 
-            (int (*)(const void *, const void *)) Fraig_NodeVecCompareNumbers );
+void Fraig_NodeVecSortByNumber(Fraig_NodeVec_t* p) {
+    qsort((void*)p->pArray, (size_t)p->nSize, sizeof(Fraig_Node_t*),
+          (int (*)(const void*, const void*))Fraig_NodeVecCompareNumbers);
 }
 
 /**Function*************************************************************
@@ -536,10 +508,9 @@ void Fraig_NodeVecSortByNumber( Fraig_NodeVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_NodeVecSortByRefCount( Fraig_NodeVec_t * p )
-{
-    qsort( (void *)p->pArray, (size_t)p->nSize, sizeof(Fraig_Node_t *), 
-            (int (*)(const void *, const void *)) Fraig_NodeVecCompareRefCounts );
+void Fraig_NodeVecSortByRefCount(Fraig_NodeVec_t* p) {
+    qsort((void*)p->pArray, (size_t)p->nSize, sizeof(Fraig_Node_t*),
+          (int (*)(const void*, const void*))Fraig_NodeVecCompareRefCounts);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -547,4 +518,3 @@ void Fraig_NodeVecSortByRefCount( Fraig_NodeVec_t * p )
 ////////////////////////////////////////////////////////////////////////
 
 ABC_NAMESPACE_IMPL_END
-

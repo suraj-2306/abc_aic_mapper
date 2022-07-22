@@ -25,14 +25,13 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-AbstractCell *abstractCells = NULL;
-ConcreteCell *cells = NULL;
-ConcreteNet *nets = NULL;
+AbstractCell* abstractCells = NULL;
+ConcreteCell* cells = NULL;
+ConcreteNet* nets = NULL;
 int nAllocSize = 0;
 
 ////////////////////////////////////////////////////////////////////////
@@ -50,9 +49,8 @@ int nAllocSize = 0;
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Abc_PlaceCreateCell( Abc_Obj_t * pObj, int fAnd )
-{
-    assert( cells[pObj->Id].m_id == 0 );
+static inline void Abc_PlaceCreateCell(Abc_Obj_t* pObj, int fAnd) {
+    assert(cells[pObj->Id].m_id == 0);
 
     cells[pObj->Id].m_id = pObj->Id;
     cells[pObj->Id].m_label = "";
@@ -72,20 +70,21 @@ static inline void Abc_PlaceCreateCell( Abc_Obj_t * pObj, int fAnd )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Abc_PlaceUpdateNet( Abc_Obj_t * pObj )
-{
-    Abc_Obj_t * pFanout;
+static inline void Abc_PlaceUpdateNet(Abc_Obj_t* pObj) {
+    Abc_Obj_t* pFanout;
     int k;
     // free the old array of net terminals
-    if ( nets[pObj->Id].m_terms )
-        free( nets[pObj->Id].m_terms );
+    if (nets[pObj->Id].m_terms)
+        free(nets[pObj->Id].m_terms);
     // fill in the net with the new information
     nets[pObj->Id].m_id = pObj->Id;
     nets[pObj->Id].m_weight = 1.0;
     nets[pObj->Id].m_numTerms = Abc_ObjFanoutNum(pObj); //fanout
     nets[pObj->Id].m_terms = ALLOC(ConcreteCell*, Abc_ObjFanoutNum(pObj));
-    Abc_ObjForEachFanout( pObj, pFanout, k )
-        nets[pObj->Id].m_terms[k] = &(cells[pFanout->Id]);
+    Abc_ObjForEachFanout(pObj, pFanout, k)
+        nets[pObj->Id]
+            .m_terms[k]
+        = &(cells[pFanout->Id]);
     addConcreteNet(&(nets[pObj->Id]));
 }
 
@@ -100,14 +99,12 @@ static inline void Abc_PlaceUpdateNet( Abc_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-float Abc_PlaceEvaluateCut( Abc_Obj_t * pRoot, Vec_Ptr_t * vFanins )
-{
-    Abc_Obj_t * pObj;
-//    double x, y;
+float Abc_PlaceEvaluateCut(Abc_Obj_t* pRoot, Vec_Ptr_t* vFanins) {
+    Abc_Obj_t* pObj;
+    //    double x, y;
     int i;
-    Vec_PtrForEachEntry( Abc_Obj_t *, vFanins, pObj, i )
-    {
-//        pObj->Id
+    Vec_PtrForEachEntry(Abc_Obj_t*, vFanins, pObj, i) {
+        //        pObj->Id
     }
     return 0.0;
 }
@@ -123,45 +120,42 @@ float Abc_PlaceEvaluateCut( Abc_Obj_t * pRoot, Vec_Ptr_t * vFanins )
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_PlaceUpdate( Vec_Ptr_t * vAddedCells, Vec_Ptr_t * vUpdatedNets )
-{
-    Abc_Obj_t * pObj, * pFanin;
+void Abc_PlaceUpdate(Vec_Ptr_t* vAddedCells, Vec_Ptr_t* vUpdatedNets) {
+    Abc_Obj_t *pObj, *pFanin;
     int i, k;
-    Vec_Ptr_t * vCells, * vNets;
+    Vec_Ptr_t *vCells, *vNets;
 
     // start the arrays of new cells and nets
-    vCells = Vec_PtrAlloc( 16 );
-    vNets = Vec_PtrAlloc( 32 );
+    vCells = Vec_PtrAlloc(16);
+    vNets = Vec_PtrAlloc(32);
 
     // go through the new nodes
-    Vec_PtrForEachEntry( Abc_Obj_t *, vAddedCells, pObj, i )
-    {
-        assert( !Abc_ObjIsComplement(pObj) );
-        Abc_PlaceCreateCell( pObj, 1 );
-        Abc_PlaceUpdateNet( pObj );
+    Vec_PtrForEachEntry(Abc_Obj_t*, vAddedCells, pObj, i) {
+        assert(!Abc_ObjIsComplement(pObj));
+        Abc_PlaceCreateCell(pObj, 1);
+        Abc_PlaceUpdateNet(pObj);
 
         // add the new cell and its fanin nets to temporary storage
-        Vec_PtrPush( vCells, &(cells[pObj->Id]) );
-        Abc_ObjForEachFanin( pObj, pFanin, k )
-            Vec_PtrPushUnique( vNets, &(nets[pFanin->Id]) );
+        Vec_PtrPush(vCells, &(cells[pObj->Id]));
+        Abc_ObjForEachFanin(pObj, pFanin, k)
+            Vec_PtrPushUnique(vNets, &(nets[pFanin->Id]));
     }
 
     // go through the modified nets
-    Vec_PtrForEachEntry( Abc_Obj_t *, vUpdatedNets, pObj, i )
-    {
-        assert( !Abc_ObjIsComplement(pObj) );
-        if ( Abc_ObjType(pObj) == ABC_OBJ_NONE ) // dead node
+    Vec_PtrForEachEntry(Abc_Obj_t*, vUpdatedNets, pObj, i) {
+        assert(!Abc_ObjIsComplement(pObj));
+        if (Abc_ObjType(pObj) == ABC_OBJ_NONE) // dead node
             continue;
-        Abc_PlaceUpdateNet( pObj );
+        Abc_PlaceUpdateNet(pObj);
     }
 
     // update the placement
-//    fastPlace( Vec_PtrSize(vCells), (ConcreteCell **)Vec_PtrArray(vCells), 
-//               Vec_PtrSize(vNets), (ConcreteNet **)Vec_PtrArray(vNets) );
+    //    fastPlace( Vec_PtrSize(vCells), (ConcreteCell **)Vec_PtrArray(vCells),
+    //               Vec_PtrSize(vNets), (ConcreteNet **)Vec_PtrArray(vNets) );
 
     // clean up
-    Vec_PtrFree( vCells );
-    Vec_PtrFree( vNets );
+    Vec_PtrFree(vCells);
+    Vec_PtrFree(vNets);
 }
 
 /**Function*************************************************************
@@ -175,23 +169,22 @@ void Abc_PlaceUpdate( Vec_Ptr_t * vAddedCells, Vec_Ptr_t * vUpdatedNets )
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_PlaceBegin( Abc_Ntk_t * pNtk )
-{
-    Abc_Obj_t * pObj;
+void Abc_PlaceBegin(Abc_Ntk_t* pNtk) {
+    Abc_Obj_t* pObj;
     int i;
 
     // allocate and clean internal storage
     nAllocSize = 5 * Abc_NtkObjNumMax(pNtk);
     cells = REALLOC(ConcreteCell, cells, nAllocSize);
-    nets  = REALLOC(ConcreteNet, nets, nAllocSize);
-    memset( cells, 0, sizeof(ConcreteCell) * nAllocSize );
-    memset( nets, 0, sizeof(ConcreteNet) * nAllocSize );
+    nets = REALLOC(ConcreteNet, nets, nAllocSize);
+    memset(cells, 0, sizeof(ConcreteCell) * nAllocSize);
+    memset(nets, 0, sizeof(ConcreteNet) * nAllocSize);
 
     // create AbstractCells
     //   1: pad
     //   2: and
     if (!abstractCells)
-        abstractCells = ALLOC(AbstractCell,2);
+        abstractCells = ALLOC(AbstractCell, 2);
 
     abstractCells[0].m_height = 1.0;
     abstractCells[0].m_width = 1.0;
@@ -204,23 +197,22 @@ void Abc_PlaceBegin( Abc_Ntk_t * pNtk )
     abstractCells[1].m_pad = 0;
 
     // input pads
-    Abc_NtkForEachCi( pNtk, pObj, i )
-        Abc_PlaceCreateCell( pObj, 0 );
+    Abc_NtkForEachCi(pNtk, pObj, i)
+        Abc_PlaceCreateCell(pObj, 0);
 
     // ouput pads
-    Abc_NtkForEachCo( pNtk, pObj, i )
-        Abc_PlaceCreateCell( pObj, 0 );
+    Abc_NtkForEachCo(pNtk, pObj, i)
+        Abc_PlaceCreateCell(pObj, 0);
 
     // AND nodes
-    Abc_AigForEachAnd( pNtk, pObj, i )
-        Abc_PlaceCreateCell( pObj, 1 );
+    Abc_AigForEachAnd(pNtk, pObj, i)
+        Abc_PlaceCreateCell(pObj, 1);
 
     // all nets
-    Abc_NtkForEachObj( pNtk, pObj, i )
-    {
-        if ( !Abc_ObjIsCi(pObj) && !Abc_ObjIsNode(pObj) )
+    Abc_NtkForEachObj(pNtk, pObj, i) {
+        if (!Abc_ObjIsCi(pObj) && !Abc_ObjIsNode(pObj))
             continue;
-        Abc_PlaceUpdateNet( pObj );
+        Abc_PlaceUpdateNet(pObj);
     }
 
     globalPreplace((float)0.8);
@@ -238,23 +230,19 @@ void Abc_PlaceBegin( Abc_Ntk_t * pNtk )
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_PlaceEnd( Abc_Ntk_t * pNtk )
-{
+void Abc_PlaceEnd(Abc_Ntk_t* pNtk) {
     int i;
 
-
     // clean up
-    for ( i = 0; i < nAllocSize; i++ )
-        FREE( nets[i].m_terms );
-    FREE( abstractCells );
-    FREE( cells );
-    FREE( nets );
+    for (i = 0; i < nAllocSize; i++)
+        FREE(nets[i].m_terms);
+    FREE(abstractCells);
+    FREE(cells);
+    FREE(nets);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

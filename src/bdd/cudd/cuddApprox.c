@@ -74,32 +74,30 @@
 ******************************************************************************/
 
 #ifdef __STDC__
-#include <float.h>
+#    include <float.h>
 #else
-#define DBL_MAX_EXP 1024
+#    define DBL_MAX_EXP 1024
 #endif
 #include "misc/util/util_hack.h"
 #include "cuddInt.h"
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#define NOTHING         0
-#define REPLACE_T       1
-#define REPLACE_E       2
-#define REPLACE_N       3
-#define REPLACE_TT      4
-#define REPLACE_TE      5
+#define NOTHING 0
+#define REPLACE_T 1
+#define REPLACE_E 2
+#define REPLACE_N 3
+#define REPLACE_TT 4
+#define REPLACE_TE 5
 
-#define DONT_CARE       0
-#define CARE            1
-#define TOTAL_CARE      2
-#define CARE_ERROR      3
+#define DONT_CARE 0
+#define CARE 1
+#define TOTAL_CARE 2
+#define CARE_ERROR 3
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
@@ -118,51 +116,50 @@ ABC_NAMESPACE_IMPL_START
 ** reference count of the node from an internal node; and the flag
 ** that says whether the node should be replaced and how. */
 typedef struct NodeData {
-    double mintermsP;           /* minterms for the regular node */
-    double mintermsN;           /* minterms for the complemented node */
-    int functionRef;            /* references from within this function */
-    char care;                  /* node intersects care set */
-    char replace;               /* replacement decision */
-    short int parity;           /* 1: even; 2: odd; 3: both */
-    DdNode *resultP;            /* result for even parity */
-    DdNode *resultN;            /* result for odd parity */
+    double mintermsP; /* minterms for the regular node */
+    double mintermsN; /* minterms for the complemented node */
+    int functionRef;  /* references from within this function */
+    char care;        /* node intersects care set */
+    char replace;     /* replacement decision */
+    short int parity; /* 1: even; 2: odd; 3: both */
+    DdNode* resultP;  /* result for even parity */
+    DdNode* resultN;  /* result for odd parity */
 } NodeData;
 
 typedef struct ApproxInfo {
-    DdNode *one;                /* one constant */
-    DdNode *zero;               /* BDD zero constant */
-    NodeData *page;             /* per-node information */
-    st__table *table;            /* hash table to access the per-node info */
-    int index;                  /* index of the current node */
-    double max;                 /* max number of minterms */
-    int size;                   /* how many nodes are left */
-    double minterms;            /* how many minterms are left */
+    DdNode* one;      /* one constant */
+    DdNode* zero;     /* BDD zero constant */
+    NodeData* page;   /* per-node information */
+    st__table* table; /* hash table to access the per-node info */
+    int index;        /* index of the current node */
+    double max;       /* max number of minterms */
+    int size;         /* how many nodes are left */
+    double minterms;  /* how many minterms are left */
 } ApproxInfo;
 
 /* Item of the queue used in the levelized traversal of the BDD. */
 #ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
+#    pragma pointer_size save
+#    pragma pointer_size short
 #endif
 typedef struct GlobalQueueItem {
-    struct GlobalQueueItem *next;
-    struct GlobalQueueItem *cnext;
-    DdNode *node;
+    struct GlobalQueueItem* next;
+    struct GlobalQueueItem* cnext;
+    DdNode* node;
     double impactP;
     double impactN;
 } GlobalQueueItem;
- 
+
 typedef struct LocalQueueItem {
-    struct LocalQueueItem *next;
-    struct LocalQueueItem *cnext;
-    DdNode *node;
+    struct LocalQueueItem* next;
+    struct LocalQueueItem* cnext;
+    DdNode* node;
     int localRef;
 } LocalQueueItem;
 #ifdef __osf__
-#pragma pointer_size restore
+#    pragma pointer_size restore
 #endif
 
-    
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
@@ -181,20 +178,19 @@ static char rcsid[] DD_UNUSED = "$Id: cuddApprox.c,v 1.27 2009/02/19 16:16:51 fa
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static void updateParity (DdNode *node, ApproxInfo *info, int newparity);
-static NodeData * gatherInfoAux (DdNode *node, ApproxInfo *info, int parity);
-static ApproxInfo * gatherInfo (DdManager *dd, DdNode *node, int numVars, int parity);
-static int computeSavings (DdManager *dd, DdNode *f, DdNode *skip, ApproxInfo *info, DdLevelQueue *queue);
-static int updateRefs (DdManager *dd, DdNode *f, DdNode *skip, ApproxInfo *info, DdLevelQueue *queue);
-static int UAmarkNodes (DdManager *dd, DdNode *f, ApproxInfo *info, int threshold, int safe, double quality);
-static DdNode * UAbuildSubset (DdManager *dd, DdNode *node, ApproxInfo *info);
-static int RAmarkNodes (DdManager *dd, DdNode *f, ApproxInfo *info, int threshold, double quality);
-static int BAmarkNodes (DdManager *dd, DdNode *f, ApproxInfo *info, int threshold, double quality1, double quality0);
-static DdNode * RAbuildSubset (DdManager *dd, DdNode *node, ApproxInfo *info);
-static int BAapplyBias (DdManager *dd, DdNode *f, DdNode *b, ApproxInfo *info, DdHashTable *cache);
+static void updateParity(DdNode* node, ApproxInfo* info, int newparity);
+static NodeData* gatherInfoAux(DdNode* node, ApproxInfo* info, int parity);
+static ApproxInfo* gatherInfo(DdManager* dd, DdNode* node, int numVars, int parity);
+static int computeSavings(DdManager* dd, DdNode* f, DdNode* skip, ApproxInfo* info, DdLevelQueue* queue);
+static int updateRefs(DdManager* dd, DdNode* f, DdNode* skip, ApproxInfo* info, DdLevelQueue* queue);
+static int UAmarkNodes(DdManager* dd, DdNode* f, ApproxInfo* info, int threshold, int safe, double quality);
+static DdNode* UAbuildSubset(DdManager* dd, DdNode* node, ApproxInfo* info);
+static int RAmarkNodes(DdManager* dd, DdNode* f, ApproxInfo* info, int threshold, double quality);
+static int BAmarkNodes(DdManager* dd, DdNode* f, ApproxInfo* info, int threshold, double quality1, double quality0);
+static DdNode* RAbuildSubset(DdManager* dd, DdNode* node, ApproxInfo* info);
+static int BAapplyBias(DdManager* dd, DdNode* f, DdNode* b, ApproxInfo* info, DdHashTable* cache);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
@@ -224,26 +220,24 @@ static int BAapplyBias (DdManager *dd, DdNode *f, DdNode *b, ApproxInfo *info, D
   SeeAlso     [Cudd_SubsetShortPaths Cudd_SubsetHeavyBranch Cudd_ReadSize]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_UnderApprox(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be subset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* when to stop approximation */,
-  int  safe /* enforce safe approximation */,
-  double  quality /* minimum improvement for accepted changes */)
-{
-    DdNode *subset;
+    DdManager* dd /* manager */,
+    DdNode* f /* function to be subset */,
+    int numVars /* number of variables in the support of f */,
+    int threshold /* when to stop approximation */,
+    int safe /* enforce safe approximation */,
+    double quality /* minimum improvement for accepted changes */) {
+    DdNode* subset;
 
     do {
         dd->reordered = 0;
         subset = cuddUnderApprox(dd, f, numVars, threshold, safe, quality);
     } while (dd->reordered == 1);
 
-    return(subset);
+    return (subset);
 
 } /* end of Cudd_UnderApprox */
-
 
 /**Function********************************************************************
 
@@ -271,27 +265,25 @@ Cudd_UnderApprox(
   SeeAlso     [Cudd_SupersetHeavyBranch Cudd_SupersetShortPaths Cudd_ReadSize]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_OverApprox(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be superset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* when to stop approximation */,
-  int  safe /* enforce safe approximation */,
-  double  quality /* minimum improvement for accepted changes */)
-{
+    DdManager* dd /* manager */,
+    DdNode* f /* function to be superset */,
+    int numVars /* number of variables in the support of f */,
+    int threshold /* when to stop approximation */,
+    int safe /* enforce safe approximation */,
+    double quality /* minimum improvement for accepted changes */) {
     DdNode *subset, *g;
 
-    g = Cudd_Not(f);    
+    g = Cudd_Not(f);
     do {
         dd->reordered = 0;
         subset = cuddUnderApprox(dd, g, numVars, threshold, safe, quality);
     } while (dd->reordered == 1);
-    
-    return(Cudd_NotCond(subset, (subset != NULL)));
-    
-} /* end of Cudd_OverApprox */
 
+    return (Cudd_NotCond(subset, (subset != NULL)));
+
+} /* end of Cudd_OverApprox */
 
 /**Function********************************************************************
 
@@ -316,25 +308,23 @@ Cudd_OverApprox(
   SeeAlso     [Cudd_SubsetShortPaths Cudd_SubsetHeavyBranch Cudd_UnderApprox Cudd_ReadSize]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_RemapUnderApprox(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be subset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* when to stop approximation */,
-  double  quality /* minimum improvement for accepted changes */)
-{
-    DdNode *subset;
+    DdManager* dd /* manager */,
+    DdNode* f /* function to be subset */,
+    int numVars /* number of variables in the support of f */,
+    int threshold /* when to stop approximation */,
+    double quality /* minimum improvement for accepted changes */) {
+    DdNode* subset;
 
     do {
         dd->reordered = 0;
         subset = cuddRemapUnderApprox(dd, f, numVars, threshold, quality);
     } while (dd->reordered == 1);
 
-    return(subset);
+    return (subset);
 
 } /* end of Cudd_RemapUnderApprox */
-
 
 /**Function********************************************************************
 
@@ -362,26 +352,24 @@ Cudd_RemapUnderApprox(
   SeeAlso     [Cudd_SupersetHeavyBranch Cudd_SupersetShortPaths Cudd_ReadSize]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_RemapOverApprox(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be superset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* when to stop approximation */,
-  double  quality /* minimum improvement for accepted changes */)
-{
+    DdManager* dd /* manager */,
+    DdNode* f /* function to be superset */,
+    int numVars /* number of variables in the support of f */,
+    int threshold /* when to stop approximation */,
+    double quality /* minimum improvement for accepted changes */) {
     DdNode *subset, *g;
 
-    g = Cudd_Not(f);    
+    g = Cudd_Not(f);
     do {
         dd->reordered = 0;
         subset = cuddRemapUnderApprox(dd, g, numVars, threshold, quality);
     } while (dd->reordered == 1);
-    
-    return(Cudd_NotCond(subset, (subset != NULL)));
-    
-} /* end of Cudd_RemapOverApprox */
 
+    return (Cudd_NotCond(subset, (subset != NULL)));
+
+} /* end of Cudd_RemapOverApprox */
 
 /**Function********************************************************************
 
@@ -409,17 +397,16 @@ Cudd_RemapOverApprox(
   Cudd_RemapUnderApprox Cudd_ReadSize]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_BiasedUnderApprox(
-  DdManager *dd /* manager */,
-  DdNode *f /* function to be subset */,
-  DdNode *b /* bias function */,
-  int numVars /* number of variables in the support of f */,
-  int threshold /* when to stop approximation */,
-  double quality1 /* minimum improvement for accepted changes when b=1 */,
-  double quality0 /* minimum improvement for accepted changes when b=0 */)
-{
-    DdNode *subset;
+    DdManager* dd /* manager */,
+    DdNode* f /* function to be subset */,
+    DdNode* b /* bias function */,
+    int numVars /* number of variables in the support of f */,
+    int threshold /* when to stop approximation */,
+    double quality1 /* minimum improvement for accepted changes when b=1 */,
+    double quality0 /* minimum improvement for accepted changes when b=0 */) {
+    DdNode* subset;
 
     do {
         dd->reordered = 0;
@@ -427,10 +414,9 @@ Cudd_BiasedUnderApprox(
                                        quality0);
     } while (dd->reordered == 1);
 
-    return(subset);
+    return (subset);
 
 } /* end of Cudd_BiasedUnderApprox */
-
 
 /**Function********************************************************************
 
@@ -459,34 +445,31 @@ Cudd_BiasedUnderApprox(
   Cudd_RemapOverApprox Cudd_BiasedUnderApprox Cudd_ReadSize]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_BiasedOverApprox(
-  DdManager *dd /* manager */,
-  DdNode *f /* function to be superset */,
-  DdNode *b /* bias function */,
-  int numVars /* number of variables in the support of f */,
-  int threshold /* when to stop approximation */,
-  double quality1 /* minimum improvement for accepted changes when b=1*/,
-  double quality0 /* minimum improvement for accepted changes when b=0 */)
-{
+    DdManager* dd /* manager */,
+    DdNode* f /* function to be superset */,
+    DdNode* b /* bias function */,
+    int numVars /* number of variables in the support of f */,
+    int threshold /* when to stop approximation */,
+    double quality1 /* minimum improvement for accepted changes when b=1*/,
+    double quality0 /* minimum improvement for accepted changes when b=0 */) {
     DdNode *subset, *g;
 
-    g = Cudd_Not(f);    
+    g = Cudd_Not(f);
     do {
         dd->reordered = 0;
         subset = cuddBiasedUnderApprox(dd, g, b, numVars, threshold, quality1,
-                                      quality0);
+                                       quality0);
     } while (dd->reordered == 1);
-    
-    return(Cudd_NotCond(subset, (subset != NULL)));
-    
-} /* end of Cudd_BiasedOverApprox */
 
+    return (Cudd_NotCond(subset, (subset != NULL)));
+
+} /* end of Cudd_BiasedOverApprox */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -507,53 +490,52 @@ Cudd_BiasedOverApprox(
   SeeAlso     [Cudd_UnderApprox]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddUnderApprox(
-  DdManager * dd /* DD manager */,
-  DdNode * f /* current DD */,
-  int  numVars /* maximum number of variables */,
-  int  threshold /* threshold under which approximation stops */,
-  int  safe /* enforce safe approximation */,
-  double  quality /* minimum improvement for accepted changes */)
-{
-    ApproxInfo *info;
-    DdNode *subset;
+    DdManager* dd /* DD manager */,
+    DdNode* f /* current DD */,
+    int numVars /* maximum number of variables */,
+    int threshold /* threshold under which approximation stops */,
+    int safe /* enforce safe approximation */,
+    double quality /* minimum improvement for accepted changes */) {
+    ApproxInfo* info;
+    DdNode* subset;
     int result;
 
     if (f == NULL) {
         fprintf(dd->err, "Cannot subset, nil object\n");
-        return(NULL);
+        return (NULL);
     }
 
     if (Cudd_IsConstant(f)) {
-        return(f);
+        return (f);
     }
 
     /* Create table where node data are accessible via a hash table. */
     info = gatherInfo(dd, f, numVars, safe);
     if (info == NULL) {
-        (void) fprintf(dd->err, "Out-of-memory; Cannot subset\n");
+        (void)fprintf(dd->err, "Out-of-memory; Cannot subset\n");
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
 
     /* Mark nodes that should be replaced by zero. */
     result = UAmarkNodes(dd, f, info, threshold, safe, quality);
     if (result == 0) {
-        (void) fprintf(dd->err, "Out-of-memory; Cannot subset\n");
+        (void)fprintf(dd->err, "Out-of-memory; Cannot subset\n");
         ABC_FREE(info->page);
         st__free_table(info->table);
         ABC_FREE(info);
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
 
     /* Build the result. */
     subset = UAbuildSubset(dd, f, info);
 #if 1
     if (subset && info->size < Cudd_DagSize(subset))
-        (void) fprintf(dd->err, "Wrong prediction: %d versus actual %d\n",
-                       info->size, Cudd_DagSize(subset));
+        (void)fprintf(dd->err, "Wrong prediction: %d versus actual %d\n",
+                      info->size, Cudd_DagSize(subset));
 #endif
     ABC_FREE(info->page);
     st__free_table(info->table);
@@ -562,21 +544,20 @@ cuddUnderApprox(
 #ifdef DD_DEBUG
     if (subset != NULL) {
         cuddRef(subset);
-#if 0
+#    if 0
         (void) Cudd_DebugCheck(dd);
         (void) Cudd_CheckKeys(dd);
-#endif
+#    endif
         if (!Cudd_bddLeq(dd, subset, f)) {
-            (void) fprintf(dd->err, "Wrong subset\n");
+            (void)fprintf(dd->err, "Wrong subset\n");
             dd->errorCode = CUDD_INTERNAL_ERROR;
         }
         cuddDeref(subset);
     }
 #endif
-    return(subset);
+    return (subset);
 
 } /* end of cuddUnderApprox */
-
 
 /**Function********************************************************************
 
@@ -597,53 +578,52 @@ cuddUnderApprox(
   SeeAlso     [Cudd_RemapUnderApprox]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddRemapUnderApprox(
-  DdManager * dd /* DD manager */,
-  DdNode * f /* current DD */,
-  int  numVars /* maximum number of variables */,
-  int  threshold /* threshold under which approximation stops */,
-  double  quality /* minimum improvement for accepted changes */)
-{
-    ApproxInfo *info;
-    DdNode *subset;
+    DdManager* dd /* DD manager */,
+    DdNode* f /* current DD */,
+    int numVars /* maximum number of variables */,
+    int threshold /* threshold under which approximation stops */,
+    double quality /* minimum improvement for accepted changes */) {
+    ApproxInfo* info;
+    DdNode* subset;
     int result;
 
     if (f == NULL) {
         fprintf(dd->err, "Cannot subset, nil object\n");
         dd->errorCode = CUDD_INVALID_ARG;
-        return(NULL);
+        return (NULL);
     }
 
     if (Cudd_IsConstant(f)) {
-        return(f);
+        return (f);
     }
 
     /* Create table where node data are accessible via a hash table. */
     info = gatherInfo(dd, f, numVars, TRUE);
     if (info == NULL) {
-        (void) fprintf(dd->err, "Out-of-memory; Cannot subset\n");
+        (void)fprintf(dd->err, "Out-of-memory; Cannot subset\n");
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
 
     /* Mark nodes that should be replaced by zero. */
     result = RAmarkNodes(dd, f, info, threshold, quality);
     if (result == 0) {
-        (void) fprintf(dd->err, "Out-of-memory; Cannot subset\n");
+        (void)fprintf(dd->err, "Out-of-memory; Cannot subset\n");
         ABC_FREE(info->page);
         st__free_table(info->table);
         ABC_FREE(info);
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
 
     /* Build the result. */
     subset = RAbuildSubset(dd, f, info);
 #if 1
     if (subset && info->size < Cudd_DagSize(subset))
-        (void) fprintf(dd->err, "Wrong prediction: %d versus actual %d\n",
-                       info->size, Cudd_DagSize(subset));
+        (void)fprintf(dd->err, "Wrong prediction: %d versus actual %d\n",
+                      info->size, Cudd_DagSize(subset));
 #endif
     ABC_FREE(info->page);
     st__free_table(info->table);
@@ -652,21 +632,20 @@ cuddRemapUnderApprox(
 #ifdef DD_DEBUG
     if (subset != NULL) {
         cuddRef(subset);
-#if 0
+#    if 0
         (void) Cudd_DebugCheck(dd);
         (void) Cudd_CheckKeys(dd);
-#endif
+#    endif
         if (!Cudd_bddLeq(dd, subset, f)) {
-            (void) fprintf(dd->err, "Wrong subset\n");
+            (void)fprintf(dd->err, "Wrong subset\n");
         }
         cuddDeref(subset);
         dd->errorCode = CUDD_INTERNAL_ERROR;
     }
 #endif
-    return(subset);
+    return (subset);
 
 } /* end of cuddRemapUnderApprox */
-
 
 /**Function********************************************************************
 
@@ -687,69 +666,68 @@ cuddRemapUnderApprox(
   SeeAlso     [Cudd_BiasedUnderApprox]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddBiasedUnderApprox(
-  DdManager *dd /* DD manager */,
-  DdNode *f /* current DD */,
-  DdNode *b /* bias function */,
-  int numVars /* maximum number of variables */,
-  int threshold /* threshold under which approximation stops */,
-  double quality1 /* minimum improvement for accepted changes when b=1 */,
-  double quality0 /* minimum improvement for accepted changes when b=0 */)
-{
-    ApproxInfo *info;
-    DdNode *subset;
+    DdManager* dd /* DD manager */,
+    DdNode* f /* current DD */,
+    DdNode* b /* bias function */,
+    int numVars /* maximum number of variables */,
+    int threshold /* threshold under which approximation stops */,
+    double quality1 /* minimum improvement for accepted changes when b=1 */,
+    double quality0 /* minimum improvement for accepted changes when b=0 */) {
+    ApproxInfo* info;
+    DdNode* subset;
     int result;
-    DdHashTable *cache;
+    DdHashTable* cache;
 
     if (f == NULL) {
         fprintf(dd->err, "Cannot subset, nil object\n");
         dd->errorCode = CUDD_INVALID_ARG;
-        return(NULL);
+        return (NULL);
     }
 
     if (Cudd_IsConstant(f)) {
-        return(f);
+        return (f);
     }
 
     /* Create table where node data are accessible via a hash table. */
     info = gatherInfo(dd, f, numVars, TRUE);
     if (info == NULL) {
-        (void) fprintf(dd->err, "Out-of-memory; Cannot subset\n");
+        (void)fprintf(dd->err, "Out-of-memory; Cannot subset\n");
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
 
-    cache = cuddHashTableInit(dd,2,2);
+    cache = cuddHashTableInit(dd, 2, 2);
     result = BAapplyBias(dd, Cudd_Regular(f), b, info, cache);
     if (result == CARE_ERROR) {
-        (void) fprintf(dd->err, "Out-of-memory; Cannot subset\n");
+        (void)fprintf(dd->err, "Out-of-memory; Cannot subset\n");
         cuddHashTableQuit(cache);
         ABC_FREE(info->page);
         st__free_table(info->table);
         ABC_FREE(info);
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
     cuddHashTableQuit(cache);
 
     /* Mark nodes that should be replaced by zero. */
     result = BAmarkNodes(dd, f, info, threshold, quality1, quality0);
     if (result == 0) {
-        (void) fprintf(dd->err, "Out-of-memory; Cannot subset\n");
+        (void)fprintf(dd->err, "Out-of-memory; Cannot subset\n");
         ABC_FREE(info->page);
         st__free_table(info->table);
         ABC_FREE(info);
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
 
     /* Build the result. */
     subset = RAbuildSubset(dd, f, info);
 #if 1
     if (subset && info->size < Cudd_DagSize(subset))
-        (void) fprintf(dd->err, "Wrong prediction: %d versus actual %d\n",
-                       info->size, Cudd_DagSize(subset));
+        (void)fprintf(dd->err, "Wrong prediction: %d versus actual %d\n",
+                      info->size, Cudd_DagSize(subset));
 #endif
     ABC_FREE(info->page);
     st__free_table(info->table);
@@ -758,26 +736,24 @@ cuddBiasedUnderApprox(
 #ifdef DD_DEBUG
     if (subset != NULL) {
         cuddRef(subset);
-#if 0
+#    if 0
         (void) Cudd_DebugCheck(dd);
         (void) Cudd_CheckKeys(dd);
-#endif
+#    endif
         if (!Cudd_bddLeq(dd, subset, f)) {
-            (void) fprintf(dd->err, "Wrong subset\n");
+            (void)fprintf(dd->err, "Wrong subset\n");
         }
         cuddDeref(subset);
         dd->errorCode = CUDD_INTERNAL_ERROR;
     }
 #endif
-    return(subset);
+    return (subset);
 
 } /* end of cuddBiasedUnderApprox */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -793,28 +769,26 @@ cuddBiasedUnderApprox(
 ******************************************************************************/
 static void
 updateParity(
-  DdNode * node /* function to analyze */,
-  ApproxInfo * info /* info on BDD */,
-  int  newparity /* new parity for node */)
-{
-    NodeData *infoN;
-    DdNode *E;
+    DdNode* node /* function to analyze */,
+    ApproxInfo* info /* info on BDD */,
+    int newparity /* new parity for node */) {
+    NodeData* infoN;
+    DdNode* E;
 
-    if (! st__lookup(info->table, (const char *)node, (char **)&infoN)) return;
+    if (!st__lookup(info->table, (const char*)node, (char**)&infoN)) return;
     if ((infoN->parity & newparity) != 0) return;
-    infoN->parity |= (short) newparity;
+    infoN->parity |= (short)newparity;
     if (Cudd_IsConstant(node)) return;
-    updateParity(cuddT(node),info,newparity);
+    updateParity(cuddT(node), info, newparity);
     E = cuddE(node);
     if (Cudd_IsComplement(E)) {
-        updateParity(Cudd_Not(E),info,3-newparity);
+        updateParity(Cudd_Not(E), info, 3 - newparity);
     } else {
-        updateParity(E,info,newparity);
+        updateParity(E, info, newparity);
     }
     return;
 
 } /* end of updateParity */
-
 
 /**Function********************************************************************
 
@@ -833,24 +807,23 @@ updateParity(
   SeeAlso     [gatherInfo]
 
 ******************************************************************************/
-static NodeData *
+static NodeData*
 gatherInfoAux(
-  DdNode * node /* function to analyze */,
-  ApproxInfo * info /* info on BDD */,
-  int  parity /* gather parity information */)
-{
-    DdNode      *N, *Nt, *Ne;
-    NodeData    *infoN, *infoT, *infoE;
+    DdNode* node /* function to analyze */,
+    ApproxInfo* info /* info on BDD */,
+    int parity /* gather parity information */) {
+    DdNode *N, *Nt, *Ne;
+    NodeData *infoN, *infoT, *infoE;
 
     N = Cudd_Regular(node);
 
     /* Check whether entry for this node exists. */
-    if ( st__lookup(info->table, (const char *)N, (char **)&infoN)) {
+    if (st__lookup(info->table, (const char*)N, (char**)&infoN)) {
         if (parity) {
             /* Update parity and propagate. */
-            updateParity(N, info, 1 +  (int) Cudd_IsComplement(node));
+            updateParity(N, info, 1 + (int)Cudd_IsComplement(node));
         }
-        return(infoN);
+        return (infoN);
     }
 
     /* Compute the cofactors. */
@@ -858,35 +831,34 @@ gatherInfoAux(
     Ne = Cudd_NotCond(cuddE(N), N != node);
 
     infoT = gatherInfoAux(Nt, info, parity);
-    if (infoT == NULL) return(NULL);
+    if (infoT == NULL) return (NULL);
     infoE = gatherInfoAux(Ne, info, parity);
-    if (infoE == NULL) return(NULL);
+    if (infoE == NULL) return (NULL);
 
     infoT->functionRef++;
     infoE->functionRef++;
 
     /* Point to the correct location in the page. */
     infoN = &(info->page[info->index++]);
-    infoN->parity |= (short) (1 + Cudd_IsComplement(node));
+    infoN->parity |= (short)(1 + Cudd_IsComplement(node));
 
-    infoN->mintermsP = infoT->mintermsP/2;
-    infoN->mintermsN = infoT->mintermsN/2;
+    infoN->mintermsP = infoT->mintermsP / 2;
+    infoN->mintermsN = infoT->mintermsN / 2;
     if (Cudd_IsComplement(Ne) ^ Cudd_IsComplement(node)) {
-        infoN->mintermsP += infoE->mintermsN/2;
-        infoN->mintermsN += infoE->mintermsP/2;
+        infoN->mintermsP += infoE->mintermsN / 2;
+        infoN->mintermsN += infoE->mintermsP / 2;
     } else {
-        infoN->mintermsP += infoE->mintermsP/2;
-        infoN->mintermsN += infoE->mintermsN/2;
+        infoN->mintermsP += infoE->mintermsP / 2;
+        infoN->mintermsN += infoE->mintermsN / 2;
     }
 
     /* Insert entry for the node in the table. */
-    if ( st__insert(info->table,(char *)N, (char *)infoN) == st__OUT_OF_MEM) {
-        return(NULL);
+    if (st__insert(info->table, (char*)N, (char*)infoN) == st__OUT_OF_MEM) {
+        return (NULL);
     }
-    return(infoN);
+    return (infoN);
 
 } /* end of gatherInfoAux */
-
 
 /**Function********************************************************************
 
@@ -903,15 +875,14 @@ gatherInfoAux(
   SeeAlso     [cuddUnderApprox gatherInfoAux]
 
 ******************************************************************************/
-static ApproxInfo *
+static ApproxInfo*
 gatherInfo(
-  DdManager * dd /* manager */,
-  DdNode * node /* function to be analyzed */,
-  int  numVars /* number of variables node depends on */,
-  int  parity /* gather parity information */)
-{
-    ApproxInfo  *info;
-    NodeData *infoTop;
+    DdManager* dd /* manager */,
+    DdNode* node /* function to be analyzed */,
+    int numVars /* number of variables node depends on */,
+    int parity /* gather parity information */) {
+    ApproxInfo* info;
+    NodeData* infoTop;
 
     /* If user did not give numVars value, set it to the maximum
     ** exponent that the pow function can take. The -1 is due to the
@@ -922,12 +893,12 @@ gatherInfo(
         numVars = DBL_MAX_EXP - 1;
     }
 
-    info = ABC_ALLOC(ApproxInfo,1);
+    info = ABC_ALLOC(ApproxInfo, 1);
     if (info == NULL) {
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
-    info->max = pow(2.0,(double) numVars);
+    info->max = pow(2.0, (double)numVars);
     info->one = DD_ONE(dd);
     info->zero = Cudd_Not(info->one);
     info->size = Cudd_DagSize(node);
@@ -936,38 +907,38 @@ gatherInfo(
     ** efficiently because we have counted the number of nodes of the
     ** BDD. info->index points to the next available entry in the array
     ** that stores the per-node information. */
-    info->page = ABC_ALLOC(NodeData,info->size);
+    info->page = ABC_ALLOC(NodeData, info->size);
     if (info->page == NULL) {
         dd->errorCode = CUDD_MEMORY_OUT;
         ABC_FREE(info);
-        return(NULL);
+        return (NULL);
     }
     memset(info->page, 0, info->size * sizeof(NodeData)); /* clear all page */
-    info->table = st__init_table( st__ptrcmp, st__ptrhash);
+    info->table = st__init_table(st__ptrcmp, st__ptrhash);
     if (info->table == NULL) {
         ABC_FREE(info->page);
         ABC_FREE(info);
-        return(NULL);
+        return (NULL);
     }
     /* We visit the DAG in post-order DFS. Hence, the constant node is
     ** in first position, and the root of the DAG is in last position. */
 
     /* Info for the constant node: Initialize only fields different from 0. */
-    if ( st__insert(info->table, (char *)info->one, (char *)info->page) == st__OUT_OF_MEM) {
+    if (st__insert(info->table, (char*)info->one, (char*)info->page) == st__OUT_OF_MEM) {
         ABC_FREE(info->page);
         ABC_FREE(info);
         st__free_table(info->table);
-        return(NULL);
+        return (NULL);
     }
     info->page[0].mintermsP = info->max;
     info->index = 1;
 
-    infoTop = gatherInfoAux(node,info,parity);
+    infoTop = gatherInfoAux(node, info, parity);
     if (infoTop == NULL) {
         ABC_FREE(info->page);
         st__free_table(info->table);
         ABC_FREE(info);
-        return(NULL);
+        return (NULL);
     }
     if (Cudd_IsComplement(node)) {
         info->minterms = infoTop->mintermsN;
@@ -976,10 +947,9 @@ gatherInfo(
     }
 
     infoTop->functionRef = 1;
-    return(info);
+    return (info);
 
 } /* end of gatherInfo */
-
 
 /**Function********************************************************************
 
@@ -999,15 +969,14 @@ gatherInfo(
 ******************************************************************************/
 static int
 computeSavings(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * skip,
-  ApproxInfo * info,
-  DdLevelQueue * queue)
-{
-    NodeData *infoN;
-    LocalQueueItem *item;
-    DdNode *node;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* skip,
+    ApproxInfo* info,
+    DdLevelQueue* queue) {
+    NodeData* infoN;
+    LocalQueueItem* item;
+    DdNode* node;
     int savings = 0;
 
     node = Cudd_Regular(f);
@@ -1015,35 +984,35 @@ computeSavings(
     /* Insert the given node in the level queue. Its local reference
     ** count is set equal to the function reference count so that the
     ** search will continue from it when it is retrieved. */
-    item = (LocalQueueItem *)
-        cuddLevelQueueEnqueue(queue,node,cuddI(dd,node->index));
+    item = (LocalQueueItem*)
+        cuddLevelQueueEnqueue(queue, node, cuddI(dd, node->index));
     if (item == NULL)
-        return(0);
-    (void) st__lookup(info->table, (const char *)node, (char **)&infoN);
+        return (0);
+    (void)st__lookup(info->table, (const char*)node, (char**)&infoN);
     item->localRef = infoN->functionRef;
 
     /* Process the queue. */
     while (queue->first != NULL) {
-        item = (LocalQueueItem *) queue->first;
+        item = (LocalQueueItem*)queue->first;
         node = item->node;
-        cuddLevelQueueDequeue(queue,cuddI(dd,node->index));
+        cuddLevelQueueDequeue(queue, cuddI(dd, node->index));
         if (node == skip) continue;
-        (void) st__lookup(info->table, (const char *)node, (char **)&infoN);
+        (void)st__lookup(info->table, (const char*)node, (char**)&infoN);
         if (item->localRef != infoN->functionRef) {
             /* This node is shared. */
             continue;
         }
         savings++;
         if (!cuddIsConstant(cuddT(node))) {
-            item = (LocalQueueItem *) cuddLevelQueueEnqueue(queue,cuddT(node),
-                                         cuddI(dd,cuddT(node)->index));
-            if (item == NULL) return(0);
+            item = (LocalQueueItem*)cuddLevelQueueEnqueue(queue, cuddT(node),
+                                                          cuddI(dd, cuddT(node)->index));
+            if (item == NULL) return (0);
             item->localRef++;
         }
         if (!Cudd_IsConstant(cuddE(node))) {
-            item = (LocalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(cuddE(node)),
-                                         cuddI(dd,Cudd_Regular(cuddE(node))->index));
-            if (item == NULL) return(0);
+            item = (LocalQueueItem*)cuddLevelQueueEnqueue(queue, Cudd_Regular(cuddE(node)),
+                                                          cuddI(dd, Cudd_Regular(cuddE(node))->index));
+            if (item == NULL) return (0);
             item->localRef++;
         }
     }
@@ -1052,10 +1021,9 @@ computeSavings(
     /* At the end of a local search the queue should be empty. */
     assert(queue->size == 0);
 #endif
-    return(savings);
+    return (savings);
 
 } /* end of computeSavings */
-
 
 /**Function********************************************************************
 
@@ -1071,58 +1039,57 @@ computeSavings(
 ******************************************************************************/
 static int
 updateRefs(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * skip,
-  ApproxInfo * info,
-  DdLevelQueue * queue)
-{
-    NodeData *infoN;
-    LocalQueueItem *item;
-    DdNode *node;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* skip,
+    ApproxInfo* info,
+    DdLevelQueue* queue) {
+    NodeData* infoN;
+    LocalQueueItem* item;
+    DdNode* node;
     int savings = 0;
 
     node = Cudd_Regular(f);
     /* Insert the given node in the level queue. Its function reference
     ** count is set equal to 0 so that the search will continue from it
     ** when it is retrieved. */
-    item = (LocalQueueItem *) cuddLevelQueueEnqueue(queue,node,cuddI(dd,node->index));
+    item = (LocalQueueItem*)cuddLevelQueueEnqueue(queue, node, cuddI(dd, node->index));
     if (item == NULL)
-        return(0);
-    (void) st__lookup(info->table, (const char *)node, (char **)&infoN);
+        return (0);
+    (void)st__lookup(info->table, (const char*)node, (char**)&infoN);
     infoN->functionRef = 0;
 
     if (skip != NULL) {
         /* Increase the function reference count of the node to be skipped
         ** by 1 to account for the node pointing to it that will be created. */
         skip = Cudd_Regular(skip);
-        (void) st__lookup(info->table, (const char *)skip, (char **)&infoN);
+        (void)st__lookup(info->table, (const char*)skip, (char**)&infoN);
         infoN->functionRef++;
     }
 
     /* Process the queue. */
     while (queue->first != NULL) {
-        item = (LocalQueueItem *) queue->first;
+        item = (LocalQueueItem*)queue->first;
         node = item->node;
-        cuddLevelQueueDequeue(queue,cuddI(dd,node->index));
-        (void) st__lookup(info->table, (const char *)node, (char **)&infoN);
+        cuddLevelQueueDequeue(queue, cuddI(dd, node->index));
+        (void)st__lookup(info->table, (const char*)node, (char**)&infoN);
         if (infoN->functionRef != 0) {
             /* This node is shared or must be skipped. */
             continue;
         }
         savings++;
         if (!cuddIsConstant(cuddT(node))) {
-            item = (LocalQueueItem *) cuddLevelQueueEnqueue(queue,cuddT(node),
-                                         cuddI(dd,cuddT(node)->index));
-            if (item == NULL) return(0);
-            (void) st__lookup(info->table, (const char *)cuddT(node), (char **)&infoN);
+            item = (LocalQueueItem*)cuddLevelQueueEnqueue(queue, cuddT(node),
+                                                          cuddI(dd, cuddT(node)->index));
+            if (item == NULL) return (0);
+            (void)st__lookup(info->table, (const char*)cuddT(node), (char**)&infoN);
             infoN->functionRef--;
         }
         if (!Cudd_IsConstant(cuddE(node))) {
-            item = (LocalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(cuddE(node)),
-                                         cuddI(dd,Cudd_Regular(cuddE(node))->index));
-            if (item == NULL) return(0);
-            (void) st__lookup(info->table, (const char *)Cudd_Regular(cuddE(node)), (char **)&infoN);
+            item = (LocalQueueItem*)cuddLevelQueueEnqueue(queue, Cudd_Regular(cuddE(node)),
+                                                          cuddI(dd, Cudd_Regular(cuddE(node))->index));
+            if (item == NULL) return (0);
+            (void)st__lookup(info->table, (const char*)Cudd_Regular(cuddE(node)), (char**)&infoN);
             infoN->functionRef--;
         }
     }
@@ -1131,10 +1098,9 @@ updateRefs(
     /* At the end of a local search the queue should be empty. */
     assert(queue->size == 0);
 #endif
-    return(savings);
+    return (savings);
 
 } /* end of updateRefs */
-
 
 /**Function********************************************************************
 
@@ -1150,18 +1116,17 @@ updateRefs(
 ******************************************************************************/
 static int
 UAmarkNodes(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be analyzed */,
-  ApproxInfo * info /* info on BDD */,
-  int  threshold /* when to stop approximating */,
-  int  safe /* enforce safe approximation */,
-  double  quality /* minimum improvement for accepted changes */)
-{
-    DdLevelQueue *queue;
-    DdLevelQueue *localQueue;
-    NodeData *infoN;
-    GlobalQueueItem *item;
-    DdNode *node;
+    DdManager* dd /* manager */,
+    DdNode* f /* function to be analyzed */,
+    ApproxInfo* info /* info on BDD */,
+    int threshold /* when to stop approximating */,
+    int safe /* enforce safe approximation */,
+    double quality /* minimum improvement for accepted changes */) {
+    DdLevelQueue* queue;
+    DdLevelQueue* localQueue;
+    NodeData* infoN;
+    GlobalQueueItem* item;
+    DdNode* node;
     double numOnset;
     double impactP, impactN;
     int savings;
@@ -1170,22 +1135,22 @@ UAmarkNodes(
     (void) printf("initial size = %d initial minterms = %g\n",
                   info->size, info->minterms);
 #endif
-    queue = cuddLevelQueueInit(dd->size,sizeof(GlobalQueueItem),info->size);
+    queue = cuddLevelQueueInit(dd->size, sizeof(GlobalQueueItem), info->size);
     if (queue == NULL) {
-        return(0);
+        return (0);
     }
-    localQueue = cuddLevelQueueInit(dd->size,sizeof(LocalQueueItem),
+    localQueue = cuddLevelQueueInit(dd->size, sizeof(LocalQueueItem),
                                     dd->initSlots);
     if (localQueue == NULL) {
         cuddLevelQueueQuit(queue);
-        return(0);
+        return (0);
     }
     node = Cudd_Regular(f);
-    item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,node,cuddI(dd,node->index));
+    item = (GlobalQueueItem*)cuddLevelQueueEnqueue(queue, node, cuddI(dd, node->index));
     if (item == NULL) {
         cuddLevelQueueQuit(queue);
         cuddLevelQueueQuit(localQueue);
-        return(0);
+        return (0);
     }
     if (Cudd_IsComplement(f)) {
         item->impactP = 0.0;
@@ -1198,66 +1163,64 @@ UAmarkNodes(
         /* If the size of the subset is below the threshold, quit. */
         if (info->size <= threshold)
             break;
-        item = (GlobalQueueItem *) queue->first;
+        item = (GlobalQueueItem*)queue->first;
         node = item->node;
         node = Cudd_Regular(node);
-        (void) st__lookup(info->table, (const char *)node, (char **)&infoN);
+        (void)st__lookup(info->table, (const char*)node, (char**)&infoN);
         if (safe && infoN->parity == 3) {
-            cuddLevelQueueDequeue(queue,cuddI(dd,node->index));
+            cuddLevelQueueDequeue(queue, cuddI(dd, node->index));
             continue;
         }
         impactP = item->impactP;
         impactN = item->impactN;
         numOnset = infoN->mintermsP * impactP + infoN->mintermsN * impactN;
-        savings = computeSavings(dd,node,NULL,info,localQueue);
+        savings = computeSavings(dd, node, NULL, info, localQueue);
         if (savings == 0) {
             cuddLevelQueueQuit(queue);
             cuddLevelQueueQuit(localQueue);
-            return(0);
+            return (0);
         }
-        cuddLevelQueueDequeue(queue,cuddI(dd,node->index));
+        cuddLevelQueueDequeue(queue, cuddI(dd, node->index));
 #if 0
         (void) printf("node %p: impact = %g/%g numOnset = %g savings %d\n",
                       node, impactP, impactN, numOnset, savings);
 #endif
-        if ((1 - numOnset / info->minterms) >
-            quality * (1 - (double) savings / info->size)) {
+        if ((1 - numOnset / info->minterms) > quality * (1 - (double)savings / info->size)) {
             infoN->replace = TRUE;
             info->size -= savings;
-            info->minterms -=numOnset;
+            info->minterms -= numOnset;
 #if 0
             (void) printf("replace: new size = %d new minterms = %g\n",
                           info->size, info->minterms);
 #endif
-            savings -= updateRefs(dd,node,NULL,info,localQueue);
+            savings -= updateRefs(dd, node, NULL, info, localQueue);
             assert(savings == 0);
             continue;
         }
         if (!cuddIsConstant(cuddT(node))) {
-            item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,cuddT(node),
-                                         cuddI(dd,cuddT(node)->index));
-            item->impactP += impactP/2.0;
-            item->impactN += impactN/2.0;
+            item = (GlobalQueueItem*)cuddLevelQueueEnqueue(queue, cuddT(node),
+                                                           cuddI(dd, cuddT(node)->index));
+            item->impactP += impactP / 2.0;
+            item->impactN += impactN / 2.0;
         }
         if (!Cudd_IsConstant(cuddE(node))) {
-            item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(cuddE(node)),
-                                         cuddI(dd,Cudd_Regular(cuddE(node))->index));
+            item = (GlobalQueueItem*)cuddLevelQueueEnqueue(queue, Cudd_Regular(cuddE(node)),
+                                                           cuddI(dd, Cudd_Regular(cuddE(node))->index));
             if (Cudd_IsComplement(cuddE(node))) {
-                item->impactP += impactN/2.0;
-                item->impactN += impactP/2.0;
+                item->impactP += impactN / 2.0;
+                item->impactN += impactP / 2.0;
             } else {
-                item->impactP += impactP/2.0;
-                item->impactN += impactN/2.0;
+                item->impactP += impactP / 2.0;
+                item->impactN += impactN / 2.0;
             }
         }
     }
 
     cuddLevelQueueQuit(queue);
     cuddLevelQueueQuit(localQueue);
-    return(1);
+    return (1);
 
 } /* end of UAmarkNodes */
-
 
 /**Function********************************************************************
 
@@ -1272,39 +1235,37 @@ UAmarkNodes(
   SeeAlso     [cuddUnderApprox]
 
 ******************************************************************************/
-static DdNode *
+static DdNode*
 UAbuildSubset(
-  DdManager * dd /* DD manager */,
-  DdNode * node /* current node */,
-  ApproxInfo * info /* node info */)
-{
-
+    DdManager* dd /* DD manager */,
+    DdNode* node /* current node */,
+    ApproxInfo* info /* node info */) {
     DdNode *Nt, *Ne, *N, *t, *e, *r;
-    NodeData *infoN;
+    NodeData* infoN;
 
     if (Cudd_IsConstant(node))
-        return(node);
+        return (node);
 
     N = Cudd_Regular(node);
 
-    if ( st__lookup(info->table, (const char *)N, (char **)&infoN)) {
+    if (st__lookup(info->table, (const char*)N, (char**)&infoN)) {
         if (infoN->replace == TRUE) {
-            return(info->zero);
+            return (info->zero);
         }
-        if (N == node ) {
+        if (N == node) {
             if (infoN->resultP != NULL) {
-                return(infoN->resultP);
+                return (infoN->resultP);
             }
         } else {
             if (infoN->resultN != NULL) {
-                return(infoN->resultN);
+                return (infoN->resultN);
             }
         }
     } else {
-        (void) fprintf(dd->err,
-                       "Something is wrong, ought to be in info table\n");
+        (void)fprintf(dd->err,
+                      "Something is wrong, ought to be in info table\n");
         dd->errorCode = CUDD_INTERNAL_ERROR;
-        return(NULL);
+        return (NULL);
     }
 
     Nt = Cudd_NotCond(cuddT(N), Cudd_IsComplement(node));
@@ -1312,14 +1273,14 @@ UAbuildSubset(
 
     t = UAbuildSubset(dd, Nt, info);
     if (t == NULL) {
-        return(NULL);
+        return (NULL);
     }
     cuddRef(t);
 
     e = UAbuildSubset(dd, Ne, info);
     if (e == NULL) {
-        Cudd_RecursiveDeref(dd,t);
-        return(NULL);
+        Cudd_RecursiveDeref(dd, t);
+        return (NULL);
     }
     cuddRef(e);
 
@@ -1330,7 +1291,7 @@ UAbuildSubset(
         if (r == NULL) {
             Cudd_RecursiveDeref(dd, e);
             Cudd_RecursiveDeref(dd, t);
-            return(NULL);
+            return (NULL);
         }
         r = Cudd_Not(r);
     } else {
@@ -1338,7 +1299,7 @@ UAbuildSubset(
         if (r == NULL) {
             Cudd_RecursiveDeref(dd, e);
             Cudd_RecursiveDeref(dd, t);
-            return(NULL);
+            return (NULL);
         }
     }
     cuddDeref(t);
@@ -1350,10 +1311,9 @@ UAbuildSubset(
         infoN->resultN = r;
     }
 
-    return(r);
+    return (r);
 
 } /* end of UAbuildSubset */
-
 
 /**Function********************************************************************
 
@@ -1369,18 +1329,17 @@ UAbuildSubset(
 ******************************************************************************/
 static int
 RAmarkNodes(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be analyzed */,
-  ApproxInfo * info /* info on BDD */,
-  int  threshold /* when to stop approximating */,
-  double  quality /* minimum improvement for accepted changes */)
-{
-    DdLevelQueue *queue;
-    DdLevelQueue *localQueue;
+    DdManager* dd /* manager */,
+    DdNode* f /* function to be analyzed */,
+    ApproxInfo* info /* info on BDD */,
+    int threshold /* when to stop approximating */,
+    double quality /* minimum improvement for accepted changes */) {
+    DdLevelQueue* queue;
+    DdLevelQueue* localQueue;
     NodeData *infoN, *infoT, *infoE;
-    GlobalQueueItem *item;
+    GlobalQueueItem* item;
     DdNode *node, *T, *E;
-    DdNode *shared; /* grandchild shared by the two children of node */
+    DdNode* shared; /* grandchild shared by the two children of node */
     double numOnset;
     double impact, impactP, impactN;
     double minterms;
@@ -1391,24 +1350,24 @@ RAmarkNodes(
     (void) fprintf(dd->out,"initial size = %d initial minterms = %g\n",
                   info->size, info->minterms);
 #endif
-    queue = cuddLevelQueueInit(dd->size,sizeof(GlobalQueueItem),info->size);
+    queue = cuddLevelQueueInit(dd->size, sizeof(GlobalQueueItem), info->size);
     if (queue == NULL) {
-        return(0);
+        return (0);
     }
-    localQueue = cuddLevelQueueInit(dd->size,sizeof(LocalQueueItem),
+    localQueue = cuddLevelQueueInit(dd->size, sizeof(LocalQueueItem),
                                     dd->initSlots);
     if (localQueue == NULL) {
         cuddLevelQueueQuit(queue);
-        return(0);
+        return (0);
     }
     /* Enqueue regular pointer to root and initialize impact. */
     node = Cudd_Regular(f);
-    item = (GlobalQueueItem *)
-        cuddLevelQueueEnqueue(queue,node,cuddI(dd,node->index));
+    item = (GlobalQueueItem*)
+        cuddLevelQueueEnqueue(queue, node, cuddI(dd, node->index));
     if (item == NULL) {
         cuddLevelQueueQuit(queue);
         cuddLevelQueueQuit(localQueue);
-        return(0);
+        return (0);
     }
     if (Cudd_IsComplement(f)) {
         item->impactP = 0.0;
@@ -1425,7 +1384,7 @@ RAmarkNodes(
         /* If the size of the subset is below the threshold, quit. */
         if (info->size <= threshold)
             break;
-        item = (GlobalQueueItem *) queue->first;
+        item = (GlobalQueueItem*)queue->first;
         node = item->node;
 #ifdef DD_DEBUG
         assert(item->impactP >= 0 && item->impactP <= 1.0);
@@ -1433,10 +1392,10 @@ RAmarkNodes(
         assert(!Cudd_IsComplement(node));
         assert(!Cudd_IsConstant(node));
 #endif
-        if (! st__lookup(info->table, (const char *)node, (char **)&infoN)) {
+        if (!st__lookup(info->table, (const char*)node, (char**)&infoN)) {
             cuddLevelQueueQuit(queue);
             cuddLevelQueueQuit(localQueue);
-            return(0);
+            return (0);
         }
 #ifdef DD_DEBUG
         assert(infoN->parity >= 1 && infoN->parity <= 3);
@@ -1446,7 +1405,7 @@ RAmarkNodes(
             ** It is not safe to replace it, because remapping will give
             ** an incorrect result, while replacement by 0 may cause node
             ** splitting. */
-            cuddLevelQueueDequeue(queue,cuddI(dd,node->index));
+            cuddLevelQueueDequeue(queue, cuddI(dd, node->index));
             continue;
         }
         T = cuddT(node);
@@ -1454,22 +1413,22 @@ RAmarkNodes(
         shared = NULL;
         impactP = item->impactP;
         impactN = item->impactN;
-        if (Cudd_bddLeq(dd,T,E)) {
+        if (Cudd_bddLeq(dd, T, E)) {
             /* Here we know that E is regular. */
 #ifdef DD_DEBUG
             assert(!Cudd_IsComplement(E));
 #endif
-            (void) st__lookup(info->table, (const char *)T, (char **)&infoT);
-            (void) st__lookup(info->table, (const char *)E, (char **)&infoE);
+            (void)st__lookup(info->table, (const char*)T, (char**)&infoT);
+            (void)st__lookup(info->table, (const char*)E, (char**)&infoE);
             if (infoN->parity == 1) {
                 impact = impactP;
-                minterms = infoE->mintermsP/2.0 - infoT->mintermsP/2.0;
+                minterms = infoE->mintermsP / 2.0 - infoT->mintermsP / 2.0;
                 if (infoE->functionRef == 1 && !Cudd_IsConstant(E)) {
-                    savings = 1 + computeSavings(dd,E,NULL,info,localQueue);
+                    savings = 1 + computeSavings(dd, E, NULL, info, localQueue);
                     if (savings == 1) {
                         cuddLevelQueueQuit(queue);
                         cuddLevelQueueQuit(localQueue);
-                        return(0);
+                        return (0);
                     }
                 } else {
                     savings = 1;
@@ -1480,13 +1439,13 @@ RAmarkNodes(
                 assert(infoN->parity == 2);
 #endif
                 impact = impactN;
-                minterms = infoT->mintermsN/2.0 - infoE->mintermsN/2.0;
+                minterms = infoT->mintermsN / 2.0 - infoE->mintermsN / 2.0;
                 if (infoT->functionRef == 1 && !Cudd_IsConstant(T)) {
-                    savings = 1 + computeSavings(dd,T,NULL,info,localQueue);
+                    savings = 1 + computeSavings(dd, T, NULL, info, localQueue);
                     if (savings == 1) {
                         cuddLevelQueueQuit(queue);
                         cuddLevelQueueQuit(localQueue);
-                        return(0);
+                        return (0);
                     }
                 } else {
                     savings = 1;
@@ -1494,21 +1453,20 @@ RAmarkNodes(
                 replace = REPLACE_T;
             }
             numOnset = impact * minterms;
-        } else if (Cudd_bddLeq(dd,E,T)) {
+        } else if (Cudd_bddLeq(dd, E, T)) {
             /* Here E may be complemented. */
-            DdNode *Ereg = Cudd_Regular(E);
-            (void) st__lookup(info->table, (const char *)T, (char **)&infoT);
-            (void) st__lookup(info->table, (const char *)Ereg, (char **)&infoE);
+            DdNode* Ereg = Cudd_Regular(E);
+            (void)st__lookup(info->table, (const char*)T, (char**)&infoT);
+            (void)st__lookup(info->table, (const char*)Ereg, (char**)&infoE);
             if (infoN->parity == 1) {
                 impact = impactP;
-                minterms = infoT->mintermsP/2.0 -
-                    ((E == Ereg) ? infoE->mintermsP : infoE->mintermsN)/2.0;
+                minterms = infoT->mintermsP / 2.0 - ((E == Ereg) ? infoE->mintermsP : infoE->mintermsN) / 2.0;
                 if (infoT->functionRef == 1 && !Cudd_IsConstant(T)) {
-                    savings = 1 + computeSavings(dd,T,NULL,info,localQueue);
+                    savings = 1 + computeSavings(dd, T, NULL, info, localQueue);
                     if (savings == 1) {
                         cuddLevelQueueQuit(queue);
                         cuddLevelQueueQuit(localQueue);
-                        return(0);
+                        return (0);
                     }
                 } else {
                     savings = 1;
@@ -1519,14 +1477,13 @@ RAmarkNodes(
                 assert(infoN->parity == 2);
 #endif
                 impact = impactN;
-                minterms = ((E == Ereg) ? infoE->mintermsN :
-                            infoE->mintermsP)/2.0 - infoT->mintermsN/2.0;
+                minterms = ((E == Ereg) ? infoE->mintermsN : infoE->mintermsP) / 2.0 - infoT->mintermsN / 2.0;
                 if (infoE->functionRef == 1 && !Cudd_IsConstant(E)) {
-                    savings = 1 + computeSavings(dd,E,NULL,info,localQueue);
+                    savings = 1 + computeSavings(dd, E, NULL, info, localQueue);
                     if (savings == 1) {
                         cuddLevelQueueQuit(queue);
                         cuddLevelQueueQuit(localQueue);
-                        return(0);
+                        return (0);
                     }
                 } else {
                     savings = 1;
@@ -1535,15 +1492,15 @@ RAmarkNodes(
             }
             numOnset = impact * minterms;
         } else {
-            DdNode *Ereg = Cudd_Regular(E);
-            DdNode *TT = cuddT(T);
-            DdNode *ET = Cudd_NotCond(cuddT(Ereg), Cudd_IsComplement(E));
+            DdNode* Ereg = Cudd_Regular(E);
+            DdNode* TT = cuddT(T);
+            DdNode* ET = Cudd_NotCond(cuddT(Ereg), Cudd_IsComplement(E));
             if (T->index == Ereg->index && TT == ET) {
                 shared = TT;
                 replace = REPLACE_TT;
             } else {
-                DdNode *TE = cuddE(T);
-                DdNode *EE = Cudd_NotCond(cuddE(Ereg), Cudd_IsComplement(E));
+                DdNode* TE = cuddE(T);
+                DdNode* EE = Cudd_NotCond(cuddE(Ereg), Cudd_IsComplement(E));
                 if (T->index == Ereg->index && TE == EE) {
                     shared = TE;
                     replace = REPLACE_TE;
@@ -1552,22 +1509,20 @@ RAmarkNodes(
                 }
             }
             numOnset = infoN->mintermsP * impactP + infoN->mintermsN * impactN;
-            savings = computeSavings(dd,node,shared,info,localQueue);
+            savings = computeSavings(dd, node, shared, info, localQueue);
             if (shared != NULL) {
-                NodeData *infoS;
-                (void) st__lookup(info->table, (const char *)Cudd_Regular(shared), (char **)&infoS);
+                NodeData* infoS;
+                (void)st__lookup(info->table, (const char*)Cudd_Regular(shared), (char**)&infoS);
                 if (Cudd_IsComplement(shared)) {
-                    numOnset -= (infoS->mintermsN * impactP +
-                        infoS->mintermsP * impactN)/2.0;
+                    numOnset -= (infoS->mintermsN * impactP + infoS->mintermsP * impactN) / 2.0;
                 } else {
-                    numOnset -= (infoS->mintermsP * impactP +
-                        infoS->mintermsN * impactN)/2.0;
+                    numOnset -= (infoS->mintermsP * impactP + infoS->mintermsN * impactN) / 2.0;
                 }
                 savings--;
             }
         }
 
-        cuddLevelQueueDequeue(queue,cuddI(dd,node->index));
+        cuddLevelQueueDequeue(queue, cuddI(dd, node->index));
 #if 0
         if (replace == REPLACE_T || replace == REPLACE_E)
             (void) printf("node %p: impact = %g numOnset = %g savings %d\n",
@@ -1576,70 +1531,66 @@ RAmarkNodes(
             (void) printf("node %p: impact = %g/%g numOnset = %g savings %d\n",
                           node, impactP, impactN, numOnset, savings);
 #endif
-        if ((1 - numOnset / info->minterms) >
-            quality * (1 - (double) savings / info->size)) {
-            infoN->replace = (char) replace;
+        if ((1 - numOnset / info->minterms) > quality * (1 - (double)savings / info->size)) {
+            infoN->replace = (char)replace;
             info->size -= savings;
-            info->minterms -=numOnset;
+            info->minterms -= numOnset;
 #if 0
             (void) printf("remap(%d): new size = %d new minterms = %g\n",
                           replace, info->size, info->minterms);
 #endif
             if (replace == REPLACE_N) {
-                savings -= updateRefs(dd,node,NULL,info,localQueue);
+                savings -= updateRefs(dd, node, NULL, info, localQueue);
             } else if (replace == REPLACE_T) {
-                savings -= updateRefs(dd,node,E,info,localQueue);
+                savings -= updateRefs(dd, node, E, info, localQueue);
             } else if (replace == REPLACE_E) {
-                savings -= updateRefs(dd,node,T,info,localQueue);
+                savings -= updateRefs(dd, node, T, info, localQueue);
             } else {
 #ifdef DD_DEBUG
                 assert(replace == REPLACE_TT || replace == REPLACE_TE);
 #endif
-                savings -= updateRefs(dd,node,shared,info,localQueue) - 1;
+                savings -= updateRefs(dd, node, shared, info, localQueue) - 1;
             }
             assert(savings == 0);
         } else {
             replace = NOTHING;
         }
         if (replace == REPLACE_N) continue;
-        if ((replace == REPLACE_E || replace == NOTHING) &&
-            !cuddIsConstant(cuddT(node))) {
-            item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,cuddT(node),
-                                         cuddI(dd,cuddT(node)->index));
+        if ((replace == REPLACE_E || replace == NOTHING) && !cuddIsConstant(cuddT(node))) {
+            item = (GlobalQueueItem*)cuddLevelQueueEnqueue(queue, cuddT(node),
+                                                           cuddI(dd, cuddT(node)->index));
             if (replace == REPLACE_E) {
                 item->impactP += impactP;
                 item->impactN += impactN;
             } else {
-                item->impactP += impactP/2.0;
-                item->impactN += impactN/2.0;
+                item->impactP += impactP / 2.0;
+                item->impactN += impactN / 2.0;
             }
         }
-        if ((replace == REPLACE_T || replace == NOTHING) &&
-            !Cudd_IsConstant(cuddE(node))) {
-            item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(cuddE(node)),
-                                         cuddI(dd,Cudd_Regular(cuddE(node))->index));
+        if ((replace == REPLACE_T || replace == NOTHING) && !Cudd_IsConstant(cuddE(node))) {
+            item = (GlobalQueueItem*)cuddLevelQueueEnqueue(queue, Cudd_Regular(cuddE(node)),
+                                                           cuddI(dd, Cudd_Regular(cuddE(node))->index));
             if (Cudd_IsComplement(cuddE(node))) {
                 if (replace == REPLACE_T) {
                     item->impactP += impactN;
                     item->impactN += impactP;
                 } else {
-                    item->impactP += impactN/2.0;
-                    item->impactN += impactP/2.0;
+                    item->impactP += impactN / 2.0;
+                    item->impactN += impactP / 2.0;
                 }
             } else {
                 if (replace == REPLACE_T) {
                     item->impactP += impactP;
                     item->impactN += impactN;
                 } else {
-                    item->impactP += impactP/2.0;
-                    item->impactN += impactN/2.0;
+                    item->impactP += impactP / 2.0;
+                    item->impactN += impactN / 2.0;
                 }
             }
         }
-        if ((replace == REPLACE_TT || replace == REPLACE_TE) &&
-            !Cudd_IsConstant(shared)) {
-            item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(shared),
-                                         cuddI(dd,Cudd_Regular(shared)->index));
+        if ((replace == REPLACE_TT || replace == REPLACE_TE) && !Cudd_IsConstant(shared)) {
+            item = (GlobalQueueItem*)cuddLevelQueueEnqueue(queue, Cudd_Regular(shared),
+                                                           cuddI(dd, Cudd_Regular(shared)->index));
             if (Cudd_IsComplement(shared)) {
                 item->impactP += impactN;
                 item->impactN += impactP;
@@ -1652,10 +1603,9 @@ RAmarkNodes(
 
     cuddLevelQueueQuit(queue);
     cuddLevelQueueQuit(localQueue);
-    return(1);
+    return (1);
 
 } /* end of RAmarkNodes */
-
 
 /**Function********************************************************************
 
@@ -1671,19 +1621,18 @@ RAmarkNodes(
 ******************************************************************************/
 static int
 BAmarkNodes(
-  DdManager *dd /* manager */,
-  DdNode *f /* function to be analyzed */,
-  ApproxInfo *info /* info on BDD */,
-  int threshold /* when to stop approximating */,
-  double quality1 /* minimum improvement for accepted changes when b=1 */,
-  double quality0 /* minimum improvement for accepted changes when b=0 */)
-{
-    DdLevelQueue *queue;
-    DdLevelQueue *localQueue;
+    DdManager* dd /* manager */,
+    DdNode* f /* function to be analyzed */,
+    ApproxInfo* info /* info on BDD */,
+    int threshold /* when to stop approximating */,
+    double quality1 /* minimum improvement for accepted changes when b=1 */,
+    double quality0 /* minimum improvement for accepted changes when b=0 */) {
+    DdLevelQueue* queue;
+    DdLevelQueue* localQueue;
     NodeData *infoN, *infoT, *infoE;
-    GlobalQueueItem *item;
+    GlobalQueueItem* item;
     DdNode *node, *T, *E;
-    DdNode *shared; /* grandchild shared by the two children of node */
+    DdNode* shared; /* grandchild shared by the two children of node */
     double numOnset;
     double impact, impactP, impactN;
     double minterms;
@@ -1695,24 +1644,24 @@ BAmarkNodes(
     (void) fprintf(dd->out,"initial size = %d initial minterms = %g\n",
                   info->size, info->minterms);
 #endif
-    queue = cuddLevelQueueInit(dd->size,sizeof(GlobalQueueItem),info->size);
+    queue = cuddLevelQueueInit(dd->size, sizeof(GlobalQueueItem), info->size);
     if (queue == NULL) {
-        return(0);
+        return (0);
     }
-    localQueue = cuddLevelQueueInit(dd->size,sizeof(LocalQueueItem),
+    localQueue = cuddLevelQueueInit(dd->size, sizeof(LocalQueueItem),
                                     dd->initSlots);
     if (localQueue == NULL) {
         cuddLevelQueueQuit(queue);
-        return(0);
+        return (0);
     }
     /* Enqueue regular pointer to root and initialize impact. */
     node = Cudd_Regular(f);
-    item = (GlobalQueueItem *)
-        cuddLevelQueueEnqueue(queue,node,cuddI(dd,node->index));
+    item = (GlobalQueueItem*)
+        cuddLevelQueueEnqueue(queue, node, cuddI(dd, node->index));
     if (item == NULL) {
         cuddLevelQueueQuit(queue);
         cuddLevelQueueQuit(localQueue);
-        return(0);
+        return (0);
     }
     if (Cudd_IsComplement(f)) {
         item->impactP = 0.0;
@@ -1729,7 +1678,7 @@ BAmarkNodes(
         /* If the size of the subset is below the threshold, quit. */
         if (info->size <= threshold)
             break;
-        item = (GlobalQueueItem *) queue->first;
+        item = (GlobalQueueItem*)queue->first;
         node = item->node;
 #ifdef DD_DEBUG
         assert(item->impactP >= 0 && item->impactP <= 1.0);
@@ -1737,10 +1686,10 @@ BAmarkNodes(
         assert(!Cudd_IsComplement(node));
         assert(!Cudd_IsConstant(node));
 #endif
-        if (! st__lookup(info->table, (const char *)node, (char **)&infoN)) {
+        if (!st__lookup(info->table, (const char*)node, (char**)&infoN)) {
             cuddLevelQueueQuit(queue);
             cuddLevelQueueQuit(localQueue);
-            return(0);
+            return (0);
         }
         quality = infoN->care ? quality1 : quality0;
 #ifdef DD_DEBUG
@@ -1751,7 +1700,7 @@ BAmarkNodes(
             ** It is not safe to replace it, because remapping will give
             ** an incorrect result, while replacement by 0 may cause node
             ** splitting. */
-            cuddLevelQueueDequeue(queue,cuddI(dd,node->index));
+            cuddLevelQueueDequeue(queue, cuddI(dd, node->index));
             continue;
         }
         T = cuddT(node);
@@ -1759,22 +1708,22 @@ BAmarkNodes(
         shared = NULL;
         impactP = item->impactP;
         impactN = item->impactN;
-        if (Cudd_bddLeq(dd,T,E)) {
+        if (Cudd_bddLeq(dd, T, E)) {
             /* Here we know that E is regular. */
 #ifdef DD_DEBUG
             assert(!Cudd_IsComplement(E));
 #endif
-            (void) st__lookup(info->table, (const char *)T, (char **)&infoT);
-            (void) st__lookup(info->table, (const char *)E, (char **)&infoE);
+            (void)st__lookup(info->table, (const char*)T, (char**)&infoT);
+            (void)st__lookup(info->table, (const char*)E, (char**)&infoE);
             if (infoN->parity == 1) {
                 impact = impactP;
-                minterms = infoE->mintermsP/2.0 - infoT->mintermsP/2.0;
+                minterms = infoE->mintermsP / 2.0 - infoT->mintermsP / 2.0;
                 if (infoE->functionRef == 1 && !Cudd_IsConstant(E)) {
-                    savings = 1 + computeSavings(dd,E,NULL,info,localQueue);
+                    savings = 1 + computeSavings(dd, E, NULL, info, localQueue);
                     if (savings == 1) {
                         cuddLevelQueueQuit(queue);
                         cuddLevelQueueQuit(localQueue);
-                        return(0);
+                        return (0);
                     }
                 } else {
                     savings = 1;
@@ -1785,13 +1734,13 @@ BAmarkNodes(
                 assert(infoN->parity == 2);
 #endif
                 impact = impactN;
-                minterms = infoT->mintermsN/2.0 - infoE->mintermsN/2.0;
+                minterms = infoT->mintermsN / 2.0 - infoE->mintermsN / 2.0;
                 if (infoT->functionRef == 1 && !Cudd_IsConstant(T)) {
-                    savings = 1 + computeSavings(dd,T,NULL,info,localQueue);
+                    savings = 1 + computeSavings(dd, T, NULL, info, localQueue);
                     if (savings == 1) {
                         cuddLevelQueueQuit(queue);
                         cuddLevelQueueQuit(localQueue);
-                        return(0);
+                        return (0);
                     }
                 } else {
                     savings = 1;
@@ -1799,21 +1748,20 @@ BAmarkNodes(
                 replace = REPLACE_T;
             }
             numOnset = impact * minterms;
-        } else if (Cudd_bddLeq(dd,E,T)) {
+        } else if (Cudd_bddLeq(dd, E, T)) {
             /* Here E may be complemented. */
-            DdNode *Ereg = Cudd_Regular(E);
-            (void) st__lookup(info->table, (const char *)T, (char **)&infoT);
-            (void) st__lookup(info->table, (const char *)Ereg, (char **)&infoE);
+            DdNode* Ereg = Cudd_Regular(E);
+            (void)st__lookup(info->table, (const char*)T, (char**)&infoT);
+            (void)st__lookup(info->table, (const char*)Ereg, (char**)&infoE);
             if (infoN->parity == 1) {
                 impact = impactP;
-                minterms = infoT->mintermsP/2.0 -
-                    ((E == Ereg) ? infoE->mintermsP : infoE->mintermsN)/2.0;
+                minterms = infoT->mintermsP / 2.0 - ((E == Ereg) ? infoE->mintermsP : infoE->mintermsN) / 2.0;
                 if (infoT->functionRef == 1 && !Cudd_IsConstant(T)) {
-                    savings = 1 + computeSavings(dd,T,NULL,info,localQueue);
+                    savings = 1 + computeSavings(dd, T, NULL, info, localQueue);
                     if (savings == 1) {
                         cuddLevelQueueQuit(queue);
                         cuddLevelQueueQuit(localQueue);
-                        return(0);
+                        return (0);
                     }
                 } else {
                     savings = 1;
@@ -1824,14 +1772,13 @@ BAmarkNodes(
                 assert(infoN->parity == 2);
 #endif
                 impact = impactN;
-                minterms = ((E == Ereg) ? infoE->mintermsN :
-                            infoE->mintermsP)/2.0 - infoT->mintermsN/2.0;
+                minterms = ((E == Ereg) ? infoE->mintermsN : infoE->mintermsP) / 2.0 - infoT->mintermsN / 2.0;
                 if (infoE->functionRef == 1 && !Cudd_IsConstant(E)) {
-                    savings = 1 + computeSavings(dd,E,NULL,info,localQueue);
+                    savings = 1 + computeSavings(dd, E, NULL, info, localQueue);
                     if (savings == 1) {
                         cuddLevelQueueQuit(queue);
                         cuddLevelQueueQuit(localQueue);
-                        return(0);
+                        return (0);
                     }
                 } else {
                     savings = 1;
@@ -1840,15 +1787,15 @@ BAmarkNodes(
             }
             numOnset = impact * minterms;
         } else {
-            DdNode *Ereg = Cudd_Regular(E);
-            DdNode *TT = cuddT(T);
-            DdNode *ET = Cudd_NotCond(cuddT(Ereg), Cudd_IsComplement(E));
+            DdNode* Ereg = Cudd_Regular(E);
+            DdNode* TT = cuddT(T);
+            DdNode* ET = Cudd_NotCond(cuddT(Ereg), Cudd_IsComplement(E));
             if (T->index == Ereg->index && TT == ET) {
                 shared = TT;
                 replace = REPLACE_TT;
             } else {
-                DdNode *TE = cuddE(T);
-                DdNode *EE = Cudd_NotCond(cuddE(Ereg), Cudd_IsComplement(E));
+                DdNode* TE = cuddE(T);
+                DdNode* EE = Cudd_NotCond(cuddE(Ereg), Cudd_IsComplement(E));
                 if (T->index == Ereg->index && TE == EE) {
                     shared = TE;
                     replace = REPLACE_TE;
@@ -1857,22 +1804,20 @@ BAmarkNodes(
                 }
             }
             numOnset = infoN->mintermsP * impactP + infoN->mintermsN * impactN;
-            savings = computeSavings(dd,node,shared,info,localQueue);
+            savings = computeSavings(dd, node, shared, info, localQueue);
             if (shared != NULL) {
-                NodeData *infoS;
-                (void) st__lookup(info->table, (const char *)Cudd_Regular(shared), (char **)&infoS);
+                NodeData* infoS;
+                (void)st__lookup(info->table, (const char*)Cudd_Regular(shared), (char**)&infoS);
                 if (Cudd_IsComplement(shared)) {
-                    numOnset -= (infoS->mintermsN * impactP +
-                        infoS->mintermsP * impactN)/2.0;
+                    numOnset -= (infoS->mintermsN * impactP + infoS->mintermsP * impactN) / 2.0;
                 } else {
-                    numOnset -= (infoS->mintermsP * impactP +
-                        infoS->mintermsN * impactN)/2.0;
+                    numOnset -= (infoS->mintermsP * impactP + infoS->mintermsN * impactN) / 2.0;
                 }
                 savings--;
             }
         }
 
-        cuddLevelQueueDequeue(queue,cuddI(dd,node->index));
+        cuddLevelQueueDequeue(queue, cuddI(dd, node->index));
 #if 0
         if (replace == REPLACE_T || replace == REPLACE_E)
             (void) printf("node %p: impact = %g numOnset = %g savings %d\n",
@@ -1881,85 +1826,81 @@ BAmarkNodes(
             (void) printf("node %p: impact = %g/%g numOnset = %g savings %d\n",
                           node, impactP, impactN, numOnset, savings);
 #endif
-        if ((1 - numOnset / info->minterms) >
-            quality * (1 - (double) savings / info->size)) {
-            infoN->replace = (char) replace;
+        if ((1 - numOnset / info->minterms) > quality * (1 - (double)savings / info->size)) {
+            infoN->replace = (char)replace;
             info->size -= savings;
-            info->minterms -=numOnset;
+            info->minterms -= numOnset;
 #if 0
             (void) printf("remap(%d): new size = %d new minterms = %g\n",
                           replace, info->size, info->minterms);
 #endif
             if (replace == REPLACE_N) {
-                savings -= updateRefs(dd,node,NULL,info,localQueue);
+                savings -= updateRefs(dd, node, NULL, info, localQueue);
             } else if (replace == REPLACE_T) {
-                savings -= updateRefs(dd,node,E,info,localQueue);
+                savings -= updateRefs(dd, node, E, info, localQueue);
             } else if (replace == REPLACE_E) {
-                savings -= updateRefs(dd,node,T,info,localQueue);
+                savings -= updateRefs(dd, node, T, info, localQueue);
             } else {
 #ifdef DD_DEBUG
                 assert(replace == REPLACE_TT || replace == REPLACE_TE);
 #endif
-                savings -= updateRefs(dd,node,shared,info,localQueue) - 1;
+                savings -= updateRefs(dd, node, shared, info, localQueue) - 1;
             }
             assert(savings == 0);
         } else {
             replace = NOTHING;
         }
         if (replace == REPLACE_N) continue;
-        if ((replace == REPLACE_E || replace == NOTHING) &&
-            !cuddIsConstant(cuddT(node))) {
-            item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,cuddT(node),
-                                         cuddI(dd,cuddT(node)->index));
+        if ((replace == REPLACE_E || replace == NOTHING) && !cuddIsConstant(cuddT(node))) {
+            item = (GlobalQueueItem*)cuddLevelQueueEnqueue(queue, cuddT(node),
+                                                           cuddI(dd, cuddT(node)->index));
             if (replace == REPLACE_E) {
                 item->impactP += impactP;
                 item->impactN += impactN;
             } else {
-                item->impactP += impactP/2.0;
-                item->impactN += impactN/2.0;
+                item->impactP += impactP / 2.0;
+                item->impactN += impactN / 2.0;
             }
         }
-        if ((replace == REPLACE_T || replace == NOTHING) &&
-            !Cudd_IsConstant(cuddE(node))) {
-            item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(cuddE(node)),
-                                         cuddI(dd,Cudd_Regular(cuddE(node))->index));
+        if ((replace == REPLACE_T || replace == NOTHING) && !Cudd_IsConstant(cuddE(node))) {
+            item = (GlobalQueueItem*)cuddLevelQueueEnqueue(queue, Cudd_Regular(cuddE(node)),
+                                                           cuddI(dd, Cudd_Regular(cuddE(node))->index));
             if (Cudd_IsComplement(cuddE(node))) {
                 if (replace == REPLACE_T) {
                     item->impactP += impactN;
                     item->impactN += impactP;
                 } else {
-                    item->impactP += impactN/2.0;
-                    item->impactN += impactP/2.0;
+                    item->impactP += impactN / 2.0;
+                    item->impactN += impactP / 2.0;
                 }
             } else {
                 if (replace == REPLACE_T) {
                     item->impactP += impactP;
                     item->impactN += impactN;
                 } else {
-                    item->impactP += impactP/2.0;
-                    item->impactN += impactN/2.0;
+                    item->impactP += impactP / 2.0;
+                    item->impactN += impactN / 2.0;
                 }
             }
         }
-        if ((replace == REPLACE_TT || replace == REPLACE_TE) &&
-            !Cudd_IsConstant(shared)) {
-            item = (GlobalQueueItem *) cuddLevelQueueEnqueue(queue,Cudd_Regular(shared),
-                                         cuddI(dd,Cudd_Regular(shared)->index));
+        if ((replace == REPLACE_TT || replace == REPLACE_TE) && !Cudd_IsConstant(shared)) {
+            item = (GlobalQueueItem*)cuddLevelQueueEnqueue(queue, Cudd_Regular(shared),
+                                                           cuddI(dd, Cudd_Regular(shared)->index));
             if (Cudd_IsComplement(shared)) {
                 if (replace == REPLACE_T) {
                     item->impactP += impactN;
                     item->impactN += impactP;
                 } else {
-                    item->impactP += impactN/2.0;
-                    item->impactN += impactP/2.0;
+                    item->impactP += impactN / 2.0;
+                    item->impactN += impactP / 2.0;
                 }
             } else {
                 if (replace == REPLACE_T) {
                     item->impactP += impactP;
                     item->impactN += impactN;
                 } else {
-                    item->impactP += impactP/2.0;
-                    item->impactN += impactN/2.0;
+                    item->impactP += impactP / 2.0;
+                    item->impactN += impactN / 2.0;
                 }
             }
         }
@@ -1967,10 +1908,9 @@ BAmarkNodes(
 
     cuddLevelQueueQuit(queue);
     cuddLevelQueueQuit(localQueue);
-    return(1);
+    return (1);
 
 } /* end of BAmarkNodes */
-
 
 /**Function********************************************************************
 
@@ -1986,49 +1926,48 @@ BAmarkNodes(
   SeeAlso     [cuddRemapUnderApprox]
 
 ******************************************************************************/
-static DdNode *
+static DdNode*
 RAbuildSubset(
-  DdManager * dd /* DD manager */,
-  DdNode * node /* current node */,
-  ApproxInfo * info /* node info */)
-{
+    DdManager* dd /* DD manager */,
+    DdNode* node /* current node */,
+    ApproxInfo* info /* node info */) {
     DdNode *Nt, *Ne, *N, *t, *e, *r;
-    NodeData *infoN;
+    NodeData* infoN;
 
     if (Cudd_IsConstant(node))
-        return(node);
+        return (node);
 
     N = Cudd_Regular(node);
 
     Nt = Cudd_NotCond(cuddT(N), Cudd_IsComplement(node));
     Ne = Cudd_NotCond(cuddE(N), Cudd_IsComplement(node));
 
-    if ( st__lookup(info->table, (const char *)N, (char **)&infoN)) {
-        if (N == node ) {
+    if (st__lookup(info->table, (const char*)N, (char**)&infoN)) {
+        if (N == node) {
             if (infoN->resultP != NULL) {
-                return(infoN->resultP);
+                return (infoN->resultP);
             }
         } else {
             if (infoN->resultN != NULL) {
-                return(infoN->resultN);
+                return (infoN->resultN);
             }
         }
         if (infoN->replace == REPLACE_T) {
             r = RAbuildSubset(dd, Ne, info);
-            return(r);
+            return (r);
         } else if (infoN->replace == REPLACE_E) {
             r = RAbuildSubset(dd, Nt, info);
-            return(r);
+            return (r);
         } else if (infoN->replace == REPLACE_N) {
-            return(info->zero);
+            return (info->zero);
         } else if (infoN->replace == REPLACE_TT) {
-            DdNode *Ntt = Cudd_NotCond(cuddT(cuddT(N)),
+            DdNode* Ntt = Cudd_NotCond(cuddT(cuddT(N)),
                                        Cudd_IsComplement(node));
             int index = cuddT(N)->index;
             e = info->zero;
             t = RAbuildSubset(dd, Ntt, info);
             if (t == NULL) {
-                return(NULL);
+                return (NULL);
             }
             cuddRef(t);
             if (Cudd_IsComplement(t)) {
@@ -2037,55 +1976,55 @@ RAbuildSubset(
                 r = (t == e) ? t : cuddUniqueInter(dd, index, t, e);
                 if (r == NULL) {
                     Cudd_RecursiveDeref(dd, t);
-                    return(NULL);
+                    return (NULL);
                 }
                 r = Cudd_Not(r);
             } else {
                 r = (t == e) ? t : cuddUniqueInter(dd, index, t, e);
                 if (r == NULL) {
                     Cudd_RecursiveDeref(dd, t);
-                    return(NULL);
+                    return (NULL);
                 }
             }
             cuddDeref(t);
-            return(r);
+            return (r);
         } else if (infoN->replace == REPLACE_TE) {
-            DdNode *Nte = Cudd_NotCond(cuddE(cuddT(N)),
+            DdNode* Nte = Cudd_NotCond(cuddE(cuddT(N)),
                                        Cudd_IsComplement(node));
             int index = cuddT(N)->index;
             t = info->one;
             e = RAbuildSubset(dd, Nte, info);
             if (e == NULL) {
-                return(NULL);
+                return (NULL);
             }
             cuddRef(e);
             e = Cudd_Not(e);
             r = (t == e) ? t : cuddUniqueInter(dd, index, t, e);
             if (r == NULL) {
                 Cudd_RecursiveDeref(dd, e);
-                return(NULL);
+                return (NULL);
             }
-            r =Cudd_Not(r);
+            r = Cudd_Not(r);
             cuddDeref(e);
-            return(r);
+            return (r);
         }
     } else {
-        (void) fprintf(dd->err,
-                       "Something is wrong, ought to be in info table\n");
+        (void)fprintf(dd->err,
+                      "Something is wrong, ought to be in info table\n");
         dd->errorCode = CUDD_INTERNAL_ERROR;
-        return(NULL);
+        return (NULL);
     }
 
     t = RAbuildSubset(dd, Nt, info);
     if (t == NULL) {
-        return(NULL);
+        return (NULL);
     }
     cuddRef(t);
 
     e = RAbuildSubset(dd, Ne, info);
     if (e == NULL) {
-        Cudd_RecursiveDeref(dd,t);
-        return(NULL);
+        Cudd_RecursiveDeref(dd, t);
+        return (NULL);
     }
     cuddRef(e);
 
@@ -2096,7 +2035,7 @@ RAbuildSubset(
         if (r == NULL) {
             Cudd_RecursiveDeref(dd, e);
             Cudd_RecursiveDeref(dd, t);
-            return(NULL);
+            return (NULL);
         }
         r = Cudd_Not(r);
     } else {
@@ -2104,7 +2043,7 @@ RAbuildSubset(
         if (r == NULL) {
             Cudd_RecursiveDeref(dd, e);
             Cudd_RecursiveDeref(dd, t);
-            return(NULL);
+            return (NULL);
         }
     }
     cuddDeref(t);
@@ -2116,10 +2055,9 @@ RAbuildSubset(
         infoN->resultN = r;
     }
 
-    return(r);
+    return (r);
 
 } /* end of RAbuildSubset */
-
 
 /**Function********************************************************************
 
@@ -2136,47 +2074,47 @@ RAbuildSubset(
 ******************************************************************************/
 static int
 BAapplyBias(
-  DdManager *dd,
-  DdNode *f,
-  DdNode *b,
-  ApproxInfo *info,
-  DdHashTable *cache)
-{
+    DdManager* dd,
+    DdNode* f,
+    DdNode* b,
+    ApproxInfo* info,
+    DdHashTable* cache) {
     DdNode *one, *zero, *res;
     DdNode *Ft, *Fe, *B, *Bt, *Be;
     unsigned int topf, topb;
-    NodeData *infoF;
+    NodeData* infoF;
     int careT, careE;
 
     one = DD_ONE(dd);
     zero = Cudd_Not(one);
 
-    if (! st__lookup(info->table, (const char *)f, (char **)&infoF))
-        return(CARE_ERROR);
-    if (f == one) return(TOTAL_CARE);
-    if (b == zero) return(infoF->care);
-    if (infoF->care == TOTAL_CARE) return(TOTAL_CARE);
+    if (!st__lookup(info->table, (const char*)f, (char**)&infoF))
+        return (CARE_ERROR);
+    if (f == one) return (TOTAL_CARE);
+    if (b == zero) return (infoF->care);
+    if (infoF->care == TOTAL_CARE) return (TOTAL_CARE);
 
-    if ((f->ref != 1 || Cudd_Regular(b)->ref != 1) &&
-        (res = cuddHashTableLookup2(cache,f,b)) != NULL) {
+    if ((f->ref != 1 || Cudd_Regular(b)->ref != 1) && (res = cuddHashTableLookup2(cache, f, b)) != NULL) {
         if (res->ref == 0) {
             cache->manager->dead++;
             cache->manager->constants.dead++;
         }
-        return(infoF->care);
+        return (infoF->care);
     }
 
     topf = dd->perm[f->index];
     B = Cudd_Regular(b);
-    topb = cuddI(dd,B->index);
+    topb = cuddI(dd, B->index);
     if (topf <= topb) {
-        Ft = cuddT(f); Fe = cuddE(f);
+        Ft = cuddT(f);
+        Fe = cuddE(f);
     } else {
         Ft = Fe = f;
     }
     if (topb <= topf) {
         /* We know that b is not constant because f is not. */
-        Bt = cuddT(B); Be = cuddE(B);
+        Bt = cuddT(B);
+        Be = cuddE(B);
         if (Cudd_IsComplement(b)) {
             Bt = Cudd_Not(Bt);
             Be = Cudd_Not(Be);
@@ -2187,10 +2125,10 @@ BAapplyBias(
 
     careT = BAapplyBias(dd, Ft, Bt, info, cache);
     if (careT == CARE_ERROR)
-        return(CARE_ERROR);
+        return (CARE_ERROR);
     careE = BAapplyBias(dd, Cudd_Regular(Fe), Be, info, cache);
     if (careE == CARE_ERROR)
-        return(CARE_ERROR);
+        return (CARE_ERROR);
     if (careT == TOTAL_CARE && careE == TOTAL_CARE) {
         infoF->care = TOTAL_CARE;
     } else {
@@ -2198,16 +2136,14 @@ BAapplyBias(
     }
 
     if (f->ref != 1 || Cudd_Regular(b)->ref != 1) {
-        ptrint fanout = (ptrint) f->ref * Cudd_Regular(b)->ref;
+        ptrint fanout = (ptrint)f->ref * Cudd_Regular(b)->ref;
         cuddSatDec(fanout);
-        if (!cuddHashTableInsert2(cache,f,b,one,fanout)) {
-            return(CARE_ERROR);
+        if (!cuddHashTableInsert2(cache, f, b, one, fanout)) {
+            return (CARE_ERROR);
         }
     }
-    return(infoF->care);
+    return (infoF->care);
 
 } /* end of BAapplyBias */
 
-
 ABC_NAMESPACE_IMPL_END
-

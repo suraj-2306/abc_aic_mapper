@@ -26,9 +26,9 @@
 #include "utilSignal.h"
 
 #ifdef _MSC_VER
-#define unlink _unlink
+#    define unlink _unlink
 #else
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 ABC_NAMESPACE_IMPL_START
@@ -41,22 +41,18 @@ ABC_NAMESPACE_IMPL_START
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
-int Util_SignalSystem(const char* cmd)
-{
+int Util_SignalSystem(const char* cmd) {
     return system(cmd);
 }
 
 int tmpFile(const char* prefix, const char* suffix, char** out_name);
 
-int Util_SignalTmpFile(const char* prefix, const char* suffix, char** out_name)
-{
+int Util_SignalTmpFile(const char* prefix, const char* suffix, char** out_name) {
     return tmpFile(prefix, suffix, out_name);
 }
 
-void Util_SignalTmpFileRemove(const char* fname, int fLeave)
-{
-    if (! fLeave)
-    {
+void Util_SignalTmpFileRemove(const char* fname, int fLeave) {
+    if (!fLeave) {
         unlink(fname);
     }
 }

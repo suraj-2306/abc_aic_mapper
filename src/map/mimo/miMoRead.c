@@ -20,15 +20,15 @@
 
 ABC_NAMESPACE_IMPL_START
 
-static inline char * MiMo_ReadFile(char *pFileName, int *bufferLength);
-static inline void MiMo_ReadPreprocess(char *pStr);
-static inline MiMo_GateType_t MiMo_ReadParseGateType(char *pStr);
+static inline char* MiMo_ReadFile(char* pFileName, int* bufferLength);
+static inline void MiMo_ReadPreprocess(char* pStr);
+static inline MiMo_GateType_t MiMo_ReadParseGateType(char* pStr);
 
-static inline MiMo_Gate_t *  MiMo_ReadParseGateBegin(MiMo_Library_t * pLib, char * pLine);
-static inline int MiMo_ReadParseGateInputs(MiMo_Gate_t * pGate, char * pLine);
-static inline int MiMo_ReadParseGateOutputs(MiMo_Gate_t * pGate, char * pLine);
-static inline int MiMo_ReadTryToParseFloat(char * pStr, float *val);
-static inline int MiMo_ReadParseDelayList(MiMo_Gate_t * pGate, char * pLine);
+static inline MiMo_Gate_t* MiMo_ReadParseGateBegin(MiMo_Library_t* pLib, char* pLine);
+static inline int MiMo_ReadParseGateInputs(MiMo_Gate_t* pGate, char* pLine);
+static inline int MiMo_ReadParseGateOutputs(MiMo_Gate_t* pGate, char* pLine);
+static inline int MiMo_ReadTryToParseFloat(char* pStr, float* val);
+static inline int MiMo_ReadParseDelayList(MiMo_Gate_t* pGate, char* pLine);
 
 /**Function*************************************************************
 
@@ -42,48 +42,39 @@ static inline int MiMo_ReadParseDelayList(MiMo_Gate_t * pGate, char * pLine);
   SeeAlso     []
 
 ***********************************************************************/
-void MiMo_ReadPreprocess(char *pStrIn )
-{
-    char *pStrOut = pStrIn;
+void MiMo_ReadPreprocess(char* pStrIn) {
+    char* pStrOut = pStrIn;
     int fLineEnding = 0;
     int fSpaceBefore = 0;
-    while(*pStrIn)
-    {
+    while (*pStrIn) {
         fLineEnding = 0;
-        if ( *pStrIn == '\\' )
-        {
-            while(*pStrIn && *pStrIn != '\r' && *pStrIn != '\n')
+        if (*pStrIn == '\\') {
+            while (*pStrIn && *pStrIn != '\r' && *pStrIn != '\n')
                 pStrIn++;
-            while(*pStrIn == '\r' || *pStrIn == '\n')
+            while (*pStrIn == '\r' || *pStrIn == '\n')
                 pStrIn++;
         }
-        while(*pStrIn && (*pStrIn == '\r' || *pStrIn == '\n'))
-        {
+        while (*pStrIn && (*pStrIn == '\r' || *pStrIn == '\n')) {
             fLineEnding = 1;
             pStrIn++;
         }
-        while (*pStrIn && *pStrIn == '#')
-        {
+        while (*pStrIn && *pStrIn == '#') {
             fLineEnding = 1;
-            while(*pStrIn && *pStrIn != '\r' && *pStrIn != '\n')
+            while (*pStrIn && *pStrIn != '\r' && *pStrIn != '\n')
                 pStrIn++;
-            while(*pStrIn == '\r' || *pStrIn == '\n')
+            while (*pStrIn == '\r' || *pStrIn == '\n')
                 pStrIn++;
         }
-        if (fLineEnding)
-        {
+        if (fLineEnding) {
             *pStrOut++ = '\n';
             fSpaceBefore = 0;
         }
 
-        if ( *pStrIn != ' ' )
-        {
+        if (*pStrIn != ' ') {
             fSpaceBefore = 0;
             *pStrOut++ = *pStrIn++;
-        }
-        else
-        {
-            if ( fSpaceBefore )
+        } else {
+            if (fSpaceBefore)
                 pStrIn++;
             else
                 *pStrOut++ = *pStrIn++;
@@ -92,7 +83,6 @@ void MiMo_ReadPreprocess(char *pStrIn )
     }
     *pStrOut = '\0';
 }
-
 
 /**Function*************************************************************
 
@@ -105,28 +95,26 @@ void MiMo_ReadPreprocess(char *pStrIn )
   SeeAlso     []
 
 ***********************************************************************/
-char * MiMo_ReadFile (char *pFileName, int *bufferLength )
-{
-    FILE * pFile;
-    pFile = Io_FileOpen( pFileName, "open_path", "rb", 1 );
+char* MiMo_ReadFile(char* pFileName, int* bufferLength) {
+    FILE* pFile;
+    pFile = Io_FileOpen(pFileName, "open_path", "rb", 1);
     // if we got this far, file should be okay otherwise would
     // have been detected by caller
-    assert ( pFile != NULL );
+    assert(pFile != NULL);
     // get the file size, in bytes
-    fseek( pFile, 0, SEEK_END );  
-    int nFileSize = ftell( pFile );  
+    fseek(pFile, 0, SEEK_END);
+    int nFileSize = ftell(pFile);
     // move the file current reading position to the beginning
-    rewind( pFile ); 
+    rewind(pFile);
     // load the contents of the file into memory
-    char *pBuffer = ABC_ALLOC( char, nFileSize + 1 );
+    char* pBuffer = ABC_ALLOC(char, nFileSize + 1);
     *bufferLength = nFileSize + 1;
-    int fOk = fread( pBuffer, nFileSize, 1, pFile );
+    int fOk = fread(pBuffer, nFileSize, 1, pFile);
     assert(fOk);
-    pBuffer[ nFileSize ] = '\0';
-    fclose( pFile );
+    pBuffer[nFileSize] = '\0';
+    fclose(pFile);
     return pBuffer;
 }
-
 
 /**Function*************************************************************
 
@@ -139,15 +127,14 @@ char * MiMo_ReadFile (char *pFileName, int *bufferLength )
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_GateType_t MiMo_ReadParseGateType(char * pStr)
-{
-    if ( !strcmp(pStr, "AIC2") )
+MiMo_GateType_t MiMo_ReadParseGateType(char* pStr) {
+    if (!strcmp(pStr, "AIC2"))
         return MIMO_AIC2;
-    if ( !strcmp(pStr, "AIC3") )
+    if (!strcmp(pStr, "AIC3"))
         return MIMO_AIC3;
-    if ( !strcmp(pStr, "NNC2") )
+    if (!strcmp(pStr, "NNC2"))
         return MIMO_NNC2;
-    if ( !strcmp(pStr, "NNC3") )
+    if (!strcmp(pStr, "NNC3"))
         return MIMO_NNC3;
     return MIMO_GENERIC;
 }
@@ -163,21 +150,20 @@ MiMo_GateType_t MiMo_ReadParseGateType(char * pStr)
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_Gate_t *  MiMo_ReadParseGateBegin(MiMo_Library_t * pLib, char * pLine)
-{
-    char wd [] = "\t ";
-    char * pWord = strtok(pLine, wd);
-    if (!pWord || ! *pWord)
+MiMo_Gate_t* MiMo_ReadParseGateBegin(MiMo_Library_t* pLib, char* pLine) {
+    char wd[] = "\t ";
+    char* pWord = strtok(pLine, wd);
+    if (!pWord || !*pWord)
         return NULL;
-    MiMo_Gate_t * pGate = MiMo_LibCreateGate(pLib, pWord);
-    if (! *pWord)
+    MiMo_Gate_t* pGate = MiMo_LibCreateGate(pLib, pWord);
+    if (!*pWord)
         return pGate;
     pWord = strtok(NULL, wd);
-    if (! pWord )
+    if (!pWord)
         return pGate;
     pGate->Type = MiMo_ReadParseGateType(pWord);
     pWord = strtok(NULL, wd);
-    if (!pWord || ! *pWord)
+    if (!pWord || !*pWord)
         return pGate;
     pGate->Area = atof(pWord);
     return pGate;
@@ -194,12 +180,10 @@ MiMo_Gate_t *  MiMo_ReadParseGateBegin(MiMo_Library_t * pLib, char * pLine)
   SeeAlso     []
 
 ***********************************************************************/
-int MiMo_ReadParseGateInputs(MiMo_Gate_t * pGate, char * pLine)
-{
-    char wd [] = "\t ";
-    char * pWord = strtok(pLine, wd);
-    while ( pWord )
-    {
+int MiMo_ReadParseGateInputs(MiMo_Gate_t* pGate, char* pLine) {
+    char wd[] = "\t ";
+    char* pWord = strtok(pLine, wd);
+    while (pWord) {
         MiMo_GateCreatePinIn(pGate, pWord);
         pWord = strtok(NULL, wd);
     }
@@ -217,12 +201,10 @@ int MiMo_ReadParseGateInputs(MiMo_Gate_t * pGate, char * pLine)
   SeeAlso     []
 
 ***********************************************************************/
-int MiMo_ReadParseGateOutputs(MiMo_Gate_t * pGate, char * pLine)
-{
-    char wd [] = "\t ";
-    char * pWord = strtok(pLine, wd);
-    while ( pWord )
-    {
+int MiMo_ReadParseGateOutputs(MiMo_Gate_t* pGate, char* pLine) {
+    char wd[] = "\t ";
+    char* pWord = strtok(pLine, wd);
+    while (pWord) {
         MiMo_GateCreatePinOut(pGate, pWord);
         pWord = strtok(NULL, wd);
     }
@@ -240,11 +222,10 @@ int MiMo_ReadParseGateOutputs(MiMo_Gate_t * pGate, char * pLine)
   SeeAlso     []
 
 ***********************************************************************/
-int MiMo_ReadTryToParseFloat(char * pStr, float *val)
-{
-    char *pEnd;
+int MiMo_ReadTryToParseFloat(char* pStr, float* val) {
+    char* pEnd;
     float result = strtof(pStr, &pEnd);
-    if ( pEnd != (pStr + strlen(pStr)) )
+    if (pEnd != (pStr + strlen(pStr)))
         return 0;
     *val = result;
     return 1;
@@ -261,41 +242,33 @@ int MiMo_ReadTryToParseFloat(char * pStr, float *val)
   SeeAlso     []
 
 ***********************************************************************/
-int MiMo_ReadParseDelayList(MiMo_Gate_t * pGate, char * pLine)
-{
-    char wd [] = "\t ";
+int MiMo_ReadParseDelayList(MiMo_Gate_t* pGate, char* pLine) {
+    char wd[] = "\t ";
     int fOut = 1;
-    char * pWord = strtok(pLine, wd);
-    MiMo_PinOut_t * pPinOut;
-    MiMo_PinDelay_t * pInitialDelayList;
+    char* pWord = strtok(pLine, wd);
+    MiMo_PinOut_t* pPinOut;
+    MiMo_PinDelay_t* pInitialDelayList;
     float delay = 0;
-    while ( pWord )
-    {
-        if (fOut)
-        {
+    while (pWord) {
+        if (fOut) {
             pPinOut = MiMo_GateFindPinOut(pGate, pWord);
-            if ( ! pPinOut )
-            {
+            if (!pPinOut) {
                 printf("Pinout %s not in gate %s found\n", pWord, pGate->pName);
                 return 0;
             }
             pInitialDelayList = pPinOut->pDelayList;
             fOut = 0;
-        }
-        else
-        {
-            if (MiMo_ReadTryToParseFloat(pWord, &delay))
-            {
+        } else {
+            if (MiMo_ReadTryToParseFloat(pWord, &delay)) {
                 MiMo_DelayListSetDelay(pPinOut, pInitialDelayList, delay);
                 fOut = 1;
-            } else 
+            } else
                 MiMo_DelayListAdd(pGate, pPinOut, pWord);
         }
         pWord = strtok(NULL, wd);
     }
     return 1;
 }
- 
 
 /**Function*************************************************************
 
@@ -309,15 +282,14 @@ int MiMo_ReadParseDelayList(MiMo_Gate_t * pGate, char * pLine)
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_Gate_t *  MiMo_ReadParseGate(MiMo_Library_t * pLib, char *pLines [])
-{
-    MiMo_Gate_t * pGate = MiMo_ReadParseGateBegin(pLib, pLines[0]);
+MiMo_Gate_t* MiMo_ReadParseGate(MiMo_Library_t* pLib, char* pLines[]) {
+    MiMo_Gate_t* pGate = MiMo_ReadParseGateBegin(pLib, pLines[0]);
     int fOk = 0;
-    if ( pGate )
+    if (pGate)
         fOk = MiMo_ReadParseGateInputs(pGate, pLines[1]);
-    if ( fOk )
+    if (fOk)
         fOk = MiMo_ReadParseGateOutputs(pGate, pLines[2]);
-    if ( fOk )
+    if (fOk)
         fOk = MiMo_ReadParseDelayList(pGate, pLines[3]);
     return fOk ? pGate : NULL;
 }
@@ -334,33 +306,30 @@ MiMo_Gate_t *  MiMo_ReadParseGate(MiMo_Library_t * pLib, char *pLines [])
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_Library_t * MiMo_ReadLibrary(char *pFileName, int fVerbose)
-{
+MiMo_Library_t* MiMo_ReadLibrary(char* pFileName, int fVerbose) {
     int i;
-    MiMo_Gate_t * pGate;
+    MiMo_Gate_t* pGate;
 
-    MiMo_Library_t * pLib = MiMo_LibStart(Extra_FileNameWithoutPath(pFileName));
+    MiMo_Library_t* pLib = MiMo_LibStart(Extra_FileNameWithoutPath(pFileName));
 
     int length = 0;
-    char *pStr = MiMo_ReadFile(pFileName, &length);
+    char* pStr = MiMo_ReadFile(pFileName, &length);
     MiMo_ReadPreprocess(pStr);
 
-    char * pLine = strtok(pStr, "\r\n");
-    while ( pLine )
-    {
+    char* pLine = strtok(pStr, "\r\n");
+    while (pLine) {
         // 0.line -> name, type area
-        // 1.line -> inputs 
+        // 1.line -> inputs
         // 2.line -> outputs
         // 3.line -> [output time inputsList]+
-        char * pParseLines[4] = { pLine, NULL, NULL, NULL};
-        for(int i=1; i<4 && pLine; i++)
-        {
+        char* pParseLines[4] = {pLine, NULL, NULL, NULL};
+        for (int i = 1; i < 4 && pLine; i++) {
             int lineLength = strlen(pLine);
-            char *pNextLine = pLine + lineLength + 1;
+            char* pNextLine = pLine + lineLength + 1;
             pParseLines[i] = pNextLine;
             pLine = strtok(pNextLine, "\r\n");
         }
-        if ( !pParseLines[3] )
+        if (!pParseLines[3])
             break;
         pLine = strtok(pLine + strlen(pLine) + 1, "\r\n");
         MiMo_ReadParseGate(pLib, pParseLines);

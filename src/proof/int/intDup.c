@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,20 +41,19 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Inter_ManStartInitState( int nRegs )
-{
-    Aig_Man_t * p;
-    Aig_Obj_t * pRes;
-    Aig_Obj_t ** ppInputs;
+Aig_Man_t* Inter_ManStartInitState(int nRegs) {
+    Aig_Man_t* p;
+    Aig_Obj_t* pRes;
+    Aig_Obj_t** ppInputs;
     int i;
-    assert( nRegs > 0 );
-    ppInputs = ABC_ALLOC( Aig_Obj_t *, nRegs );
-    p = Aig_ManStart( nRegs );
-    for ( i = 0; i < nRegs; i++ )
-        ppInputs[i] = Aig_Not( Aig_ObjCreateCi(p) );
-    pRes = Aig_Multi( p, ppInputs, nRegs, AIG_OBJ_AND );
-    Aig_ObjCreateCo( p, pRes );
-    ABC_FREE( ppInputs );
+    assert(nRegs > 0);
+    ppInputs = ABC_ALLOC(Aig_Obj_t*, nRegs);
+    p = Aig_ManStart(nRegs);
+    for (i = 0; i < nRegs; i++)
+        ppInputs[i] = Aig_Not(Aig_ObjCreateCi(p));
+    pRes = Aig_Multi(p, ppInputs, nRegs, AIG_OBJ_AND);
+    Aig_ObjCreateCo(p, pRes);
+    ABC_FREE(ppInputs);
     return p;
 }
 
@@ -70,41 +68,41 @@ Aig_Man_t * Inter_ManStartInitState( int nRegs )
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Inter_ManStartDuplicated( Aig_Man_t * p )
-{
-    Aig_Man_t * pNew;
-    Aig_Obj_t * pObj;
+Aig_Man_t* Inter_ManStartDuplicated(Aig_Man_t* p) {
+    Aig_Man_t* pNew;
+    Aig_Obj_t* pObj;
     int i;
-    assert( Aig_ManRegNum(p) > 0 );
+    assert(Aig_ManRegNum(p) > 0);
     // create the new manager
-    pNew = Aig_ManStart( Aig_ManObjNumMax(p) );
-    pNew->pName = Abc_UtilStrsav( p->pName );
-    pNew->pSpec = Abc_UtilStrsav( p->pSpec );
+    pNew = Aig_ManStart(Aig_ManObjNumMax(p));
+    pNew->pName = Abc_UtilStrsav(p->pName);
+    pNew->pSpec = Abc_UtilStrsav(p->pSpec);
     // create the PIs
-    Aig_ManCleanData( p );
+    Aig_ManCleanData(p);
     Aig_ManConst1(p)->pData = Aig_ManConst1(pNew);
-    Aig_ManForEachCi( p, pObj, i )
-        pObj->pData = Aig_ObjCreateCi( pNew );
+    Aig_ManForEachCi(p, pObj, i)
+        pObj->pData
+        = Aig_ObjCreateCi(pNew);
     // set registers
     pNew->nTruePis = p->nTruePis;
     pNew->nTruePos = Saig_ManConstrNum(p);
-    pNew->nRegs    = p->nRegs;
+    pNew->nRegs = p->nRegs;
     // duplicate internal nodes
-    Aig_ManForEachNode( p, pObj, i )
-        pObj->pData = Aig_And( pNew, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj) );
+    Aig_ManForEachNode(p, pObj, i)
+        pObj->pData
+        = Aig_And(pNew, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj));
 
     // create constraint outputs
-    Saig_ManForEachPo( p, pObj, i )
-    {
-        if ( i < Saig_ManPoNum(p)-Saig_ManConstrNum(p) )
+    Saig_ManForEachPo(p, pObj, i) {
+        if (i < Saig_ManPoNum(p) - Saig_ManConstrNum(p))
             continue;
-        Aig_ObjCreateCo( pNew, Aig_Not( Aig_ObjChild0Copy(pObj) ) );
+        Aig_ObjCreateCo(pNew, Aig_Not(Aig_ObjChild0Copy(pObj)));
     }
 
     // create register inputs with MUXes
-    Saig_ManForEachLi( p, pObj, i )
-        Aig_ObjCreateCo( pNew, Aig_ObjChild0Copy(pObj) );
-    Aig_ManCleanup( pNew );
+    Saig_ManForEachLi(p, pObj, i)
+        Aig_ObjCreateCo(pNew, Aig_ObjChild0Copy(pObj));
+    Aig_ManCleanup(pNew);
     return pNew;
 }
 
@@ -119,59 +117,53 @@ Aig_Man_t * Inter_ManStartDuplicated( Aig_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Inter_ManStartOneOutput( Aig_Man_t * p, int fAddFirstPo )
-{
-    Aig_Man_t * pNew;
-    Aig_Obj_t * pObj, * pObjLi, * pObjLo;
-    Aig_Obj_t * pCtrl = NULL; // Suppress "might be used uninitialized"
+Aig_Man_t* Inter_ManStartOneOutput(Aig_Man_t* p, int fAddFirstPo) {
+    Aig_Man_t* pNew;
+    Aig_Obj_t *pObj, *pObjLi, *pObjLo;
+    Aig_Obj_t* pCtrl = NULL; // Suppress "might be used uninitialized"
     int i;
-    assert( Aig_ManRegNum(p) > 0 );
+    assert(Aig_ManRegNum(p) > 0);
     // create the new manager
-    pNew = Aig_ManStart( Aig_ManObjNumMax(p) );
-    pNew->pName = Abc_UtilStrsav( p->pName );
-    pNew->pSpec = Abc_UtilStrsav( p->pSpec );
+    pNew = Aig_ManStart(Aig_ManObjNumMax(p));
+    pNew->pName = Abc_UtilStrsav(p->pName);
+    pNew->pSpec = Abc_UtilStrsav(p->pSpec);
     // create the PIs
-    Aig_ManCleanData( p );
+    Aig_ManCleanData(p);
     Aig_ManConst1(p)->pData = Aig_ManConst1(pNew);
-    Aig_ManForEachCi( p, pObj, i )
-    {
-        if ( i == Saig_ManPiNum(p) )
-            pCtrl = Aig_ObjCreateCi( pNew );
-        pObj->pData = Aig_ObjCreateCi( pNew );
+    Aig_ManForEachCi(p, pObj, i) {
+        if (i == Saig_ManPiNum(p))
+            pCtrl = Aig_ObjCreateCi(pNew);
+        pObj->pData = Aig_ObjCreateCi(pNew);
     }
     // set registers
-    pNew->nRegs    = fAddFirstPo? 0 : p->nRegs;
-    pNew->nTruePis = fAddFirstPo? Aig_ManCiNum(p) + 1 : p->nTruePis + 1;
+    pNew->nRegs = fAddFirstPo ? 0 : p->nRegs;
+    pNew->nTruePis = fAddFirstPo ? Aig_ManCiNum(p) + 1 : p->nTruePis + 1;
     pNew->nTruePos = fAddFirstPo + Saig_ManConstrNum(p);
     // duplicate internal nodes
-    Aig_ManForEachNode( p, pObj, i )
-        pObj->pData = Aig_And( pNew, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj) );
+    Aig_ManForEachNode(p, pObj, i)
+        pObj->pData
+        = Aig_And(pNew, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj));
 
     // create constraint outputs
-    Saig_ManForEachPo( p, pObj, i )
-    {
-        if ( i < Saig_ManPoNum(p)-Saig_ManConstrNum(p) )
+    Saig_ManForEachPo(p, pObj, i) {
+        if (i < Saig_ManPoNum(p) - Saig_ManConstrNum(p))
             continue;
-        Aig_ObjCreateCo( pNew, Aig_Not( Aig_ObjChild0Copy(pObj) ) );
+        Aig_ObjCreateCo(pNew, Aig_Not(Aig_ObjChild0Copy(pObj)));
     }
 
     // add the PO
-    if ( fAddFirstPo )
-    {
-        pObj = Aig_ManCo( p, 0 );
-        Aig_ObjCreateCo( pNew, Aig_ObjChild0Copy(pObj) );
-    }
-    else
-    {
+    if (fAddFirstPo) {
+        pObj = Aig_ManCo(p, 0);
+        Aig_ObjCreateCo(pNew, Aig_ObjChild0Copy(pObj));
+    } else {
         // create register inputs with MUXes
-        Saig_ManForEachLiLo( p, pObjLi, pObjLo, i )
-        {
-            pObj = Aig_Mux( pNew, pCtrl, (Aig_Obj_t *)pObjLo->pData, Aig_ObjChild0Copy(pObjLi) );
-    //        pObj = Aig_Mux( pNew, pCtrl, Aig_ManConst0(pNew), Aig_ObjChild0Copy(pObjLi) );
-            Aig_ObjCreateCo( pNew, pObj );
+        Saig_ManForEachLiLo(p, pObjLi, pObjLo, i) {
+            pObj = Aig_Mux(pNew, pCtrl, (Aig_Obj_t*)pObjLo->pData, Aig_ObjChild0Copy(pObjLi));
+            //        pObj = Aig_Mux( pNew, pCtrl, Aig_ManConst0(pNew), Aig_ObjChild0Copy(pObjLi) );
+            Aig_ObjCreateCo(pNew, pObj);
         }
     }
-    Aig_ManCleanup( pNew );
+    Aig_ManCleanup(pNew);
     return pNew;
 }
 
@@ -179,6 +171,4 @@ Aig_Man_t * Inter_ManStartOneOutput( Aig_Man_t * p, int fAddFirstPo )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

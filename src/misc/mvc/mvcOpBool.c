@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -40,25 +39,22 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cover_t * Mvc_CoverBooleanOr( Mvc_Cover_t * pCover1, Mvc_Cover_t * pCover2 )
-{
-    Mvc_Cover_t * pCover;
-    Mvc_Cube_t * pCube, * pCubeCopy;
+Mvc_Cover_t* Mvc_CoverBooleanOr(Mvc_Cover_t* pCover1, Mvc_Cover_t* pCover2) {
+    Mvc_Cover_t* pCover;
+    Mvc_Cube_t *pCube, *pCubeCopy;
     // make sure the covers are compatible
-    assert( pCover1->nBits == pCover2->nBits );
+    assert(pCover1->nBits == pCover2->nBits);
     // clone the cover
-    pCover = Mvc_CoverClone( pCover1 );
+    pCover = Mvc_CoverClone(pCover1);
     // create the cubes by making pair-wise products
     // of cubes in pCover1 and pCover2
-    Mvc_CoverForEachCube( pCover1, pCube )
-    {
-        pCubeCopy = Mvc_CubeDup( pCover, pCube );
-        Mvc_CoverAddCubeTail( pCover, pCubeCopy );
+    Mvc_CoverForEachCube(pCover1, pCube) {
+        pCubeCopy = Mvc_CubeDup(pCover, pCube);
+        Mvc_CoverAddCubeTail(pCover, pCubeCopy);
     }
-    Mvc_CoverForEachCube( pCover2, pCube )
-    {
-        pCubeCopy = Mvc_CubeDup( pCover, pCube );
-        Mvc_CoverAddCubeTail( pCover, pCubeCopy );
+    Mvc_CoverForEachCube(pCover2, pCube) {
+        pCubeCopy = Mvc_CubeDup(pCover, pCube);
+        Mvc_CoverAddCubeTail(pCover, pCubeCopy);
     }
     return pCover;
 }
@@ -151,6 +147,4 @@ Mvc_CoverPrint( pSharp );
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

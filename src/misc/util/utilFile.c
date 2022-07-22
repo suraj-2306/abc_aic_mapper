@@ -26,11 +26,11 @@
 #include <sys/stat.h>
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
-#include <windows.h>
-#include <process.h>
-#include <io.h>
+#    include <windows.h>
+#    include <process.h>
+#    include <io.h>
 #else
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 #include "abc_global.h"
@@ -56,17 +56,19 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-static ABC_UINT64_T realTimeAbs()  // -- absolute time in nano-seconds
+static ABC_UINT64_T realTimeAbs() // -- absolute time in nano-seconds
 {
 #if defined(_MSC_VER)
     LARGE_INTEGER f, t;
     double realTime_freq;
     int ok;
 
-    ok = QueryPerformanceFrequency(&f); assert(ok);
+    ok = QueryPerformanceFrequency(&f);
+    assert(ok);
     realTime_freq = 1.0 / (__int64)(((ABC_UINT64_T)f.LowPart) | ((ABC_UINT64_T)f.HighPart << 32));
 
-    ok = QueryPerformanceCounter(&t); assert(ok);
+    ok = QueryPerformanceCounter(&t);
+    assert(ok);
     return (ABC_UINT64_T)(__int64)(((__int64)(((ABC_UINT64_T)t.LowPart | ((ABC_UINT64_T)t.HighPart << 32))) * realTime_freq * 1000000000));
 #else
     return 0;
@@ -86,21 +88,20 @@ static ABC_UINT64_T realTimeAbs()  // -- absolute time in nano-seconds
   SeeAlso     []
 
 ***********************************************************************/
-int tmpFile(const char* prefix, const char* suffix, char** out_name)
-{
+int tmpFile(const char* prefix, const char* suffix, char** out_name) {
 #if defined(_MSC_VER) || defined(__MINGW32__)
     int i, fd;
     *out_name = (char*)malloc(strlen(prefix) + strlen(suffix) + 27);
-    for (i = 0; i < 10; i++){
+    for (i = 0; i < 10; i++) {
         sprintf(*out_name, "%s%I64X%d%s", prefix, realTimeAbs(), _getpid(), suffix);
         fd = _open(*out_name, O_CREAT | O_EXCL | O_BINARY | O_RDWR, _S_IREAD | _S_IWRITE);
-        if (fd == -1){
+        if (fd == -1) {
             free(*out_name);
             *out_name = NULL;
         }
         return fd;
     }
-    assert(0);  // -- could not open temporary file
+    assert(0); // -- could not open temporary file
     return 0;
 #else
     int fd;
@@ -108,16 +109,16 @@ int tmpFile(const char* prefix, const char* suffix, char** out_name)
     assert(*out_name != NULL);
     sprintf(*out_name, "%sXXXXXX", prefix);
     fd = mkstemp(*out_name);
-    if (fd == -1){
+    if (fd == -1) {
         free(*out_name);
         *out_name = NULL;
-    }else{
+    } else {
         // Kludge:
         close(fd);
         unlink(*out_name);
         strcat(*out_name, suffix);
         fd = open(*out_name, O_CREAT | O_EXCL | O_RDWR, S_IREAD | S_IWRITE);
-        if (fd == -1){
+        if (fd == -1) {
             free(*out_name);
             *out_name = NULL;
         }
@@ -165,15 +166,13 @@ int main(int argc, char** argv)
   SeeAlso     []
 
 ***********************************************************************/
-char* vnsprintf(const char* format, va_list args)
-{
+char* vnsprintf(const char* format, va_list args) {
     unsigned n;
-    char*    ret;
-    va_list  args_copy;
+    char* ret;
+    va_list args_copy;
 
     static FILE* dummy_file = NULL;
-    if (!dummy_file)
-    {
+    if (!dummy_file) {
 #if !defined(_MSC_VER) && !defined(__MINGW32)
         dummy_file = fopen("/dev/null", "wb");
 #else
@@ -184,14 +183,14 @@ char* vnsprintf(const char* format, va_list args)
 #if defined(__va_copy)
     __va_copy(args_copy, args);
 #else
-  #if defined(va_copy)
+#    if defined(va_copy)
     va_copy(args_copy, args);
-  #else
+#    else
     args_copy = args;
-  #endif
+#    endif
 #endif
     n = vfprintf(dummy_file, format, args);
-    ret = ABC_ALLOC( char, n + 1 );
+    ret = ABC_ALLOC(char, n + 1);
     ret[n] = (char)255;
     args = args_copy;
     vsprintf(ret, format, args);
@@ -202,8 +201,7 @@ char* vnsprintf(const char* format, va_list args)
     return ret;
 }
 
-char* nsprintf(const char* format, ...)
-{
+char* nsprintf(const char* format, ...) {
     char* ret;
     va_list args;
     va_start(args, format);
@@ -216,6 +214,4 @@ char* nsprintf(const char* format, ...)
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

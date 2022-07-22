@@ -37,18 +37,14 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     [CommandCm in base/abc.c ]
 
 ***********************************************************************/
-void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
-{
-    memset( pPars, 0, sizeof(Cm_Par_t) );
+void Cm_ManSetDefaultPars(Cm_Par_t* pPars) {
+    memset(pPars, 0, sizeof(Cm_Par_t));
     pPars->fThreeInputGates = 0;
-    if ( pPars->fThreeInputGates )
-    {
+    if (pPars->fThreeInputGates) {
         pPars->nConeDepth = 3;
         pPars->MinSoHeight = 1;
         pPars->fCutBalancing = 0;
-    }
-    else
-    {
+    } else {
         pPars->nConeDepth = 6;
         pPars->MinSoHeight = 2;
         pPars->fCutBalancing = 1;
@@ -70,7 +66,6 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
     pPars->nMaxCycleDetectionRecDepth = 5;
 }
 
-
 /**Function*************************************************************
 
   Synopsis    [Selects the required cuts for the circuit covering and 
@@ -84,41 +79,34 @@ void Cm_ManSetDefaultPars( Cm_Par_t * pPars )
   SeeAlso     [CommandCm in base/abc.c ]
 
 ***********************************************************************/
-void Cm_ManAssignCones( Cm_Man_t * p )
-{
-    Cm_Obj_t * pObj;
+void Cm_ManAssignCones(Cm_Man_t* p) {
+    Cm_Obj_t* pObj;
     int enumerator;
-    Cm_ManForEachObj(p, pObj, enumerator)
-    {
+    Cm_ManForEachObj(p, pObj, enumerator) {
         pObj->fMark = 0;
         pObj->nMoRefs = 0;
         pObj->nSoRefs = 0;
         pObj->BestCut.SoOfCutAt = NULL;
     }
-    Cm_ManForEachObjReverse(p, pObj, enumerator)
-    {
-        if ( pObj->Type == CM_CO )
-        {
+    Cm_ManForEachObjReverse(p, pObj, enumerator) {
+        if (pObj->Type == CM_CO) {
             pObj->pFanin0->fMark |= CM_MARK_VISIBLE;
             continue;
         }
-        if ( pObj->Type == CM_AND )
-        {
-            if ( !(pObj->fMark&CM_MARK_VISIBLE) )
+        if (pObj->Type == CM_AND) {
+            if (!(pObj->fMark & CM_MARK_VISIBLE))
                 continue;
-            Cm_Obj_t * pRepr = Cm_ObjGetRepr(pObj);
-            for(int i=0; i<pRepr->BestCut.nFanins; i++)
-            {
+            Cm_Obj_t* pRepr = Cm_ObjGetRepr(pObj);
+            for (int i = 0; i < pRepr->BestCut.nFanins; i++) {
                 pRepr->BestCut.Leafs[i]->fMark |= CM_MARK_VISIBLE;
                 pRepr->BestCut.Leafs[i]->nMoRefs++;
             }
         }
     }
     float alpha = p->pPars->AreaFlowAverageWeightFactor;
-    Cm_ManForEachNode(p, pObj, enumerator)
-    {
-        if((pObj->fMark&CM_MARK_VISIBLE))
-            pObj->nRefsEstimate = (pObj->nRefsEstimate + alpha * pObj->nMoRefs) / (1+alpha);
+    Cm_ManForEachNode(p, pObj, enumerator) {
+        if ((pObj->fMark & CM_MARK_VISIBLE))
+            pObj->nRefsEstimate = (pObj->nRefsEstimate + alpha * pObj->nMoRefs) / (1 + alpha);
         else
             pObj->nRefsEstimate = 1;
     }
@@ -135,96 +123,82 @@ void Cm_ManAssignCones( Cm_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Cm_ManRecoverArea( Cm_Man_t * p )
-{
-    float * AicDelay = p->pPars->AicDelay;
-    float * AicArea = p->pPars->AicArea;
+void Cm_ManRecoverArea(Cm_Man_t* p) {
+    float* AicDelay = p->pPars->AicDelay;
+    float* AicArea = p->pPars->AicArea;
     float eps = p->pPars->Epsilon;
     const int minDepth = p->pPars->MinSoHeight;
     const int maxDepth = p->pPars->nConeDepth;
     const int fCutBalancing = p->pPars->fCutBalancing;
     int enumerator;
-    Cm_Obj_t * pObj;
+    Cm_Obj_t* pObj;
     Cm_Cut_t tCut;
-    if ( p->pPars->fThreeInputGates)
-    {
-        Cm_Obj_t * pNodes[Cm_Fa3Size(maxDepth+1)+1];
-        Cm_ManForEachNode(p, pObj, enumerator)
-        {
+    if (p->pPars->fThreeInputGates) {
+        Cm_Obj_t* pNodes[Cm_Fa3Size(maxDepth + 1) + 1];
+        Cm_ManForEachNode(p, pObj, enumerator) {
             int fUpdate = 0;
             float bestAreaFlow = CM_FLOAT_LARGE;
-            for(int d=minDepth; d<=maxDepth; d++)
-            {
+            for (int d = minDepth; d <= maxDepth; d++) {
                 pNodes[1] = pObj;
                 int cdepth = Cm_Fa3BuildWithMaximumDepth(pNodes, d);
-                if (cdepth < d )
+                if (cdepth < d)
                     break;
                 float latestInputArrival = Cm_Fa3LatestMoInputArrival(pNodes, d);
                 float requiredInputArrival = pObj->Required - AicDelay[d];
-                if ( latestInputArrival > requiredInputArrival + eps )
+                if (latestInputArrival > requiredInputArrival + eps)
                     continue;
                 tCut.Depth = d;
                 float areaFlow = Cm_ManMinimizeCutAreaFlow(p, pNodes, requiredInputArrival, &tCut);
-                if ( areaFlow + eps < bestAreaFlow )
-                {
+                if (areaFlow + eps < bestAreaFlow) {
                     fUpdate = 1;
                     Cm_CutCopy(&tCut, &pObj->BestCut);
                     bestAreaFlow = areaFlow;
                 }
             }
-            if ( fUpdate )
+            if (fUpdate)
                 pObj->BestCut.AreaFlow = bestAreaFlow / (pObj->nRefsEstimate);
             else
                 pObj->BestCut.AreaFlow = Cm_ManCutAreaFlow(p, &pObj->BestCut) / pObj->nRefsEstimate;
             pObj->BestCut.Arrival = Cm_CutLatestLeafMoArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
         }
 
-    }
-    else
-    {
-        Cm_Obj_t * pNodes[(2<<maxDepth)];
-        Cm_ManForEachNode(p, pObj, enumerator)
-        {
+    } else {
+        Cm_Obj_t* pNodes[(2 << maxDepth)];
+        Cm_ManForEachNode(p, pObj, enumerator) {
             int fUpdate = 0;
             float bestAreaFlow = CM_FLOAT_LARGE;
-            for(int d=minDepth; d<=maxDepth; d++)
-            {
+            for (int d = minDepth; d <= maxDepth; d++) {
                 pNodes[1] = pObj;
                 int cdepth = Cm_FaBuildWithMaximumDepth(pNodes, d);
-                if (cdepth < d )
+                if (cdepth < d)
                     break;
                 float latestInputArrival = Cm_FaLatestMoInputArrival(pNodes, d);
                 float requiredInputArrival = pObj->Required - AicDelay[d];
-                if ( latestInputArrival > requiredInputArrival + eps )
+                if (latestInputArrival > requiredInputArrival + eps)
                     continue;
                 tCut.Depth = d;
                 float areaFlow = Cm_ManMinimizeCutAreaFlow(p, pNodes, requiredInputArrival, &tCut);
-                if ( areaFlow + eps < bestAreaFlow )
-                {
+                if (areaFlow + eps < bestAreaFlow) {
                     fUpdate = 1;
                     Cm_CutCopy(&tCut, &pObj->BestCut);
                     bestAreaFlow = areaFlow;
                 }
             }
-            if ( fUpdate )
+            if (fUpdate)
                 pObj->BestCut.AreaFlow = bestAreaFlow / (pObj->nRefsEstimate);
             else
                 pObj->BestCut.AreaFlow = Cm_ManCutAreaFlow(p, &pObj->BestCut) / pObj->nRefsEstimate;
             pObj->BestCut.Arrival = Cm_CutLatestLeafMoArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
-            
-            if ( fCutBalancing && Cm_ManBalanceCut(p, pObj) )
-            {
+
+            if (fCutBalancing && Cm_ManBalanceCut(p, pObj)) {
                 pObj->fRepr = 0;
-                Cm_Obj_t * pBest = pObj;
-                Cm_Obj_t * pEq = pObj->pEquiv;
-                while(pEq)
-                {
+                Cm_Obj_t* pBest = pObj;
+                Cm_Obj_t* pEq = pObj->pEquiv;
+                while (pEq) {
                     float arrival = Cm_CutLatestLeafMoArrival(&pEq->BestCut) + AicDelay[pEq->BestCut.Depth];
-                    if ( arrival < pObj->Required + eps )
-                    {
-                        float af = (Cm_CutLeafAreaFlowSum(&pEq->BestCut) + AicArea[pEq->BestCut.Depth] ) / pObj->nRefsEstimate;
-                        if ( af < pBest->BestCut.AreaFlow )
-                        {
+                    if (arrival < pObj->Required + eps) {
+                        float af = (Cm_CutLeafAreaFlowSum(&pEq->BestCut) + AicArea[pEq->BestCut.Depth]) / pObj->nRefsEstimate;
+                        if (af < pBest->BestCut.AreaFlow) {
                             pEq->BestCut.AreaFlow = af;
                             pEq->BestCut.Arrival = arrival;
                             pBest = pEq;
@@ -236,7 +210,6 @@ void Cm_ManRecoverArea( Cm_Man_t * p )
                 pBest->fRepr = 1;
             }
         }
-
     }
 }
 
@@ -251,66 +224,58 @@ void Cm_ManRecoverArea( Cm_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Cm_ManPerformMapping( Cm_Man_t * p )
-{
+int Cm_ManPerformMapping(Cm_Man_t* p) {
     // Cm_PrintAigStructure(p, 100);
-    Cm_Obj_t * pObj;
-    Cm_Obj_t * pNodes[CM_MAX_FA_SIZE];
+    Cm_Obj_t* pObj;
+    Cm_Obj_t* pNodes[CM_MAX_FA_SIZE];
     int enumerator;
-    float * AicDelay = p->pPars->AicDelay;
+    float* AicDelay = p->pPars->AicDelay;
     int nAreaRounds = p->pPars->nAreaRounds;
     Cm_ManSetCiArrival(p);
     p->pConst1->BestCut.AreaFlow = 0;
     p->pConst1->BestCut.Arrival = 0;
     p->pConst1->fRepr = 1;
-    Cm_ManForEachCi(p, pObj, enumerator)
-    {
+    Cm_ManForEachCi(p, pObj, enumerator) {
         pObj->BestCut.AreaFlow = 0;
         pObj->nRefsEstimate = 1;
     }
-    Cm_ManForEachNode(p, pObj, enumerator)
-    {
+    Cm_ManForEachNode(p, pObj, enumerator) {
         pObj->nRefsEstimate = 1;
         pNodes[1] = pObj;
         float arr = Cm_FaBuildDepthOptimal(pNodes, p->pPars);
         // FaE
-        if ( p->pPars->fThreeInputGates) 
+        if (p->pPars->fThreeInputGates)
             Cm_Fa3ExtractLeafs(pNodes, &pObj->BestCut);
         else
             Cm_FaExtractLeafs(pNodes, &pObj->BestCut);
         pObj->BestCut.Arrival = arr + AicDelay[pObj->BestCut.Depth];
     }
     Cm_ManAssignCones(p);
-    if ( p->pPars->fVerbose )
+    if (p->pPars->fVerbose)
         Cm_PrintBestCutStats(p);
 
     if (p->pPars->fStructuralRequired)
         Cm_ManCalcRequiredStructural(p);
-    else
-    {
-        if ( p->pPars->fExtraValidityChecks)
+    else {
+        if (p->pPars->fExtraValidityChecks)
             Cm_TestMonotonicArrival(p);
         float arrival = Cm_ManLatestCoArrival(p);
         Cm_ManSetCoRequired(p, arrival);
         Cm_ManCalcVisibleRequired(p);
         Cm_ManSetInvisibleRequired(p);
 
-        if ( p->pPars->fVerbose )
+        if (p->pPars->fVerbose)
             Cm_PrintBestCutStats(p);
     }
-    if (nAreaRounds)
-    {
-        while (nAreaRounds)
-        {
+    if (nAreaRounds) {
+        while (nAreaRounds) {
             Cm_ManRecoverArea(p);
-            if ( !p->pPars->fStructuralRequired)
-            {
+            if (!p->pPars->fStructuralRequired) {
                 Cm_ManCalcVisibleRequired(p);
                 Cm_ManSetInvisibleRequired(p);
             }
             Cm_ManAssignCones(p);
-            if ( p->pPars->fExtraValidityChecks)
-            {
+            if (p->pPars->fExtraValidityChecks) {
                 Cm_TestPositiveSlacks(p, 1);
                 Cm_TestArrivalConsistency(p);
             }
@@ -318,36 +283,29 @@ int Cm_ManPerformMapping( Cm_Man_t * p )
                 Cm_PrintBestCutStats(p);
             nAreaRounds--;
         }
-    }
-    else
+    } else
         Cm_ManCalcVisibleRequired(p);
 
-    if ( p->pPars->fVeryVerbose)
-    {
+    if (p->pPars->fVeryVerbose) {
         Cm_PrintCoArrival(p);
         Cm_PrintCiRequired(p);
     }
-    if ( p->pPars->fExtraValidityChecks )
-    {
+    if (p->pPars->fExtraValidityChecks) {
         // Cm_TestBestCutLeafsStructure(p);
         Cm_TestArrivalConsistency(p);
         Cm_TestPositiveSlacks(p, 1);
     }
     Cm_ManAssignCones(p);
-    if ( p->pPars->fEnableSo)
-    {
+    if (p->pPars->fEnableSo) {
         Cm_ManCalcVisibleRequired(p);
         Cm_ManInsertSos(p);
-        if ( p->pPars->fExtraValidityChecks )
-        {
+        if (p->pPars->fExtraValidityChecks) {
             Cm_TestArrivalConsistency(p);
-            if ( p->pPars->fRespectSoSlack)
+            if (p->pPars->fRespectSoSlack)
                 Cm_TestPositiveSlacks(p, 1);
         }
     }
     return 0;
 }
 
-
 ABC_NAMESPACE_IMPL_END
-

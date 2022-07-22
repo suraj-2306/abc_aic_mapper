@@ -30,27 +30,24 @@ ABC_NAMESPACE_IMPL_START
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
- 
 
-typedef struct Vec_Mem_t_       Vec_Mem_t;
-struct Vec_Mem_t_ 
-{
-    int              nCap;
-    int              nSize;
-    void **          pArray;
+typedef struct Vec_Mem_t_ Vec_Mem_t;
+struct Vec_Mem_t_ {
+    int nCap;
+    int nSize;
+    void** pArray;
 };
 
-void * s_vAllocs = NULL;
-void * s_vFrees  = NULL;
-int    s_fInterrupt = 0;
+void* s_vAllocs = NULL;
+void* s_vFrees = NULL;
+int s_fInterrupt = 0;
 
-#define ABC_MEM_ALLOC(type, num)     ((type *) malloc(sizeof(type) * (num)))
-#define ABC_MEM_CALLOC(type, num)     ((type *) calloc((num), sizeof(type)))
-#define ABC_MEM_FALLOC(type, num)     ((type *) memset(malloc(sizeof(type) * (num)), 0xff, sizeof(type) * (num)))
-#define ABC_MEM_FREE(obj)             ((obj) ? (free((char *) (obj)), (obj) = 0) : 0)
-#define ABC_MEM_REALLOC(type, obj, num)    \
-        ((obj) ? ((type *) realloc((char *)(obj), sizeof(type) * (num))) : \
-         ((type *) malloc(sizeof(type) * (num))))
+#define ABC_MEM_ALLOC(type, num) ((type*)malloc(sizeof(type) * (num)))
+#define ABC_MEM_CALLOC(type, num) ((type*)calloc((num), sizeof(type)))
+#define ABC_MEM_FALLOC(type, num) ((type*)memset(malloc(sizeof(type) * (num)), 0xff, sizeof(type) * (num)))
+#define ABC_MEM_FREE(obj) ((obj) ? (free((char*)(obj)), (obj) = 0) : 0)
+#define ABC_MEM_REALLOC(type, obj, num) \
+    ((obj) ? ((type*)realloc((char*)(obj), sizeof(type) * (num))) : ((type*)malloc(sizeof(type) * (num))))
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -67,15 +64,14 @@ int    s_fInterrupt = 0;
   SeeAlso     []
 
 ***********************************************************************/
-static inline Vec_Mem_t * Vec_MemAlloc( int nCap )
-{
-    Vec_Mem_t * p;
-    p = ABC_MEM_ALLOC( Vec_Mem_t, 1 );
-    if ( nCap > 0 && nCap < 8 )
+static inline Vec_Mem_t* Vec_MemAlloc(int nCap) {
+    Vec_Mem_t* p;
+    p = ABC_MEM_ALLOC(Vec_Mem_t, 1);
+    if (nCap > 0 && nCap < 8)
         nCap = 8;
-    p->nSize  = 0;
-    p->nCap   = nCap;
-    p->pArray = p->nCap? ABC_MEM_ALLOC( void *, p->nCap ) : NULL;
+    p->nSize = 0;
+    p->nCap = nCap;
+    p->pArray = p->nCap ? ABC_MEM_ALLOC(void*, p->nCap) : NULL;
     return p;
 }
 
@@ -90,10 +86,9 @@ static inline Vec_Mem_t * Vec_MemAlloc( int nCap )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_MemFree( Vec_Mem_t * p )
-{
-    ABC_MEM_FREE( p->pArray );
-    ABC_MEM_FREE( p );
+static inline void Vec_MemFree(Vec_Mem_t* p) {
+    ABC_MEM_FREE(p->pArray);
+    ABC_MEM_FREE(p);
 }
 
 /**Function*************************************************************
@@ -107,12 +102,11 @@ static inline void Vec_MemFree( Vec_Mem_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_MemGrow( Vec_Mem_t * p, int nCapMin )
-{
-    if ( p->nCap >= nCapMin )
+static inline void Vec_MemGrow(Vec_Mem_t* p, int nCapMin) {
+    if (p->nCap >= nCapMin)
         return;
-    p->pArray = ABC_MEM_REALLOC( void *, p->pArray, nCapMin ); 
-    p->nCap   = nCapMin;
+    p->pArray = ABC_MEM_REALLOC(void*, p->pArray, nCapMin);
+    p->nCap = nCapMin;
 }
 
 /**Function*************************************************************
@@ -126,14 +120,12 @@ static inline void Vec_MemGrow( Vec_Mem_t * p, int nCapMin )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_MemPush( Vec_Mem_t * p, void * Entry )
-{
-    if ( p->nSize == p->nCap )
-    {
-        if ( p->nCap < 16 )
-            Vec_MemGrow( p, 16 );
+static inline void Vec_MemPush(Vec_Mem_t* p, void* Entry) {
+    if (p->nSize == p->nCap) {
+        if (p->nCap < 16)
+            Vec_MemGrow(p, 16);
         else
-            Vec_MemGrow( p, 2 * p->nCap );
+            Vec_MemGrow(p, 2 * p->nCap);
     }
     p->pArray[p->nSize++] = Entry;
 }
@@ -149,14 +141,12 @@ static inline void Vec_MemPush( Vec_Mem_t * p, void * Entry )
   SeeAlso     []
 
 ***********************************************************************/
-static void Vec_MemSort( Vec_Mem_t * p, int (*Vec_MemSortCompare)() )
-{
-    if ( p->nSize < 2 )
+static void Vec_MemSort(Vec_Mem_t* p, int (*Vec_MemSortCompare)()) {
+    if (p->nSize < 2)
         return;
-    qsort( (void *)p->pArray, (size_t)p->nSize, sizeof(void *), 
-            (int (*)(const void *, const void *)) Vec_MemSortCompare );
+    qsort((void*)p->pArray, (size_t)p->nSize, sizeof(void*),
+          (int (*)(const void*, const void*))Vec_MemSortCompare);
 }
-
 
 /**Function*************************************************************
 
@@ -169,10 +159,9 @@ static void Vec_MemSort( Vec_Mem_t * p, int (*Vec_MemSortCompare)() )
   SeeAlso     []
 
 ***********************************************************************/
-void * Util_MemRecAlloc( void * pMem )
-{
-    if ( s_vAllocs )
-        Vec_MemPush( (Vec_Mem_t *)s_vAllocs, pMem );
+void* Util_MemRecAlloc(void* pMem) {
+    if (s_vAllocs)
+        Vec_MemPush((Vec_Mem_t*)s_vAllocs, pMem);
     return pMem;
 }
 
@@ -187,10 +176,9 @@ void * Util_MemRecAlloc( void * pMem )
   SeeAlso     []
 
 ***********************************************************************/
-void * Util_MemRecFree( void * pMem )
-{
-    if ( s_vFrees )
-        Vec_MemPush( (Vec_Mem_t *)s_vFrees, pMem );
+void* Util_MemRecFree(void* pMem) {
+    if (s_vFrees)
+        Vec_MemPush((Vec_Mem_t*)s_vFrees, pMem);
     return pMem;
 }
 
@@ -205,13 +193,12 @@ void * Util_MemRecFree( void * pMem )
   SeeAlso     []
 
 ***********************************************************************/
-int Util_ComparePointers( void ** pp1, void ** pp2 )
-{
-    if ( *pp1 < *pp2 )
+int Util_ComparePointers(void** pp1, void** pp2) {
+    if (*pp1 < *pp2)
         return -1;
-    if ( *pp1 > *pp2 ) 
+    if (*pp1 > *pp2)
         return 1;
-    return 0; 
+    return 0;
 }
 
 /**Function*************************************************************
@@ -225,36 +212,32 @@ int Util_ComparePointers( void ** pp1, void ** pp2 )
   SeeAlso     []
 
 ***********************************************************************/
-static inline Vec_Mem_t * Vec_MemTwoMerge( Vec_Mem_t * vArr1, Vec_Mem_t * vArr2 )
-{
-    Vec_Mem_t * vArr = Vec_MemAlloc( vArr1->nSize + vArr2->nSize ); 
-    void ** pBeg  = vArr->pArray;
-    void ** pBeg1 = vArr1->pArray;
-    void ** pBeg2 = vArr2->pArray;
-    void ** pEnd1 = vArr1->pArray + vArr1->nSize;
-    void ** pEnd2 = vArr2->pArray + vArr2->nSize;
-    while ( pBeg1 < pEnd1 && pBeg2 < pEnd2 )
-    {
-        if ( *pBeg1 == *pBeg2 )
+static inline Vec_Mem_t* Vec_MemTwoMerge(Vec_Mem_t* vArr1, Vec_Mem_t* vArr2) {
+    Vec_Mem_t* vArr = Vec_MemAlloc(vArr1->nSize + vArr2->nSize);
+    void** pBeg = vArr->pArray;
+    void** pBeg1 = vArr1->pArray;
+    void** pBeg2 = vArr2->pArray;
+    void** pEnd1 = vArr1->pArray + vArr1->nSize;
+    void** pEnd2 = vArr2->pArray + vArr2->nSize;
+    while (pBeg1 < pEnd1 && pBeg2 < pEnd2) {
+        if (*pBeg1 == *pBeg2)
             pBeg1++, pBeg2++;
-        else if ( *pBeg1 < *pBeg2 )
-        {
-            free( *pBeg1 );
+        else if (*pBeg1 < *pBeg2) {
+            free(*pBeg1);
             *pBeg++ = *pBeg1++;
-        }
-        else 
-            assert( 0 );
-//            *pBeg++ = *pBeg2++;
+        } else
+            assert(0);
+        //            *pBeg++ = *pBeg2++;
     }
-    while ( pBeg1 < pEnd1 )
+    while (pBeg1 < pEnd1)
         *pBeg++ = *pBeg1++;
-//    while ( pBeg2 < pEnd2 )
-//        *pBeg++ = *pBeg2++;
-    assert( pBeg2 >= pEnd2 );
+    //    while ( pBeg2 < pEnd2 )
+    //        *pBeg++ = *pBeg2++;
+    assert(pBeg2 >= pEnd2);
     vArr->nSize = pBeg - vArr->pArray;
-    assert( vArr->nSize <= vArr->nCap );
-    assert( vArr->nSize >= vArr1->nSize );
-    assert( vArr->nSize >= vArr2->nSize );
+    assert(vArr->nSize <= vArr->nCap);
+    assert(vArr->nSize >= vArr1->nSize);
+    assert(vArr->nSize >= vArr2->nSize);
     return vArr;
 }
 
@@ -269,15 +252,14 @@ static inline Vec_Mem_t * Vec_MemTwoMerge( Vec_Mem_t * vArr1, Vec_Mem_t * vArr2 
   SeeAlso     []
 
 ***********************************************************************/
-void Util_MemRecRecycle()
-{
-    Vec_Mem_t * vMerge;
-    assert( s_vAllocs == NULL );
-    assert( s_vFrees == NULL );
-    Vec_MemSort( (Vec_Mem_t *)s_vAllocs, (int (*)())Util_ComparePointers );
-    Vec_MemSort( (Vec_Mem_t *)s_vFrees, (int (*)())Util_ComparePointers );
-    vMerge = (Vec_Mem_t *)Vec_MemTwoMerge( (Vec_Mem_t *)s_vAllocs, (Vec_Mem_t *)s_vFrees );
-    Vec_MemFree( vMerge );
+void Util_MemRecRecycle() {
+    Vec_Mem_t* vMerge;
+    assert(s_vAllocs == NULL);
+    assert(s_vFrees == NULL);
+    Vec_MemSort((Vec_Mem_t*)s_vAllocs, (int (*)())Util_ComparePointers);
+    Vec_MemSort((Vec_Mem_t*)s_vFrees, (int (*)())Util_ComparePointers);
+    vMerge = (Vec_Mem_t*)Vec_MemTwoMerge((Vec_Mem_t*)s_vAllocs, (Vec_Mem_t*)s_vFrees);
+    Vec_MemFree(vMerge);
 }
 
 /**Function*************************************************************
@@ -291,11 +273,10 @@ void Util_MemRecRecycle()
   SeeAlso     []
 
 ***********************************************************************/
-void Util_MemRecStart()
-{
-    assert( s_vAllocs == NULL && s_vFrees == NULL );
-    s_vAllocs = Vec_MemAlloc( 1000 );
-    s_vFrees = Vec_MemAlloc( 1000 );
+void Util_MemRecStart() {
+    assert(s_vAllocs == NULL && s_vFrees == NULL);
+    s_vAllocs = Vec_MemAlloc(1000);
+    s_vFrees = Vec_MemAlloc(1000);
 }
 
 /**Function*************************************************************
@@ -309,11 +290,10 @@ void Util_MemRecStart()
   SeeAlso     []
 
 ***********************************************************************/
-void Util_MemRecQuit()
-{
-    assert( s_vAllocs != NULL && s_vFrees != NULL );
-    Vec_MemFree( (Vec_Mem_t *)s_vAllocs );
-    Vec_MemFree( (Vec_Mem_t *)s_vFrees );
+void Util_MemRecQuit() {
+    assert(s_vAllocs != NULL && s_vFrees != NULL);
+    Vec_MemFree((Vec_Mem_t*)s_vAllocs);
+    Vec_MemFree((Vec_Mem_t*)s_vFrees);
 }
 
 /**Function*************************************************************
@@ -327,8 +307,7 @@ void Util_MemRecQuit()
   SeeAlso     []
 
 ***********************************************************************/
-int Util_MemRecIsSet()
-{
+int Util_MemRecIsSet() {
     return s_vAllocs != NULL && s_vFrees != NULL;
 }
 
@@ -336,6 +315,4 @@ int Util_MemRecIsSet()
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

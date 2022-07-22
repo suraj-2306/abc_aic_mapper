@@ -46,22 +46,21 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-char * xSAT_FileRead( FILE * pFile )
-{
+char* xSAT_FileRead(FILE* pFile) {
     int nFileSize;
-    char * pBuffer;
+    char* pBuffer;
     int RetValue;
     // get the file size, in bytes
-    fseek( pFile, 0, SEEK_END );
-    nFileSize = ftell( pFile );
+    fseek(pFile, 0, SEEK_END);
+    nFileSize = ftell(pFile);
     // move the file current reading position to the beginning
-    rewind( pFile );
+    rewind(pFile);
     // load the contents of the file into memory
-    pBuffer = ABC_ALLOC( char, nFileSize + 3 );
-    RetValue = fread( pBuffer, nFileSize, 1, pFile );
+    pBuffer = ABC_ALLOC(char, nFileSize + 3);
+    RetValue = fread(pBuffer, nFileSize, 1, pFile);
     // terminate the string with '\0'
-    pBuffer[ nFileSize + 0] = '\n';
-    pBuffer[ nFileSize + 1] = '\0';
+    pBuffer[nFileSize + 0] = '\n';
+    pBuffer[nFileSize + 1] = '\0';
     return pBuffer;
 }
 
@@ -76,14 +75,11 @@ char * xSAT_FileRead( FILE * pFile )
   SeeAlso     []
 
 ***********************************************************************/
-static void skipLine( char ** pIn )
-{
-    while ( 1 )
-    {
+static void skipLine(char** pIn) {
+    while (1) {
         if (**pIn == 0)
             return;
-        if (**pIn == '\n')
-        {
+        if (**pIn == '\n') {
             (*pIn)++;
             return;
         }
@@ -102,22 +98,22 @@ static void skipLine( char ** pIn )
   SeeAlso     []
 
 ***********************************************************************/
-static int xSAT_ReadInt( char ** pIn )
-{
+static int xSAT_ReadInt(char** pIn) {
     int val = 0;
     int neg = 0;
 
-    for(; isspace(**pIn); (*pIn)++);
-    if ( **pIn == '-' )
+    for (; isspace(**pIn); (*pIn)++)
+        ;
+    if (**pIn == '-')
         neg = 1,
         (*pIn)++;
-    else if ( **pIn == '+' )
+    else if (**pIn == '+')
         (*pIn)++;
-    if ( !isdigit(**pIn) )
+    if (!isdigit(**pIn))
         fprintf(stderr, "PARSE ERROR! Unexpected char: %c\n", **pIn),
-        exit(1);
-    while ( isdigit(**pIn) )
-        val = val*10 + (**pIn - '0'),
+            exit(1);
+    while (isdigit(**pIn))
+        val = val * 10 + (**pIn - '0'),
         (*pIn)++;
     return neg ? -val : val;
 }
@@ -133,19 +129,17 @@ static int xSAT_ReadInt( char ** pIn )
   SeeAlso     []
 
 ***********************************************************************/
-static void xSAT_ReadClause( char ** pIn, xSAT_Solver_t * p, Vec_Int_t * vLits )
-{
+static void xSAT_ReadClause(char** pIn, xSAT_Solver_t* p, Vec_Int_t* vLits) {
     int token, var, sign;
 
-    Vec_IntClear( vLits );
-    while ( 1 )
-    {
-        token = xSAT_ReadInt( pIn );
-        if ( token == 0 )
+    Vec_IntClear(vLits);
+    while (1) {
+        token = xSAT_ReadInt(pIn);
+        if (token == 0)
             break;
         var = abs(token) - 1;
         sign = (token > 0);
-        Vec_IntPush( vLits, xSAT_Var2Lit( var, !sign ) );
+        Vec_IntPush(vLits, xSAT_Var2Lit(var, !sign));
     }
 }
 
@@ -160,52 +154,48 @@ static void xSAT_ReadClause( char ** pIn, xSAT_Solver_t * p, Vec_Int_t * vLits )
   SeeAlso     []
 
 ***********************************************************************/
-static int xSAT_ParseDimacs( char * pText, xSAT_Solver_t ** pS )
-{
-    xSAT_Solver_t * p = NULL;
-    Vec_Int_t * vLits = NULL;
-    char * pIn = pText;
+static int xSAT_ParseDimacs(char* pText, xSAT_Solver_t** pS) {
+    xSAT_Solver_t* p = NULL;
+    Vec_Int_t* vLits = NULL;
+    char* pIn = pText;
     int nVars, nClas;
-    while ( 1 )
-    {
-        for(; isspace(*pIn); pIn++);
-        if ( *pIn == 0 )
+    while (1) {
+        for (; isspace(*pIn); pIn++)
+            ;
+        if (*pIn == 0)
             break;
-        else if ( *pIn == 'c' )
-            skipLine( &pIn );
-        else if ( *pIn == 'p' )
-        {
+        else if (*pIn == 'c')
+            skipLine(&pIn);
+        else if (*pIn == 'p') {
             pIn++;
-            for(; isspace(*pIn); pIn++);
-            for(; !isspace(*pIn); pIn++);
+            for (; isspace(*pIn); pIn++)
+                ;
+            for (; !isspace(*pIn); pIn++)
+                ;
 
-            nVars = xSAT_ReadInt( &pIn );
-            nClas = xSAT_ReadInt( &pIn );
-            skipLine( &pIn );
+            nVars = xSAT_ReadInt(&pIn);
+            nClas = xSAT_ReadInt(&pIn);
+            skipLine(&pIn);
 
             /* start the solver */
             p = xSAT_SolverCreate();
             /* allocate the vector */
-            vLits = Vec_IntAlloc( nVars );
-        }
-        else
-        {
-            if ( p == NULL )
-            {
-                printf( "There is no parameter line.\n" );
+            vLits = Vec_IntAlloc(nVars);
+        } else {
+            if (p == NULL) {
+                printf("There is no parameter line.\n");
                 exit(1);
             }
-            xSAT_ReadClause( &pIn, p, vLits );
-            if ( !xSAT_SolverAddClause( p, vLits ) )
-            {
+            xSAT_ReadClause(&pIn, p, vLits);
+            if (!xSAT_SolverAddClause(p, vLits)) {
                 Vec_IntPrint(vLits);
                 return 0;
             }
         }
     }
-    Vec_IntFree( vLits );
+    Vec_IntFree(vLits);
     *pS = p;
-    return xSAT_SolverSimplify( p );
+    return xSAT_SolverSimplify(p);
 }
 
 /**Function*************************************************************
@@ -219,13 +209,12 @@ static int xSAT_ParseDimacs( char * pText, xSAT_Solver_t ** pS )
   SeeAlso     []
 
 ***********************************************************************/
-int xSAT_SolverParseDimacs( FILE * pFile, xSAT_Solver_t ** p )
-{
-    char * pText;
-    int  Value;
-    pText = xSAT_FileRead( pFile );
-    Value = xSAT_ParseDimacs( pText, p );
-    ABC_FREE( pText );
+int xSAT_SolverParseDimacs(FILE* pFile, xSAT_Solver_t** p) {
+    char* pText;
+    int Value;
+    pText = xSAT_FileRead(pFile);
+    Value = xSAT_ParseDimacs(pText, p);
+    ABC_FREE(pText);
     return Value;
 }
 

@@ -23,9 +23,8 @@
 #include <string.h>
 #include "misc/util/abc_global.h"
 
-
 #ifdef WIN32
-#include <windows.h>
+#    include <windows.h>
 #endif
 
 ABC_NAMESPACE_IMPL_START
@@ -49,26 +48,23 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_ColorTest()
-{
+void Abc_ColorTest() {
 #ifdef WIN32
     int x, y;
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    printf( "Background     00   01   02   03   04   05   06   07   08   09   10   11   12   13   14   15\n" );
-    for ( y = 0; y < 16; y++ )
-    {
-        printf( "Foreground %02d", y );
-        for ( x = 0; x < 16; x++ )
-        {
-            printf( " " );
-            SetConsoleTextAttribute( hConsole, (WORD)(16 * x + y) );
-            printf( " Hi " );
-            SetConsoleTextAttribute( hConsole, 7 );
+    printf("Background     00   01   02   03   04   05   06   07   08   09   10   11   12   13   14   15\n");
+    for (y = 0; y < 16; y++) {
+        printf("Foreground %02d", y);
+        for (x = 0; x < 16; x++) {
+            printf(" ");
+            SetConsoleTextAttribute(hConsole, (WORD)(16 * x + y));
+            printf(" Hi ");
+            SetConsoleTextAttribute(hConsole, 7);
         }
-        printf( "\n" );
+        printf("\n");
     }
 #else
-/*
+    /*
   fg[Default]   = '[0m';    fg[DefaultBold] = '[1m'
 
   fg[Black]     = '[0;30m'; fg[DarkGray]    = '[1;30m'
@@ -90,28 +86,26 @@ void Abc_ColorTest()
   bg[LightGray] = '[0;47m'
 */
     int x, y;
-    printf( "Background       " );
-    for ( x = 0; x < 8; x++ )
-        printf( "  [1;4%dm", x );
-    printf( "\n" );
-    for ( y = 0; y < 2; y++ )
-    {
-        printf( "Foreground [%dm   ", y );
-        for ( x = 0; x < 8; x++ )
-            printf( "  \033[%d;3%dm\033[%dm  Hi  \033[0m", y&1, y>>1, x );
-        printf( "\n" );
+    printf("Background       ");
+    for (x = 0; x < 8; x++)
+        printf("  [1;4%dm", x);
+    printf("\n");
+    for (y = 0; y < 2; y++) {
+        printf("Foreground [%dm   ", y);
+        for (x = 0; x < 8; x++)
+            printf("  \033[%d;3%dm\033[%dm  Hi  \033[0m", y & 1, y >> 1, x);
+        printf("\n");
     }
-    for ( y = 0; y < 16; y++ )
-    {
-        printf( "Foreground [%d;3%dm", y&1, y>>1 );
-        for ( x = 0; x < 8; x++ )
-            printf( "  \033[%d;3%dm\033[1;4%dm  Hi  \033[0m", y&1, y>>1, x );
-        printf( "\n" );
+    for (y = 0; y < 16; y++) {
+        printf("Foreground [%d;3%dm", y & 1, y >> 1);
+        for (x = 0; x < 8; x++)
+            printf("  \033[%d;3%dm\033[1;4%dm  Hi  \033[0m", y & 1, y >> 1, x);
+        printf("\n");
     }
-    printf( "\033[4mUnderlined\033[0m\n" );
-    printf( "\033[5mBlinking  \033[0m\n" );
-    printf( "\033[7mInverted  \033[0m\n" );
-    printf( "\033[8mConcealed \033[0m\n" );
+    printf("\033[4mUnderlined\033[0m\n");
+    printf("\033[5mBlinking  \033[0m\n");
+    printf("\033[7mInverted  \033[0m\n");
+    printf("\033[8mConcealed \033[0m\n");
 #endif
 }
 
@@ -119,6 +113,4 @@ void Abc_ColorTest()
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

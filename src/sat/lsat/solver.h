@@ -21,9 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef ABC__sat__lsat__solver_h
 #define ABC__sat__lsat__solver_h
 
-
 ABC_NAMESPACE_HEADER_START
-
 
 // SolverTypes:
 //
@@ -39,63 +37,62 @@ extern const solver_lbool solver_l_True;
 extern const solver_lbool solver_l_False;
 extern const solver_lbool solver_l_Undef;
 
+solver* solver_new(void);
+void solver_delete(solver* s);
 
-solver*      solver_new             (void);
-void         solver_delete          (solver* s);
-             
-solver_Var   solver_newVar          (solver *s);
-solver_Lit   solver_newLit          (solver *s);
-             
-solver_Lit   solver_mkLit           (solver_Var x);
-solver_Lit   solver_mkLit_args      (solver_Var x, int sign);
-solver_Lit   solver_negate          (solver_Lit p);
-                                    
-solver_Var   solver_var             (solver_Lit p);
-int          solver_sign            (solver_Lit p);
-             
-int          solver_addClause       (solver *s, int len, solver_Lit *ps);
-void         solver_addClause_begin (solver *s);
-void         solver_addClause_addLit(solver *s, solver_Lit p);
-int          solver_addClause_commit(solver *s);
-             
-int          solver_simplify        (solver *s);
-             
-int          solver_solve           (solver *s, int len, solver_Lit *ps);
-void         solver_solve_begin     (solver *s);
-void         solver_solve_addLit    (solver *s, solver_Lit p);
-int          solver_solve_commit    (solver *s);
-             
-int          solver_okay            (solver *s);
-             
-void         solver_setPolarity     (solver *s, solver_Var v, int b);
-void         solver_setDecisionVar  (solver *s, solver_Var v, int b);
+solver_Var solver_newVar(solver* s);
+solver_Lit solver_newLit(solver* s);
 
-solver_lbool solver_get_l_True      (void);
-solver_lbool solver_get_l_False     (void);
-solver_lbool solver_get_l_Undef     (void);
+solver_Lit solver_mkLit(solver_Var x);
+solver_Lit solver_mkLit_args(solver_Var x, int sign);
+solver_Lit solver_negate(solver_Lit p);
 
-solver_lbool solver_value_Var       (solver *s, solver_Var x);
-solver_lbool solver_value_Lit       (solver *s, solver_Lit p);
+solver_Var solver_var(solver_Lit p);
+int solver_sign(solver_Lit p);
 
-solver_lbool solver_modelValue_Var  (solver *s, solver_Var x);
-solver_lbool solver_modelValue_Lit  (solver *s, solver_Lit p);
+int solver_addClause(solver* s, int len, solver_Lit* ps);
+void solver_addClause_begin(solver* s);
+void solver_addClause_addLit(solver* s, solver_Lit p);
+int solver_addClause_commit(solver* s);
 
-int          solver_num_assigns     (solver *s);
-int          solver_num_clauses     (solver *s);     
-int          solver_num_learnts     (solver *s);     
-int          solver_num_vars        (solver *s);  
-int          solver_num_freeVars    (solver *s);
+int solver_simplify(solver* s);
 
-int          solver_conflict_len    (solver *s);
-solver_Lit   solver_conflict_nthLit (solver *s, int i);
+int solver_solve(solver* s, int len, solver_Lit* ps);
+void solver_solve_begin(solver* s);
+void solver_solve_addLit(solver* s, solver_Lit p);
+int solver_solve_commit(solver* s);
+
+int solver_okay(solver* s);
+
+void solver_setPolarity(solver* s, solver_Var v, int b);
+void solver_setDecisionVar(solver* s, solver_Var v, int b);
+
+solver_lbool solver_get_l_True(void);
+solver_lbool solver_get_l_False(void);
+solver_lbool solver_get_l_Undef(void);
+
+solver_lbool solver_value_Var(solver* s, solver_Var x);
+solver_lbool solver_value_Lit(solver* s, solver_Lit p);
+
+solver_lbool solver_modelValue_Var(solver* s, solver_Var x);
+solver_lbool solver_modelValue_Lit(solver* s, solver_Lit p);
+
+int solver_num_assigns(solver* s);
+int solver_num_clauses(solver* s);
+int solver_num_learnts(solver* s);
+int solver_num_vars(solver* s);
+int solver_num_freeVars(solver* s);
+
+int solver_conflict_len(solver* s);
+solver_Lit solver_conflict_nthLit(solver* s, int i);
 
 // Setters:
 
-void         solver_set_verbosity   (solver *s, int v);
+void solver_set_verbosity(solver* s, int v);
 
 // Getters:
 
-int          solver_num_conflicts   (solver *s);
+int solver_num_conflicts(solver* s);
 
 /* TODO
 
@@ -124,8 +121,6 @@ int          solver_num_conflicts   (solver *s);
     uint64_t starts, decisions, rnd_decisions, propagations, conflicts;
     uint64_t dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
 */
-
-
 
 ABC_NAMESPACE_HEADER_END
 

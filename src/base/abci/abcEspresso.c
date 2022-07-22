@@ -23,16 +23,15 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static void        Abc_NodeEspresso( Abc_Obj_t * pNode );
-static pset_family Abc_SopToEspresso( char * pSop );
-static char *      Abc_SopFromEspresso( Extra_MmFlex_t * pMan, pset_family Cover );
-static pset_family Abc_EspressoMinimize( pset_family pOnset, pset_family pDcset );
- 
+static void Abc_NodeEspresso(Abc_Obj_t* pNode);
+static pset_family Abc_SopToEspresso(char* pSop);
+static char* Abc_SopFromEspresso(Extra_MmFlex_t* pMan, pset_family Cover);
+static pset_family Abc_EspressoMinimize(pset_family pOnset, pset_family pDcset);
+
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
@@ -48,25 +47,21 @@ static pset_family Abc_EspressoMinimize( pset_family pOnset, pset_family pDcset 
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_NtkEspresso( Abc_Ntk_t * pNtk, int fVerbose )
-{
-    Abc_Obj_t * pNode;
+void Abc_NtkEspresso(Abc_Ntk_t* pNtk, int fVerbose) {
+    Abc_Obj_t* pNode;
     int i;
-    assert( Abc_NtkIsLogic(pNtk) );
+    assert(Abc_NtkIsLogic(pNtk));
     // convert the network to have SOPs
-    if ( Abc_NtkHasMapping(pNtk) )
+    if (Abc_NtkHasMapping(pNtk))
         Abc_NtkMapToSop(pNtk);
-    else if ( Abc_NtkHasBdd(pNtk) )
-    {
-        if ( !Abc_NtkBddToSop(pNtk, -1, ABC_INFINITY, 1) )
-        {
-            printf( "Abc_NtkEspresso(): Converting to SOPs has failed.\n" );
+    else if (Abc_NtkHasBdd(pNtk)) {
+        if (!Abc_NtkBddToSop(pNtk, -1, ABC_INFINITY, 1)) {
+            printf("Abc_NtkEspresso(): Converting to SOPs has failed.\n");
             return;
         }
     }
     // minimize SOPs of all nodes
-    Abc_NtkForEachNode( pNtk, pNode, i )
-        if ( i ) Abc_NodeEspresso( pNode );
+    Abc_NtkForEachNode(pNtk, pNode, i) if (i) Abc_NodeEspresso(pNode);
 }
 
 /**Function*************************************************************
@@ -80,23 +75,22 @@ void Abc_NtkEspresso( Abc_Ntk_t * pNtk, int fVerbose )
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_NodeEspresso( Abc_Obj_t * pNode )
-{
-    extern void define_cube_size( int n );
+void Abc_NodeEspresso(Abc_Obj_t* pNode) {
+    extern void define_cube_size(int n);
     pset_family Cover;
     int fCompl;
 
-    assert( Abc_ObjIsNode(pNode) );
+    assert(Abc_ObjIsNode(pNode));
     // define the cube for this node
-    define_cube_size( Abc_ObjFaninNum(pNode) );
+    define_cube_size(Abc_ObjFaninNum(pNode));
     // create the Espresso cover
-    fCompl = Abc_SopIsComplement( pNode->pData );
-    Cover = Abc_SopToEspresso( pNode->pData );
+    fCompl = Abc_SopIsComplement(pNode->pData);
+    Cover = Abc_SopToEspresso(pNode->pData);
     // perform minimization
-    Cover = Abc_EspressoMinimize( Cover, NULL ); // deletes also cover
+    Cover = Abc_EspressoMinimize(Cover, NULL); // deletes also cover
     // convert back onto the node's SOP representation
-    pNode->pData = Abc_SopFromEspresso( pNode->pNtk->pManFunc, Cover );
-    if ( fCompl ) Abc_SopComplement( pNode->pData );
+    pNode->pData = Abc_SopFromEspresso(pNode->pNtk->pManFunc, Cover);
+    if (fCompl) Abc_SopComplement(pNode->pData);
     sf_free(Cover);
 }
 
@@ -111,46 +105,41 @@ void Abc_NodeEspresso( Abc_Obj_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-pset_family Abc_SopToEspresso( char * pSop )
-{
-    char *      pCube;
+pset_family Abc_SopToEspresso(char* pSop) {
+    char* pCube;
     pset_family Cover;
-    pset        set;
-    int         nCubes, nVars, Value, v;
-    
-    if ( pSop == NULL ) 
+    pset set;
+    int nCubes, nVars, Value, v;
+
+    if (pSop == NULL)
         return NULL;
-    
-    nVars  = Abc_SopGetVarNum(pSop);
+
+    nVars = Abc_SopGetVarNum(pSop);
     nCubes = Abc_SopGetCubeNum(pSop);
-    assert( cube.size == 2 * nVars );
-    
-    if ( Abc_SopIsConst0(pSop) ) 
-    {
+    assert(cube.size == 2 * nVars);
+
+    if (Abc_SopIsConst0(pSop)) {
         Cover = sf_new(0, cube.size);
         return Cover;
     }
-    if ( Abc_SopIsConst1(pSop) ) 
-    {
+    if (Abc_SopIsConst1(pSop)) {
         Cover = sf_new(1, cube.size);
         set = GETSET(Cover, Cover->count++);
-        set_copy( set, cube.fullset );
+        set_copy(set, cube.fullset);
         return Cover;
     }
 
     // create the cover
     Cover = sf_new(nCubes, cube.size);
     // fill in the cubes
-    Abc_SopForEachCube( pSop, nVars, pCube )
-    {
+    Abc_SopForEachCube(pSop, nVars, pCube) {
         set = GETSET(Cover, Cover->count++);
-        set_copy( set, cube.fullset );
-        Abc_CubeForEachVar( pCube, Value, v )
-        {
-            if ( Value == '0' )
-                set_remove(set, 2*v+1);
-            else if ( Value == '1' )
-                set_remove(set, 2*v);
+        set_copy(set, cube.fullset);
+        Abc_CubeForEachVar(pCube, Value, v) {
+            if (Value == '0')
+                set_remove(set, 2 * v + 1);
+            else if (Value == '1')
+                set_remove(set, 2 * v);
         }
     }
     return Cover;
@@ -167,34 +156,30 @@ pset_family Abc_SopToEspresso( char * pSop )
   SeeAlso     []
 
 ***********************************************************************/
-char * Abc_SopFromEspresso( Extra_MmFlex_t * pMan, pset_family Cover )
-{
+char* Abc_SopFromEspresso(Extra_MmFlex_t* pMan, pset_family Cover) {
     pset set;
-    char * pSop, * pCube;
+    char *pSop, *pCube;
     int Lit, nVars, nCubes, i, k;
 
-    nVars  = Cover->sf_size/2;
+    nVars = Cover->sf_size / 2;
     nCubes = Cover->count;
 
-    pSop = Abc_SopStart( pMan, nCubes, nVars );
+    pSop = Abc_SopStart(pMan, nCubes, nVars);
 
     // go through the cubes
     i = 0;
-    Abc_SopForEachCube( pSop, nVars, pCube )
-    {
+    Abc_SopForEachCube(pSop, nVars, pCube) {
         set = GETSET(Cover, i++);
-        for ( k = 0; k < nVars; k++ )
-        {
+        for (k = 0; k < nVars; k++) {
             Lit = GETINPUT(set, k);
-            if ( Lit == ZERO )
+            if (Lit == ZERO)
                 pCube[k] = '0';
-            else if ( Lit == ONE )
+            else if (Lit == ONE)
                 pCube[k] = '1';
         }
     }
     return pSop;
 }
-
 
 /**Function*************************************************************
 
@@ -207,42 +192,40 @@ char * Abc_SopFromEspresso( Extra_MmFlex_t * pMan, pset_family Cover )
   SeeAlso     []
 
 ***********************************************************************/
-pset_family Abc_EspressoMinimize( pset_family pOnset, pset_family pDcset )
-{
+pset_family Abc_EspressoMinimize(pset_family pOnset, pset_family pDcset) {
     pset_family pOffset;
     int fNewDcset, i;
     int fSimple = 0;
     int fSparse = 0;
 
-    if ( fSimple )
-    {
-        for ( i = 0; i < cube.num_vars; i++ )
-            pOnset = d1merge( pOnset, i );
-        pOnset = sf_contain( pOnset );
+    if (fSimple) {
+        for (i = 0; i < cube.num_vars; i++)
+            pOnset = d1merge(pOnset, i);
+        pOnset = sf_contain(pOnset);
         return pOnset;
     }
 
     // create the dcset
     fNewDcset = (pDcset == NULL);
-    if ( pDcset == NULL )
-        pDcset = sf_new( 1, cube.size );
-    pDcset->wsize   = pOnset->wsize;
+    if (pDcset == NULL)
+        pDcset = sf_new(1, cube.size);
+    pDcset->wsize = pOnset->wsize;
     pDcset->sf_size = pOnset->sf_size;
 
     // derive the offset
-    if ( pDcset->sf_size == 0 || pDcset->count == 0 )
+    if (pDcset->sf_size == 0 || pDcset->count == 0)
         pOffset = complement(cube1list(pOnset));
     else
-        pOffset = complement(cube2list(pOnset, pDcset)); 
+        pOffset = complement(cube2list(pOnset, pDcset));
 
     // perform minimization
     skip_make_sparse = !fSparse;
-    pOnset = espresso( pOnset, pDcset, pOffset );
+    pOnset = espresso(pOnset, pDcset, pOffset);
 
     // free covers
-    sf_free( pOffset ); 
-    if ( fNewDcset )
-        sf_free( pDcset );
+    sf_free(pOffset);
+    if (fNewDcset)
+        sf_free(pDcset);
     return pOnset;
 }
 
@@ -250,6 +233,4 @@ pset_family Abc_EspressoMinimize( pset_family pOnset, pset_family pDcset )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                    FUNCTION DECLARATIONS                         ///
 ////////////////////////////////////////////////////////////////////////
@@ -29,9 +28,8 @@ ABC_NAMESPACE_IMPL_START
 ///                      STATIC VARIABLES                            ///
 ////////////////////////////////////////////////////////////////////////
 
-static DdNode * Extra_dsdRemap( DdManager * dd, DdNode * bFunc, st__table * pCache,
-    int * pVar2Form, int * pForm2Var, DdNode * pbCube0[], DdNode * pbCube1[] );
-static DdNode * Extra_bddNodePointedByCube( DdManager * dd, DdNode * bF, DdNode * bC );
+static DdNode* Extra_dsdRemap(DdManager* dd, DdNode* bFunc, st__table* pCache, int* pVar2Form, int* pForm2Var, DdNode* pbCube0[], DdNode* pbCube1[]);
+static DdNode* Extra_bddNodePointedByCube(DdManager* dd, DdNode* bF, DdNode* bC);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -51,30 +49,27 @@ static DdNode * Extra_bddNodePointedByCube( DdManager * dd, DdNode * bF, DdNode 
   SeeAlso     []
 
 ***********************************************************************/
-DdNode * Dsd_TreeGetPrimeFunction( DdManager * dd, Dsd_Node_t * pNode ) 
-{
-    int * pForm2Var;   // the mapping of each formal input into its first var
-    int * pVar2Form;   // the mapping of each var into its formal inputs
-    int i, iVar, iLev, * pPermute;
-    DdNode ** pbCube0, ** pbCube1;
-    DdNode * bFunc, * bRes, * bTemp;
-    st__table * pCache;
-    
-    pPermute  = ABC_ALLOC( int, dd->size );
-    pVar2Form = ABC_ALLOC( int, dd->size );
-    pForm2Var = ABC_ALLOC( int, dd->size );
+DdNode* Dsd_TreeGetPrimeFunction(DdManager* dd, Dsd_Node_t* pNode) {
+    int* pForm2Var; // the mapping of each formal input into its first var
+    int* pVar2Form; // the mapping of each var into its formal inputs
+    int i, iVar, iLev, *pPermute;
+    DdNode **pbCube0, **pbCube1;
+    DdNode *bFunc, *bRes, *bTemp;
+    st__table* pCache;
 
-    pbCube0 = ABC_ALLOC( DdNode *, dd->size );
-    pbCube1 = ABC_ALLOC( DdNode *, dd->size );
+    pPermute = ABC_ALLOC(int, dd->size);
+    pVar2Form = ABC_ALLOC(int, dd->size);
+    pForm2Var = ABC_ALLOC(int, dd->size);
+
+    pbCube0 = ABC_ALLOC(DdNode*, dd->size);
+    pbCube1 = ABC_ALLOC(DdNode*, dd->size);
 
     // remap the global function in such a way that
     // the support variables of each formal input are adjacent
     iLev = 0;
-    for ( i = 0; i < pNode->nDecs; i++ )
-    {
+    for (i = 0; i < pNode->nDecs; i++) {
         pForm2Var[i] = dd->invperm[i];
-        for ( bTemp = pNode->pDecs[i]->S; bTemp != b1; bTemp = cuddT(bTemp) )
-        {
+        for (bTemp = pNode->pDecs[i]->S; bTemp != b1; bTemp = cuddT(bTemp)) {
             iVar = dd->invperm[iLev];
             pPermute[bTemp->index] = iVar;
             pVar2Form[iVar] = i;
@@ -82,35 +77,38 @@ DdNode * Dsd_TreeGetPrimeFunction( DdManager * dd, Dsd_Node_t * pNode )
         }
 
         // collect the cubes representing each assignment
-        pbCube0[i] = Extra_bddGetOneCube( dd, Cudd_Not(pNode->pDecs[i]->G) );
-        Cudd_Ref( pbCube0[i] );
-        pbCube1[i] = Extra_bddGetOneCube( dd, pNode->pDecs[i]->G );
-        Cudd_Ref( pbCube1[i] );
+        pbCube0[i] = Extra_bddGetOneCube(dd, Cudd_Not(pNode->pDecs[i]->G));
+        Cudd_Ref(pbCube0[i]);
+        pbCube1[i] = Extra_bddGetOneCube(dd, pNode->pDecs[i]->G);
+        Cudd_Ref(pbCube1[i]);
     }
 
     // remap the function
-    bFunc = Cudd_bddPermute( dd, pNode->G, pPermute ); Cudd_Ref( bFunc );
+    bFunc = Cudd_bddPermute(dd, pNode->G, pPermute);
+    Cudd_Ref(bFunc);
     // remap the cube
-    for ( i = 0; i < pNode->nDecs; i++ )
-    {
-        pbCube0[i] = Cudd_bddPermute( dd, bTemp = pbCube0[i], pPermute ); Cudd_Ref( pbCube0[i] );
-        Cudd_RecursiveDeref( dd, bTemp );
-        pbCube1[i] = Cudd_bddPermute( dd, bTemp = pbCube1[i], pPermute ); Cudd_Ref( pbCube1[i] );
-        Cudd_RecursiveDeref( dd, bTemp );
+    for (i = 0; i < pNode->nDecs; i++) {
+        pbCube0[i] = Cudd_bddPermute(dd, bTemp = pbCube0[i], pPermute);
+        Cudd_Ref(pbCube0[i]);
+        Cudd_RecursiveDeref(dd, bTemp);
+        pbCube1[i] = Cudd_bddPermute(dd, bTemp = pbCube1[i], pPermute);
+        Cudd_Ref(pbCube1[i]);
+        Cudd_RecursiveDeref(dd, bTemp);
     }
 
     // remap the function
-    pCache = st__init_table( st__ptrcmp, st__ptrhash);;
-    bRes = Extra_dsdRemap( dd, bFunc, pCache, pVar2Form, pForm2Var, pbCube0, pbCube1 );  Cudd_Ref( bRes );
-    st__free_table( pCache );
+    pCache = st__init_table(st__ptrcmp, st__ptrhash);
+    ;
+    bRes = Extra_dsdRemap(dd, bFunc, pCache, pVar2Form, pForm2Var, pbCube0, pbCube1);
+    Cudd_Ref(bRes);
+    st__free_table(pCache);
 
-    Cudd_RecursiveDeref( dd, bFunc );
-    for ( i = 0; i < pNode->nDecs; i++ )
-    {
-        Cudd_RecursiveDeref( dd, pbCube0[i] );
-        Cudd_RecursiveDeref( dd, pbCube1[i] );
+    Cudd_RecursiveDeref(dd, bFunc);
+    for (i = 0; i < pNode->nDecs; i++) {
+        Cudd_RecursiveDeref(dd, pbCube0[i]);
+        Cudd_RecursiveDeref(dd, pbCube1[i]);
     }
-/*
+    /*
 ////////////
     // permute the function once again
     // in such a way that i-th var stood for i-th formal input
@@ -128,7 +126,7 @@ DdNode * Dsd_TreeGetPrimeFunction( DdManager * dd, Dsd_Node_t * pNode )
     ABC_FREE(pbCube0);
     ABC_FREE(pbCube1);
 
-    Cudd_Deref( bRes );
+    Cudd_Deref(bRes);
     return bRes;
 }
 
@@ -143,21 +141,18 @@ DdNode * Dsd_TreeGetPrimeFunction( DdManager * dd, Dsd_Node_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-DdNode * Extra_dsdRemap( DdManager * dd, DdNode * bF, st__table * pCache,
-    int * pVar2Form, int * pForm2Var, DdNode * pbCube0[], DdNode * pbCube1[] )
-{
-    DdNode * bFR, * bF0, * bF1;
-    DdNode * bRes0, * bRes1, * bRes;
+DdNode* Extra_dsdRemap(DdManager* dd, DdNode* bF, st__table* pCache, int* pVar2Form, int* pForm2Var, DdNode* pbCube0[], DdNode* pbCube1[]) {
+    DdNode *bFR, *bF0, *bF1;
+    DdNode *bRes0, *bRes1, *bRes;
     int iForm;
-    
+
     bFR = Cudd_Regular(bF);
-    if ( cuddIsConstant(bFR) )
+    if (cuddIsConstant(bFR))
         return bF;
 
     // check the hash-table
-    if ( bFR->ref != 1 )
-    {
-        if ( st__lookup( pCache, (char *)bF, (char **)&bRes ) )
+    if (bFR->ref != 1) {
+        if (st__lookup(pCache, (char*)bF, (char**)&bRes))
             return bRes;
     }
 
@@ -165,22 +160,25 @@ DdNode * Extra_dsdRemap( DdManager * dd, DdNode * bF, st__table * pCache,
     iForm = pVar2Form[bFR->index];
 
     // get the nodes pointed to by the cube
-    bF0 = Extra_bddNodePointedByCube( dd, bF, pbCube0[iForm] );
-    bF1 = Extra_bddNodePointedByCube( dd, bF, pbCube1[iForm] );
+    bF0 = Extra_bddNodePointedByCube(dd, bF, pbCube0[iForm]);
+    bF1 = Extra_bddNodePointedByCube(dd, bF, pbCube1[iForm]);
 
     // call recursively for these nodes
-    bRes0 = Extra_dsdRemap( dd, bF0, pCache, pVar2Form, pForm2Var, pbCube0, pbCube1 ); Cudd_Ref( bRes0 );
-    bRes1 = Extra_dsdRemap( dd, bF1, pCache, pVar2Form, pForm2Var, pbCube0, pbCube1 ); Cudd_Ref( bRes1 );
+    bRes0 = Extra_dsdRemap(dd, bF0, pCache, pVar2Form, pForm2Var, pbCube0, pbCube1);
+    Cudd_Ref(bRes0);
+    bRes1 = Extra_dsdRemap(dd, bF1, pCache, pVar2Form, pForm2Var, pbCube0, pbCube1);
+    Cudd_Ref(bRes1);
 
     // derive the result using ITE
-    bRes = Cudd_bddIte( dd, dd->vars[ pForm2Var[iForm] ], bRes1, bRes0 ); Cudd_Ref( bRes );
-    Cudd_RecursiveDeref( dd, bRes0 );
-    Cudd_RecursiveDeref( dd, bRes1 );
+    bRes = Cudd_bddIte(dd, dd->vars[pForm2Var[iForm]], bRes1, bRes0);
+    Cudd_Ref(bRes);
+    Cudd_RecursiveDeref(dd, bRes0);
+    Cudd_RecursiveDeref(dd, bRes1);
 
     // add to the hash table
-    if ( bFR->ref != 1 )
-        st__insert( pCache, (char *)bF, (char *)bRes );
-    Cudd_Deref( bRes );
+    if (bFR->ref != 1)
+        st__insert(pCache, (char*)bF, (char*)bRes);
+    Cudd_Deref(bRes);
     return bRes;
 }
 
@@ -195,72 +193,58 @@ DdNode * Extra_dsdRemap( DdManager * dd, DdNode * bF, st__table * pCache,
   SeeAlso     []
 
 ***********************************************************************/
-DdNode * Extra_bddNodePointedByCube( DdManager * dd, DdNode * bF, DdNode * bC )
-{
-    DdNode * bFR, * bCR;
-    DdNode * bF0, * bF1;
-    DdNode * bC0, * bC1;
+DdNode* Extra_bddNodePointedByCube(DdManager* dd, DdNode* bF, DdNode* bC) {
+    DdNode *bFR, *bCR;
+    DdNode *bF0, *bF1;
+    DdNode *bC0, *bC1;
     int LevelF, LevelC;
 
-    assert( bC != b0 );
-    if ( bC == b1 )
+    assert(bC != b0);
+    if (bC == b1)
         return bF;
 
-//    bRes = cuddCacheLookup2( dd, Extra_bddNodePointedByCube, bF, bC );
-//    if ( bRes )
-//      return bRes;
+    //    bRes = cuddCacheLookup2( dd, Extra_bddNodePointedByCube, bF, bC );
+    //    if ( bRes )
+    //      return bRes;
     // there is no need for caching because this operation is very fast
     // there will no gain reusing the results of this operations
     // instead, it will flush CUDD cache of other useful entries
 
-
-    bFR = Cudd_Regular( bF ); 
-    bCR = Cudd_Regular( bC ); 
-    assert( !cuddIsConstant( bFR ) );
+    bFR = Cudd_Regular(bF);
+    bCR = Cudd_Regular(bC);
+    assert(!cuddIsConstant(bFR));
 
     LevelF = dd->perm[bFR->index];
     LevelC = dd->perm[bCR->index];
 
-    if ( LevelF <= LevelC )
-    {
-        if ( bFR != bF )
-        {
-            bF0 = Cudd_Not( cuddE(bFR) );
-            bF1 = Cudd_Not( cuddT(bFR) );
-        }
-        else
-        {
+    if (LevelF <= LevelC) {
+        if (bFR != bF) {
+            bF0 = Cudd_Not(cuddE(bFR));
+            bF1 = Cudd_Not(cuddT(bFR));
+        } else {
             bF0 = cuddE(bFR);
             bF1 = cuddT(bFR);
         }
-    }
-    else
-    {
+    } else {
         bF0 = bF1 = bF;
     }
 
-    if ( LevelC <= LevelF )
-    {
-        if ( bCR != bC )
-        {
-            bC0 = Cudd_Not( cuddE(bCR) );
-            bC1 = Cudd_Not( cuddT(bCR) );
-        }
-        else
-        {
+    if (LevelC <= LevelF) {
+        if (bCR != bC) {
+            bC0 = Cudd_Not(cuddE(bCR));
+            bC1 = Cudd_Not(cuddT(bCR));
+        } else {
             bC0 = cuddE(bCR);
             bC1 = cuddT(bCR);
         }
-    }
-    else
-    {
+    } else {
         bC0 = bC1 = bC;
     }
 
-    assert( bC0 == b0 || bC1 == b0 );
-    if ( bC0 == b0 )
-        return Extra_bddNodePointedByCube( dd, bF1, bC1 );
-    return Extra_bddNodePointedByCube( dd, bF0, bC0 );
+    assert(bC0 == b0 || bC1 == b0);
+    if (bC0 == b0)
+        return Extra_bddNodePointedByCube(dd, bF1, bC1);
+    return Extra_bddNodePointedByCube(dd, bF0, bC0);
 }
 
 #if 0
@@ -339,4 +323,3 @@ DdNode * dsdTreeGetPrimeFunction( DdManager * dd, Dsd_Node_t * pNode, int fRemap
 ///                           END OF FILE                            ///
 ////////////////////////////////////////////////////////////////////////
 ABC_NAMESPACE_IMPL_END
-

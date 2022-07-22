@@ -27,27 +27,26 @@
 ABC_NAMESPACE_IMPL_START
 
 #if defined(ABC_NO_DYNAMIC_LINKING)
-#define WIN32
+#    define WIN32
 #endif
 
 #ifndef WIN32
-# include <sys/types.h>
-# include <dirent.h>
-# include <dlfcn.h>
+#    include <sys/types.h>
+#    include <dirent.h>
+#    include <dlfcn.h>
 #endif
 
 // fix by Paddy O'Brien  on Sep 22, 2009
 #ifdef __CYGWIN__
-#ifndef RTLD_LOCAL
-#define RTLD_LOCAL 0
+#    ifndef RTLD_LOCAL
+#        define RTLD_LOCAL 0
+#    endif
 #endif
-#endif 
-
 
 #define MAX_LIBS 256
-static void* libHandles[MAX_LIBS+1]; // will be null terminated
+static void* libHandles[MAX_LIBS + 1]; // will be null terminated
 
-typedef void (*lib_init_end_func) (Abc_Frame_t * pAbc);
+typedef void (*lib_init_end_func)(Abc_Frame_t* pAbc);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // This will find all the ABC library extensions in the current directory and load them all.
@@ -63,70 +62,70 @@ void open_libs() {
     char *env, *init_p, *p;
     int done;
 
-    env = getenv ("ABC_LIB_PATH");
+    env = getenv("ABC_LIB_PATH");
     if (env == NULL) {
-//    printf("Warning: ABC_LIB_PATH not defined. Looking into the current directory.\n");
-      init_p = ABC_ALLOC( char, (2*sizeof(char)) );
-      init_p[0]='.'; init_p[1] = 0;
+        //    printf("Warning: ABC_LIB_PATH not defined. Looking into the current directory.\n");
+        init_p = ABC_ALLOC(char, (2 * sizeof(char)));
+        init_p[0] = '.';
+        init_p[1] = 0;
     } else {
-      init_p = ABC_ALLOC( char, ((strlen(env)+1)*sizeof(char)) );
-      strcpy (init_p, env);
+        init_p = ABC_ALLOC(char, ((strlen(env) + 1) * sizeof(char)));
+        strcpy(init_p, env);
     }
 
     // Extract directories and read libraries
     done = 0;
     p = init_p;
     while (!done) {
-      char *endp = strchr (p,':');
-      if (endp == NULL) done = 1; // last directory in the list
-      else *endp = 0; // end of string
+        char* endp = strchr(p, ':');
+        if (endp == NULL)
+            done = 1; // last directory in the list
+        else
+            *endp = 0; // end of string
 
-      dirp = opendir(p);
-      if (dirp == NULL) {
-//      printf("Warning: directory in ABC_LIB_PATH does not exist (%s).\n", p);
-        continue;
-      }
-
-      while ((dp = readdir(dirp)) != NULL) {
-        if ((strncmp("libabc_", dp->d_name, 7) == 0) &&
-            (strcmp(".so", dp->d_name + strlen(dp->d_name) - 3) == 0)) {
-
-          // make sure we don't overflow the handle array
-          if (curr_lib >= MAX_LIBS) {
-            printf("Warning: maximum number of ABC libraries (%d) exceeded.  Not loading %s.\n",
-                   MAX_LIBS,
-                   dp->d_name);
-          }
-          
-          // attempt to load it
-          else {
-            char* szPrefixed = ABC_ALLOC( char, ((strlen(dp->d_name) + strlen(p) + 2) * 
-                                      sizeof(char)) );
-            sprintf(szPrefixed, "%s/", p);
-            strcat(szPrefixed, dp->d_name);
-            libHandles[curr_lib] = dlopen(szPrefixed, RTLD_NOW | RTLD_LOCAL);
-            
-            // did the load succeed?
-            if (libHandles[curr_lib] != 0) {
-              printf("Loaded ABC library: %s (Abc library extension #%d)\n", szPrefixed, curr_lib);
-              curr_lib++;
-            } else {
-              printf("Warning: failed to load ABC library %s:\n\t%s\n", szPrefixed, dlerror());
-            }
-            
-            ABC_FREE(szPrefixed);
-          }
+        dirp = opendir(p);
+        if (dirp == NULL) {
+            //      printf("Warning: directory in ABC_LIB_PATH does not exist (%s).\n", p);
+            continue;
         }
-      }
-      closedir(dirp);
-      p = endp+1;
+
+        while ((dp = readdir(dirp)) != NULL) {
+            if ((strncmp("libabc_", dp->d_name, 7) == 0) && (strcmp(".so", dp->d_name + strlen(dp->d_name) - 3) == 0)) {
+                // make sure we don't overflow the handle array
+                if (curr_lib >= MAX_LIBS) {
+                    printf("Warning: maximum number of ABC libraries (%d) exceeded.  Not loading %s.\n",
+                           MAX_LIBS,
+                           dp->d_name);
+                }
+
+                // attempt to load it
+                else {
+                    char* szPrefixed = ABC_ALLOC(char, ((strlen(dp->d_name) + strlen(p) + 2) * sizeof(char)));
+                    sprintf(szPrefixed, "%s/", p);
+                    strcat(szPrefixed, dp->d_name);
+                    libHandles[curr_lib] = dlopen(szPrefixed, RTLD_NOW | RTLD_LOCAL);
+
+                    // did the load succeed?
+                    if (libHandles[curr_lib] != 0) {
+                        printf("Loaded ABC library: %s (Abc library extension #%d)\n", szPrefixed, curr_lib);
+                        curr_lib++;
+                    } else {
+                        printf("Warning: failed to load ABC library %s:\n\t%s\n", szPrefixed, dlerror());
+                    }
+
+                    ABC_FREE(szPrefixed);
+                }
+            }
+        }
+        closedir(dirp);
+        p = endp + 1;
     }
 
     ABC_FREE(init_p);
 #endif
-    
+
     // null terminate the list of handles
-    libHandles[curr_lib] = 0;    
+    libHandles[curr_lib] = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,7 +164,7 @@ void call_inits(Abc_Frame_t* pAbc) {
     int i;
     lib_init_end_func init_func;
     for (i = 0; libHandles[i] != 0; i++) {
-        init_func = (lib_init_end_func) get_fnct_ptr(i, "abc_init");
+        init_func = (lib_init_end_func)get_fnct_ptr(i, "abc_init");
         if (init_func == 0) {
             printf("Warning: Failed to initialize library %d.\n", i);
         } else {
@@ -181,7 +180,7 @@ void call_ends(Abc_Frame_t* pAbc) {
     int i;
     lib_init_end_func end_func;
     for (i = 0; libHandles[i] != 0; i++) {
-        end_func = (lib_init_end_func) get_fnct_ptr(i, "abc_end");
+        end_func = (lib_init_end_func)get_fnct_ptr(i, "abc_end");
         if (end_func == 0) {
             printf("Warning: Failed to end library %d.\n", i);
         } else {
@@ -190,14 +189,12 @@ void call_ends(Abc_Frame_t* pAbc) {
     }
 }
 
-void Libs_Init(Abc_Frame_t * pAbc)
-{
+void Libs_Init(Abc_Frame_t* pAbc) {
     open_libs();
     call_inits(pAbc);
 }
 
-void Libs_End(Abc_Frame_t * pAbc)
-{
+void Libs_End(Abc_Frame_t* pAbc) {
     call_ends(pAbc);
 
     // It's good practice to close our libraries at this point, but this can mess up any backtrace printed by Valgind.
@@ -208,4 +205,3 @@ void Libs_End(Abc_Frame_t * pAbc)
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 ABC_NAMESPACE_IMPL_END
-

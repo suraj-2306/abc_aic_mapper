@@ -17,10 +17,9 @@
   Revision    [$Id: res.h,v 1.00 2007/01/15 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
-#ifndef ABC__opt__res__res_h
-#define ABC__opt__res__res_h
 
+#ifndef ABC__opt__res__res_h
+#    define ABC__opt__res__res_h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
@@ -30,27 +29,23 @@
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
 ABC_NAMESPACE_HEADER_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
 ////////////////////////////////////////////////////////////////////////
 
 typedef struct Res_Par_t_ Res_Par_t;
-struct Res_Par_t_
-{
+struct Res_Par_t_ {
     // general parameters
-    int           nWindow;       // window size
-    int           nGrowthLevel;  // the maximum allowed growth in level after one iteration of resynthesis
-    int           nSimWords;     // the number of simulation words 
-    int           nCands;        // the number of candidates to try
-    int           fArea;         // performs optimization for area
-    int           fDelay;        // performs optimization for delay
-    int           fVerbose;      // enable basic stats
-    int           fVeryVerbose;  // enable detailed stats
+    int nWindow;      // window size
+    int nGrowthLevel; // the maximum allowed growth in level after one iteration of resynthesis
+    int nSimWords;    // the number of simulation words
+    int nCands;       // the number of candidates to try
+    int fArea;        // performs optimization for area
+    int fDelay;       // performs optimization for delay
+    int fVerbose;     // enable basic stats
+    int fVeryVerbose; // enable detailed stats
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -62,18 +57,12 @@ struct Res_Par_t_
 ////////////////////////////////////////////////////////////////////////
 
 /*=== resCore.c ==========================================================*/
-extern int        Abc_NtkResynthesize( Abc_Ntk_t * pNtk, Res_Par_t * pPars );
-
-
-
+extern int Abc_NtkResynthesize(Abc_Ntk_t* pNtk, Res_Par_t* pPars);
 
 ABC_NAMESPACE_HEADER_END
-
-
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

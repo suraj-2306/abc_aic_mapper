@@ -64,7 +64,7 @@ extern Cube* IterCubeSetStart();
 extern Cube* IterCubeSetNext();
 
 // retrieves the variable from the cube
-extern varvalue GetVar( Cube* pC, int Var );
+extern varvalue GetVar(Cube* pC, int Var);
 
 ////////////////////////////////////////////////////////////////////////
 ///                      FUNCTION DECLARATIONS                       ///
@@ -74,148 +74,135 @@ extern varvalue GetVar( Cube* pC, int Var );
 ////////////       Cover Service Procedures       /////////////////
 ///////////////////////////////////////////////////////////////////
 
-int CountLiterals()
-{
+int CountLiterals() {
     Cube* p;
     int LitCounter = 0;
-    for ( p = IterCubeSetStart( ); p; p = IterCubeSetNext() )
+    for (p = IterCubeSetStart(); p; p = IterCubeSetNext())
         LitCounter += p->a;
     return LitCounter;
 }
 
-int CountLiteralsCheck()
-{
+int CountLiteralsCheck() {
     Cube* p;
     int Value, v;
     int LitCounter = 0;
     int LitCounterControl = 0;
 
-    for ( p = IterCubeSetStart( ); p; p = IterCubeSetNext() )
-    {
+    for (p = IterCubeSetStart(); p; p = IterCubeSetNext()) {
         LitCounterControl += p->a;
 
-        assert( p->fMark == 0 );
+        assert(p->fMark == 0);
 
         // write the input variables
-        for ( v = 0; v < g_CoverInfo.nVarsIn; v++ )
-        {
-            Value = GetVar( p, v );
-            if ( Value == VAR_NEG )
+        for (v = 0; v < g_CoverInfo.nVarsIn; v++) {
+            Value = GetVar(p, v);
+            if (Value == VAR_NEG)
                 LitCounter++;
-            else if ( Value == VAR_POS )
+            else if (Value == VAR_POS)
                 LitCounter++;
-            else if ( Value != VAR_ABS )
-            {
+            else if (Value != VAR_ABS) {
                 assert(0);
             }
         }
     }
 
-    if ( LitCounterControl != LitCounter )
-        printf( "Warning! The recorded number of literals (%d) differs from the actual number (%d)\n", LitCounterControl, LitCounter );
+    if (LitCounterControl != LitCounter)
+        printf("Warning! The recorded number of literals (%d) differs from the actual number (%d)\n", LitCounterControl, LitCounter);
     return LitCounter;
 }
 
-int CountQCost()
-{
+int CountQCost() {
     Cube* p;
     int QCost = 0;
     int QCostControl = 0;
-    for ( p = IterCubeSetStart( ); p; p = IterCubeSetNext() )
-    {
+    for (p = IterCubeSetStart(); p; p = IterCubeSetNext()) {
         QCostControl += p->q;
-        QCost += ComputeQCostBits( p );
+        QCost += ComputeQCostBits(p);
     }
-//    if ( QCostControl != QCost )
-//        printf( "Warning! The recorded number of literals (%d) differs from the actual number (%d)\n", QCostControl, QCost );
+    //    if ( QCostControl != QCost )
+    //        printf( "Warning! The recorded number of literals (%d) differs from the actual number (%d)\n", QCostControl, QCost );
     return QCost;
 }
 
-
-void WriteTableIntoFile( FILE * pFile )
-// nCubesAlloc is the number of allocated cubes 
+void WriteTableIntoFile(FILE* pFile)
+// nCubesAlloc is the number of allocated cubes
 {
     int v, w;
-    Cube * p;
+    Cube* p;
     int cOutputs;
     int nOutput;
     int WordSize;
 
-    for ( p = IterCubeSetStart( ); p; p = IterCubeSetNext() )
-    {
-        assert( p->fMark == 0 );
+    for (p = IterCubeSetStart(); p; p = IterCubeSetNext()) {
+        assert(p->fMark == 0);
 
         // write the input variables
-        for ( v = 0; v < g_CoverInfo.nVarsIn; v++ )
-        {
-            int Value = GetVar( p, v );
-            if ( Value == VAR_NEG )
-                fprintf( pFile, "0" );
-            else if ( Value == VAR_POS )
-                fprintf( pFile, "1" );
-            else if ( Value == VAR_ABS )
-                fprintf( pFile, "-" );
+        for (v = 0; v < g_CoverInfo.nVarsIn; v++) {
+            int Value = GetVar(p, v);
+            if (Value == VAR_NEG)
+                fprintf(pFile, "0");
+            else if (Value == VAR_POS)
+                fprintf(pFile, "1");
+            else if (Value == VAR_ABS)
+                fprintf(pFile, "-");
             else
                 assert(0);
         }
-        fprintf( pFile, " " );
+        fprintf(pFile, " ");
 
         // write the output variables
         cOutputs = 0;
         nOutput = g_CoverInfo.nVarsOut;
-        WordSize = 8*sizeof( unsigned );
-        for ( w = 0; w < g_CoverInfo.nWordsOut; w++ )
-            for ( v = 0; v < WordSize; v++ )
-            {
-                if ( p->pCubeDataOut[w] & (1<<v) )
-                    fprintf( pFile, "1" );
+        WordSize = 8 * sizeof(unsigned);
+        for (w = 0; w < g_CoverInfo.nWordsOut; w++)
+            for (v = 0; v < WordSize; v++) {
+                if (p->pCubeDataOut[w] & (1 << v))
+                    fprintf(pFile, "1");
                 else
-                    fprintf( pFile, "0" );
-                if ( ++cOutputs == nOutput )
+                    fprintf(pFile, "0");
+                if (++cOutputs == nOutput)
                     break;
             }
-        fprintf( pFile, "\n" );
+        fprintf(pFile, "\n");
     }
 }
 
-
-int WriteResultIntoFile( char * pFileName )
+int WriteResultIntoFile(char* pFileName)
 // write the ESOP cover into the PLA file <NewFileName>
 {
-    FILE * pFile;
+    FILE* pFile;
     time_t ltime;
-    char * TimeStr;
+    char* TimeStr;
 
-    pFile = fopen( pFileName, "w" );
-    if ( pFile == NULL )
-    {
-        fprintf( pFile, "\n\nCannot open the output file\n" );
+    pFile = fopen(pFileName, "w");
+    if (pFile == NULL) {
+        fprintf(pFile, "\n\nCannot open the output file\n");
         return 1;
     }
 
     // get current time
-    time( &ltime );
-    TimeStr = asctime( localtime( &ltime ) );
+    time(&ltime);
+    TimeStr = asctime(localtime(&ltime));
     // get the number of literals
     g_CoverInfo.nLiteralsAfter = CountLiteralsCheck();
     g_CoverInfo.QCostAfter = CountQCost();
-    fprintf( pFile, "# EXORCISM-4 output for command line arguments: " );
-    fprintf( pFile, "\"-Q %d -V %d\"\n", g_CoverInfo.Quality, g_CoverInfo.Verbosity );
-    fprintf( pFile, "# Minimization performed %s", TimeStr );
-    fprintf( pFile, "# Initial statistics: " );
-    fprintf( pFile, "Cubes = %d  Literals = %d  QCost = %d\n", g_CoverInfo.nCubesBefore, g_CoverInfo.nLiteralsBefore, g_CoverInfo.QCostBefore );
-    fprintf( pFile, "# Final   statistics: " );
-    fprintf( pFile, "Cubes = %d  Literals = %d  QCost = %d\n", g_CoverInfo.nCubesInUse, g_CoverInfo.nLiteralsAfter, g_CoverInfo.QCostAfter );
-    fprintf( pFile, "# File reading and reordering time = %.2f sec\n", TICKS_TO_SECONDS(g_CoverInfo.TimeRead) );
-    fprintf( pFile, "# Starting cover generation time   = %.2f sec\n", TICKS_TO_SECONDS(g_CoverInfo.TimeStart) );
-    fprintf( pFile, "# Pure ESOP minimization time      = %.2f sec\n", TICKS_TO_SECONDS(g_CoverInfo.TimeMin) );
-    fprintf( pFile, ".i %d\n", g_CoverInfo.nVarsIn );
-    fprintf( pFile, ".o %d\n", g_CoverInfo.nVarsOut );
-    fprintf( pFile, ".p %d\n", g_CoverInfo.nCubesInUse );
-    fprintf( pFile, ".type esop\n" );
-    WriteTableIntoFile( pFile );
-    fprintf( pFile, ".e\n" );
-    fclose( pFile );
+    fprintf(pFile, "# EXORCISM-4 output for command line arguments: ");
+    fprintf(pFile, "\"-Q %d -V %d\"\n", g_CoverInfo.Quality, g_CoverInfo.Verbosity);
+    fprintf(pFile, "# Minimization performed %s", TimeStr);
+    fprintf(pFile, "# Initial statistics: ");
+    fprintf(pFile, "Cubes = %d  Literals = %d  QCost = %d\n", g_CoverInfo.nCubesBefore, g_CoverInfo.nLiteralsBefore, g_CoverInfo.QCostBefore);
+    fprintf(pFile, "# Final   statistics: ");
+    fprintf(pFile, "Cubes = %d  Literals = %d  QCost = %d\n", g_CoverInfo.nCubesInUse, g_CoverInfo.nLiteralsAfter, g_CoverInfo.QCostAfter);
+    fprintf(pFile, "# File reading and reordering time = %.2f sec\n", TICKS_TO_SECONDS(g_CoverInfo.TimeRead));
+    fprintf(pFile, "# Starting cover generation time   = %.2f sec\n", TICKS_TO_SECONDS(g_CoverInfo.TimeStart));
+    fprintf(pFile, "# Pure ESOP minimization time      = %.2f sec\n", TICKS_TO_SECONDS(g_CoverInfo.TimeMin));
+    fprintf(pFile, ".i %d\n", g_CoverInfo.nVarsIn);
+    fprintf(pFile, ".o %d\n", g_CoverInfo.nVarsOut);
+    fprintf(pFile, ".p %d\n", g_CoverInfo.nCubesInUse);
+    fprintf(pFile, ".type esop\n");
+    WriteTableIntoFile(pFile);
+    fprintf(pFile, ".e\n");
+    fclose(pFile);
     return 0;
 }
 
@@ -223,6 +210,4 @@ int WriteResultIntoFile( char * pFileName )
 ////////////              End of File             /////////////////
 ///////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -76,19 +76,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
 /* These definitions are for the bit vectors. */
 #if SIZEOF_LONG == 8
-#define BPL 64
-#define LOGBPL 6
+#    define BPL 64
+#    define LOGBPL 6
 #else
-#define BPL 32
-#define LOGBPL 5
+#    define BPL 32
+#    define LOGBPL 5
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -120,8 +118,8 @@ ABC_NAMESPACE_IMPL_START
 ** and finally at the phase of the second literal.
 */
 struct DdTlcInfo {
-    DdHalfWord *vars;
-    long *phases;
+    DdHalfWord* vars;
+    long* phases;
     DdHalfWord cnt;
 };
 
@@ -132,7 +130,7 @@ struct DdTlcInfo {
 struct TlClause {
     DdHalfWord v1, v2;
     short p1, p2;
-    struct TlClause *next;
+    struct TlClause* next;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -150,10 +148,10 @@ typedef struct TlClause TlClause;
 static char rcsid[] DD_UNUSED = "$Id: cuddEssent.c,v 1.24 2009/02/21 18:24:10 fabio Exp $";
 #endif
 
-static BitVector *Tolv;
-static BitVector *Tolp;
-static BitVector *Eolv;
-static BitVector *Eolp;
+static BitVector* Tolv;
+static BitVector* Tolp;
+static BitVector* Eolv;
+static BitVector* Eolp;
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
@@ -165,30 +163,28 @@ static BitVector *Eolp;
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static DdNode * ddFindEssentialRecur (DdManager *dd, DdNode *f);
-static DdTlcInfo * ddFindTwoLiteralClausesRecur (DdManager * dd, DdNode * f, st__table *table);
-static DdTlcInfo * computeClauses (DdTlcInfo *Tres, DdTlcInfo *Eres, DdHalfWord label, int size);
-static DdTlcInfo * computeClausesWithUniverse (DdTlcInfo *Cres, DdHalfWord label, short phase);
-static DdTlcInfo * emptyClauseSet (void);
-static int sentinelp (DdHalfWord var1, DdHalfWord var2);
-static int equalp (DdHalfWord var1a, short phase1a, DdHalfWord var1b, short phase1b, DdHalfWord var2a, short phase2a, DdHalfWord var2b, short phase2b);
-static int beforep (DdHalfWord var1a, short phase1a, DdHalfWord var1b, short phase1b, DdHalfWord var2a, short phase2a, DdHalfWord var2b, short phase2b);
-static int oneliteralp (DdHalfWord var);
-static int impliedp (DdHalfWord var1, short phase1, DdHalfWord var2, short phase2, BitVector *olv, BitVector *olp);
-static BitVector * bitVectorAlloc (int size);
-DD_INLINE static void bitVectorClear (BitVector *vector, int size);
-static void bitVectorFree (BitVector *vector);
-DD_INLINE static short bitVectorRead (BitVector *vector, int i);
-DD_INLINE static void bitVectorSet (BitVector * vector, int i, short val);
-static DdTlcInfo * tlcInfoAlloc (void);
+static DdNode* ddFindEssentialRecur(DdManager* dd, DdNode* f);
+static DdTlcInfo* ddFindTwoLiteralClausesRecur(DdManager* dd, DdNode* f, st__table* table);
+static DdTlcInfo* computeClauses(DdTlcInfo* Tres, DdTlcInfo* Eres, DdHalfWord label, int size);
+static DdTlcInfo* computeClausesWithUniverse(DdTlcInfo* Cres, DdHalfWord label, short phase);
+static DdTlcInfo* emptyClauseSet(void);
+static int sentinelp(DdHalfWord var1, DdHalfWord var2);
+static int equalp(DdHalfWord var1a, short phase1a, DdHalfWord var1b, short phase1b, DdHalfWord var2a, short phase2a, DdHalfWord var2b, short phase2b);
+static int beforep(DdHalfWord var1a, short phase1a, DdHalfWord var1b, short phase1b, DdHalfWord var2a, short phase2a, DdHalfWord var2b, short phase2b);
+static int oneliteralp(DdHalfWord var);
+static int impliedp(DdHalfWord var1, short phase1, DdHalfWord var2, short phase2, BitVector* olv, BitVector* olp);
+static BitVector* bitVectorAlloc(int size);
+DD_INLINE static void bitVectorClear(BitVector* vector, int size);
+static void bitVectorFree(BitVector* vector);
+DD_INLINE static short bitVectorRead(BitVector* vector, int i);
+DD_INLINE static void bitVectorSet(BitVector* vector, int i, short val);
+static DdTlcInfo* tlcInfoAlloc(void);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -205,21 +201,19 @@ static DdTlcInfo * tlcInfoAlloc (void);
   SeeAlso     [Cudd_bddIsVarEssential]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_FindEssential(
-  DdManager * dd,
-  DdNode * f)
-{
-    DdNode *res;
+    DdManager* dd,
+    DdNode* f) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
-        res = ddFindEssentialRecur(dd,f);
+        res = ddFindEssentialRecur(dd, f);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_FindEssential */
-
 
 /**Function********************************************************************
 
@@ -235,26 +229,23 @@ Cudd_FindEssential(
   SeeAlso     [Cudd_FindEssential]
 
 ******************************************************************************/
-int
-Cudd_bddIsVarEssential(
-  DdManager * manager,
-  DdNode * f,
-  int  id,
-  int  phase)
-{
-    DdNode      *var;
-    int         res;
+int Cudd_bddIsVarEssential(
+    DdManager* manager,
+    DdNode* f,
+    int id,
+    int phase) {
+    DdNode* var;
+    int res;
 
     var = Cudd_bddIthVar(manager, id);
 
-    var = Cudd_NotCond(var,phase == 0);
+    var = Cudd_NotCond(var, phase == 0);
 
     res = Cudd_bddLeq(manager, f, var);
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_bddIsVarEssential */
-
 
 /**Function********************************************************************
 
@@ -273,41 +264,40 @@ Cudd_bddIsVarEssential(
   SeeAlso     [Cudd_FindEssential]
 
 ******************************************************************************/
-DdTlcInfo *
+DdTlcInfo*
 Cudd_FindTwoLiteralClauses(
-  DdManager * dd,
-  DdNode * f)
-{
-    DdTlcInfo *res;
-    st__table *table;
-    st__generator *gen;
-    DdTlcInfo *tlc;
-    DdNode *node;
+    DdManager* dd,
+    DdNode* f) {
+    DdTlcInfo* res;
+    st__table* table;
+    st__generator* gen;
+    DdTlcInfo* tlc;
+    DdNode* node;
     int size = dd->size;
 
     if (Cudd_IsConstant(f)) {
         res = emptyClauseSet();
-        return(res);
+        return (res);
     }
-    table = st__init_table( st__ptrcmp, st__ptrhash);
-    if (table == NULL) return(NULL);
+    table = st__init_table(st__ptrcmp, st__ptrhash);
+    if (table == NULL) return (NULL);
     Tolv = bitVectorAlloc(size);
     if (Tolv == NULL) {
         st__free_table(table);
-        return(NULL);
+        return (NULL);
     }
     Tolp = bitVectorAlloc(size);
     if (Tolp == NULL) {
         st__free_table(table);
         bitVectorFree(Tolv);
-        return(NULL);
+        return (NULL);
     }
     Eolv = bitVectorAlloc(size);
     if (Eolv == NULL) {
         st__free_table(table);
         bitVectorFree(Tolv);
         bitVectorFree(Tolp);
-        return(NULL);
+        return (NULL);
     }
     Eolp = bitVectorAlloc(size);
     if (Eolp == NULL) {
@@ -315,12 +305,12 @@ Cudd_FindTwoLiteralClauses(
         bitVectorFree(Tolv);
         bitVectorFree(Tolp);
         bitVectorFree(Eolv);
-        return(NULL);
+        return (NULL);
     }
 
-    res = ddFindTwoLiteralClausesRecur(dd,f,table);
+    res = ddFindTwoLiteralClausesRecur(dd, f, table);
     /* Dispose of table contents and free table. */
-    st__foreach_item(table, gen, (const char **)&node, (char **)&tlc) {
+    st__foreach_item(table, gen, (const char**)&node, (char**)&tlc) {
         if (node != f) {
             Cudd_tlcInfoFree(tlc);
         }
@@ -333,14 +323,14 @@ Cudd_FindTwoLiteralClauses(
 
     if (res != NULL) {
         int i;
-        for (i = 0; !sentinelp(res->vars[i], res->vars[i+1]); i += 2);
+        for (i = 0; !sentinelp(res->vars[i], res->vars[i + 1]); i += 2)
+            ;
         res->cnt = i >> 1;
     }
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_FindTwoLiteralClauses */
-
 
 /**Function********************************************************************
 
@@ -355,26 +345,23 @@ Cudd_FindTwoLiteralClauses(
   SeeAlso     [Cudd_FindTwoLiteralClauses]
 
 ******************************************************************************/
-int
-Cudd_ReadIthClause(
-  DdTlcInfo * tlc,
-  int i,
-  DdHalfWord *var1,
-  DdHalfWord *var2,
-  int *phase1,
-  int *phase2)
-{
-    if (tlc == NULL) return(0);
-    if (tlc->vars == NULL || tlc->phases == NULL) return(0);
-    if (i < 0 || (unsigned) i >= tlc->cnt) return(0);
-    *var1 = tlc->vars[2*i];
-    *var2 = tlc->vars[2*i+1];
-    *phase1 = (int) bitVectorRead(tlc->phases, 2*i);
-    *phase2 = (int) bitVectorRead(tlc->phases, 2*i+1);
-    return(1);
+int Cudd_ReadIthClause(
+    DdTlcInfo* tlc,
+    int i,
+    DdHalfWord* var1,
+    DdHalfWord* var2,
+    int* phase1,
+    int* phase2) {
+    if (tlc == NULL) return (0);
+    if (tlc->vars == NULL || tlc->phases == NULL) return (0);
+    if (i < 0 || (unsigned)i >= tlc->cnt) return (0);
+    *var1 = tlc->vars[2 * i];
+    *var2 = tlc->vars[2 * i + 1];
+    *phase1 = (int)bitVectorRead(tlc->phases, 2 * i);
+    *phase2 = (int)bitVectorRead(tlc->phases, 2 * i + 1);
+    return (1);
 
 } /* end of Cudd_ReadIthClause */
-
 
 /**Function********************************************************************
 
@@ -389,55 +376,52 @@ Cudd_ReadIthClause(
   SeeAlso     [Cudd_FindTwoLiteralClauses]
 
 ******************************************************************************/
-int
-Cudd_PrintTwoLiteralClauses(
-  DdManager * dd,
-  DdNode * f,
-  char **names,
-  FILE *fp)
-{
-    DdHalfWord *vars;
-    BitVector *phases;
+int Cudd_PrintTwoLiteralClauses(
+    DdManager* dd,
+    DdNode* f,
+    char** names,
+    FILE* fp) {
+    DdHalfWord* vars;
+    BitVector* phases;
     int i;
-    DdTlcInfo *res = Cudd_FindTwoLiteralClauses(dd, f);
-    FILE *ifp = fp == NULL ? dd->out : fp;
+    DdTlcInfo* res = Cudd_FindTwoLiteralClauses(dd, f);
+    FILE* ifp = fp == NULL ? dd->out : fp;
 
-    if (res == NULL) return(0);
+    if (res == NULL) return (0);
     vars = res->vars;
     phases = res->phases;
-    for (i = 0; !sentinelp(vars[i], vars[i+1]); i += 2) {
+    for (i = 0; !sentinelp(vars[i], vars[i + 1]); i += 2) {
         if (names != NULL) {
-            if (vars[i+1] == CUDD_MAXINDEX) {
-                (void) fprintf(ifp, "%s%s\n",
-                               bitVectorRead(phases, i) ? "~" : " ",
-                               names[vars[i]]);
+            if (vars[i + 1] == CUDD_MAXINDEX) {
+                (void)fprintf(ifp, "%s%s\n",
+                              bitVectorRead(phases, i) ? "~" : " ",
+                              names[vars[i]]);
             } else {
-                (void) fprintf(ifp, "%s%s | %s%s\n",
-                               bitVectorRead(phases, i) ? "~" : " ",
-                               names[vars[i]],
-                               bitVectorRead(phases, i+1) ? "~" : " ",
-                               names[vars[i+1]]);
+                (void)fprintf(ifp, "%s%s | %s%s\n",
+                              bitVectorRead(phases, i) ? "~" : " ",
+                              names[vars[i]],
+                              bitVectorRead(phases, i + 1) ? "~" : " ",
+                              names[vars[i + 1]]);
             }
         } else {
-            if (vars[i+1] == CUDD_MAXINDEX) {
-                (void) fprintf(ifp, "%s%d\n",
-                               bitVectorRead(phases, i) ? "~" : " ",
-                               (int) vars[i]);
+            if (vars[i + 1] == CUDD_MAXINDEX) {
+                (void)fprintf(ifp, "%s%d\n",
+                              bitVectorRead(phases, i) ? "~" : " ",
+                              (int)vars[i]);
             } else {
-                (void) fprintf(ifp, "%s%d | %s%d\n",
-                               bitVectorRead(phases, i) ? "~" : " ",
-                               (int) vars[i],
-                               bitVectorRead(phases, i+1) ? "~" : " ",
-                               (int) vars[i+1]);
+                (void)fprintf(ifp, "%s%d | %s%d\n",
+                              bitVectorRead(phases, i) ? "~" : " ",
+                              (int)vars[i],
+                              bitVectorRead(phases, i + 1) ? "~" : " ",
+                              (int)vars[i + 1]);
             }
         }
     }
     Cudd_tlcInfoFree(res);
 
-    return(1);
+    return (1);
 
 } /* end of Cudd_PrintTwoLiteralClauses */
-
 
 /**Function********************************************************************
 
@@ -451,26 +435,21 @@ Cudd_PrintTwoLiteralClauses(
   SeeAlso     []
 
 ******************************************************************************/
-void
-Cudd_tlcInfoFree(
-  DdTlcInfo * t)
-{
+void Cudd_tlcInfoFree(
+    DdTlcInfo* t) {
     if (t->vars != NULL) ABC_FREE(t->vars);
     if (t->phases != NULL) ABC_FREE(t->phases);
     ABC_FREE(t);
 
 } /* end of Cudd_tlcInfoFree */
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -482,24 +461,23 @@ Cudd_tlcInfoFree(
   SideEffects [None]
 
 ******************************************************************************/
-static DdNode *
+static DdNode*
 ddFindEssentialRecur(
-  DdManager * dd,
-  DdNode * f)
-{
-    DdNode      *T, *E, *F;
-    DdNode      *essT, *essE, *res;
-    int         index;
-    DdNode      *one, *lzero, *azero;
+    DdManager* dd,
+    DdNode* f) {
+    DdNode *T, *E, *F;
+    DdNode *essT, *essE, *res;
+    int index;
+    DdNode *one, *lzero, *azero;
 
     one = DD_ONE(dd);
     F = Cudd_Regular(f);
     /* If f is constant the set of essential variables is empty. */
-    if (cuddIsConstant(F)) return(one);
+    if (cuddIsConstant(F)) return (one);
 
-    res = cuddCacheLookup1(dd,Cudd_FindEssential,f);
+    res = cuddCacheLookup1(dd, Cudd_FindEssential, f);
     if (res != NULL) {
-        return(res);
+        return (res);
     }
 
     lzero = Cudd_Not(one);
@@ -508,7 +486,8 @@ ddFindEssentialRecur(
     T = cuddT(F);
     E = cuddE(F);
     if (Cudd_IsComplement(f)) {
-        T = Cudd_Not(T); E = Cudd_Not(E);
+        T = Cudd_Not(T);
+        E = Cudd_Not(E);
     }
 
     index = F->index;
@@ -528,17 +507,17 @@ ddFindEssentialRecur(
             res = Cudd_Not(dd->vars[index]);
         } else { /* E == non-constant */
             /* find essentials in the else branch */
-            essE = ddFindEssentialRecur(dd,E);
+            essE = ddFindEssentialRecur(dd, E);
             if (essE == NULL) {
-                return(NULL);
+                return (NULL);
             }
             cuddRef(essE);
 
             /* add index to the set with negative phase */
-            res = cuddUniqueInter(dd,index,one,Cudd_Not(essE));
+            res = cuddUniqueInter(dd, index, one, Cudd_Not(essE));
             if (res == NULL) {
-                Cudd_RecursiveDeref(dd,essE);
-                return(NULL);
+                Cudd_RecursiveDeref(dd, essE);
+                return (NULL);
             }
             res = Cudd_Not(res);
             cuddDeref(essE);
@@ -546,61 +525,60 @@ ddFindEssentialRecur(
     } else { /* T == non-const */
         if (E == lzero || E == azero) {
             /* find essentials in the then branch */
-            essT = ddFindEssentialRecur(dd,T);
+            essT = ddFindEssentialRecur(dd, T);
             if (essT == NULL) {
-                return(NULL);
+                return (NULL);
             }
             cuddRef(essT);
 
             /* add index to the set with positive phase */
             /* use And because essT may be complemented */
-            res = cuddBddAndRecur(dd,dd->vars[index],essT);
+            res = cuddBddAndRecur(dd, dd->vars[index], essT);
             if (res == NULL) {
-                Cudd_RecursiveDeref(dd,essT);
-                return(NULL);
+                Cudd_RecursiveDeref(dd, essT);
+                return (NULL);
             }
             cuddDeref(essT);
         } else if (!Cudd_IsConstant(E)) {
             /* if E is a non-zero constant there are no essentials
             ** because T is non-constant.
             */
-            essT = ddFindEssentialRecur(dd,T);
+            essT = ddFindEssentialRecur(dd, T);
             if (essT == NULL) {
-                return(NULL);
+                return (NULL);
             }
             if (essT == one) {
                 res = one;
             } else {
                 cuddRef(essT);
-                essE = ddFindEssentialRecur(dd,E);
+                essE = ddFindEssentialRecur(dd, E);
                 if (essE == NULL) {
-                    Cudd_RecursiveDeref(dd,essT);
-                    return(NULL);
+                    Cudd_RecursiveDeref(dd, essT);
+                    return (NULL);
                 }
                 cuddRef(essE);
 
                 /* res = intersection(essT, essE) */
-                res = cuddBddLiteralSetIntersectionRecur(dd,essT,essE);
+                res = cuddBddLiteralSetIntersectionRecur(dd, essT, essE);
                 if (res == NULL) {
-                    Cudd_RecursiveDeref(dd,essT);
-                    Cudd_RecursiveDeref(dd,essE);
-                    return(NULL);
+                    Cudd_RecursiveDeref(dd, essT);
+                    Cudd_RecursiveDeref(dd, essE);
+                    return (NULL);
                 }
                 cuddRef(res);
-                Cudd_RecursiveDeref(dd,essT);
-                Cudd_RecursiveDeref(dd,essE);
+                Cudd_RecursiveDeref(dd, essT);
+                Cudd_RecursiveDeref(dd, essE);
                 cuddDeref(res);
             }
-        } else {        /* E is a non-zero constant */
+        } else { /* E is a non-zero constant */
             res = one;
         }
     }
 
-    cuddCacheInsert1(dd,Cudd_FindEssential, f, res);
-    return(res);
+    cuddCacheInsert1(dd, Cudd_FindEssential, f, res);
+    return (res);
 
 } /* end of ddFindEssentialRecur */
-
 
 /**Function********************************************************************
 
@@ -616,12 +594,11 @@ ddFindEssentialRecur(
   SeeAlso     [Cudd_FindTwoLiteralClauses]
 
 ******************************************************************************/
-static DdTlcInfo *
+static DdTlcInfo*
 ddFindTwoLiteralClausesRecur(
-  DdManager * dd,
-  DdNode * f,
-  st__table *table)
-{
+    DdManager* dd,
+    DdNode* f,
+    st__table* table) {
     DdNode *T, *E, *F;
     DdNode *one, *lzero, *azero;
     DdTlcInfo *res, *Tres, *Eres;
@@ -633,8 +610,8 @@ ddFindTwoLiteralClausesRecur(
 
     /* Check computed table.  Separate entries are necessary for
     ** a node and its complement.  We should update the counter here. */
-    if ( st__lookup(table, (const char *)f, (char **)&res)) {
-        return(res);
+    if (st__lookup(table, (const char*)f, (char**)&res)) {
+        return (res);
     }
 
     /* Easy access to the constants for BDDs and ADDs. */
@@ -643,9 +620,11 @@ ddFindTwoLiteralClausesRecur(
     azero = DD_ZERO(dd);
 
     /* Find cofactors and variable labeling the top node. */
-    T = cuddT(F); E = cuddE(F);
+    T = cuddT(F);
+    E = cuddE(F);
     if (Cudd_IsComplement(f)) {
-        T = Cudd_Not(T); E = Cudd_Not(E);
+        T = Cudd_Not(T);
+        E = Cudd_Not(E);
     }
     index = F->index;
 
@@ -658,17 +637,17 @@ ddFindTwoLiteralClausesRecur(
         if (E == lzero || E == azero) {
             /* Create the clause (index + 0). */
             res = tlcInfoAlloc();
-            if (res == NULL) return(NULL);
-            res->vars = ABC_ALLOC(DdHalfWord,4);
+            if (res == NULL) return (NULL);
+            res->vars = ABC_ALLOC(DdHalfWord, 4);
             if (res->vars == NULL) {
                 ABC_FREE(res);
-                return(NULL);
+                return (NULL);
             }
             res->phases = bitVectorAlloc(2);
             if (res->phases == NULL) {
                 ABC_FREE(res->vars);
                 ABC_FREE(res);
-                return(NULL);
+                return (NULL);
             }
             res->vars[0] = index;
             res->vars[1] = CUDD_MAXINDEX;
@@ -682,11 +661,11 @@ ddFindTwoLiteralClausesRecur(
         } else {
             /* E is non-constant */
             Tres = emptyClauseSet();
-            if (Tres == NULL) return(NULL);
+            if (Tres == NULL) return (NULL);
             Eres = ddFindTwoLiteralClausesRecur(dd, E, table);
             if (Eres == NULL) {
                 Cudd_tlcInfoFree(Tres);
-                return(NULL);
+                return (NULL);
             }
             res = computeClauses(Tres, Eres, index, dd->size);
             Cudd_tlcInfoFree(Tres);
@@ -699,17 +678,17 @@ ddFindTwoLiteralClausesRecur(
         if (Cudd_IsConstant(E)) { /* E cannot be zero here */
             /* Create the clause (!index + 0). */
             res = tlcInfoAlloc();
-            if (res == NULL) return(NULL);
-            res->vars = ABC_ALLOC(DdHalfWord,4);
+            if (res == NULL) return (NULL);
+            res->vars = ABC_ALLOC(DdHalfWord, 4);
             if (res->vars == NULL) {
                 ABC_FREE(res);
-                return(NULL);
+                return (NULL);
             }
             res->phases = bitVectorAlloc(2);
             if (res->phases == NULL) {
                 ABC_FREE(res->vars);
                 ABC_FREE(res);
-                return(NULL);
+                return (NULL);
             }
             res->vars[0] = index;
             res->vars[1] = CUDD_MAXINDEX;
@@ -717,39 +696,38 @@ ddFindTwoLiteralClausesRecur(
             res->vars[3] = 0;
             bitVectorSet(res->phases, 0, 1); /* negative phase */
             bitVectorSet(res->phases, 1, 1); /* negative phase */
-        } else { /* E == non-constant */
+        } else {                             /* E == non-constant */
             Eres = ddFindTwoLiteralClausesRecur(dd, E, table);
-            if (Eres == NULL) return(NULL);
+            if (Eres == NULL) return (NULL);
             res = computeClausesWithUniverse(Eres, index, 1);
         }
     } else { /* T == non-const */
         Tres = ddFindTwoLiteralClausesRecur(dd, T, table);
-        if (Tres == NULL) return(NULL);
+        if (Tres == NULL) return (NULL);
         if (Cudd_IsConstant(E)) {
             if (E == lzero || E == azero) {
                 res = computeClausesWithUniverse(Tres, index, 0);
             } else {
                 Eres = emptyClauseSet();
-                if (Eres == NULL) return(NULL);
+                if (Eres == NULL) return (NULL);
                 res = computeClauses(Tres, Eres, index, dd->size);
                 Cudd_tlcInfoFree(Eres);
             }
         } else {
             Eres = ddFindTwoLiteralClausesRecur(dd, E, table);
-            if (Eres == NULL) return(NULL);
+            if (Eres == NULL) return (NULL);
             res = computeClauses(Tres, Eres, index, dd->size);
         }
     }
 
     /* Cache results. */
-    if ( st__add_direct(table, (char *)f, (char *)res) == st__OUT_OF_MEM) {
+    if (st__add_direct(table, (char*)f, (char*)res) == st__OUT_OF_MEM) {
         ABC_FREE(res);
-        return(NULL);
+        return (NULL);
     }
-    return(res);
+    return (res);
 
 } /* end of ddFindTwoLiteralClausesRecur */
-
 
 /**Function********************************************************************
 
@@ -764,29 +742,28 @@ ddFindTwoLiteralClausesRecur(
   SeeAlso     [computeClausesWithUniverse]
 
 ******************************************************************************/
-static DdTlcInfo *
+static DdTlcInfo*
 computeClauses(
-  DdTlcInfo *Tres /* list of clauses for T child */,
-  DdTlcInfo *Eres /* list of clauses for E child */,
-  DdHalfWord label /* variable labeling the current node */,
-  int size /* number of variables in the manager */)
-{
-    DdHalfWord *Tcv = Tres->vars; /* variables of clauses for the T child */
-    BitVector *Tcp = Tres->phases; /* phases of clauses for the T child */
-    DdHalfWord *Ecv = Eres->vars; /* variables of clauses for the E child */
-    BitVector *Ecp = Eres->phases; /* phases of clauses for the E child */
-    DdHalfWord *Vcv = NULL; /* pointer to variables of the clauses for v */
-    BitVector *Vcp = NULL; /* pointer to phases of the clauses for v */
-    DdTlcInfo *res = NULL; /* the set of clauses to be returned */
-    int pt = 0; /* index in the list of clauses of T */
-    int pe = 0; /* index in the list of clauses of E */
-    int cv = 0; /* counter of the clauses for this node */
-    TlClause *iclauses = NULL; /* list of inherited clauses */
-    TlClause *tclauses = NULL; /* list of 1-literal clauses of T */
-    TlClause *eclauses = NULL; /* list of 1-literal clauses of E */
-    TlClause *nclauses = NULL; /* list of new (non-inherited) clauses */
-    TlClause *lnclause = NULL; /* pointer to last new clause */
-    TlClause *newclause; /* temporary pointer to new clauses */
+    DdTlcInfo* Tres /* list of clauses for T child */,
+    DdTlcInfo* Eres /* list of clauses for E child */,
+    DdHalfWord label /* variable labeling the current node */,
+    int size /* number of variables in the manager */) {
+    DdHalfWord* Tcv = Tres->vars;  /* variables of clauses for the T child */
+    BitVector* Tcp = Tres->phases; /* phases of clauses for the T child */
+    DdHalfWord* Ecv = Eres->vars;  /* variables of clauses for the E child */
+    BitVector* Ecp = Eres->phases; /* phases of clauses for the E child */
+    DdHalfWord* Vcv = NULL;        /* pointer to variables of the clauses for v */
+    BitVector* Vcp = NULL;         /* pointer to phases of the clauses for v */
+    DdTlcInfo* res = NULL;         /* the set of clauses to be returned */
+    int pt = 0;                    /* index in the list of clauses of T */
+    int pe = 0;                    /* index in the list of clauses of E */
+    int cv = 0;                    /* counter of the clauses for this node */
+    TlClause* iclauses = NULL;     /* list of inherited clauses */
+    TlClause* tclauses = NULL;     /* list of 1-literal clauses of T */
+    TlClause* eclauses = NULL;     /* list of 1-literal clauses of E */
+    TlClause* nclauses = NULL;     /* list of new (non-inherited) clauses */
+    TlClause* lnclause = NULL;     /* pointer to last new clause */
+    TlClause* newclause;           /* temporary pointer to new clauses */
 
     /* Initialize sets of one-literal clauses.  The one-literal clauses
     ** are stored redundantly.  These sets allow constant-time lookup, which
@@ -811,28 +788,30 @@ computeClauses(
     ** that are common to both children; and the two-literal clauses of
     ** one child that are implied by a one-literal clause of the other
     ** child. */
-    while (!sentinelp(Tcv[pt], Tcv[pt+1]) || !sentinelp(Ecv[pe], Ecv[pe+1])) {
+    while (!sentinelp(Tcv[pt], Tcv[pt + 1]) || !sentinelp(Ecv[pe], Ecv[pe + 1])) {
         if (equalp(Tcv[pt], bitVectorRead(Tcp, pt),
-                   Tcv[pt+1], bitVectorRead(Tcp, pt+1),
+                   Tcv[pt + 1], bitVectorRead(Tcp, pt + 1),
                    Ecv[pe], bitVectorRead(Ecp, pe),
-                   Ecv[pe+1], bitVectorRead(Ecp, pe+1))) {
+                   Ecv[pe + 1], bitVectorRead(Ecp, pe + 1))) {
             /* Add clause to inherited list. */
-            newclause = ABC_ALLOC(TlClause,1);
+            newclause = ABC_ALLOC(TlClause, 1);
             if (newclause == NULL) goto cleanup;
             newclause->v1 = Tcv[pt];
-            newclause->v2 = Tcv[pt+1];
+            newclause->v2 = Tcv[pt + 1];
             newclause->p1 = bitVectorRead(Tcp, pt);
-            newclause->p2 = bitVectorRead(Tcp, pt+1);
+            newclause->p2 = bitVectorRead(Tcp, pt + 1);
             newclause->next = iclauses;
             iclauses = newclause;
-            pt += 2; pe += 2; cv++;
+            pt += 2;
+            pe += 2;
+            cv++;
         } else if (beforep(Tcv[pt], bitVectorRead(Tcp, pt),
-                   Tcv[pt+1], bitVectorRead(Tcp, pt+1),
-                   Ecv[pe], bitVectorRead(Ecp, pe),
-                   Ecv[pe+1], bitVectorRead(Ecp, pe+1))) {
-            if (oneliteralp(Tcv[pt+1])) {
+                           Tcv[pt + 1], bitVectorRead(Tcp, pt + 1),
+                           Ecv[pe], bitVectorRead(Ecp, pe),
+                           Ecv[pe + 1], bitVectorRead(Ecp, pe + 1))) {
+            if (oneliteralp(Tcv[pt + 1])) {
                 /* Add this one-literal clause to the T set. */
-                newclause = ABC_ALLOC(TlClause,1);
+                newclause = ABC_ALLOC(TlClause, 1);
                 if (newclause == NULL) goto cleanup;
                 newclause->v1 = Tcv[pt];
                 newclause->v2 = CUDD_MAXINDEX;
@@ -844,15 +823,15 @@ computeClauses(
                 bitVectorSet(Tolp, Tcv[pt], bitVectorRead(Tcp, pt));
             } else {
                 if (impliedp(Tcv[pt], bitVectorRead(Tcp, pt),
-                             Tcv[pt+1], bitVectorRead(Tcp, pt+1),
+                             Tcv[pt + 1], bitVectorRead(Tcp, pt + 1),
                              Eolv, Eolp)) {
                     /* Add clause to inherited list. */
-                    newclause = ABC_ALLOC(TlClause,1);
+                    newclause = ABC_ALLOC(TlClause, 1);
                     if (newclause == NULL) goto cleanup;
                     newclause->v1 = Tcv[pt];
-                    newclause->v2 = Tcv[pt+1];
+                    newclause->v2 = Tcv[pt + 1];
                     newclause->p1 = bitVectorRead(Tcp, pt);
-                    newclause->p2 = bitVectorRead(Tcp, pt+1);
+                    newclause->p2 = bitVectorRead(Tcp, pt + 1);
                     newclause->next = iclauses;
                     iclauses = newclause;
                     cv++;
@@ -860,9 +839,9 @@ computeClauses(
             }
             pt += 2;
         } else { /* !beforep() */
-            if (oneliteralp(Ecv[pe+1])) {
+            if (oneliteralp(Ecv[pe + 1])) {
                 /* Add this one-literal clause to the E set. */
-                newclause = ABC_ALLOC(TlClause,1);
+                newclause = ABC_ALLOC(TlClause, 1);
                 if (newclause == NULL) goto cleanup;
                 newclause->v1 = Ecv[pe];
                 newclause->v2 = CUDD_MAXINDEX;
@@ -874,15 +853,15 @@ computeClauses(
                 bitVectorSet(Eolp, Ecv[pe], bitVectorRead(Ecp, pe));
             } else {
                 if (impliedp(Ecv[pe], bitVectorRead(Ecp, pe),
-                             Ecv[pe+1], bitVectorRead(Ecp, pe+1),
+                             Ecv[pe + 1], bitVectorRead(Ecp, pe + 1),
                              Tolv, Tolp)) {
                     /* Add clause to inherited list. */
-                    newclause = ABC_ALLOC(TlClause,1);
+                    newclause = ABC_ALLOC(TlClause, 1);
                     if (newclause == NULL) goto cleanup;
                     newclause->v1 = Ecv[pe];
-                    newclause->v2 = Ecv[pe+1];
+                    newclause->v2 = Ecv[pe + 1];
                     newclause->p1 = bitVectorRead(Ecp, pe);
-                    newclause->p2 = bitVectorRead(Ecp, pe+1);
+                    newclause->p2 = bitVectorRead(Ecp, pe + 1);
                     newclause->next = iclauses;
                     iclauses = newclause;
                     cv++;
@@ -894,7 +873,7 @@ computeClauses(
 
     /* Add one-literal clauses for the label variable to the front of
     ** the two lists. */
-    newclause = ABC_ALLOC(TlClause,1);
+    newclause = ABC_ALLOC(TlClause, 1);
     if (newclause == NULL) goto cleanup;
     newclause->v1 = label;
     newclause->v2 = CUDD_MAXINDEX;
@@ -902,7 +881,7 @@ computeClauses(
     newclause->p2 = 1;
     newclause->next = tclauses;
     tclauses = newclause;
-    newclause = ABC_ALLOC(TlClause,1);
+    newclause = ABC_ALLOC(TlClause, 1);
     if (newclause == NULL) goto cleanup;
     newclause->v1 = label;
     newclause->v2 = CUDD_MAXINDEX;
@@ -917,11 +896,11 @@ computeClauses(
     while (tclauses != NULL && eclauses != NULL) {
         if (beforep(eclauses->v1, eclauses->p1, eclauses->v2, eclauses->p2,
                     tclauses->v1, tclauses->p1, tclauses->v2, tclauses->p2)) {
-            TlClause *nextclause = tclauses->next;
-            TlClause *otherclauses = eclauses;
+            TlClause* nextclause = tclauses->next;
+            TlClause* otherclauses = eclauses;
             while (otherclauses != NULL) {
                 if (tclauses->v1 != otherclauses->v1) {
-                    newclause = ABC_ALLOC(TlClause,1);
+                    newclause = ABC_ALLOC(TlClause, 1);
                     if (newclause == NULL) goto cleanup;
                     newclause->v1 = tclauses->v1;
                     newclause->v2 = otherclauses->v1;
@@ -942,11 +921,11 @@ computeClauses(
             ABC_FREE(tclauses);
             tclauses = nextclause;
         } else {
-            TlClause *nextclause = eclauses->next;
-            TlClause *otherclauses = tclauses;
+            TlClause* nextclause = eclauses->next;
+            TlClause* otherclauses = tclauses;
             while (otherclauses != NULL) {
                 if (eclauses->v1 != otherclauses->v1) {
-                    newclause = ABC_ALLOC(TlClause,1);
+                    newclause = ABC_ALLOC(TlClause, 1);
                     if (newclause == NULL) goto cleanup;
                     newclause->v1 = eclauses->v1;
                     newclause->v2 = otherclauses->v1;
@@ -969,12 +948,12 @@ computeClauses(
         }
     }
     while (tclauses != NULL) {
-        TlClause *nextclause = tclauses->next;
+        TlClause* nextclause = tclauses->next;
         ABC_FREE(tclauses);
         tclauses = nextclause;
     }
     while (eclauses != NULL) {
-        TlClause *nextclause = eclauses->next;
+        TlClause* nextclause = eclauses->next;
         ABC_FREE(eclauses);
         eclauses = nextclause;
     }
@@ -982,10 +961,10 @@ computeClauses(
     /* Merge inherited and non-inherited clauses.  Now that we know the
     ** total number, we allocate the arrays, and we fill them bottom-up
     ** to restore the proper ordering. */
-    Vcv = ABC_ALLOC(DdHalfWord, 2*(cv+1));
+    Vcv = ABC_ALLOC(DdHalfWord, 2 * (cv + 1));
     if (Vcv == NULL) goto cleanup;
     if (cv > 0) {
-        Vcp = bitVectorAlloc(2*cv);
+        Vcp = bitVectorAlloc(2 * cv);
         if (Vcp == NULL) goto cleanup;
     } else {
         Vcp = NULL;
@@ -993,26 +972,24 @@ computeClauses(
     res->vars = Vcv;
     res->phases = Vcp;
     /* Add sentinel. */
-    Vcv[2*cv] = 0;
-    Vcv[2*cv+1] = 0;
+    Vcv[2 * cv] = 0;
+    Vcv[2 * cv + 1] = 0;
     while (iclauses != NULL || nclauses != NULL) {
-        TlClause *nextclause;
+        TlClause* nextclause;
         cv--;
-        if (nclauses == NULL || (iclauses != NULL &&
-            beforep(nclauses->v1, nclauses->p1, nclauses->v2, nclauses->p2,
-                    iclauses->v1, iclauses->p1, iclauses->v2, iclauses->p2))) {
-            Vcv[2*cv] = iclauses->v1;
-            Vcv[2*cv+1] = iclauses->v2;
-            bitVectorSet(Vcp, 2*cv, iclauses->p1);
-            bitVectorSet(Vcp, 2*cv+1, iclauses->p2);
+        if (nclauses == NULL || (iclauses != NULL && beforep(nclauses->v1, nclauses->p1, nclauses->v2, nclauses->p2, iclauses->v1, iclauses->p1, iclauses->v2, iclauses->p2))) {
+            Vcv[2 * cv] = iclauses->v1;
+            Vcv[2 * cv + 1] = iclauses->v2;
+            bitVectorSet(Vcp, 2 * cv, iclauses->p1);
+            bitVectorSet(Vcp, 2 * cv + 1, iclauses->p2);
             nextclause = iclauses->next;
             ABC_FREE(iclauses);
             iclauses = nextclause;
         } else {
-            Vcv[2*cv] = nclauses->v1;
-            Vcv[2*cv+1] = nclauses->v2;
-            bitVectorSet(Vcp, 2*cv, nclauses->p1);
-            bitVectorSet(Vcp, 2*cv+1, nclauses->p2);
+            Vcv[2 * cv] = nclauses->v1;
+            Vcv[2 * cv + 1] = nclauses->v2;
+            bitVectorSet(Vcp, 2 * cv, nclauses->p1);
+            bitVectorSet(Vcp, 2 * cv + 1, nclauses->p2);
             nextclause = nclauses->next;
             ABC_FREE(nclauses);
             nclauses = nextclause;
@@ -1020,35 +997,34 @@ computeClauses(
     }
     assert(cv == 0);
 
-    return(res);
+    return (res);
 
- cleanup:
+cleanup:
     if (res != NULL) Cudd_tlcInfoFree(res);
     while (iclauses != NULL) {
-        TlClause *nextclause = iclauses->next;
+        TlClause* nextclause = iclauses->next;
         ABC_FREE(iclauses);
         iclauses = nextclause;
     }
     while (nclauses != NULL) {
-        TlClause *nextclause = nclauses->next;
+        TlClause* nextclause = nclauses->next;
         ABC_FREE(nclauses);
         nclauses = nextclause;
     }
     while (tclauses != NULL) {
-        TlClause *nextclause = tclauses->next;
+        TlClause* nextclause = tclauses->next;
         ABC_FREE(tclauses);
         tclauses = nextclause;
     }
     while (eclauses != NULL) {
-        TlClause *nextclause = eclauses->next;
+        TlClause* nextclause = eclauses->next;
         ABC_FREE(eclauses);
         eclauses = nextclause;
     }
 
-    return(NULL);
+    return (NULL);
 
 } /* end of computeClauses */
-
 
 /**Function********************************************************************
 
@@ -1064,39 +1040,39 @@ computeClauses(
   SeeAlso     [computeClauses]
 
 ******************************************************************************/
-static DdTlcInfo *
+static DdTlcInfo*
 computeClausesWithUniverse(
-  DdTlcInfo *Cres /* list of clauses for child */,
-  DdHalfWord label /* variable labeling the current node */,
-  short phase /* 0 if E child is zero; 1 if T child is zero */)
-{
-    DdHalfWord *Ccv = Cres->vars; /* variables of clauses for child */
-    BitVector *Ccp = Cres->phases; /* phases of clauses for child */
-    DdHalfWord *Vcv = NULL; /* pointer to the variables of the clauses for v */
-    BitVector *Vcp = NULL; /* pointer to the phases of the clauses for v */
-    DdTlcInfo *res = NULL; /* the set of clauses to be returned */
+    DdTlcInfo* Cres /* list of clauses for child */,
+    DdHalfWord label /* variable labeling the current node */,
+    short phase /* 0 if E child is zero; 1 if T child is zero */) {
+    DdHalfWord* Ccv = Cres->vars;  /* variables of clauses for child */
+    BitVector* Ccp = Cres->phases; /* phases of clauses for child */
+    DdHalfWord* Vcv = NULL;        /* pointer to the variables of the clauses for v */
+    BitVector* Vcp = NULL;         /* pointer to the phases of the clauses for v */
+    DdTlcInfo* res = NULL;         /* the set of clauses to be returned */
     int i;
 
     /* Initialize result. */
     res = tlcInfoAlloc();
     if (res == NULL) goto cleanup;
     /* Count entries for new list and allocate accordingly. */
-    for (i = 0; !sentinelp(Ccv[i], Ccv[i+1]); i += 2);
+    for (i = 0; !sentinelp(Ccv[i], Ccv[i + 1]); i += 2)
+        ;
     /* At this point, i is twice the number of clauses in the child's
     ** list.  We need four more entries for this node: 2 for the one-literal
     ** clause for the label, and 2 for the sentinel. */
-    Vcv = ABC_ALLOC(DdHalfWord,i+4);
+    Vcv = ABC_ALLOC(DdHalfWord, i + 4);
     if (Vcv == NULL) goto cleanup;
-    Vcp = bitVectorAlloc(i+4);
+    Vcp = bitVectorAlloc(i + 4);
     if (Vcp == NULL) goto cleanup;
     res->vars = Vcv;
     res->phases = Vcp;
     /* Copy old list into new. */
-    for (i = 0; !sentinelp(Ccv[i], Ccv[i+1]); i += 2) {
+    for (i = 0; !sentinelp(Ccv[i], Ccv[i + 1]); i += 2) {
         Vcv[i] = Ccv[i];
-        Vcv[i+1] = Ccv[i+1];
+        Vcv[i + 1] = Ccv[i + 1];
         bitVectorSet(Vcp, i, bitVectorRead(Ccp, i));
-        bitVectorSet(Vcp, i+1, bitVectorRead(Ccp, i+1));
+        bitVectorSet(Vcp, i + 1, bitVectorRead(Ccp, i + 1));
     }
     /* Add clause corresponding to label. */
     Vcv[i] = label;
@@ -1107,21 +1083,20 @@ computeClausesWithUniverse(
     i++;
     /* Add sentinel. */
     Vcv[i] = 0;
-    Vcv[i+1] = 0;
+    Vcv[i + 1] = 0;
     bitVectorSet(Vcp, i, 0);
-    bitVectorSet(Vcp, i+1, 0);
+    bitVectorSet(Vcp, i + 1, 0);
 
-    return(res);
+    return (res);
 
- cleanup:
+cleanup:
     /* Vcp is guaranteed to be NULL here.  Hence, we do not try to free it. */
     if (Vcv != NULL) ABC_FREE(Vcv);
     if (res != NULL) Cudd_tlcInfoFree(res);
 
-    return(NULL);
+    return (NULL);
 
 } /* end of computeClausesWithUniverse */
-
 
 /**Function********************************************************************
 
@@ -1136,27 +1111,25 @@ computeClausesWithUniverse(
   SeeAlso     []
 
 ******************************************************************************/
-static DdTlcInfo *
-emptyClauseSet(void)
-{
-    DdTlcInfo *eset;
+static DdTlcInfo*
+emptyClauseSet(void) {
+    DdTlcInfo* eset;
 
-    eset = ABC_ALLOC(DdTlcInfo,1);
-    if (eset == NULL) return(NULL);
-    eset->vars = ABC_ALLOC(DdHalfWord,2);
+    eset = ABC_ALLOC(DdTlcInfo, 1);
+    if (eset == NULL) return (NULL);
+    eset->vars = ABC_ALLOC(DdHalfWord, 2);
     if (eset->vars == NULL) {
         ABC_FREE(eset);
-        return(NULL);
+        return (NULL);
     }
     /* Sentinel */
     eset->vars[0] = 0;
     eset->vars[1] = 0;
     eset->phases = NULL; /* does not matter */
     eset->cnt = 0;
-    return(eset);
+    return (eset);
 
 } /* end of emptyClauseSet */
-
 
 /**Function********************************************************************
 
@@ -1172,13 +1145,11 @@ emptyClauseSet(void)
 ******************************************************************************/
 static int
 sentinelp(
-  DdHalfWord var1,
-  DdHalfWord var2)
-{
-    return(var1 == 0 && var2 == 0);
+    DdHalfWord var1,
+    DdHalfWord var2) {
+    return (var1 == 0 && var2 == 0);
 
 } /* end of sentinelp */
-
 
 /**Function********************************************************************
 
@@ -1195,20 +1166,17 @@ sentinelp(
 ******************************************************************************/
 static int
 equalp(
-  DdHalfWord var1a,
-  short phase1a,
-  DdHalfWord var1b,
-  short phase1b,
-  DdHalfWord var2a,
-  short phase2a,
-  DdHalfWord var2b,
-  short phase2b)
-{
-    return(var1a == var2a && phase1a == phase2a &&
-           var1b == var2b && phase1b == phase2b);
+    DdHalfWord var1a,
+    short phase1a,
+    DdHalfWord var1b,
+    short phase1b,
+    DdHalfWord var2a,
+    short phase2a,
+    DdHalfWord var2b,
+    short phase2b) {
+    return (var1a == var2a && phase1a == phase2a && var1b == var2b && phase1b == phase2b);
 
 } /* end of equalp */
-
 
 /**Function********************************************************************
 
@@ -1231,21 +1199,17 @@ equalp(
 ******************************************************************************/
 static int
 beforep(
-  DdHalfWord var1a,
-  short phase1a,
-  DdHalfWord var1b,
-  short phase1b,
-  DdHalfWord var2a,
-  short phase2a,
-  DdHalfWord var2b,
-  short phase2b)
-{
-    return(var1a > var2a || (var1a == var2a &&
-           (phase1a < phase2a || (phase1a == phase2a &&
-            (var1b > var2b || (var1b == var2b && phase1b < phase2b))))));
+    DdHalfWord var1a,
+    short phase1a,
+    DdHalfWord var1b,
+    short phase1b,
+    DdHalfWord var2a,
+    short phase2a,
+    DdHalfWord var2b,
+    short phase2b) {
+    return (var1a > var2a || (var1a == var2a && (phase1a < phase2a || (phase1a == phase2a && (var1b > var2b || (var1b == var2b && phase1b < phase2b))))));
 
 } /* end of beforep */
-
 
 /**Function********************************************************************
 
@@ -1263,12 +1227,10 @@ beforep(
 ******************************************************************************/
 static int
 oneliteralp(
-  DdHalfWord var)
-{
-    return(var == CUDD_MAXINDEX);
+    DdHalfWord var) {
+    return (var == CUDD_MAXINDEX);
 
 } /* end of oneliteralp */
-
 
 /**Function********************************************************************
 
@@ -1286,20 +1248,15 @@ oneliteralp(
 ******************************************************************************/
 static int
 impliedp(
-  DdHalfWord var1,
-  short phase1,
-  DdHalfWord var2,
-  short phase2,
-  BitVector *olv,
-  BitVector *olp)
-{
-    return((bitVectorRead(olv, var1) &&
-            bitVectorRead(olp, var1) == phase1) ||
-           (bitVectorRead(olv, var2) &&
-            bitVectorRead(olp, var2) == phase2));
+    DdHalfWord var1,
+    short phase1,
+    DdHalfWord var2,
+    short phase2,
+    BitVector* olv,
+    BitVector* olp) {
+    return ((bitVectorRead(olv, var1) && bitVectorRead(olp, var1) == phase1) || (bitVectorRead(olv, var2) && bitVectorRead(olp, var2) == phase2));
 
 } /* end of impliedp */
-
 
 /**Function********************************************************************
 
@@ -1315,12 +1272,11 @@ impliedp(
   SeeAlso     [bitVectorClear bitVectorFree]
 
 ******************************************************************************/
-static BitVector *
+static BitVector*
 bitVectorAlloc(
-  int size)
-{
+    int size) {
     int allocSize;
-    BitVector *vector;
+    BitVector* vector;
 
     /* Find out how many long's we need.
     ** There are sizeof(long) * 8 bits in a long.
@@ -1328,13 +1284,12 @@ bitVectorAlloc(
     ** by ((n-1)/m)+1.  Putting all this together, we get... */
     allocSize = ((size - 1) / (sizeof(BitVector) * 8)) + 1;
     vector = ABC_ALLOC(BitVector, allocSize);
-    if (vector == NULL) return(NULL);
+    if (vector == NULL) return (NULL);
     /* Clear the whole array. */
-    (void) memset(vector, 0, allocSize * sizeof(BitVector));
-    return(vector);
+    (void)memset(vector, 0, allocSize * sizeof(BitVector));
+    return (vector);
 
 } /* end of bitVectorAlloc */
-
 
 /**Function********************************************************************
 
@@ -1351,9 +1306,8 @@ bitVectorAlloc(
 DD_INLINE
 static void
 bitVectorClear(
-  BitVector *vector,
-  int size)
-{
+    BitVector* vector,
+    int size) {
     int allocSize;
 
     /* Find out how many long's we need.
@@ -1362,11 +1316,10 @@ bitVectorClear(
     ** by ((n-1)/m)+1.  Putting all this together, we get... */
     allocSize = ((size - 1) / (sizeof(BitVector) * 8)) + 1;
     /* Clear the whole array. */
-    (void) memset(vector, 0, allocSize * sizeof(BitVector));
+    (void)memset(vector, 0, allocSize * sizeof(BitVector));
     return;
 
 } /* end of bitVectorClear */
-
 
 /**Function********************************************************************
 
@@ -1381,12 +1334,10 @@ bitVectorClear(
 ******************************************************************************/
 static void
 bitVectorFree(
-  BitVector *vector)
-{
+    BitVector* vector) {
     ABC_FREE(vector);
 
 } /* end of bitVectorFree */
-
 
 /**Function********************************************************************
 
@@ -1402,21 +1353,19 @@ bitVectorFree(
 DD_INLINE
 static short
 bitVectorRead(
-  BitVector *vector,
-  int i)
-{
+    BitVector* vector,
+    int i) {
     int word, bit;
     short result;
 
-    if (vector == NULL) return((short) 0);
+    if (vector == NULL) return ((short)0);
 
     word = i >> LOGBPL;
     bit = i & (BPL - 1);
-    result = (short) ((vector[word] >> bit) & 1L);
-    return(result);
+    result = (short)((vector[word] >> bit) & 1L);
+    return (result);
 
 } /* end of bitVectorRead */
-
 
 /**Function********************************************************************
 
@@ -1432,19 +1381,17 @@ bitVectorRead(
 DD_INLINE
 static void
 bitVectorSet(
-  BitVector * vector,
-  int i,
-  short val)
-{
+    BitVector* vector,
+    int i,
+    short val) {
     int word, bit;
 
     word = i >> LOGBPL;
     bit = i & (BPL - 1);
     vector[word] &= ~(1L << bit);
-    vector[word] |= (((long) val) << bit);
+    vector[word] |= (((long)val) << bit);
 
 } /* end of bitVectorSet */
-
 
 /**Function********************************************************************
 
@@ -1458,18 +1405,15 @@ bitVectorSet(
   SeeAlso     [Cudd_tlcInfoFree]
 
 ******************************************************************************/
-static DdTlcInfo *
-tlcInfoAlloc(void)
-{
-    DdTlcInfo *res = ABC_ALLOC(DdTlcInfo,1);
-    if (res == NULL) return(NULL);
+static DdTlcInfo*
+tlcInfoAlloc(void) {
+    DdTlcInfo* res = ABC_ALLOC(DdTlcInfo, 1);
+    if (res == NULL) return (NULL);
     res->vars = NULL;
     res->phases = NULL;
     res->cnt = 0;
-    return(res);
+    return (res);
 
 } /* end of tlcInfoAlloc */
 
-
 ABC_NAMESPACE_IMPL_END
-

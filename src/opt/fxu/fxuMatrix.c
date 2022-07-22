@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -40,14 +39,13 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Fxu_Matrix * Fxu_MatrixAllocate()
-{
-    Fxu_Matrix * p;
-    p = ABC_ALLOC( Fxu_Matrix, 1 );
-    memset( p, 0, sizeof(Fxu_Matrix) );
+Fxu_Matrix* Fxu_MatrixAllocate() {
+    Fxu_Matrix* p;
+    p = ABC_ALLOC(Fxu_Matrix, 1);
+    memset(p, 0, sizeof(Fxu_Matrix));
     p->nTableSize = Abc_PrimeCudd(10000);
-    p->pTable = ABC_ALLOC( Fxu_ListDouble, p->nTableSize );
-    memset( p->pTable, 0, sizeof(Fxu_ListDouble) * p->nTableSize );
+    p->pTable = ABC_ALLOC(Fxu_ListDouble, p->nTableSize);
+    memset(p->pTable, 0, sizeof(Fxu_ListDouble) * p->nTableSize);
 #ifndef USE_SYSTEM_MEMORY_MANAGEMENT
     {
         // get the largest size in bytes for the following structures:
@@ -56,29 +54,29 @@ Fxu_Matrix * Fxu_MatrixAllocate()
         int nSizeMax, nSizeCur;
         nSizeMax = -1;
         nSizeCur = sizeof(Fxu_Cube);
-        if ( nSizeMax < nSizeCur )
-             nSizeMax = nSizeCur;
+        if (nSizeMax < nSizeCur)
+            nSizeMax = nSizeCur;
         nSizeCur = sizeof(Fxu_Var);
-        if ( nSizeMax < nSizeCur )
-             nSizeMax = nSizeCur;
+        if (nSizeMax < nSizeCur)
+            nSizeMax = nSizeCur;
         nSizeCur = sizeof(Fxu_Lit);
-        if ( nSizeMax < nSizeCur )
-             nSizeMax = nSizeCur;
+        if (nSizeMax < nSizeCur)
+            nSizeMax = nSizeCur;
         nSizeCur = sizeof(Fxu_Pair);
-        if ( nSizeMax < nSizeCur )
-             nSizeMax = nSizeCur;
+        if (nSizeMax < nSizeCur)
+            nSizeMax = nSizeCur;
         nSizeCur = sizeof(Fxu_Double);
-        if ( nSizeMax < nSizeCur )
-             nSizeMax = nSizeCur;
+        if (nSizeMax < nSizeCur)
+            nSizeMax = nSizeCur;
         nSizeCur = sizeof(Fxu_Single);
-        if ( nSizeMax < nSizeCur )
-             nSizeMax = nSizeCur;
-        p->pMemMan  = Extra_MmFixedStart( nSizeMax ); 
+        if (nSizeMax < nSizeCur)
+            nSizeMax = nSizeCur;
+        p->pMemMan = Extra_MmFixedStart(nSizeMax);
     }
 #endif
     p->pHeapDouble = Fxu_HeapDoubleStart();
     p->pHeapSingle = Fxu_HeapSingleStart();
-    p->vPairs = Vec_PtrAlloc( 100 );
+    p->vPairs = Vec_PtrAlloc(100);
     return p;
 }
 
@@ -93,57 +91,53 @@ Fxu_Matrix * Fxu_MatrixAllocate()
   SeeAlso     []
 
 ***********************************************************************/
-void Fxu_MatrixDelete( Fxu_Matrix * p )
-{
-    Fxu_HeapDoubleCheck( p->pHeapDouble );
-    Fxu_HeapDoubleStop( p->pHeapDouble );
-    Fxu_HeapSingleStop( p->pHeapSingle );
+void Fxu_MatrixDelete(Fxu_Matrix* p) {
+    Fxu_HeapDoubleCheck(p->pHeapDouble);
+    Fxu_HeapDoubleStop(p->pHeapDouble);
+    Fxu_HeapSingleStop(p->pHeapSingle);
 
     // delete other things
 #ifdef USE_SYSTEM_MEMORY_MANAGEMENT
     // this code is not needed when the custom memory manager is used
     {
-        Fxu_Cube * pCube, * pCube2;
-        Fxu_Var * pVar, * pVar2;
-        Fxu_Lit * pLit, * pLit2;
-        Fxu_Double * pDiv, * pDiv2;
-        Fxu_Single * pSingle, * pSingle2;
-        Fxu_Pair * pPair, * pPair2;
+        Fxu_Cube *pCube, *pCube2;
+        Fxu_Var *pVar, *pVar2;
+        Fxu_Lit *pLit, *pLit2;
+        Fxu_Double *pDiv, *pDiv2;
+        Fxu_Single *pSingle, *pSingle2;
+        Fxu_Pair *pPair, *pPair2;
         int i;
         // delete the divisors
-        Fxu_MatrixForEachDoubleSafe( p, pDiv, pDiv2, i )
-        {
-            Fxu_DoubleForEachPairSafe( pDiv, pPair, pPair2 )
-                MEM_FREE_FXU( p, Fxu_Pair, 1, pPair );
-               MEM_FREE_FXU( p, Fxu_Double, 1, pDiv );
+        Fxu_MatrixForEachDoubleSafe(p, pDiv, pDiv2, i) {
+            Fxu_DoubleForEachPairSafe(pDiv, pPair, pPair2)
+                MEM_FREE_FXU(p, Fxu_Pair, 1, pPair);
+            MEM_FREE_FXU(p, Fxu_Double, 1, pDiv);
         }
-        Fxu_MatrixForEachSingleSafe( p, pSingle, pSingle2 )
-               MEM_FREE_FXU( p, Fxu_Single, 1, pSingle );
+        Fxu_MatrixForEachSingleSafe(p, pSingle, pSingle2)
+            MEM_FREE_FXU(p, Fxu_Single, 1, pSingle);
         // delete the entries
-        Fxu_MatrixForEachCube( p, pCube )
-            Fxu_CubeForEachLiteralSafe( pCube, pLit, pLit2 )
-                MEM_FREE_FXU( p, Fxu_Lit, 1, pLit );
+        Fxu_MatrixForEachCube(p, pCube)
+            Fxu_CubeForEachLiteralSafe(pCube, pLit, pLit2)
+                MEM_FREE_FXU(p, Fxu_Lit, 1, pLit);
         // delete the cubes
-        Fxu_MatrixForEachCubeSafe( p, pCube, pCube2 )
-            MEM_FREE_FXU( p, Fxu_Cube, 1, pCube );
+        Fxu_MatrixForEachCubeSafe(p, pCube, pCube2)
+            MEM_FREE_FXU(p, Fxu_Cube, 1, pCube);
         // delete the vars
-        Fxu_MatrixForEachVariableSafe( p, pVar, pVar2 )
-            MEM_FREE_FXU( p, Fxu_Var, 1, pVar );
+        Fxu_MatrixForEachVariableSafe(p, pVar, pVar2)
+            MEM_FREE_FXU(p, Fxu_Var, 1, pVar);
     }
 #else
-    Extra_MmFixedStop( p->pMemMan );
+    Extra_MmFixedStop(p->pMemMan);
 #endif
 
-    Vec_PtrFree( p->vPairs );
-    ABC_FREE( p->pppPairs );
-    ABC_FREE( p->ppPairs );
-//    ABC_FREE( p->pPairsTemp );
-    ABC_FREE( p->pTable );
-    ABC_FREE( p->ppVars );
-    ABC_FREE( p );
+    Vec_PtrFree(p->vPairs);
+    ABC_FREE(p->pppPairs);
+    ABC_FREE(p->ppPairs);
+    //    ABC_FREE( p->pPairsTemp );
+    ABC_FREE(p->pTable);
+    ABC_FREE(p->ppVars);
+    ABC_FREE(p);
 }
-
-
 
 /**Function*************************************************************
 
@@ -158,14 +152,13 @@ void Fxu_MatrixDelete( Fxu_Matrix * p )
   SeeAlso     []
 
 ***********************************************************************/
-Fxu_Var * Fxu_MatrixAddVar( Fxu_Matrix * p )
-{
-    Fxu_Var * pVar;
-    pVar = MEM_ALLOC_FXU( p, Fxu_Var, 1 );
-    memset( pVar, 0, sizeof(Fxu_Var) );
+Fxu_Var* Fxu_MatrixAddVar(Fxu_Matrix* p) {
+    Fxu_Var* pVar;
+    pVar = MEM_ALLOC_FXU(p, Fxu_Var, 1);
+    memset(pVar, 0, sizeof(Fxu_Var));
     pVar->iVar = p->lVars.nItems;
     p->ppVars[pVar->iVar] = pVar;
-    Fxu_ListMatrixAddVariable( p, pVar );
+    Fxu_ListMatrixAddVariable(p, pVar);
     return pVar;
 }
 
@@ -180,14 +173,13 @@ Fxu_Var * Fxu_MatrixAddVar( Fxu_Matrix * p )
   SeeAlso     []
 
 ***********************************************************************/
-Fxu_Cube * Fxu_MatrixAddCube( Fxu_Matrix * p, Fxu_Var * pVar, int iCube )
-{
-    Fxu_Cube * pCube;
-    pCube = MEM_ALLOC_FXU( p, Fxu_Cube, 1 );
-    memset( pCube, 0, sizeof(Fxu_Cube) );
-    pCube->pVar  = pVar;
+Fxu_Cube* Fxu_MatrixAddCube(Fxu_Matrix* p, Fxu_Var* pVar, int iCube) {
+    Fxu_Cube* pCube;
+    pCube = MEM_ALLOC_FXU(p, Fxu_Cube, 1);
+    memset(pCube, 0, sizeof(Fxu_Cube));
+    pCube->pVar = pVar;
     pCube->iCube = iCube;
-    Fxu_ListMatrixAddCube( p, pCube );
+    Fxu_ListMatrixAddCube(p, pCube);
     return pCube;
 }
 
@@ -202,19 +194,18 @@ Fxu_Cube * Fxu_MatrixAddCube( Fxu_Matrix * p, Fxu_Var * pVar, int iCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Fxu_MatrixAddLiteral( Fxu_Matrix * p, Fxu_Cube * pCube, Fxu_Var * pVar )
-{
-    Fxu_Lit * pLit;
-    pLit = MEM_ALLOC_FXU( p, Fxu_Lit, 1 );
-    memset( pLit, 0, sizeof(Fxu_Lit) );
+void Fxu_MatrixAddLiteral(Fxu_Matrix* p, Fxu_Cube* pCube, Fxu_Var* pVar) {
+    Fxu_Lit* pLit;
+    pLit = MEM_ALLOC_FXU(p, Fxu_Lit, 1);
+    memset(pLit, 0, sizeof(Fxu_Lit));
     // insert the literal into two linked lists
-    Fxu_ListCubeAddLiteral( pCube, pLit );
-    Fxu_ListVarAddLiteral( pVar, pLit );
+    Fxu_ListCubeAddLiteral(pCube, pLit);
+    Fxu_ListVarAddLiteral(pVar, pLit);
     // set the back pointers
     pLit->pCube = pCube;
-    pLit->pVar  = pVar;
+    pLit->pVar = pVar;
     pLit->iCube = pCube->iCube;
-    pLit->iVar  = pVar->iVar;
+    pLit->iVar = pVar->iVar;
     // increment the literal counter
     p->nEntries++;
 }
@@ -230,12 +221,11 @@ void Fxu_MatrixAddLiteral( Fxu_Matrix * p, Fxu_Cube * pCube, Fxu_Var * pVar )
   SeeAlso     []
 
 ***********************************************************************/
-void Fxu_MatrixDelDivisor( Fxu_Matrix * p, Fxu_Double * pDiv )
-{
+void Fxu_MatrixDelDivisor(Fxu_Matrix* p, Fxu_Double* pDiv) {
     // delete divisor from the table
-    Fxu_ListTableDelDivisor( p, pDiv );
+    Fxu_ListTableDelDivisor(p, pDiv);
     // recycle the divisor
-    MEM_FREE_FXU( p, Fxu_Double, 1, pDiv );
+    MEM_FREE_FXU(p, Fxu_Double, 1, pDiv);
 }
 
 /**Function*************************************************************
@@ -249,16 +239,14 @@ void Fxu_MatrixDelDivisor( Fxu_Matrix * p, Fxu_Double * pDiv )
   SeeAlso     []
 
 ***********************************************************************/
-void Fxu_MatrixDelLiteral( Fxu_Matrix * p, Fxu_Lit * pLit )
-{
+void Fxu_MatrixDelLiteral(Fxu_Matrix* p, Fxu_Lit* pLit) {
     // delete the literal
-    Fxu_ListCubeDelLiteral( pLit->pCube, pLit );
-    Fxu_ListVarDelLiteral( pLit->pVar, pLit );
-    MEM_FREE_FXU( p, Fxu_Lit, 1, pLit );
+    Fxu_ListCubeDelLiteral(pLit->pCube, pLit);
+    Fxu_ListVarDelLiteral(pLit->pVar, pLit);
+    MEM_FREE_FXU(p, Fxu_Lit, 1, pLit);
     // increment the literal counter
     p->nEntries--;
 }
-
 
 /**Function*************************************************************
 
@@ -271,20 +259,19 @@ void Fxu_MatrixDelLiteral( Fxu_Matrix * p, Fxu_Lit * pLit )
   SeeAlso     []
 
 ***********************************************************************/
-void Fxu_MatrixAddSingle( Fxu_Matrix * p, Fxu_Var * pVar1, Fxu_Var * pVar2, int Weight )
-{
-    Fxu_Single * pSingle;
-    assert( pVar1->iVar < pVar2->iVar );
-    pSingle = MEM_ALLOC_FXU( p, Fxu_Single, 1 );
-    memset( pSingle, 0, sizeof(Fxu_Single) );
+void Fxu_MatrixAddSingle(Fxu_Matrix* p, Fxu_Var* pVar1, Fxu_Var* pVar2, int Weight) {
+    Fxu_Single* pSingle;
+    assert(pVar1->iVar < pVar2->iVar);
+    pSingle = MEM_ALLOC_FXU(p, Fxu_Single, 1);
+    memset(pSingle, 0, sizeof(Fxu_Single));
     pSingle->Num = p->lSingles.nItems;
     pSingle->Weight = Weight;
     pSingle->HNum = 0;
     pSingle->pVar1 = pVar1;
     pSingle->pVar2 = pVar2;
-    Fxu_ListMatrixAddSingle( p, pSingle );
+    Fxu_ListMatrixAddSingle(p, pSingle);
     // add to the heap
-    Fxu_HeapSingleInsert( p->pHeapSingle, pSingle );
+    Fxu_HeapSingleInsert(p->pHeapSingle, pSingle);
 }
 
 /**Function*************************************************************
@@ -298,64 +285,61 @@ void Fxu_MatrixAddSingle( Fxu_Matrix * p, Fxu_Var * pVar1, Fxu_Var * pVar2, int 
   SeeAlso     []
 
 ***********************************************************************/
-void Fxu_MatrixAddDivisor( Fxu_Matrix * p, Fxu_Cube * pCube1, Fxu_Cube * pCube2 )
-{
-    Fxu_Pair * pPair;
-    Fxu_Double * pDiv;
+void Fxu_MatrixAddDivisor(Fxu_Matrix* p, Fxu_Cube* pCube1, Fxu_Cube* pCube2) {
+    Fxu_Pair* pPair;
+    Fxu_Double* pDiv;
     int nBase, nLits1, nLits2;
     int fFound;
     unsigned Key;
 
     // canonicize the pair
-    Fxu_PairCanonicize( &pCube1, &pCube2 );
+    Fxu_PairCanonicize(&pCube1, &pCube2);
     // compute the hash key
-    Key = Fxu_PairHashKey( p, pCube1, pCube2, &nBase, &nLits1, &nLits2 );
+    Key = Fxu_PairHashKey(p, pCube1, pCube2, &nBase, &nLits1, &nLits2);
 
     // create the cube pair
-    pPair = Fxu_PairAlloc( p, pCube1, pCube2 );
-    pPair->nBase  = nBase;
+    pPair = Fxu_PairAlloc(p, pCube1, pCube2);
+    pPair->nBase = nBase;
     pPair->nLits1 = nLits1;
     pPair->nLits2 = nLits2;
 
     // check if the divisor for this pair already exists
     fFound = 0;
     Key %= p->nTableSize;
-    Fxu_TableForEachDouble( p, Key, pDiv )
-    {
-        if ( Fxu_PairCompare( pPair, pDiv->lPairs.pTail ) ) // they are equal
+    Fxu_TableForEachDouble(p, Key, pDiv) {
+        if (Fxu_PairCompare(pPair, pDiv->lPairs.pTail)) // they are equal
         {
             fFound = 1;
             break;
         }
     }
 
-    if ( !fFound )
-    {   // create the new divisor
-        pDiv = MEM_ALLOC_FXU( p, Fxu_Double, 1 );
-        memset( pDiv, 0, sizeof(Fxu_Double) );
+    if (!fFound) { // create the new divisor
+        pDiv = MEM_ALLOC_FXU(p, Fxu_Double, 1);
+        memset(pDiv, 0, sizeof(Fxu_Double));
         pDiv->Key = Key;
         // set the number of this divisor
         pDiv->Num = p->nDivsTotal++; // p->nDivs;
         // insert the divisor in the table
-        Fxu_ListTableAddDivisor( p, pDiv );
+        Fxu_ListTableAddDivisor(p, pDiv);
         // set the initial cost of the divisor
         pDiv->Weight -= pPair->nLits1 + pPair->nLits2;
     }
 
     // link the pair to the cubes
-    Fxu_PairAdd( pPair );
+    Fxu_PairAdd(pPair);
     // connect the pair and the divisor
     pPair->pDiv = pDiv;
-    Fxu_ListDoubleAddPairLast( pDiv, pPair );    
+    Fxu_ListDoubleAddPairLast(pDiv, pPair);
     // update the max number of pairs in a divisor
-//    if ( p->nPairsMax < pDiv->lPairs.nItems )
-//        p->nPairsMax = pDiv->lPairs.nItems;
+    //    if ( p->nPairsMax < pDiv->lPairs.nItems )
+    //        p->nPairsMax = pDiv->lPairs.nItems;
     // update the divisor's weight
     pDiv->Weight += pPair->nLits1 + pPair->nLits2 - 1 + pPair->nBase;
-    if ( fFound ) // update the divisor in the heap
-        Fxu_HeapDoubleUpdate( p->pHeapDouble, pDiv );
-    else  // add the new divisor to the heap
-        Fxu_HeapDoubleInsert( p->pHeapDouble, pDiv );
+    if (fFound) // update the divisor in the heap
+        Fxu_HeapDoubleUpdate(p->pHeapDouble, pDiv);
+    else // add the new divisor to the heap
+        Fxu_HeapDoubleInsert(p->pHeapDouble, pDiv);
 }
 
 /*
@@ -372,6 +356,4 @@ void Fxu_MatrixAddDivisor( Fxu_Matrix * p, Fxu_Cube * pCube1, Fxu_Cube * pCube2 
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

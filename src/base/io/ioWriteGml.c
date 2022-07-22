@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -43,79 +42,68 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Io_WriteGml( Abc_Ntk_t * pNtk, char * pFileName )
-{
-    FILE * pFile;
-    Abc_Obj_t * pObj, * pFanin;
+void Io_WriteGml(Abc_Ntk_t* pNtk, char* pFileName) {
+    FILE* pFile;
+    Abc_Obj_t *pObj, *pFanin;
     int i, k;
 
-    assert( Abc_NtkIsStrash(pNtk) || Abc_NtkIsLogic(pNtk)  );
+    assert(Abc_NtkIsStrash(pNtk) || Abc_NtkIsLogic(pNtk));
 
     // start the output stream
-    pFile = fopen( pFileName, "w" );
-    if ( pFile == NULL )
-    {
-        fprintf( stdout, "Io_WriteGml(): Cannot open the output file \"%s\".\n", pFileName );
+    pFile = fopen(pFileName, "w");
+    if (pFile == NULL) {
+        fprintf(stdout, "Io_WriteGml(): Cannot open the output file \"%s\".\n", pFileName);
         return;
     }
-    fprintf( pFile, "# GML for \"%s\" written by ABC on %s\n", pNtk->pName, Extra_TimeStamp() );
-    fprintf( pFile, "graph [\n" );
+    fprintf(pFile, "# GML for \"%s\" written by ABC on %s\n", pNtk->pName, Extra_TimeStamp());
+    fprintf(pFile, "graph [\n");
 
     // output the POs
-    fprintf( pFile, "\n" );
-    Abc_NtkForEachPo( pNtk, pObj, i )
-    {
-        fprintf( pFile, "    node [ id %5d label \"%s\"\n", pObj->Id, Abc_ObjName(pObj) );
-        fprintf( pFile, "        graphics [ type \"triangle\" fill \"#00FFFF\" ]\n" );   // blue
-        fprintf( pFile, "    ]\n" );
+    fprintf(pFile, "\n");
+    Abc_NtkForEachPo(pNtk, pObj, i) {
+        fprintf(pFile, "    node [ id %5d label \"%s\"\n", pObj->Id, Abc_ObjName(pObj));
+        fprintf(pFile, "        graphics [ type \"triangle\" fill \"#00FFFF\" ]\n"); // blue
+        fprintf(pFile, "    ]\n");
     }
     // output the PIs
-    fprintf( pFile, "\n" );
-    Abc_NtkForEachPi( pNtk, pObj, i )
-    {
-        fprintf( pFile, "    node [ id %5d label \"%s\"\n", pObj->Id, Abc_ObjName(pObj) );
-        fprintf( pFile, "        graphics [ type \"triangle\" fill \"#00FF00\" ]\n" );   // green
-        fprintf( pFile, "    ]\n" );
+    fprintf(pFile, "\n");
+    Abc_NtkForEachPi(pNtk, pObj, i) {
+        fprintf(pFile, "    node [ id %5d label \"%s\"\n", pObj->Id, Abc_ObjName(pObj));
+        fprintf(pFile, "        graphics [ type \"triangle\" fill \"#00FF00\" ]\n"); // green
+        fprintf(pFile, "    ]\n");
     }
     // output the latches
-    fprintf( pFile, "\n" );
-    Abc_NtkForEachLatch( pNtk, pObj, i )
-    {
-        fprintf( pFile, "    node [ id %5d label \"%s\"\n", pObj->Id, Abc_ObjName(pObj) );
-        fprintf( pFile, "        graphics [ type \"rectangle\" fill \"#FF0000\" ]\n" );   // red
-        fprintf( pFile, "    ]\n" );
+    fprintf(pFile, "\n");
+    Abc_NtkForEachLatch(pNtk, pObj, i) {
+        fprintf(pFile, "    node [ id %5d label \"%s\"\n", pObj->Id, Abc_ObjName(pObj));
+        fprintf(pFile, "        graphics [ type \"rectangle\" fill \"#FF0000\" ]\n"); // red
+        fprintf(pFile, "    ]\n");
     }
     // output the nodes
-    fprintf( pFile, "\n" );
-    Abc_NtkForEachNode( pNtk, pObj, i )
-    {
-        fprintf( pFile, "    node [ id %5d label \"%s\"\n", pObj->Id, Abc_ObjName(pObj) );
-        fprintf( pFile, "        graphics [ type \"ellipse\" fill \"#CCCCFF\" ]\n" );     // grey
-        fprintf( pFile, "    ]\n" );
+    fprintf(pFile, "\n");
+    Abc_NtkForEachNode(pNtk, pObj, i) {
+        fprintf(pFile, "    node [ id %5d label \"%s\"\n", pObj->Id, Abc_ObjName(pObj));
+        fprintf(pFile, "        graphics [ type \"ellipse\" fill \"#CCCCFF\" ]\n"); // grey
+        fprintf(pFile, "    ]\n");
     }
 
     // output the edges
-    fprintf( pFile, "\n" );
-    Abc_NtkForEachObj( pNtk, pObj, i )
-    {
-        Abc_ObjForEachFanin( pObj, pFanin, k )
-        {
-            fprintf( pFile, "    edge [ source %5d   target %5d\n", pObj->Id, pFanin->Id );
-            fprintf( pFile, "        graphics [ type \"line\" arrow \"first\" ]\n" );
-            fprintf( pFile, "    ]\n" );
+    fprintf(pFile, "\n");
+    Abc_NtkForEachObj(pNtk, pObj, i) {
+        Abc_ObjForEachFanin(pObj, pFanin, k) {
+            fprintf(pFile, "    edge [ source %5d   target %5d\n", pObj->Id, pFanin->Id);
+            fprintf(pFile, "        graphics [ type \"line\" arrow \"first\" ]\n");
+            fprintf(pFile, "    ]\n");
         }
     }
 
-    fprintf( pFile, "]\n" );
-    fprintf( pFile, "\n" );
-    fclose( pFile );
+    fprintf(pFile, "]\n");
+    fprintf(pFile, "\n");
+    fclose(pFile);
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

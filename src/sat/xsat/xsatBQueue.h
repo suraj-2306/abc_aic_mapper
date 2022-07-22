@@ -32,14 +32,13 @@ ABC_NAMESPACE_HEADER_START
 ///                    STRUCTURE DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 typedef struct xSAT_BQueue_t_ xSAT_BQueue_t;
-struct xSAT_BQueue_t_
-{
+struct xSAT_BQueue_t_ {
     int nSize;
     int nCap;
     int iFirst;
     int iEmpty;
     word nSum;
-    unsigned * pData;
+    unsigned* pData;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -56,11 +55,10 @@ struct xSAT_BQueue_t_
   SeeAlso     []
 
 ***********************************************************************/
-static inline xSAT_BQueue_t * xSAT_BQueueNew( int nCap )
-{
-    xSAT_BQueue_t * p = ABC_CALLOC( xSAT_BQueue_t, 1 );
+static inline xSAT_BQueue_t* xSAT_BQueueNew(int nCap) {
+    xSAT_BQueue_t* p = ABC_CALLOC(xSAT_BQueue_t, 1);
     p->nCap = nCap;
-    p->pData = ABC_CALLOC( unsigned, nCap );
+    p->pData = ABC_CALLOC(unsigned, nCap);
     return p;
 }
 
@@ -75,10 +73,9 @@ static inline xSAT_BQueue_t * xSAT_BQueueNew( int nCap )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void xSAT_BQueueFree( xSAT_BQueue_t * p )
-{
-    ABC_FREE( p->pData );
-    ABC_FREE( p );
+static inline void xSAT_BQueueFree(xSAT_BQueue_t* p) {
+    ABC_FREE(p->pData);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -92,21 +89,17 @@ static inline void xSAT_BQueueFree( xSAT_BQueue_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void xSAT_BQueuePush( xSAT_BQueue_t * p, unsigned Value )
-{
-    if ( p->nSize == p->nCap )
-    {
+static inline void xSAT_BQueuePush(xSAT_BQueue_t* p, unsigned Value) {
+    if (p->nSize == p->nCap) {
         assert(p->iFirst == p->iEmpty);
         p->nSum -= p->pData[p->iFirst];
-        p->iFirst = ( p->iFirst + 1 ) % p->nCap;
-    }
-    else
+        p->iFirst = (p->iFirst + 1) % p->nCap;
+    } else
         p->nSize++;
 
     p->nSum += Value;
     p->pData[p->iEmpty] = Value;
-    if ( ( ++p->iEmpty ) == p->nCap )
-    {
+    if ((++p->iEmpty) == p->nCap) {
         p->iEmpty = 0;
         p->iFirst = 0;
     }
@@ -123,13 +116,12 @@ static inline void xSAT_BQueuePush( xSAT_BQueue_t * p, unsigned Value )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int xSAT_BQueuePop( xSAT_BQueue_t * p )
-{
+static inline int xSAT_BQueuePop(xSAT_BQueue_t* p) {
     int RetValue;
-    assert( p->nSize >= 1 );
+    assert(p->nSize >= 1);
     RetValue = p->pData[p->iFirst];
     p->nSum -= RetValue;
-    p->iFirst = ( p->iFirst + 1 ) % p->nCap;
+    p->iFirst = (p->iFirst + 1) % p->nCap;
     p->nSize--;
     return RetValue;
 }
@@ -145,9 +137,8 @@ static inline int xSAT_BQueuePop( xSAT_BQueue_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline unsigned xSAT_BQueueAvg( xSAT_BQueue_t * p )
-{
-    return ( unsigned )( p->nSum / ( ( word ) p->nSize ) );
+static inline unsigned xSAT_BQueueAvg(xSAT_BQueue_t* p) {
+    return (unsigned)(p->nSum / ((word)p->nSize));
 }
 
 /**Function*************************************************************
@@ -161,9 +152,8 @@ static inline unsigned xSAT_BQueueAvg( xSAT_BQueue_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int xSAT_BQueueIsValid( xSAT_BQueue_t * p )
-{
-    return ( p->nCap == p->nSize );
+static inline int xSAT_BQueueIsValid(xSAT_BQueue_t* p) {
+    return (p->nCap == p->nSize);
 }
 
 /**Function*************************************************************
@@ -177,8 +167,7 @@ static inline int xSAT_BQueueIsValid( xSAT_BQueue_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void xSAT_BQueueClean( xSAT_BQueue_t * p )
-{
+static inline void xSAT_BQueueClean(xSAT_BQueue_t* p) {
     p->iFirst = 0;
     p->iEmpty = 0;
     p->nSize = 0;

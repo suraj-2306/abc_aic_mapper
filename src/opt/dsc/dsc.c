@@ -37,13 +37,12 @@ ABC_NAMESPACE_IMPL_START
     [ab] = a xor b;
 */
 typedef struct Dsc_node_t_ Dsc_node_t;
-struct Dsc_node_t_
-{
-    word *pNegCof;
-    word *pPosCof;
-    word *pBoolDiff;
-    unsigned int on[DSC_MAX_VAR+1]; // pos cofactor spec - first element denotes the size of the array
-    unsigned int off[DSC_MAX_VAR+1]; // neg cofactor spec - first element denotes the size of the array
+struct Dsc_node_t_ {
+    word* pNegCof;
+    word* pPosCof;
+    word* pBoolDiff;
+    unsigned int on[DSC_MAX_VAR + 1];  // pos cofactor spec - first element denotes the size of the array
+    unsigned int off[DSC_MAX_VAR + 1]; // neg cofactor spec - first element denotes the size of the array
     char exp[DSC_MAX_STR];
 };
 
@@ -51,39 +50,54 @@ struct Dsc_node_t_
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
-static inline void xorInPlace( word * pOut, word * pIn2, int nWords)
-{
+static inline void xorInPlace(word* pOut, word* pIn2, int nWords) {
     int w;
-    for ( w = 0; w < nWords; w++ )
+    for (w = 0; w < nWords; w++)
         pOut[w] ^= pIn2[w];
 }
 
-static inline void dsc_debug_node(Dsc_node_t * pNode, int nVars, const int TRUTH_WORDS) {
+static inline void dsc_debug_node(Dsc_node_t* pNode, int nVars, const int TRUTH_WORDS) {
     int i;
-    printf("Node:\t%s\n",pNode->exp);
-    printf("\tneg cof:\t");Abc_TtPrintHexRev(stdout, pNode->pNegCof, nVars);
-    printf("\tpos cof:\t");Abc_TtPrintHexRev(stdout, pNode->pPosCof, nVars);
-    printf("\tbool diff:\t");Abc_TtPrintHexRev(stdout, pNode->pBoolDiff, nVars);
+    printf("Node:\t%s\n", pNode->exp);
+    printf("\tneg cof:\t");
+    Abc_TtPrintHexRev(stdout, pNode->pNegCof, nVars);
+    printf("\tpos cof:\t");
+    Abc_TtPrintHexRev(stdout, pNode->pPosCof, nVars);
+    printf("\tbool diff:\t");
+    Abc_TtPrintHexRev(stdout, pNode->pBoolDiff, nVars);
     printf("\toff:\t");
-    for (i=1;i<=(int)pNode->off[0];i++) {
-        printf("%c%c", (pNode->off[i] & 1U) ? ' ' : '!', 'a'+(pNode->off[i] >> 1));
+    for (i = 1; i <= (int)pNode->off[0]; i++) {
+        printf("%c%c", (pNode->off[i] & 1U) ? ' ' : '!', 'a' + (pNode->off[i] >> 1));
     }
     printf("\ton:\t");
-    for (i=1;i<=(int)pNode->on[0];i++) {
-        printf("%c%c", (pNode->on[i] & 1U) ? ' ' : '!', 'a'+(pNode->on[i] >> 1));
+    for (i = 1; i <= (int)pNode->on[0]; i++) {
+        printf("%c%c", (pNode->on[i] & 1U) ? ' ' : '!', 'a' + (pNode->on[i] >> 1));
     }
     printf("\n");
 }
 
-static inline int dsc_and_test(Dsc_node_t *ni, Dsc_node_t *nj, const int TRUTH_WORDS, int* ci, int* cj) {
-            if (Abc_TtEqual(ni->pNegCof, nj->pNegCof, TRUTH_WORDS)) {*ci=1; *cj=1; return 1;}
-    else     if (Abc_TtEqual(ni->pNegCof, nj->pPosCof, TRUTH_WORDS)) {*ci=1; *cj=0; return 1;}
-    else     if (Abc_TtEqual(ni->pPosCof, nj->pNegCof, TRUTH_WORDS)) {*ci=0; *cj=1; return 1;}
-    else     if (Abc_TtEqual(ni->pPosCof, nj->pPosCof, TRUTH_WORDS)) {*ci=0; *cj=0; return 1;}
+static inline int dsc_and_test(Dsc_node_t* ni, Dsc_node_t* nj, const int TRUTH_WORDS, int* ci, int* cj) {
+    if (Abc_TtEqual(ni->pNegCof, nj->pNegCof, TRUTH_WORDS)) {
+        *ci = 1;
+        *cj = 1;
+        return 1;
+    } else if (Abc_TtEqual(ni->pNegCof, nj->pPosCof, TRUTH_WORDS)) {
+        *ci = 1;
+        *cj = 0;
+        return 1;
+    } else if (Abc_TtEqual(ni->pPosCof, nj->pNegCof, TRUTH_WORDS)) {
+        *ci = 0;
+        *cj = 1;
+        return 1;
+    } else if (Abc_TtEqual(ni->pPosCof, nj->pPosCof, TRUTH_WORDS)) {
+        *ci = 0;
+        *cj = 0;
+        return 1;
+    }
     return 0;
 }
 
-static inline int dsc_xor_test(Dsc_node_t *ni, Dsc_node_t *nj, const int TRUTH_WORDS) {
+static inline int dsc_xor_test(Dsc_node_t* ni, Dsc_node_t* nj, const int TRUTH_WORDS) {
     return Abc_TtEqual(ni->pBoolDiff, nj->pBoolDiff, TRUTH_WORDS);
 }
 
@@ -104,7 +118,7 @@ static inline void concat(char* target, char begin, char end, char* s1, int s1Po
     *target = '\0';
 }
 
-static inline void cubeCofactor(word * const pTruth, const unsigned int * const cubeCof, const int TRUTH_WORDS) {
+static inline void cubeCofactor(word* const pTruth, const unsigned int* const cubeCof, const int TRUTH_WORDS) {
     int size = cubeCof[0];
     int i;
     for (i = 1; i <= size; i++) {
@@ -117,17 +131,17 @@ static inline void cubeCofactor(word * const pTruth, const unsigned int * const 
     }
 }
 
-static inline void merge(unsigned int * const pOut, const unsigned int * const pIn) {
+static inline void merge(unsigned int* const pOut, const unsigned int* const pIn) {
     const int elementsToCopy = pIn[0];
     int i, j;
-    for (i = pOut[0]+1, j = 1; j <= elementsToCopy; i++, j++) {
+    for (i = pOut[0] + 1, j = 1; j <= elementsToCopy; i++, j++) {
         pOut[i] = pIn[j];
     }
     pOut[0] += elementsToCopy;
 }
 
-void dsc_and_group(Dsc_node_t * pOut, Dsc_node_t * ni, int niPolarity, Dsc_node_t * nj, int njPolarity, int nVars, const int TRUTH_WORDS) {
-    unsigned int* xiOFF, * xiON, * xjOFF, * xjON;
+void dsc_and_group(Dsc_node_t* pOut, Dsc_node_t* ni, int niPolarity, Dsc_node_t* nj, int njPolarity, int nVars, const int TRUTH_WORDS) {
+    unsigned int *xiOFF, *xiON, *xjOFF, *xjON;
     // expression
     concat(pOut->exp, '(', ')', ni->exp, niPolarity, nj->exp, njPolarity);
     // ON-OFF
@@ -193,12 +207,12 @@ void dsc_and_group(Dsc_node_t * pOut, Dsc_node_t * ni, int niPolarity, Dsc_node_
     xorInPlace(pOut->pBoolDiff, pOut->pPosCof, TRUTH_WORDS);
 }
 
-void dsc_xor_group(Dsc_node_t * pOut, Dsc_node_t * ni, Dsc_node_t * nj, int nVars, const int TRUTH_WORDS) {
+void dsc_xor_group(Dsc_node_t* pOut, Dsc_node_t* ni, Dsc_node_t* nj, int nVars, const int TRUTH_WORDS) {
     //
-    const unsigned int * xiOFF = ni->off;
-    const unsigned int * xiON = ni->on;
-    const unsigned int * xjOFF = nj->off;
-    const unsigned int * xjON = nj->on;
+    const unsigned int* xiOFF = ni->off;
+    const unsigned int* xiON = ni->on;
+    const unsigned int* xjOFF = nj->off;
+    const unsigned int* xjON = nj->on;
     //
     const int xiOFFSize = xiOFF[0];
     const int xiONSize = xiON[0];
@@ -207,7 +221,7 @@ void dsc_xor_group(Dsc_node_t * pOut, Dsc_node_t * ni, Dsc_node_t * nj, int nVar
     // minCubeCofs
     int minCCSize = xiOFFSize;
     int minCCPolarity = 0;
-    Dsc_node_t * minCCNode = ni;
+    Dsc_node_t* minCCNode = ni;
     // expression
     concat(pOut->exp, '[', ']', ni->exp, 1, nj->exp, 1);
     if (minCCSize > xiONSize) {
@@ -242,7 +256,7 @@ void dsc_xor_group(Dsc_node_t * pOut, Dsc_node_t * ni, Dsc_node_t * nj, int nVar
             pOut->pPosCof = nj->pPosCof;
             cubeCofactor(pOut->pPosCof, xiOFF, TRUTH_WORDS);
         }
-    }else  {
+    } else {
         if (minCCPolarity) {
             // gOFF = xjON, xiON
             pOut->pNegCof = ni->pPosCof;
@@ -264,7 +278,7 @@ void dsc_xor_group(Dsc_node_t * pOut, Dsc_node_t * ni, Dsc_node_t * nj, int nVar
     // evaluating specs
     // off spec
     pOut->off[0] = 0;
-    if ((xiOFFSize+xjOFFSize) <= (xiONSize+xjONSize)) {
+    if ((xiOFFSize + xjOFFSize) <= (xiONSize + xjONSize)) {
         merge(pOut->off, xiOFF);
         merge(pOut->off, xjOFF);
     } else {
@@ -273,7 +287,7 @@ void dsc_xor_group(Dsc_node_t * pOut, Dsc_node_t * ni, Dsc_node_t * nj, int nVar
     }
     // on spec
     pOut->on[0] = 0;
-    if ((xiOFFSize+xjONSize) <= (xiONSize+xjOFFSize)) {
+    if ((xiOFFSize + xjONSize) <= (xiONSize + xjOFFSize)) {
         merge(pOut->on, xiOFF);
         merge(pOut->on, xjON);
     } else {
@@ -287,14 +301,14 @@ void dsc_xor_group(Dsc_node_t * pOut, Dsc_node_t * ni, Dsc_node_t * nj, int nVar
  * truth-tables for negative and positive cofactors and
  * the boolean difference for each input variable
  */
-extern word * Dsc_alloc_pool(int nVars) {
+extern word* Dsc_alloc_pool(int nVars) {
     return ABC_ALLOC(word, 3 * Abc_TtWordNum(nVars) * nVars);
 }
 
 /**
  * just free the memory pool
  */
-extern void Dsc_free_pool(word * pool) {
+extern void Dsc_free_pool(word* pool) {
     ABC_FREE(pool);
 }
 
@@ -308,18 +322,18 @@ extern void Dsc_free_pool(word * pool) {
  * (the results presented on ICCD paper are running this method with NULL for the memory pool).
  * The method returns 0 if a full decomposition was found and a negative value otherwise.
  */
-extern int Dsc_Decompose(word * pTruth, const int nVarsInit, char * const pRes, word *pool) {
+extern int Dsc_Decompose(word* pTruth, const int nVarsInit, char* const pRes, word* pool) {
     const int TRUTH_WORDS = Abc_TtWordNum(nVarsInit);
     const int NEED_POOL_ALLOC = (pool == NULL);
 
     Dsc_node_t nodes[DSC_MAX_VAR];
-    Dsc_node_t *newNodes[DSC_MAX_VAR];
-    Dsc_node_t *oldNodes[DSC_MAX_VAR];
+    Dsc_node_t* newNodes[DSC_MAX_VAR];
+    Dsc_node_t* oldNodes[DSC_MAX_VAR];
 
     Dsc_node_t freeNodes[DSC_MAX_VAR]; // N is the maximum number of possible groups.
-    int f = 0; // f represent the next free position in the freeNodes array
-    int o = 0; // o stands for the number of already tested nodes
-    int n = 0; // n will represent the number of current nodes (i.e. support)
+    int f = 0;                         // f represent the next free position in the freeNodes array
+    int o = 0;                         // o stands for the number of already tested nodes
+    int n = 0;                         // n will represent the number of current nodes (i.e. support)
 
     pRes[0] = '\0';
     pRes[1] = '\0';
@@ -330,14 +344,14 @@ extern int Dsc_Decompose(word * pTruth, const int nVarsInit, char * const pRes, 
     // block for the node data allocation
     {
         // pointer for the next free truth word
-        word *pNextTruth = pool;
+        word* pNextTruth = pool;
         int iVar;
         for (iVar = 0; iVar < nVarsInit; iVar++) {
             // negative cofactor
             Abc_TtCofactor0p(pNextTruth, pTruth, TRUTH_WORDS, iVar);
             // dont care test
             if (!Abc_TtEqual(pNextTruth, pTruth, TRUTH_WORDS)) {
-                Dsc_node_t *node = &nodes[iVar];
+                Dsc_node_t* node = &nodes[iVar];
                 node->pNegCof = pNextTruth;
                 // increment next truth pointer
                 pNextTruth += TRUTH_WORDS;
@@ -352,11 +366,13 @@ extern int Dsc_Decompose(word * pTruth, const int nVarsInit, char * const pRes, 
                 // increment next truth pointer
                 pNextTruth += TRUTH_WORDS;
                 // define on spec -
-                node->on[0] = 1; node->on[1] = (iVar << 1) | 1u; // lit = i*2+1, when polarity=true
+                node->on[0] = 1;
+                node->on[1] = (iVar << 1) | 1u; // lit = i*2+1, when polarity=true
                 // define off spec
-                node->off[0] = 1; node->off[1] = iVar << 1;// lit=i*2 otherwise
+                node->off[0] = 1;
+                node->off[1] = iVar << 1; // lit=i*2 otherwise
                 // store the node expression
-                node->exp[0] = 'a'+iVar; // TODO fix the variable names
+                node->exp[0] = 'a' + iVar; // TODO fix the variable names
                 node->exp[1] = '\0';
                 // add the node to the newNodes array
                 newNodes[n++] = node;
@@ -368,10 +384,14 @@ extern int Dsc_Decompose(word * pTruth, const int nVarsInit, char * const pRes, 
         if (NEED_POOL_ALLOC)
             ABC_FREE(pool);
         if (Abc_TtIsConst0(pTruth, TRUTH_WORDS)) {
-            { if ( pRes ) pRes[0] = '0', pRes[1] = '\0'; }
+            {
+                if (pRes) pRes[0] = '0', pRes[1] = '\0';
+            }
             return 0;
         } else if (Abc_TtIsConst1(pTruth, TRUTH_WORDS)) {
-            { if ( pRes ) pRes[0] = '1', pRes[1] = '\0'; }
+            {
+                if (pRes) pRes[0] = '1', pRes[1] = '\0';
+            }
             return 0;
         } else {
             Abc_Print(-1, "ERROR. No variable in the support of f, but f isn't constant!\n");
@@ -393,7 +413,7 @@ extern int Dsc_Decompose(word * pTruth, const int nVarsInit, char * const pRes, 
                     dsc_and_group(newNode, ni, iPolarity, nj, jPolarity, nVarsInit, TRUTH_WORDS);
                 }
                 // XOR test
-                if ((newNode == NULL)  && (dsc_xor_test(ni, nj, TRUTH_WORDS))) {
+                if ((newNode == NULL) && (dsc_xor_test(ni, nj, TRUTH_WORDS))) {
                     newNode = &freeNodes[f++];
                     dsc_xor_group(newNode, ni, nj, nVarsInit, TRUTH_WORDS);
                 }
@@ -413,19 +433,19 @@ extern int Dsc_Decompose(word * pTruth, const int nVarsInit, char * const pRes, 
         n = tempN;
     }
     if (o == 1) {
-        Dsc_node_t * solution = oldNodes[0];
+        Dsc_node_t* solution = oldNodes[0];
         if (Abc_TtIsConst0(solution->pNegCof, TRUTH_WORDS) && Abc_TtIsConst1(solution->pPosCof, TRUTH_WORDS)) {
             // Direct solution found
-            if ( pRes )
-                strcpy( pRes, solution->exp);
+            if (pRes)
+                strcpy(pRes, solution->exp);
             if (NEED_POOL_ALLOC)
                 ABC_FREE(pool);
             return 0;
         } else if (Abc_TtIsConst1(solution->pNegCof, TRUTH_WORDS) && Abc_TtIsConst0(solution->pPosCof, TRUTH_WORDS)) {
             // Complementary solution found
-            if ( pRes ) {
+            if (pRes) {
                 pRes[0] = '!';
-                strcpy( &pRes[1], solution->exp);
+                strcpy(&pRes[1], solution->exp);
             }
             if (NEED_POOL_ALLOC)
                 ABC_FREE(pool);
@@ -442,26 +462,23 @@ extern int Dsc_Decompose(word * pTruth, const int nVarsInit, char * const pRes, 
     return -1;
 }
 
-
 /**Function*************************************************************
   Synopsis    [DSD formula manipulation.]
   Description [Code copied from dauDsd.c but changed DAU_MAX_VAR to DSC_MAX_VAR]
 ***********************************************************************/
-int * Dsc_ComputeMatches( char * p )
-{
+int* Dsc_ComputeMatches(char* p) {
     static int pMatches[DSC_MAX_VAR];
     int pNested[DSC_MAX_VAR];
     int v, nNested = 0;
-    for ( v = 0; p[v]; v++ )
-    {
+    for (v = 0; p[v]; v++) {
         pMatches[v] = 0;
-        if ( p[v] == '(' || p[v] == '[' || p[v] == '<' || p[v] == '{' )
+        if (p[v] == '(' || p[v] == '[' || p[v] == '<' || p[v] == '{')
             pNested[nNested++] = v;
-        else if ( p[v] == ')' || p[v] == ']' || p[v] == '>' || p[v] == '}' )
+        else if (p[v] == ')' || p[v] == ']' || p[v] == '>' || p[v] == '}')
             pMatches[pNested[--nNested]] = v;
-        assert( nNested < DSC_MAX_VAR );
+        assert(nNested < DSC_MAX_VAR);
     }
-    assert( nNested == 0 );
+    assert(nNested == 0);
     return pMatches;
 }
 
@@ -469,57 +486,53 @@ int * Dsc_ComputeMatches( char * p )
   Synopsis    [DSD formula manipulation.]
   Description [Code copied from dauDsd.c but changed DAU_MAX_VAR to DSC_MAX_VAR]
 ***********************************************************************/
-int Dsc_CountAnds_rec( char * pStr, char ** p, int * pMatches )
-{
-    if ( **p == '!' )
+int Dsc_CountAnds_rec(char* pStr, char** p, int* pMatches) {
+    if (**p == '!')
         (*p)++;
-    while ( (**p >= 'A' && **p <= 'F') || (**p >= '0' && **p <= '9') )
+    while ((**p >= 'A' && **p <= 'F') || (**p >= '0' && **p <= '9'))
         (*p)++;
-    if ( **p == '<' )
-    {
-        char * q = pStr + pMatches[*p - pStr];
-        if ( *(q+1) == '{' )
-            *p = q+1;
+    if (**p == '<') {
+        char* q = pStr + pMatches[*p - pStr];
+        if (*(q + 1) == '{')
+            *p = q + 1;
     }
-    if ( **p >= 'a' && **p <= 'z' ) // var
+    if (**p >= 'a' && **p <= 'z') // var
         return 0;
-    if ( **p == '(' || **p == '[' ) // and/or/xor
+    if (**p == '(' || **p == '[') // and/or/xor
     {
-        int Counter = 0, AddOn = (**p == '(')? 1 : 3;
-        char * q = pStr + pMatches[ *p - pStr ];
-        assert( *q == **p + 1 + (**p != '(') );
-        for ( (*p)++; *p < q; (*p)++ )
-            Counter += AddOn + Dsc_CountAnds_rec( pStr, p, pMatches );
-        assert( *p == q );
+        int Counter = 0, AddOn = (**p == '(') ? 1 : 3;
+        char* q = pStr + pMatches[*p - pStr];
+        assert(*q == **p + 1 + (**p != '('));
+        for ((*p)++; *p < q; (*p)++)
+            Counter += AddOn + Dsc_CountAnds_rec(pStr, p, pMatches);
+        assert(*p == q);
         return Counter - AddOn;
     }
-    if ( **p == '<' || **p == '{' ) // mux
+    if (**p == '<' || **p == '{') // mux
     {
         int Counter = 3;
-        char * q = pStr + pMatches[ *p - pStr ];
-        assert( *q == **p + 1 + (**p != '(') );
-        for ( (*p)++; *p < q; (*p)++ )
-            Counter += Dsc_CountAnds_rec( pStr, p, pMatches );
-        assert( *p == q );
+        char* q = pStr + pMatches[*p - pStr];
+        assert(*q == **p + 1 + (**p != '('));
+        for ((*p)++; *p < q; (*p)++)
+            Counter += Dsc_CountAnds_rec(pStr, p, pMatches);
+        assert(*p == q);
         return Counter;
     }
-    assert( 0 );
+    assert(0);
     return 0;
 }
 /**Function*************************************************************
   Synopsis    [DSD formula manipulation.]
   Description [Code copied from dauDsd.c but changed DAU_MAX_VAR to DSC_MAX_VAR]
 ***********************************************************************/
-extern int Dsc_CountAnds( char * pDsd )
-{
-    if ( pDsd[1] == 0 )
+extern int Dsc_CountAnds(char* pDsd) {
+    if (pDsd[1] == 0)
         return 0;
-    return Dsc_CountAnds_rec( pDsd, &pDsd, Dsc_ComputeMatches(pDsd) );
+    return Dsc_CountAnds_rec(pDsd, &pDsd, Dsc_ComputeMatches(pDsd));
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-
 
 ABC_NAMESPACE_IMPL_END

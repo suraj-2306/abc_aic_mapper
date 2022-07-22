@@ -78,9 +78,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
@@ -91,11 +88,9 @@ ABC_NAMESPACE_IMPL_START
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -109,23 +104,20 @@ static char rcsid[] DD_UNUSED = "$Id: cuddPriority.c,v 1.33 2009/02/20 02:14:58 
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticStart*************************************************************/
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
-static int cuddMinHammingDistRecur (DdNode * f, int *minterm, DdHashTable * table, int upperBound);
-static DdNode * separateCube (DdManager *dd, DdNode *f, CUDD_VALUE_TYPE *distance);
-static DdNode * createResult (DdManager *dd, unsigned int index, unsigned int phase, DdNode *cube, CUDD_VALUE_TYPE distance);
+static int cuddMinHammingDistRecur(DdNode* f, int* minterm, DdHashTable* table, int upperBound);
+static DdNode* separateCube(DdManager* dd, DdNode* f, CUDD_VALUE_TYPE* distance);
+static DdNode* createResult(DdManager* dd, unsigned int index, unsigned int phase, DdNode* cube, CUDD_VALUE_TYPE distance);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -171,19 +163,18 @@ static DdNode * createResult (DdManager *dd, unsigned int index, unsigned int ph
   Cudd_bddAdjPermuteX Cudd_CProjection]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_PrioritySelect(
-  DdManager * dd /* manager */,
-  DdNode * R /* BDD of the relation */,
-  DdNode ** x /* array of x variables */,
-  DdNode ** y /* array of y variables */,
-  DdNode ** z /* array of z variables (optional: may be NULL) */,
-  DdNode * Pi /* BDD of the priority function (optional: may be NULL) */,
-  int  n /* size of x, y, and z */,
-  DD_PRFP Pifunc /* function used to build Pi if it is NULL */)
-{
-    DdNode *res = NULL;
-    DdNode *zcube = NULL;
+    DdManager* dd /* manager */,
+    DdNode* R /* BDD of the relation */,
+    DdNode** x /* array of x variables */,
+    DdNode** y /* array of y variables */,
+    DdNode** z /* array of z variables (optional: may be NULL) */,
+    DdNode* Pi /* BDD of the priority function (optional: may be NULL) */,
+    int n /* size of x, y, and z */,
+    DD_PRFP Pifunc /* function used to build Pi if it is NULL */) {
+    DdNode* res = NULL;
+    DdNode* zcube = NULL;
     DdNode *Rxz, *Q;
     int createdZ = 0;
     int createdPi = 0;
@@ -191,23 +182,23 @@ Cudd_PrioritySelect(
 
     /* Create z variables if needed. */
     if (z == NULL) {
-        if (Pi != NULL) return(NULL);
-        z = ABC_ALLOC(DdNode *,n);
+        if (Pi != NULL) return (NULL);
+        z = ABC_ALLOC(DdNode*, n);
         if (z == NULL) {
             dd->errorCode = CUDD_MEMORY_OUT;
-            return(NULL);
+            return (NULL);
         }
         createdZ = 1;
         for (i = 0; i < n; i++) {
-            if (dd->size >= (int) CUDD_MAXINDEX - 1) goto endgame;
-            z[i] = cuddUniqueInter(dd,dd->size,dd->one,Cudd_Not(dd->one));
+            if (dd->size >= (int)CUDD_MAXINDEX - 1) goto endgame;
+            z[i] = cuddUniqueInter(dd, dd->size, dd->one, Cudd_Not(dd->one));
             if (z[i] == NULL) goto endgame;
         }
     }
 
     /* Create priority function BDD if needed. */
     if (Pi == NULL) {
-        Pi = Pifunc(dd,n,x,y,z);
+        Pi = Pifunc(dd, n, x, y, z);
         if (Pi == NULL) goto endgame;
         createdPi = 1;
         cuddRef(Pi);
@@ -217,46 +208,45 @@ Cudd_PrioritySelect(
     zcube = DD_ONE(dd);
     cuddRef(zcube);
     for (i = n - 1; i >= 0; i--) {
-        DdNode *tmpp;
-        tmpp = Cudd_bddAnd(dd,z[i],zcube);
+        DdNode* tmpp;
+        tmpp = Cudd_bddAnd(dd, z[i], zcube);
         if (tmpp == NULL) goto endgame;
         cuddRef(tmpp);
-        Cudd_RecursiveDeref(dd,zcube);
+        Cudd_RecursiveDeref(dd, zcube);
         zcube = tmpp;
     }
 
     /* Compute subset of (x,y) pairs. */
-    Rxz = Cudd_bddSwapVariables(dd,R,y,z,n);
+    Rxz = Cudd_bddSwapVariables(dd, R, y, z, n);
     if (Rxz == NULL) goto endgame;
     cuddRef(Rxz);
-    Q = Cudd_bddAndAbstract(dd,Rxz,Pi,zcube);
+    Q = Cudd_bddAndAbstract(dd, Rxz, Pi, zcube);
     if (Q == NULL) {
-        Cudd_RecursiveDeref(dd,Rxz);
+        Cudd_RecursiveDeref(dd, Rxz);
         goto endgame;
     }
     cuddRef(Q);
-    Cudd_RecursiveDeref(dd,Rxz);
-    res = Cudd_bddAnd(dd,R,Cudd_Not(Q));
+    Cudd_RecursiveDeref(dd, Rxz);
+    res = Cudd_bddAnd(dd, R, Cudd_Not(Q));
     if (res == NULL) {
-        Cudd_RecursiveDeref(dd,Q);
+        Cudd_RecursiveDeref(dd, Q);
         goto endgame;
     }
     cuddRef(res);
-    Cudd_RecursiveDeref(dd,Q);
+    Cudd_RecursiveDeref(dd, Q);
 
 endgame:
-    if (zcube != NULL) Cudd_RecursiveDeref(dd,zcube);
+    if (zcube != NULL) Cudd_RecursiveDeref(dd, zcube);
     if (createdZ) {
         ABC_FREE(z);
     }
     if (createdPi) {
-        Cudd_RecursiveDeref(dd,Pi);
+        Cudd_RecursiveDeref(dd, Pi);
     }
     if (res != NULL) cuddDeref(res);
-    return(res);
+    return (res);
 
 } /* Cudd_PrioritySelect */
-
 
 /**Function********************************************************************
 
@@ -276,35 +266,34 @@ endgame:
   SeeAlso     [Cudd_PrioritySelect Cudd_Dxygtdxz Cudd_Dxygtdyz]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Xgty(
-  DdManager * dd /* DD manager */,
-  int  N /* number of x and y variables */,
-  DdNode ** z /* array of z variables: unused */,
-  DdNode ** x /* array of x variables */,
-  DdNode ** y /* array of y variables */)
-{
+    DdManager* dd /* DD manager */,
+    int N /* number of x and y variables */,
+    DdNode** z /* array of z variables: unused */,
+    DdNode** x /* array of x variables */,
+    DdNode** y /* array of y variables */) {
     DdNode *u, *v, *w;
-    int     i;
+    int i;
 
     /* Build bottom part of BDD outside loop. */
-    u = Cudd_bddAnd(dd, x[N-1], Cudd_Not(y[N-1]));
-    if (u == NULL) return(NULL);
+    u = Cudd_bddAnd(dd, x[N - 1], Cudd_Not(y[N - 1]));
+    if (u == NULL) return (NULL);
     cuddRef(u);
 
     /* Loop to build the rest of the BDD. */
-    for (i = N-2; i >= 0; i--) {
+    for (i = N - 2; i >= 0; i--) {
         v = Cudd_bddAnd(dd, y[i], Cudd_Not(u));
         if (v == NULL) {
             Cudd_RecursiveDeref(dd, u);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(v);
         w = Cudd_bddAnd(dd, Cudd_Not(y[i]), u);
         if (w == NULL) {
             Cudd_RecursiveDeref(dd, u);
             Cudd_RecursiveDeref(dd, v);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(w);
         Cudd_RecursiveDeref(dd, u);
@@ -312,18 +301,16 @@ Cudd_Xgty(
         if (u == NULL) {
             Cudd_RecursiveDeref(dd, v);
             Cudd_RecursiveDeref(dd, w);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(u);
         Cudd_RecursiveDeref(dd, v);
         Cudd_RecursiveDeref(dd, w);
-
     }
     cuddDeref(u);
-    return(u);
+    return (u);
 
 } /* end of Cudd_Xgty */
-
 
 /**Function********************************************************************
 
@@ -341,34 +328,33 @@ Cudd_Xgty(
   SeeAlso     [Cudd_addXeqy]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Xeqy(
-  DdManager * dd /* DD manager */,
-  int  N /* number of x and y variables */,
-  DdNode ** x /* array of x variables */,
-  DdNode ** y /* array of y variables */)
-{
+    DdManager* dd /* DD manager */,
+    int N /* number of x and y variables */,
+    DdNode** x /* array of x variables */,
+    DdNode** y /* array of y variables */) {
     DdNode *u, *v, *w;
-    int     i;
+    int i;
 
     /* Build bottom part of BDD outside loop. */
-    u = Cudd_bddIte(dd, x[N-1], y[N-1], Cudd_Not(y[N-1]));
-    if (u == NULL) return(NULL);
+    u = Cudd_bddIte(dd, x[N - 1], y[N - 1], Cudd_Not(y[N - 1]));
+    if (u == NULL) return (NULL);
     cuddRef(u);
 
     /* Loop to build the rest of the BDD. */
-    for (i = N-2; i >= 0; i--) {
+    for (i = N - 2; i >= 0; i--) {
         v = Cudd_bddAnd(dd, y[i], u);
         if (v == NULL) {
             Cudd_RecursiveDeref(dd, u);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(v);
         w = Cudd_bddAnd(dd, Cudd_Not(y[i]), u);
         if (w == NULL) {
             Cudd_RecursiveDeref(dd, u);
             Cudd_RecursiveDeref(dd, v);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(w);
         Cudd_RecursiveDeref(dd, u);
@@ -376,17 +362,16 @@ Cudd_Xeqy(
         if (u == NULL) {
             Cudd_RecursiveDeref(dd, v);
             Cudd_RecursiveDeref(dd, w);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(u);
         Cudd_RecursiveDeref(dd, v);
         Cudd_RecursiveDeref(dd, w);
     }
     cuddDeref(u);
-    return(u);
+    return (u);
 
 } /* end of Cudd_Xeqy */
-
 
 /**Function********************************************************************
 
@@ -404,53 +389,52 @@ Cudd_Xeqy(
   SeeAlso     [Cudd_Xeqy]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_addXeqy(
-  DdManager * dd /* DD manager */,
-  int  N /* number of x and y variables */,
-  DdNode ** x /* array of x variables */,
-  DdNode ** y /* array of y variables */)
-{
+    DdManager* dd /* DD manager */,
+    int N /* number of x and y variables */,
+    DdNode** x /* array of x variables */,
+    DdNode** y /* array of y variables */) {
     DdNode *one, *zero;
     DdNode *u, *v, *w;
-    int     i;
+    int i;
 
     one = DD_ONE(dd);
     zero = DD_ZERO(dd);
 
     /* Build bottom part of ADD outside loop. */
-    v = Cudd_addIte(dd, y[N-1], one, zero);
-    if (v == NULL) return(NULL);
+    v = Cudd_addIte(dd, y[N - 1], one, zero);
+    if (v == NULL) return (NULL);
     cuddRef(v);
-    w = Cudd_addIte(dd, y[N-1], zero, one);
+    w = Cudd_addIte(dd, y[N - 1], zero, one);
     if (w == NULL) {
         Cudd_RecursiveDeref(dd, v);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(w);
-    u = Cudd_addIte(dd, x[N-1], v, w);
+    u = Cudd_addIte(dd, x[N - 1], v, w);
     if (u == NULL) {
         Cudd_RecursiveDeref(dd, v);
         Cudd_RecursiveDeref(dd, w);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(u);
     Cudd_RecursiveDeref(dd, v);
     Cudd_RecursiveDeref(dd, w);
 
     /* Loop to build the rest of the ADD. */
-    for (i = N-2; i >= 0; i--) {
+    for (i = N - 2; i >= 0; i--) {
         v = Cudd_addIte(dd, y[i], u, zero);
         if (v == NULL) {
             Cudd_RecursiveDeref(dd, u);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(v);
         w = Cudd_addIte(dd, y[i], zero, u);
         if (w == NULL) {
             Cudd_RecursiveDeref(dd, u);
             Cudd_RecursiveDeref(dd, v);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(w);
         Cudd_RecursiveDeref(dd, u);
@@ -458,17 +442,16 @@ Cudd_addXeqy(
         if (w == NULL) {
             Cudd_RecursiveDeref(dd, v);
             Cudd_RecursiveDeref(dd, w);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(u);
         Cudd_RecursiveDeref(dd, v);
         Cudd_RecursiveDeref(dd, w);
     }
     cuddDeref(u);
-    return(u);
+    return (u);
 
 } /* end of Cudd_addXeqy */
-
 
 /**Function********************************************************************
 
@@ -490,54 +473,53 @@ Cudd_addXeqy(
   SeeAlso     [Cudd_PrioritySelect Cudd_Dxygtdyz Cudd_Xgty Cudd_bddAdjPermuteX]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Dxygtdxz(
-  DdManager * dd /* DD manager */,
-  int  N /* number of x, y, and z variables */,
-  DdNode ** x /* array of x variables */,
-  DdNode ** y /* array of y variables */,
-  DdNode ** z /* array of z variables */)
-{
+    DdManager* dd /* DD manager */,
+    int N /* number of x, y, and z variables */,
+    DdNode** x /* array of x variables */,
+    DdNode** y /* array of y variables */,
+    DdNode** z /* array of z variables */) {
     DdNode *one, *zero;
     DdNode *z1, *z2, *z3, *z4, *y1_, *y2, *x1;
-    int     i;
+    int i;
 
     one = DD_ONE(dd);
     zero = Cudd_Not(one);
 
     /* Build bottom part of BDD outside loop. */
-    y1_ = Cudd_bddIte(dd, y[N-1], one, Cudd_Not(z[N-1]));
-    if (y1_ == NULL) return(NULL);
+    y1_ = Cudd_bddIte(dd, y[N - 1], one, Cudd_Not(z[N - 1]));
+    if (y1_ == NULL) return (NULL);
     cuddRef(y1_);
-    y2 = Cudd_bddIte(dd, y[N-1], z[N-1], one);
+    y2 = Cudd_bddIte(dd, y[N - 1], z[N - 1], one);
     if (y2 == NULL) {
         Cudd_RecursiveDeref(dd, y1_);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(y2);
-    x1 = Cudd_bddIte(dd, x[N-1], y1_, y2);
+    x1 = Cudd_bddIte(dd, x[N - 1], y1_, y2);
     if (x1 == NULL) {
         Cudd_RecursiveDeref(dd, y1_);
         Cudd_RecursiveDeref(dd, y2);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(x1);
     Cudd_RecursiveDeref(dd, y1_);
     Cudd_RecursiveDeref(dd, y2);
 
     /* Loop to build the rest of the BDD. */
-    for (i = N-2; i >= 0; i--) {
+    for (i = N - 2; i >= 0; i--) {
         z1 = Cudd_bddIte(dd, z[i], one, Cudd_Not(x1));
         if (z1 == NULL) {
             Cudd_RecursiveDeref(dd, x1);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(z1);
         z2 = Cudd_bddIte(dd, z[i], x1, one);
         if (z2 == NULL) {
             Cudd_RecursiveDeref(dd, x1);
             Cudd_RecursiveDeref(dd, z1);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(z2);
         z3 = Cudd_bddIte(dd, z[i], one, x1);
@@ -545,7 +527,7 @@ Cudd_Dxygtdxz(
             Cudd_RecursiveDeref(dd, x1);
             Cudd_RecursiveDeref(dd, z1);
             Cudd_RecursiveDeref(dd, z2);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(z3);
         z4 = Cudd_bddIte(dd, z[i], x1, zero);
@@ -554,7 +536,7 @@ Cudd_Dxygtdxz(
             Cudd_RecursiveDeref(dd, z1);
             Cudd_RecursiveDeref(dd, z2);
             Cudd_RecursiveDeref(dd, z3);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(z4);
         Cudd_RecursiveDeref(dd, x1);
@@ -564,7 +546,7 @@ Cudd_Dxygtdxz(
             Cudd_RecursiveDeref(dd, z2);
             Cudd_RecursiveDeref(dd, z3);
             Cudd_RecursiveDeref(dd, z4);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(y1_);
         y2 = Cudd_bddIte(dd, y[i], z4, z3);
@@ -574,7 +556,7 @@ Cudd_Dxygtdxz(
             Cudd_RecursiveDeref(dd, z3);
             Cudd_RecursiveDeref(dd, z4);
             Cudd_RecursiveDeref(dd, y1_);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(y2);
         Cudd_RecursiveDeref(dd, z1);
@@ -585,17 +567,16 @@ Cudd_Dxygtdxz(
         if (x1 == NULL) {
             Cudd_RecursiveDeref(dd, y1_);
             Cudd_RecursiveDeref(dd, y2);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(x1);
         Cudd_RecursiveDeref(dd, y1_);
         Cudd_RecursiveDeref(dd, y2);
     }
     cuddDeref(x1);
-    return(Cudd_Not(x1));
+    return (Cudd_Not(x1));
 
 } /* end of Cudd_Dxygtdxz */
-
 
 /**Function********************************************************************
 
@@ -617,54 +598,53 @@ Cudd_Dxygtdxz(
   SeeAlso     [Cudd_PrioritySelect Cudd_Dxygtdxz Cudd_Xgty Cudd_bddAdjPermuteX]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Dxygtdyz(
-  DdManager * dd /* DD manager */,
-  int  N /* number of x, y, and z variables */,
-  DdNode ** x /* array of x variables */,
-  DdNode ** y /* array of y variables */,
-  DdNode ** z /* array of z variables */)
-{
+    DdManager* dd /* DD manager */,
+    int N /* number of x, y, and z variables */,
+    DdNode** x /* array of x variables */,
+    DdNode** y /* array of y variables */,
+    DdNode** z /* array of z variables */) {
     DdNode *one, *zero;
     DdNode *z1, *z2, *z3, *z4, *y1_, *y2, *x1;
-    int     i;
+    int i;
 
     one = DD_ONE(dd);
     zero = Cudd_Not(one);
 
     /* Build bottom part of BDD outside loop. */
-    y1_ = Cudd_bddIte(dd, y[N-1], one, z[N-1]);
-    if (y1_ == NULL) return(NULL);
+    y1_ = Cudd_bddIte(dd, y[N - 1], one, z[N - 1]);
+    if (y1_ == NULL) return (NULL);
     cuddRef(y1_);
-    y2 = Cudd_bddIte(dd, y[N-1], z[N-1], zero);
+    y2 = Cudd_bddIte(dd, y[N - 1], z[N - 1], zero);
     if (y2 == NULL) {
         Cudd_RecursiveDeref(dd, y1_);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(y2);
-    x1 = Cudd_bddIte(dd, x[N-1], y1_, Cudd_Not(y2));
+    x1 = Cudd_bddIte(dd, x[N - 1], y1_, Cudd_Not(y2));
     if (x1 == NULL) {
         Cudd_RecursiveDeref(dd, y1_);
         Cudd_RecursiveDeref(dd, y2);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(x1);
     Cudd_RecursiveDeref(dd, y1_);
     Cudd_RecursiveDeref(dd, y2);
 
     /* Loop to build the rest of the BDD. */
-    for (i = N-2; i >= 0; i--) {
+    for (i = N - 2; i >= 0; i--) {
         z1 = Cudd_bddIte(dd, z[i], x1, zero);
         if (z1 == NULL) {
             Cudd_RecursiveDeref(dd, x1);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(z1);
         z2 = Cudd_bddIte(dd, z[i], x1, one);
         if (z2 == NULL) {
             Cudd_RecursiveDeref(dd, x1);
             Cudd_RecursiveDeref(dd, z1);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(z2);
         z3 = Cudd_bddIte(dd, z[i], one, x1);
@@ -672,7 +652,7 @@ Cudd_Dxygtdyz(
             Cudd_RecursiveDeref(dd, x1);
             Cudd_RecursiveDeref(dd, z1);
             Cudd_RecursiveDeref(dd, z2);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(z3);
         z4 = Cudd_bddIte(dd, z[i], one, Cudd_Not(x1));
@@ -681,7 +661,7 @@ Cudd_Dxygtdyz(
             Cudd_RecursiveDeref(dd, z1);
             Cudd_RecursiveDeref(dd, z2);
             Cudd_RecursiveDeref(dd, z3);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(z4);
         Cudd_RecursiveDeref(dd, x1);
@@ -691,7 +671,7 @@ Cudd_Dxygtdyz(
             Cudd_RecursiveDeref(dd, z2);
             Cudd_RecursiveDeref(dd, z3);
             Cudd_RecursiveDeref(dd, z4);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(y1_);
         y2 = Cudd_bddIte(dd, y[i], z4, Cudd_Not(z3));
@@ -701,7 +681,7 @@ Cudd_Dxygtdyz(
             Cudd_RecursiveDeref(dd, z3);
             Cudd_RecursiveDeref(dd, z4);
             Cudd_RecursiveDeref(dd, y1_);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(y2);
         Cudd_RecursiveDeref(dd, z1);
@@ -712,17 +692,16 @@ Cudd_Dxygtdyz(
         if (x1 == NULL) {
             Cudd_RecursiveDeref(dd, y1_);
             Cudd_RecursiveDeref(dd, y2);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(x1);
         Cudd_RecursiveDeref(dd, y1_);
         Cudd_RecursiveDeref(dd, y2);
     }
     cuddDeref(x1);
-    return(Cudd_Not(x1));
+    return (Cudd_Not(x1));
 
 } /* end of Cudd_Dxygtdyz */
-
 
 /**Function********************************************************************
 
@@ -740,14 +719,13 @@ Cudd_Dxygtdyz(
   SeeAlso     [Cudd_Xgty]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Inequality(
-  DdManager * dd /* DD manager */,
-  int  N /* number of x and y variables */,
-  int c /* right-hand side constant */,
-  DdNode ** x /* array of x variables */,
-  DdNode ** y /* array of y variables */)
-{
+    DdManager* dd /* DD manager */,
+    int N /* number of x and y variables */,
+    int c /* right-hand side constant */,
+    DdNode** x /* array of x variables */,
+    DdNode** y /* array of y variables */) {
     /* The nodes at level i represent values of the difference that are
     ** multiples of 2^i.  We use variables with names starting with k
     ** to denote the multipliers of 2^i in such multiples. */
@@ -759,30 +737,34 @@ Cudd_Inequality(
     int mask = 1;
     int i;
 
-    DdNode *f = NULL;           /* the eventual result */
-    DdNode *one = DD_ONE(dd);
-    DdNode *zero = Cudd_Not(one);
+    DdNode* f = NULL; /* the eventual result */
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = Cudd_Not(one);
 
     /* Two x-labeled nodes are created at most at each iteration.  They are
     ** stored, along with their k values, in these variables.  At each level,
     ** the old nodes are freed and the new nodes are copied into the old map.
     */
-    DdNode *map[2] = {0};
-    int invalidIndex = 1 << (N-1);
+    DdNode* map[2] = {0};
+    int invalidIndex = 1 << (N - 1);
     int index[2] = {invalidIndex, invalidIndex};
 
     /* This should never happen. */
-    if (N < 0) return(NULL);
+    if (N < 0) return (NULL);
 
     /* If there are no bits, both operands are 0.  The result depends on c. */
     if (N == 0) {
-        if (c >= 0) return(one);
-        else return(zero);
+        if (c >= 0)
+            return (one);
+        else
+            return (zero);
     }
 
     /* The maximum or the minimum difference comparing to c can generate the terminal case */
-    if ((1 << N) - 1 < c) return(zero);
-    else if ((-(1 << N) + 1) >= c) return(one);
+    if ((1 << N) - 1 < c)
+        return (zero);
+    else if ((-(1 << N) + 1) >= c)
+        return (one);
 
     /* Build the result bottom up. */
     for (i = 1; i <= N; i++) {
@@ -790,13 +772,13 @@ Cudd_Inequality(
         int leftChild, middleChild, rightChild;
         DdNode *g0, *g1, *fplus, *fequal, *fminus;
         int j;
-        DdNode *newMap[2] = {NULL};
+        DdNode* newMap[2] = {NULL};
         int newIndex[2];
 
         kTrueLower = kTrue;
         kFalseLower = kFalse;
         /* kTrue = ceiling((c-1)/2^i) + 1 */
-        kTrue = ((c-1) >> i) + ((c & mask) != 1) + 1;
+        kTrue = ((c - 1) >> i) + ((c & mask) != 1) + 1;
         mask = (mask << 1) | 1;
         /* kFalse = floor(c/2^i) - 1 */
         kFalse = (c >> i) - 1;
@@ -805,7 +787,7 @@ Cudd_Inequality(
 
         for (j = kFalse + 1; j < kTrue; j++) {
             /* Skip if node is not reachable from top of BDD. */
-            if ((j >= (1 << (N - i))) || (j <= -(1 << (N -i)))) continue;
+            if ((j >= (1 << (N - i))) || (j <= -(1 << (N - i)))) continue;
 
             /* Find f- */
             leftChild = (j << 1) - 1;
@@ -859,7 +841,7 @@ Cudd_Inequality(
                 if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
                 if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
                 if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
-                return(NULL);
+                return (NULL);
             }
             cuddRef(g1);
             g0 = Cudd_bddIte(dd, y[N - i], fminus, fequal);
@@ -869,7 +851,7 @@ Cudd_Inequality(
                 if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
                 if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
                 if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
-                return(NULL);
+                return (NULL);
             }
             cuddRef(g0);
             f = Cudd_bddIte(dd, x[N - i], g1, g0);
@@ -880,7 +862,7 @@ Cudd_Inequality(
                 if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
                 if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
                 if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
-                return(NULL);
+                return (NULL);
             }
             cuddRef(f);
             Cudd_IterDerefBdd(dd, g1);
@@ -907,10 +889,9 @@ Cudd_Inequality(
     }
 
     cuddDeref(f);
-    return(f);
+    return (f);
 
 } /* end of Cudd_Inequality */
-
 
 /**Function********************************************************************
 
@@ -928,14 +909,13 @@ Cudd_Inequality(
   SeeAlso     [Cudd_Xgty]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Disequality(
-  DdManager * dd /* DD manager */,
-  int  N /* number of x and y variables */,
-  int c /* right-hand side constant */,
-  DdNode ** x /* array of x variables */,
-  DdNode ** y /* array of y variables */)
-{
+    DdManager* dd /* DD manager */,
+    int N /* number of x and y variables */,
+    int c /* right-hand side constant */,
+    DdNode** x /* array of x variables */,
+    DdNode** y /* array of y variables */) {
     /* The nodes at level i represent values of the difference that are
     ** multiples of 2^i.  We use variables with names starting with k
     ** to denote the multipliers of 2^i in such multiples. */
@@ -948,29 +928,31 @@ Cudd_Disequality(
     int mask = 1;
     int i;
 
-    DdNode *f = NULL;           /* the eventual result */
-    DdNode *one = DD_ONE(dd);
-    DdNode *zero = Cudd_Not(one);
+    DdNode* f = NULL; /* the eventual result */
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = Cudd_Not(one);
 
     /* Two x-labeled nodes are created at most at each iteration.  They are
     ** stored, along with their k values, in these variables.  At each level,
     ** the old nodes are freed and the new nodes are copied into the old map.
     */
-    DdNode *map[2] = {0};
-    int invalidIndex = 1 << (N-1);
+    DdNode* map[2] = {0};
+    int invalidIndex = 1 << (N - 1);
     int index[2] = {invalidIndex, invalidIndex};
 
     /* This should never happen. */
-    if (N < 0) return(NULL);
+    if (N < 0) return (NULL);
 
     /* If there are no bits, both operands are 0.  The result depends on c. */
     if (N == 0) {
-        if (c != 0) return(one);
-        else return(zero);
+        if (c != 0)
+            return (one);
+        else
+            return (zero);
     }
 
     /* The maximum or the minimum difference comparing to c can generate the terminal case */
-    if ((1 << N) - 1 < c || (-(1 << N) + 1) > c) return(one);
+    if ((1 << N) - 1 < c || (-(1 << N) + 1) > c) return (one);
 
     /* Build the result bottom up. */
     for (i = 1; i <= N; i++) {
@@ -978,22 +960,22 @@ Cudd_Disequality(
         int leftChild, middleChild, rightChild;
         DdNode *g0, *g1, *fplus, *fequal, *fminus;
         int j;
-        DdNode *newMap[2] = {NULL};
+        DdNode* newMap[2] = {NULL};
         int newIndex[2];
 
         kTrueLbLower = kTrueLb;
         kTrueUbLower = kTrueUb;
         /* kTrueLb = floor((c-1)/2^i) + 2 */
-        kTrueLb = ((c-1) >> i) + 2;
+        kTrueLb = ((c - 1) >> i) + 2;
         /* kTrueUb = ceiling((c+1)/2^i) - 2 */
-        kTrueUb = ((c+1) >> i) + (((c+2) & mask) != 1) - 2;
+        kTrueUb = ((c + 1) >> i) + (((c + 2) & mask) != 1) - 2;
         mask = (mask << 1) | 1;
         newIndex[0] = invalidIndex;
         newIndex[1] = invalidIndex;
 
         for (j = kTrueUb + 1; j < kTrueLb; j++) {
             /* Skip if node is not reachable from top of BDD. */
-            if ((j >= (1 << (N - i))) || (j <= -(1 << (N -i)))) continue;
+            if ((j >= (1 << (N - i))) || (j <= -(1 << (N - i)))) continue;
 
             /* Find f- */
             leftChild = (j << 1) - 1;
@@ -1047,7 +1029,7 @@ Cudd_Disequality(
                 if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
                 if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
                 if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
-                return(NULL);
+                return (NULL);
             }
             cuddRef(g1);
             g0 = Cudd_bddIte(dd, y[N - i], fminus, fequal);
@@ -1057,7 +1039,7 @@ Cudd_Disequality(
                 if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
                 if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
                 if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
-                return(NULL);
+                return (NULL);
             }
             cuddRef(g0);
             f = Cudd_bddIte(dd, x[N - i], g1, g0);
@@ -1068,7 +1050,7 @@ Cudd_Disequality(
                 if (index[1] != invalidIndex) Cudd_IterDerefBdd(dd, map[1]);
                 if (newIndex[0] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[0]);
                 if (newIndex[1] != invalidIndex) Cudd_IterDerefBdd(dd, newMap[1]);
-                return(NULL);
+                return (NULL);
             }
             cuddRef(f);
             Cudd_IterDerefBdd(dd, g1);
@@ -1095,10 +1077,9 @@ Cudd_Disequality(
     }
 
     cuddDeref(f);
-    return(f);
+    return (f);
 
 } /* end of Cudd_Disequality */
-
 
 /**Function********************************************************************
 
@@ -1117,17 +1098,16 @@ Cudd_Disequality(
   SeeAlso     [Cudd_Xgty]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_bddInterval(
-  DdManager * dd /* DD manager */,
-  int  N /* number of x variables */,
-  DdNode ** x /* array of x variables */,
-  unsigned int lowerB /* lower bound */,
-  unsigned int upperB /* upper bound */)
-{
+    DdManager* dd /* DD manager */,
+    int N /* number of x variables */,
+    DdNode** x /* array of x variables */,
+    unsigned int lowerB /* lower bound */,
+    unsigned int upperB /* upper bound */) {
     DdNode *one, *zero;
     DdNode *r, *rl, *ru;
-    int     i;
+    int i;
 
     one = DD_ONE(dd);
     zero = Cudd_Not(one);
@@ -1138,27 +1118,27 @@ Cudd_bddInterval(
     cuddRef(ru);
 
     /* Loop to build the rest of the BDDs. */
-    for (i = N-1; i >= 0; i--) {
+    for (i = N - 1; i >= 0; i--) {
         DdNode *vl, *vu;
         vl = Cudd_bddIte(dd, x[i],
-                         lowerB&1 ? rl : one,
-                         lowerB&1 ? zero : rl);
+                         lowerB & 1 ? rl : one,
+                         lowerB & 1 ? zero : rl);
         if (vl == NULL) {
             Cudd_IterDerefBdd(dd, rl);
             Cudd_IterDerefBdd(dd, ru);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(vl);
         Cudd_IterDerefBdd(dd, rl);
         rl = vl;
         lowerB >>= 1;
         vu = Cudd_bddIte(dd, x[i],
-                         upperB&1 ? ru : zero,
-                         upperB&1 ? one : ru);
+                         upperB & 1 ? ru : zero,
+                         upperB & 1 ? one : ru);
         if (vu == NULL) {
             Cudd_IterDerefBdd(dd, rl);
             Cudd_IterDerefBdd(dd, ru);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(vu);
         Cudd_IterDerefBdd(dd, ru);
@@ -1171,16 +1151,15 @@ Cudd_bddInterval(
     if (r == NULL) {
         Cudd_IterDerefBdd(dd, rl);
         Cudd_IterDerefBdd(dd, ru);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(r);
     Cudd_IterDerefBdd(dd, rl);
     Cudd_IterDerefBdd(dd, ru);
     cuddDeref(r);
-    return(r);
+    return (r);
 
 } /* end of Cudd_bddInterval */
-
 
 /**Function********************************************************************
 
@@ -1196,46 +1175,44 @@ Cudd_bddInterval(
   SeeAlso     [Cudd_PrioritySelect]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_CProjection(
-  DdManager * dd,
-  DdNode * R,
-  DdNode * Y)
-{
-    DdNode *res;
-    DdNode *support;
+    DdManager* dd,
+    DdNode* R,
+    DdNode* Y) {
+    DdNode* res;
+    DdNode* support;
 
-    if (cuddCheckCube(dd,Y) == 0) {
-        (void) fprintf(dd->err,
-        "Error: The third argument of Cudd_CProjection should be a cube\n");
+    if (cuddCheckCube(dd, Y) == 0) {
+        (void)fprintf(dd->err,
+                      "Error: The third argument of Cudd_CProjection should be a cube\n");
         dd->errorCode = CUDD_INVALID_ARG;
-        return(NULL);
+        return (NULL);
     }
 
     /* Compute the support of Y, which is used by the abstraction step
     ** in cuddCProjectionRecur.
     */
-    support = Cudd_Support(dd,Y);
-    if (support == NULL) return(NULL);
+    support = Cudd_Support(dd, Y);
+    if (support == NULL) return (NULL);
     cuddRef(support);
 
     do {
         dd->reordered = 0;
-        res = cuddCProjectionRecur(dd,R,Y,support);
+        res = cuddCProjectionRecur(dd, R, Y, support);
     } while (dd->reordered == 1);
 
     if (res == NULL) {
-        Cudd_RecursiveDeref(dd,support);
-        return(NULL);
+        Cudd_RecursiveDeref(dd, support);
+        return (NULL);
     }
     cuddRef(res);
-    Cudd_RecursiveDeref(dd,support);
+    Cudd_RecursiveDeref(dd, support);
     cuddDeref(res);
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_CProjection */
-
 
 /**Function********************************************************************
 
@@ -1251,52 +1228,50 @@ Cudd_CProjection(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_addHamming(
-  DdManager * dd,
-  DdNode ** xVars,
-  DdNode ** yVars,
-  int  nVars)
-{
-    DdNode  *result,*tempBdd;
-    DdNode  *tempAdd,*temp;
-    int     i;
+    DdManager* dd,
+    DdNode** xVars,
+    DdNode** yVars,
+    int nVars) {
+    DdNode *result, *tempBdd;
+    DdNode *tempAdd, *temp;
+    int i;
 
     result = DD_ZERO(dd);
     cuddRef(result);
 
     for (i = 0; i < nVars; i++) {
-        tempBdd = Cudd_bddIte(dd,xVars[i],Cudd_Not(yVars[i]),yVars[i]);
+        tempBdd = Cudd_bddIte(dd, xVars[i], Cudd_Not(yVars[i]), yVars[i]);
         if (tempBdd == NULL) {
-            Cudd_RecursiveDeref(dd,result);
-            return(NULL);
+            Cudd_RecursiveDeref(dd, result);
+            return (NULL);
         }
         cuddRef(tempBdd);
-        tempAdd = Cudd_BddToAdd(dd,tempBdd);
+        tempAdd = Cudd_BddToAdd(dd, tempBdd);
         if (tempAdd == NULL) {
-            Cudd_RecursiveDeref(dd,tempBdd);
-            Cudd_RecursiveDeref(dd,result);
-            return(NULL);
+            Cudd_RecursiveDeref(dd, tempBdd);
+            Cudd_RecursiveDeref(dd, result);
+            return (NULL);
         }
         cuddRef(tempAdd);
-        Cudd_RecursiveDeref(dd,tempBdd);
-        temp = Cudd_addApply(dd,Cudd_addPlus,tempAdd,result);
+        Cudd_RecursiveDeref(dd, tempBdd);
+        temp = Cudd_addApply(dd, Cudd_addPlus, tempAdd, result);
         if (temp == NULL) {
-            Cudd_RecursiveDeref(dd,tempAdd);
-            Cudd_RecursiveDeref(dd,result);
-            return(NULL);
+            Cudd_RecursiveDeref(dd, tempAdd);
+            Cudd_RecursiveDeref(dd, result);
+            return (NULL);
         }
         cuddRef(temp);
-        Cudd_RecursiveDeref(dd,tempAdd);
-        Cudd_RecursiveDeref(dd,result);
+        Cudd_RecursiveDeref(dd, tempAdd);
+        Cudd_RecursiveDeref(dd, result);
         result = temp;
     }
 
     cuddDeref(result);
-    return(result);
+    return (result);
 
 } /* end of Cudd_addHamming */
-
 
 /**Function********************************************************************
 
@@ -1314,31 +1289,28 @@ Cudd_addHamming(
   SeeAlso     [Cudd_addHamming Cudd_bddClosestCube]
 
 ******************************************************************************/
-int
-Cudd_MinHammingDist(
-  DdManager *dd /* DD manager */,
-  DdNode *f /* function to examine */,
-  int *minterm /* reference minterm */,
-  int upperBound /* distance above which an approximate answer is OK */)
-{
-    DdHashTable *table;
+int Cudd_MinHammingDist(
+    DdManager* dd /* DD manager */,
+    DdNode* f /* function to examine */,
+    int* minterm /* reference minterm */,
+    int upperBound /* distance above which an approximate answer is OK */) {
+    DdHashTable* table;
     CUDD_VALUE_TYPE epsilon;
     int res;
 
-    table = cuddHashTableInit(dd,1,2);
+    table = cuddHashTableInit(dd, 1, 2);
     if (table == NULL) {
-        return(CUDD_OUT_OF_MEM);
+        return (CUDD_OUT_OF_MEM);
     }
     epsilon = Cudd_ReadEpsilon(dd);
-    Cudd_SetEpsilon(dd,(CUDD_VALUE_TYPE)0.0);
-    res = cuddMinHammingDistRecur(f,minterm,table,upperBound);
+    Cudd_SetEpsilon(dd, (CUDD_VALUE_TYPE)0.0);
+    res = cuddMinHammingDistRecur(f, minterm, table, upperBound);
     cuddHashTableQuit(table);
-    Cudd_SetEpsilon(dd,epsilon);
+    Cudd_SetEpsilon(dd, epsilon);
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_MinHammingDist */
-
 
 /**Function********************************************************************
 
@@ -1355,22 +1327,21 @@ Cudd_MinHammingDist(
   SeeAlso     [Cudd_MinHammingDist]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_bddClosestCube(
-  DdManager *dd,
-  DdNode * f,
-  DdNode *g,
-  int *distance)
-{
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g,
+    int* distance) {
     DdNode *res, *acube;
     CUDD_VALUE_TYPE rdist;
 
     /* Compute the cube and distance as a single ADD. */
     do {
         dd->reordered = 0;
-        res = cuddBddClosestCube(dd,f,g,CUDD_CONST_INDEX + 1.0);
+        res = cuddBddClosestCube(dd, f, g, CUDD_CONST_INDEX + 1.0);
     } while (dd->reordered == 1);
-    if (res == NULL) return(NULL);
+    if (res == NULL) return (NULL);
     cuddRef(res);
 
     /* Unpack distance and cube. */
@@ -1380,7 +1351,7 @@ Cudd_bddClosestCube(
     } while (dd->reordered == 1);
     if (acube == NULL) {
         Cudd_RecursiveDeref(dd, res);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(acube);
     Cudd_RecursiveDeref(dd, res);
@@ -1392,22 +1363,20 @@ Cudd_bddClosestCube(
     } while (dd->reordered == 1);
     if (res == NULL) {
         Cudd_RecursiveDeref(dd, acube);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(res);
     Cudd_RecursiveDeref(dd, acube);
 
-    *distance = (int) rdist;
+    *distance = (int)rdist;
     cuddDeref(res);
-    return(res);
+    return (res);
 
 } /* end of Cudd_bddClosestCube */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -1421,34 +1390,33 @@ Cudd_bddClosestCube(
   SeeAlso     [Cudd_CProjection]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddCProjectionRecur(
-  DdManager * dd,
-  DdNode * R,
-  DdNode * Y,
-  DdNode * Ysupp)
-{
+    DdManager* dd,
+    DdNode* R,
+    DdNode* Y,
+    DdNode* Ysupp) {
     DdNode *res, *res1, *res2, *resA;
     DdNode *r, *y, *RT, *RE, *YT, *YE, *Yrest, *Ra, *Ran, *Gamma, *Alpha;
     unsigned int topR, topY, top, index = 0;
-    DdNode *one = DD_ONE(dd);
+    DdNode* one = DD_ONE(dd);
 
     statLine(dd);
-    if (Y == one) return(R);
+    if (Y == one) return (R);
 
 #ifdef DD_DEBUG
     assert(!Cudd_IsConstant(Y));
 #endif
 
-    if (R == Cudd_Not(one)) return(R);
+    if (R == Cudd_Not(one)) return (R);
 
     res = cuddCacheLookup2(dd, Cudd_CProjection, R, Y);
-    if (res != NULL) return(res);
+    if (res != NULL) return (res);
 
     r = Cudd_Regular(R);
-    topR = cuddI(dd,r->index);
+    topR = cuddI(dd, r->index);
     y = Cudd_Regular(Y);
-    topY = cuddI(dd,y->index);
+    topY = cuddI(dd, y->index);
 
     top = ddMin(topR, topY);
 
@@ -1458,7 +1426,8 @@ cuddCProjectionRecur(
         RT = cuddT(r);
         RE = cuddE(r);
         if (r != R) {
-            RT = Cudd_Not(RT); RE = Cudd_Not(RE);
+            RT = Cudd_Not(RT);
+            RE = Cudd_Not(RE);
         }
     } else {
         RT = RE = R;
@@ -1469,20 +1438,20 @@ cuddCProjectionRecur(
         ** We just need to compute the results on the two cofactors of R
         ** and make them the children of a node labeled r->index.
         */
-        res1 = cuddCProjectionRecur(dd,RT,Y,Ysupp);
-        if (res1 == NULL) return(NULL);
+        res1 = cuddCProjectionRecur(dd, RT, Y, Ysupp);
+        if (res1 == NULL) return (NULL);
         cuddRef(res1);
-        res2 = cuddCProjectionRecur(dd,RE,Y,Ysupp);
+        res2 = cuddCProjectionRecur(dd, RE, Y, Ysupp);
         if (res2 == NULL) {
-            Cudd_RecursiveDeref(dd,res1);
-            return(NULL);
+            Cudd_RecursiveDeref(dd, res1);
+            return (NULL);
         }
         cuddRef(res2);
         res = cuddBddIteRecur(dd, dd->vars[index], res1, res2);
         if (res == NULL) {
-            Cudd_RecursiveDeref(dd,res1);
-            Cudd_RecursiveDeref(dd,res2);
-            return(NULL);
+            Cudd_RecursiveDeref(dd, res1);
+            Cudd_RecursiveDeref(dd, res2);
+            return (NULL);
         }
         /* If we have reached this point, res1 and res2 are now
         ** incorporated in res. cuddDeref is therefore sufficient.
@@ -1495,10 +1464,11 @@ cuddCProjectionRecur(
         YT = cuddT(y);
         YE = cuddE(y);
         if (y != Y) {
-            YT = Cudd_Not(YT); YE = Cudd_Not(YE);
+            YT = Cudd_Not(YT);
+            YE = Cudd_Not(YE);
         }
         if (YT == Cudd_Not(one)) {
-            Alpha  = Cudd_Not(dd->vars[index]);
+            Alpha = Cudd_Not(dd->vars[index]);
             Yrest = YE;
             Ra = RE;
             Ran = RT;
@@ -1508,68 +1478,67 @@ cuddCProjectionRecur(
             Ra = RT;
             Ran = RE;
         }
-        Gamma = cuddBddExistAbstractRecur(dd,Ra,cuddT(Ysupp));
-        if (Gamma == NULL) return(NULL);
+        Gamma = cuddBddExistAbstractRecur(dd, Ra, cuddT(Ysupp));
+        if (Gamma == NULL) return (NULL);
         if (Gamma == one) {
-            res1 = cuddCProjectionRecur(dd,Ra,Yrest,cuddT(Ysupp));
-            if (res1 == NULL) return(NULL);
+            res1 = cuddCProjectionRecur(dd, Ra, Yrest, cuddT(Ysupp));
+            if (res1 == NULL) return (NULL);
             cuddRef(res1);
             res = cuddBddAndRecur(dd, Alpha, res1);
             if (res == NULL) {
-                Cudd_RecursiveDeref(dd,res1);
-                return(NULL);
+                Cudd_RecursiveDeref(dd, res1);
+                return (NULL);
             }
             cuddDeref(res1);
         } else if (Gamma == Cudd_Not(one)) {
-            res1 = cuddCProjectionRecur(dd,Ran,Yrest,cuddT(Ysupp));
-            if (res1 == NULL) return(NULL);
+            res1 = cuddCProjectionRecur(dd, Ran, Yrest, cuddT(Ysupp));
+            if (res1 == NULL) return (NULL);
             cuddRef(res1);
             res = cuddBddAndRecur(dd, Cudd_Not(Alpha), res1);
             if (res == NULL) {
-                Cudd_RecursiveDeref(dd,res1);
-                return(NULL);
+                Cudd_RecursiveDeref(dd, res1);
+                return (NULL);
             }
             cuddDeref(res1);
         } else {
             cuddRef(Gamma);
-            resA = cuddCProjectionRecur(dd,Ran,Yrest,cuddT(Ysupp));
+            resA = cuddCProjectionRecur(dd, Ran, Yrest, cuddT(Ysupp));
             if (resA == NULL) {
-                Cudd_RecursiveDeref(dd,Gamma);
-                return(NULL);
+                Cudd_RecursiveDeref(dd, Gamma);
+                return (NULL);
             }
             cuddRef(resA);
             res2 = cuddBddAndRecur(dd, Cudd_Not(Gamma), resA);
             if (res2 == NULL) {
-                Cudd_RecursiveDeref(dd,Gamma);
-                Cudd_RecursiveDeref(dd,resA);
-                return(NULL);
+                Cudd_RecursiveDeref(dd, Gamma);
+                Cudd_RecursiveDeref(dd, resA);
+                return (NULL);
             }
             cuddRef(res2);
-            Cudd_RecursiveDeref(dd,Gamma);
-            Cudd_RecursiveDeref(dd,resA);
-            res1 = cuddCProjectionRecur(dd,Ra,Yrest,cuddT(Ysupp));
+            Cudd_RecursiveDeref(dd, Gamma);
+            Cudd_RecursiveDeref(dd, resA);
+            res1 = cuddCProjectionRecur(dd, Ra, Yrest, cuddT(Ysupp));
             if (res1 == NULL) {
-                Cudd_RecursiveDeref(dd,res2);
-                return(NULL);
+                Cudd_RecursiveDeref(dd, res2);
+                return (NULL);
             }
             cuddRef(res1);
             res = cuddBddIteRecur(dd, Alpha, res1, res2);
             if (res == NULL) {
-                Cudd_RecursiveDeref(dd,res1);
-                Cudd_RecursiveDeref(dd,res2);
-                return(NULL);
+                Cudd_RecursiveDeref(dd, res1);
+                Cudd_RecursiveDeref(dd, res2);
+                return (NULL);
             }
             cuddDeref(res1);
             cuddDeref(res2);
         }
     }
 
-    cuddCacheInsert2(dd,Cudd_CProjection,R,Y,res);
+    cuddCacheInsert2(dd, Cudd_CProjection, R, Y, res);
 
-    return(res);
+    return (res);
 
 } /* end of cuddCProjectionRecur */
-
 
 /**Function********************************************************************
 
@@ -1642,37 +1611,36 @@ cuddCProjectionRecur(
   SeeAlso     [Cudd_bddClosestCube]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddBddClosestCube(
-  DdManager *dd,
-  DdNode *f,
-  DdNode *g,
-  CUDD_VALUE_TYPE bound)
-{
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g,
+    CUDD_VALUE_TYPE bound) {
     DdNode *res, *F, *G, *ft, *fe, *gt, *ge, *tt, *ee;
     DdNode *ctt, *cee, *cte, *cet;
     CUDD_VALUE_TYPE minD, dtt, dee, dte, det;
-    DdNode *one = DD_ONE(dd);
-    DdNode *lzero = Cudd_Not(one);
-    DdNode *azero = DD_ZERO(dd);
+    DdNode* one = DD_ONE(dd);
+    DdNode* lzero = Cudd_Not(one);
+    DdNode* azero = DD_ZERO(dd);
     unsigned int topf, topg, index;
 
     statLine(dd);
-    if (bound < (int)(f == Cudd_Not(g))) return(azero);
+    if (bound < (int)(f == Cudd_Not(g))) return (azero);
     /* Terminal cases. */
-    if (g == lzero || f == lzero) return(azero);
-    if (f == one && g == one) return(one);
+    if (g == lzero || f == lzero) return (azero);
+    if (f == one && g == one) return (one);
 
     /* Check cache. */
     F = Cudd_Regular(f);
     G = Cudd_Regular(g);
     if (F->ref != 1 || G->ref != 1) {
-        res = cuddCacheLookup2(dd,(DD_CTFP) Cudd_bddClosestCube, f, g);
-        if (res != NULL) return(res);
+        res = cuddCacheLookup2(dd, (DD_CTFP)Cudd_bddClosestCube, f, g);
+        if (res != NULL) return (res);
     }
 
-    topf = cuddI(dd,F->index);
-    topg = cuddI(dd,G->index);
+    topf = cuddI(dd, F->index);
+    topg = cuddI(dd, G->index);
 
     /* Compute cofactors. */
     if (topf <= topg) {
@@ -1699,50 +1667,50 @@ cuddBddClosestCube(
         gt = ge = g;
     }
 
-    tt = cuddBddClosestCube(dd,ft,gt,bound);
-    if (tt == NULL) return(NULL);
+    tt = cuddBddClosestCube(dd, ft, gt, bound);
+    if (tt == NULL) return (NULL);
     cuddRef(tt);
-    ctt = separateCube(dd,tt,&dtt);
+    ctt = separateCube(dd, tt, &dtt);
     if (ctt == NULL) {
         Cudd_RecursiveDeref(dd, tt);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(ctt);
     Cudd_RecursiveDeref(dd, tt);
     minD = dtt;
-    bound = ddMin(bound,minD);
+    bound = ddMin(bound, minD);
 
-    ee = cuddBddClosestCube(dd,fe,ge,bound);
+    ee = cuddBddClosestCube(dd, fe, ge, bound);
     if (ee == NULL) {
         Cudd_RecursiveDeref(dd, ctt);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(ee);
-    cee = separateCube(dd,ee,&dee);
+    cee = separateCube(dd, ee, &dee);
     if (cee == NULL) {
         Cudd_RecursiveDeref(dd, ctt);
         Cudd_RecursiveDeref(dd, ee);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(cee);
     Cudd_RecursiveDeref(dd, ee);
     minD = ddMin(dtt, dee);
-    if (minD <= CUDD_CONST_INDEX) bound = ddMin(bound,minD-1);
+    if (minD <= CUDD_CONST_INDEX) bound = ddMin(bound, minD - 1);
 
     if (minD > 0 && topf == topg) {
-        DdNode *te = cuddBddClosestCube(dd,ft,ge,bound-1);
+        DdNode* te = cuddBddClosestCube(dd, ft, ge, bound - 1);
         if (te == NULL) {
             Cudd_RecursiveDeref(dd, ctt);
             Cudd_RecursiveDeref(dd, cee);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(te);
-        cte = separateCube(dd,te,&dte);
+        cte = separateCube(dd, te, &dte);
         if (cte == NULL) {
             Cudd_RecursiveDeref(dd, ctt);
             Cudd_RecursiveDeref(dd, cee);
             Cudd_RecursiveDeref(dd, te);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(cte);
         Cudd_RecursiveDeref(dd, te);
@@ -1753,24 +1721,24 @@ cuddBddClosestCube(
         cuddRef(cte);
         dte = CUDD_CONST_INDEX + 1.0;
     }
-    if (minD <= CUDD_CONST_INDEX) bound = ddMin(bound,minD-1);
+    if (minD <= CUDD_CONST_INDEX) bound = ddMin(bound, minD - 1);
 
     if (minD > 0 && topf == topg) {
-        DdNode *et = cuddBddClosestCube(dd,fe,gt,bound-1);
+        DdNode* et = cuddBddClosestCube(dd, fe, gt, bound - 1);
         if (et == NULL) {
             Cudd_RecursiveDeref(dd, ctt);
             Cudd_RecursiveDeref(dd, cee);
             Cudd_RecursiveDeref(dd, cte);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(et);
-        cet = separateCube(dd,et,&det);
+        cet = separateCube(dd, et, &det);
         if (cet == NULL) {
             Cudd_RecursiveDeref(dd, ctt);
             Cudd_RecursiveDeref(dd, cee);
             Cudd_RecursiveDeref(dd, cte);
             Cudd_RecursiveDeref(dd, et);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(cet);
         Cudd_RecursiveDeref(dd, et);
@@ -1784,29 +1752,29 @@ cuddBddClosestCube(
 
     if (minD == dtt) {
         if (dtt == dee && ctt == cee) {
-            res = createResult(dd,CUDD_CONST_INDEX,1,ctt,dtt);
+            res = createResult(dd, CUDD_CONST_INDEX, 1, ctt, dtt);
         } else {
-            res = createResult(dd,index,1,ctt,dtt);
+            res = createResult(dd, index, 1, ctt, dtt);
         }
     } else if (minD == dee) {
-        res = createResult(dd,index,0,cee,dee);
+        res = createResult(dd, index, 0, cee, dee);
     } else if (minD == dte) {
 #ifdef DD_DEBUG
         assert(topf == topg);
 #endif
-        res = createResult(dd,index,1,cte,dte);
+        res = createResult(dd, index, 1, cte, dte);
     } else {
 #ifdef DD_DEBUG
         assert(topf == topg);
 #endif
-        res = createResult(dd,index,0,cet,det);
+        res = createResult(dd, index, 0, cet, det);
     }
     if (res == NULL) {
         Cudd_RecursiveDeref(dd, ctt);
         Cudd_RecursiveDeref(dd, cee);
         Cudd_RecursiveDeref(dd, cte);
         Cudd_RecursiveDeref(dd, cet);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(res);
     Cudd_RecursiveDeref(dd, ctt);
@@ -1817,18 +1785,16 @@ cuddBddClosestCube(
     /* Only cache results that are different from azero to avoid
     ** storing results that depend on the value of the bound. */
     if ((F->ref != 1 || G->ref != 1) && res != azero)
-        cuddCacheInsert2(dd,(DD_CTFP) Cudd_bddClosestCube, f, g, res);
+        cuddCacheInsert2(dd, (DD_CTFP)Cudd_bddClosestCube, f, g, res);
 
     cuddDeref(res);
-    return(res);
+    return (res);
 
 } /* end of cuddBddClosestCube */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -1856,71 +1822,73 @@ cuddBddClosestCube(
 ******************************************************************************/
 static int
 cuddMinHammingDistRecur(
-  DdNode * f,
-  int *minterm,
-  DdHashTable * table,
-  int upperBound)
-{
-    DdNode      *F, *Ft, *Fe;
-    double      h, hT, hE;
-    DdNode      *zero, *res;
-    DdManager   *dd = table->manager;
+    DdNode* f,
+    int* minterm,
+    DdHashTable* table,
+    int upperBound) {
+    DdNode *F, *Ft, *Fe;
+    double h, hT, hE;
+    DdNode *zero, *res;
+    DdManager* dd = table->manager;
 
     statLine(dd);
-    if (upperBound == 0) return(0);
+    if (upperBound == 0) return (0);
 
     F = Cudd_Regular(f);
 
     if (cuddIsConstant(F)) {
         zero = Cudd_Not(DD_ONE(dd));
         if (f == dd->background || f == zero) {
-            return(upperBound);
+            return (upperBound);
         } else {
-            return(0);
+            return (0);
         }
     }
-    if ((res = cuddHashTableLookup1(table,f)) != NULL) {
+    if ((res = cuddHashTableLookup1(table, f)) != NULL) {
         h = cuddV(res);
         if (res->ref == 0) {
             dd->dead++;
             dd->constants.dead++;
         }
-        return((int) h);
+        return ((int)h);
     }
 
-    Ft = cuddT(F); Fe = cuddE(F);
+    Ft = cuddT(F);
+    Fe = cuddE(F);
     if (Cudd_IsComplement(f)) {
-        Ft = Cudd_Not(Ft); Fe = Cudd_Not(Fe);
+        Ft = Cudd_Not(Ft);
+        Fe = Cudd_Not(Fe);
     }
     if (minterm[F->index] == 0) {
-        DdNode *temp = Ft;
-        Ft = Fe; Fe = temp;
+        DdNode* temp = Ft;
+        Ft = Fe;
+        Fe = temp;
     }
 
-    hT = cuddMinHammingDistRecur(Ft,minterm,table,upperBound);
-    if (hT == CUDD_OUT_OF_MEM) return(CUDD_OUT_OF_MEM);
+    hT = cuddMinHammingDistRecur(Ft, minterm, table, upperBound);
+    if (hT == CUDD_OUT_OF_MEM) return (CUDD_OUT_OF_MEM);
     if (hT == 0) {
         hE = upperBound;
     } else {
-        hE = cuddMinHammingDistRecur(Fe,minterm,table,upperBound - 1);
-        if (hE == CUDD_OUT_OF_MEM) return(CUDD_OUT_OF_MEM);
+        hE = cuddMinHammingDistRecur(Fe, minterm, table, upperBound - 1);
+        if (hE == CUDD_OUT_OF_MEM) return (CUDD_OUT_OF_MEM);
     }
     h = ddMin(hT, hE + 1);
 
     if (F->ref != 1) {
-        ptrint fanout = (ptrint) F->ref;
+        ptrint fanout = (ptrint)F->ref;
         cuddSatDec(fanout);
-        res = cuddUniqueConst(dd, (CUDD_VALUE_TYPE) h);
-        if (!cuddHashTableInsert1(table,f,res,fanout)) {
-            cuddRef(res); Cudd_RecursiveDeref(dd, res);
-            return(CUDD_OUT_OF_MEM);
+        res = cuddUniqueConst(dd, (CUDD_VALUE_TYPE)h);
+        if (!cuddHashTableInsert1(table, f, res, fanout)) {
+            cuddRef(res);
+            Cudd_RecursiveDeref(dd, res);
+            return (CUDD_OUT_OF_MEM);
         }
     }
 
-    return((int) h);
+    return ((int)h);
 
 } /* end of cuddMinHammingDistRecur */
-
 
 /**Function********************************************************************
 
@@ -1934,19 +1902,17 @@ cuddMinHammingDistRecur(
   SeeAlso     [cuddBddClosestCube createResult]
 
 ******************************************************************************/
-static DdNode *
+static DdNode*
 separateCube(
-  DdManager *dd,
-  DdNode *f,
-  CUDD_VALUE_TYPE *distance)
-{
+    DdManager* dd,
+    DdNode* f,
+    CUDD_VALUE_TYPE* distance) {
     DdNode *cube, *t;
 
     /* One and zero are special cases because the distance is implied. */
     if (Cudd_IsConstant(f)) {
-        *distance = (f == DD_ONE(dd)) ? 0.0 :
-            (1.0 + (CUDD_VALUE_TYPE) CUDD_CONST_INDEX);
-        return(f);
+        *distance = (f == DD_ONE(dd)) ? 0.0 : (1.0 + (CUDD_VALUE_TYPE)CUDD_CONST_INDEX);
+        return (f);
     }
 
     /* Find out which branch points to the distance and replace the top
@@ -1966,10 +1932,9 @@ separateCube(
         cube = cuddUniqueInter(dd, f->index, t, DD_ZERO(dd));
     }
 
-    return(cube);
+    return (cube);
 
 } /* end of separateCube */
-
 
 /**Function********************************************************************
 
@@ -1983,53 +1948,50 @@ separateCube(
   SeeAlso     [cuddBddClosestCube separateCube]
 
 ******************************************************************************/
-static DdNode *
+static DdNode*
 createResult(
-  DdManager *dd,
-  unsigned int index,
-  unsigned int phase,
-  DdNode *cube,
-  CUDD_VALUE_TYPE distance)
-{
+    DdManager* dd,
+    unsigned int index,
+    unsigned int phase,
+    DdNode* cube,
+    CUDD_VALUE_TYPE distance) {
     DdNode *res, *constant;
 
     /* Special case.  The cube is either one or zero, and we do not
     ** add any variables.  Hence, the result is also one or zero,
     ** and the distance remains implied by the value of the constant. */
-    if (index == CUDD_CONST_INDEX && Cudd_IsConstant(cube)) return(cube);
+    if (index == CUDD_CONST_INDEX && Cudd_IsConstant(cube)) return (cube);
 
-    constant = cuddUniqueConst(dd,-distance);
-    if (constant == NULL) return(NULL);
+    constant = cuddUniqueConst(dd, -distance);
+    if (constant == NULL) return (NULL);
     cuddRef(constant);
 
     if (index == CUDD_CONST_INDEX) {
         /* Replace the top node. */
         if (cuddT(cube) == DD_ZERO(dd)) {
-            res = cuddUniqueInter(dd,cube->index,constant,cuddE(cube));
+            res = cuddUniqueInter(dd, cube->index, constant, cuddE(cube));
         } else {
-            res = cuddUniqueInter(dd,cube->index,cuddT(cube),constant);
+            res = cuddUniqueInter(dd, cube->index, cuddT(cube), constant);
         }
     } else {
         /* Add a new top node. */
 #ifdef DD_DEBUG
-        assert(cuddI(dd,index) < cuddI(dd,cube->index));
+        assert(cuddI(dd, index) < cuddI(dd, cube->index));
 #endif
         if (phase) {
-            res = cuddUniqueInter(dd,index,cube,constant);
+            res = cuddUniqueInter(dd, index, cube, constant);
         } else {
-            res = cuddUniqueInter(dd,index,constant,cube);
+            res = cuddUniqueInter(dd, index, constant, cube);
         }
     }
     if (res == NULL) {
         Cudd_RecursiveDeref(dd, constant);
-        return(NULL);
+        return (NULL);
     }
     cuddDeref(constant); /* safe because constant is part of res */
 
-    return(res);
+    return (res);
 
 } /* end of createResult */
 
-
 ABC_NAMESPACE_IMPL_END
-

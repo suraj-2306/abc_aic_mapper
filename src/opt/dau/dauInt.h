@@ -17,30 +17,27 @@
   Revision    [$Id: dauInt.h,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
-#ifndef ABC__DAU_INT__h
-#define ABC__DAU_INT__h
 
+#ifndef ABC__DAU_INT__h
+#    define ABC__DAU_INT__h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
 ////////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <time.h>
-#include "misc/vec/vec.h"
-#include "dau.h"
+#    include <stdio.h>
+#    include <stdlib.h>
+#    include <string.h>
+#    include <assert.h>
+#    include <time.h>
+#    include "misc/vec/vec.h"
+#    include "dau.h"
 
 ////////////////////////////////////////////////////////////////////////
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_HEADER_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
@@ -55,16 +52,11 @@ ABC_NAMESPACE_HEADER_START
 ////////////////////////////////////////////////////////////////////////
 
 /*=== zzz.c ==========================================================*/
- 
-
 
 ABC_NAMESPACE_HEADER_END
-
-
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

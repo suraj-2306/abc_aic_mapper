@@ -37,7 +37,7 @@ static inline double cpuTime(void); // CPU-time in seconds.
 extern double memUsed();            // Memory in mega bytes (returns 0 for unsupported architectures).
 extern double memUsedPeak();        // Peak-memory in mega bytes (returns 0 for unsupported architectures).
 
-}
+} // namespace Gluco
 
 ABC_NAMESPACE_CXX_HEADER_END
 
@@ -45,7 +45,7 @@ ABC_NAMESPACE_CXX_HEADER_END
 // Implementation of inline functions:
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
-#include <time.h>
+#    include <time.h>
 
 ABC_NAMESPACE_CXX_HEADER_START
 
@@ -53,18 +53,18 @@ static inline double Gluco::cpuTime(void) { return (double)clock() / CLOCKS_PER_
 
 ABC_NAMESPACE_CXX_HEADER_END
 
-
 #else
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <unistd.h>
+#    include <sys/time.h>
+#    include <sys/resource.h>
+#    include <unistd.h>
 
 ABC_NAMESPACE_CXX_HEADER_START
 
 static inline double Gluco::cpuTime(void) {
     struct rusage ru;
     getrusage(RUSAGE_SELF, &ru);
-    return (double)ru.ru_utime.tv_sec + (double)ru.ru_utime.tv_usec / 1000000; }
+    return (double)ru.ru_utime.tv_sec + (double)ru.ru_utime.tv_usec / 1000000;
+}
 
 ABC_NAMESPACE_CXX_HEADER_END
 

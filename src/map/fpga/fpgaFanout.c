@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 #ifdef MAP_ALLOCATE_FANOUT
 
 ////////////////////////////////////////////////////////////////////////
@@ -42,47 +41,39 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_NodeAddFaninFanout( Fpga_Node_t * pFanin, Fpga_Node_t * pFanout )
-{
-    Fpga_Node_t * pPivot;
+void Fpga_NodeAddFaninFanout(Fpga_Node_t* pFanin, Fpga_Node_t* pFanout) {
+    Fpga_Node_t* pPivot;
 
     // pFanins is a fanin of pFanout
-    assert( !Fpga_IsComplement(pFanin) );
-    assert( !Fpga_IsComplement(pFanout) );
-    assert( Fpga_Regular(pFanout->p1) == pFanin || Fpga_Regular(pFanout->p2) == pFanin );
+    assert(!Fpga_IsComplement(pFanin));
+    assert(!Fpga_IsComplement(pFanout));
+    assert(Fpga_Regular(pFanout->p1) == pFanin || Fpga_Regular(pFanout->p2) == pFanin);
 
     pPivot = pFanin->pFanPivot;
-    if ( pPivot == NULL )
-    {
+    if (pPivot == NULL) {
         pFanin->pFanPivot = pFanout;
         return;
     }
 
-    if ( Fpga_Regular(pPivot->p1) == pFanin )
-    {
-        if ( Fpga_Regular(pFanout->p1) == pFanin )
-        {
+    if (Fpga_Regular(pPivot->p1) == pFanin) {
+        if (Fpga_Regular(pFanout->p1) == pFanin) {
             pFanout->pFanFanin1 = pPivot->pFanFanin1;
-            pPivot->pFanFanin1  = pFanout;
-        }
-        else // if ( Fpga_Regular(pFanout->p2) == pFanin )
+            pPivot->pFanFanin1 = pFanout;
+        } else // if ( Fpga_Regular(pFanout->p2) == pFanin )
         {
             pFanout->pFanFanin2 = pPivot->pFanFanin1;
-            pPivot->pFanFanin1  = pFanout;
+            pPivot->pFanFanin1 = pFanout;
         }
-    }
-    else // if ( Fpga_Regular(pPivot->p2) == pFanin )
+    } else // if ( Fpga_Regular(pPivot->p2) == pFanin )
     {
-        assert( Fpga_Regular(pPivot->p2) == pFanin );
-        if ( Fpga_Regular(pFanout->p1) == pFanin )
-        {
+        assert(Fpga_Regular(pPivot->p2) == pFanin);
+        if (Fpga_Regular(pFanout->p1) == pFanin) {
             pFanout->pFanFanin1 = pPivot->pFanFanin2;
-            pPivot->pFanFanin2  = pFanout;
-        }
-        else // if ( Fpga_Regular(pFanout->p2) == pFanin )
+            pPivot->pFanFanin2 = pFanout;
+        } else // if ( Fpga_Regular(pFanout->p2) == pFanin )
         {
             pFanout->pFanFanin2 = pPivot->pFanFanin2;
-            pPivot->pFanFanin2  = pFanout;
+            pPivot->pFanFanin2 = pFanout;
         }
     }
 }
@@ -98,20 +89,18 @@ void Fpga_NodeAddFaninFanout( Fpga_Node_t * pFanin, Fpga_Node_t * pFanout )
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_NodeRemoveFaninFanout( Fpga_Node_t * pFanin, Fpga_Node_t * pFanoutToRemove )
-{
-    Fpga_Node_t * pFanout, * pFanout2, ** ppFanList;
+void Fpga_NodeRemoveFaninFanout(Fpga_Node_t* pFanin, Fpga_Node_t* pFanoutToRemove) {
+    Fpga_Node_t *pFanout, *pFanout2, **ppFanList;
     // start the linked list of fanouts
-    ppFanList = &pFanin->pFanPivot; 
+    ppFanList = &pFanin->pFanPivot;
     // go through the fanouts
-    Fpga_NodeForEachFanoutSafe( pFanin, pFanout, pFanout2 )
-    {
+    Fpga_NodeForEachFanoutSafe(pFanin, pFanout, pFanout2) {
         // skip the fanout-to-remove
-        if ( pFanout == pFanoutToRemove )
+        if (pFanout == pFanoutToRemove)
             continue;
         // add useful fanouts to the list
         *ppFanList = pFanout;
-        ppFanList = Fpga_NodeReadNextFanoutPlace( pFanin, pFanout );
+        ppFanList = Fpga_NodeReadNextFanoutPlace(pFanin, pFanout);
     }
     *ppFanList = NULL;
 }
@@ -127,11 +116,10 @@ void Fpga_NodeRemoveFaninFanout( Fpga_Node_t * pFanin, Fpga_Node_t * pFanoutToRe
   SeeAlso     []
 
 ***********************************************************************/
-int Fpga_NodeGetFanoutNum( Fpga_Node_t * pNode )
-{
-    Fpga_Node_t * pFanout;
+int Fpga_NodeGetFanoutNum(Fpga_Node_t* pNode) {
+    Fpga_Node_t* pFanout;
     int Counter = 0;
-    Fpga_NodeForEachFanout( pNode, pFanout )
+    Fpga_NodeForEachFanout(pNode, pFanout)
         Counter++;
     return Counter;
 }
@@ -143,4 +131,3 @@ int Fpga_NodeGetFanoutNum( Fpga_Node_t * pNode )
 #endif
 
 ABC_NAMESPACE_IMPL_END
-

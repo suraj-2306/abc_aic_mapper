@@ -26,25 +26,23 @@ ABC_NAMESPACE_IMPL_START
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-// parameter structure 
+// parameter structure
 typedef struct Xyz_ParTry_t_ Xyz_ParTry_t;
-struct Xyz_ParTry_t_
-{
-    int                Par;
+struct Xyz_ParTry_t_ {
+    int Par;
 };
- 
+
 // operation manager
 typedef struct Xyz_ManTry_t_ Xyz_ManTry_t;
-struct Xyz_ManTry_t_
-{
-    Xyz_ParTry_t *     pPar;           // parameters
-    Aig_Man_t *        pAig;           // user's AIG 
+struct Xyz_ManTry_t_ {
+    Xyz_ParTry_t* pPar; // parameters
+    Aig_Man_t* pAig;    // user's AIG
 };
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
- 
+
 /**Function*************************************************************
 
   Synopsis    []
@@ -56,12 +54,11 @@ struct Xyz_ManTry_t_
   SeeAlso     []
 
 ***********************************************************************/
-Xyz_ManTry_t * Xyz_ManTryAlloc( Aig_Man_t * pAig, Xyz_ParTry_t * pPar )
-{
-    Xyz_ManTry_t * p;
-    p = ABC_CALLOC( Xyz_ManTry_t, 1 );
-    p->pAig    = pAig;
-    p->pPar    = pPar;
+Xyz_ManTry_t* Xyz_ManTryAlloc(Aig_Man_t* pAig, Xyz_ParTry_t* pPar) {
+    Xyz_ManTry_t* p;
+    p = ABC_CALLOC(Xyz_ManTry_t, 1);
+    p->pAig = pAig;
+    p->pPar = pPar;
     return p;
 }
 
@@ -76,9 +73,8 @@ Xyz_ManTry_t * Xyz_ManTryAlloc( Aig_Man_t * pAig, Xyz_ParTry_t * pPar )
   SeeAlso     []
 
 ***********************************************************************/
-void Xyz_ManTryFree( Xyz_ManTry_t * p )
-{
-    ABC_FREE( p );
+void Xyz_ManTryFree(Xyz_ManTry_t* p) {
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -92,13 +88,12 @@ void Xyz_ManTryFree( Xyz_ManTry_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Xyz_ManPerform( Aig_Man_t * pAig, Xyz_ParTry_t * pPar )
-{
-    Xyz_ManTry_t * p;
+int Xyz_ManPerform(Aig_Man_t* pAig, Xyz_ParTry_t* pPar) {
+    Xyz_ManTry_t* p;
     int RetValue;
-    p = Xyz_ManTryAlloc( pAig, pPar );
+    p = Xyz_ManTryAlloc(pAig, pPar);
     RetValue = 1;
-    Xyz_ManTryFree( p );
+    Xyz_ManTryFree(p);
     return RetValue;
 }
 
@@ -106,6 +101,4 @@ int Xyz_ManPerform( Aig_Man_t * pAig, Xyz_ParTry_t * pPar )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

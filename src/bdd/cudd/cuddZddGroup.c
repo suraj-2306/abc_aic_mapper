@@ -72,8 +72,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
@@ -94,18 +92,18 @@ ABC_NAMESPACE_IMPL_START
 static char rcsid[] DD_UNUSED = "$Id: cuddZddGroup.c,v 1.20 2009/02/19 16:25:36 fabio Exp $";
 #endif
 
-static  int     *entry;
-extern  int     zddTotalNumberSwapping;
+static int* entry;
+extern int zddTotalNumberSwapping;
 #ifdef DD_STATS
-static  int     extsymmcalls;
-static  int     extsymm;
-static  int     secdiffcalls;
-static  int     secdiff;
-static  int     secdiffmisfire;
+static int extsymmcalls;
+static int extsymm;
+static int secdiffcalls;
+static int secdiff;
+static int secdiffmisfire;
 #endif
 #ifdef DD_DEBUG
-static  int     pr = 0; /* flag to enable printing while debugging */
-                        /* by depositing a 1 into it */
+static int pr = 0; /* flag to enable printing while debugging */
+                   /* by depositing a 1 into it */
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -118,29 +116,27 @@ static  int     pr = 0; /* flag to enable printing while debugging */
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static int zddTreeSiftingAux (DdManager *table, MtrNode *treenode, Cudd_ReorderingType method);
+static int zddTreeSiftingAux(DdManager* table, MtrNode* treenode, Cudd_ReorderingType method);
 #ifdef DD_STATS
-static int zddCountInternalMtrNodes (DdManager *table, MtrNode *treenode);
+static int zddCountInternalMtrNodes(DdManager* table, MtrNode* treenode);
 #endif
-static int zddReorderChildren (DdManager *table, MtrNode *treenode, Cudd_ReorderingType method);
-static void zddFindNodeHiLo (DdManager *table, MtrNode *treenode, int *lower, int *upper);
-static int zddUniqueCompareGroup (int *ptrX, int *ptrY);
-static int zddGroupSifting (DdManager *table, int lower, int upper);
-static int zddGroupSiftingAux (DdManager *table, int x, int xLow, int xHigh);
-static int zddGroupSiftingUp (DdManager *table, int y, int xLow, Move **moves);
-static int zddGroupSiftingDown (DdManager *table, int x, int xHigh, Move **moves);
-static int zddGroupMove (DdManager *table, int x, int y, Move **moves);
-static int zddGroupMoveBackward (DdManager *table, int x, int y);
-static int zddGroupSiftingBackward (DdManager *table, Move *moves, int size);
-static void zddMergeGroups (DdManager *table, MtrNode *treenode, int low, int high);
+static int zddReorderChildren(DdManager* table, MtrNode* treenode, Cudd_ReorderingType method);
+static void zddFindNodeHiLo(DdManager* table, MtrNode* treenode, int* lower, int* upper);
+static int zddUniqueCompareGroup(int* ptrX, int* ptrY);
+static int zddGroupSifting(DdManager* table, int lower, int upper);
+static int zddGroupSiftingAux(DdManager* table, int x, int xLow, int xHigh);
+static int zddGroupSiftingUp(DdManager* table, int y, int xLow, Move** moves);
+static int zddGroupSiftingDown(DdManager* table, int x, int xHigh, Move** moves);
+static int zddGroupMove(DdManager* table, int x, int y, Move** moves);
+static int zddGroupMoveBackward(DdManager* table, int x, int y);
+static int zddGroupSiftingBackward(DdManager* table, Move* moves, int size);
+static void zddMergeGroups(DdManager* table, MtrNode* treenode, int low, int high);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -159,15 +155,14 @@ static void zddMergeGroups (DdManager *table, MtrNode *treenode, int low, int hi
   SeeAlso     [Cudd_MakeTreeNode]
 
 ******************************************************************************/
-MtrNode *
+MtrNode*
 Cudd_MakeZddTreeNode(
-  DdManager * dd /* manager */,
-  unsigned int  low /* index of the first group variable */,
-  unsigned int  size /* number of variables in the group */,
-  unsigned int  type /* MTR_DEFAULT or MTR_FIXED */)
-{
-    MtrNode *group;
-    MtrNode *tree;
+    DdManager* dd /* manager */,
+    unsigned int low /* index of the first group variable */,
+    unsigned int size /* number of variables in the group */,
+    unsigned int type /* MTR_DEFAULT or MTR_FIXED */) {
+    MtrNode* group;
+    MtrNode* tree;
     unsigned int level;
 
     /* If the variable does not exist yet, the position is assumed to be
@@ -175,17 +170,17 @@ Cudd_MakeZddTreeNode(
     ** Cudd_bddNewVarAtLevel or Cudd_addNewVarAtLevel to create new
     ** variables have to create the variables before they group them.
     */
-    level = (low < (unsigned int) dd->sizeZ) ? dd->permZ[low] : low;
+    level = (low < (unsigned int)dd->sizeZ) ? dd->permZ[low] : low;
 
-    if (level + size - 1> (int) MTR_MAXHIGH)
-        return(NULL);
+    if (level + size - 1 > (int)MTR_MAXHIGH)
+        return (NULL);
 
     /* If the tree does not exist yet, create it. */
     tree = dd->treeZ;
     if (tree == NULL) {
         dd->treeZ = tree = Mtr_InitGroupTree(0, dd->sizeZ);
         if (tree == NULL)
-            return(NULL);
+            return (NULL);
         tree->index = dd->invpermZ[0];
     }
 
@@ -197,23 +192,21 @@ Cudd_MakeZddTreeNode(
     /* Create the group. */
     group = Mtr_MakeGroup(tree, level, size, type);
     if (group == NULL)
-        return(NULL);
+        return (NULL);
 
     /* Initialize the index field to the index of the variable currently
     ** in position low. This field will be updated by the reordering
     ** procedure to provide a handle to the group once it has been moved.
     */
-    group->index = (MtrHalfWord) low;
+    group->index = (MtrHalfWord)low;
 
-    return(group);
+    return (group);
 
 } /* end of Cudd_MakeZddTreeNode */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -228,11 +221,9 @@ Cudd_MakeZddTreeNode(
   SideEffects [None]
 
 ******************************************************************************/
-int
-cuddZddTreeSifting(
-  DdManager * table /* DD table */,
-  Cudd_ReorderingType method /* reordering method for the groups of leaves */)
-{
+int cuddZddTreeSifting(
+    DdManager* table /* DD table */,
+    Cudd_ReorderingType method /* reordering method for the groups of leaves */) {
     int i;
     int nvars;
     int result;
@@ -244,15 +235,15 @@ cuddZddTreeSifting(
     */
     tempTree = table->treeZ == NULL;
     if (tempTree) {
-        table->treeZ = Mtr_InitGroupTree(0,table->sizeZ);
+        table->treeZ = Mtr_InitGroupTree(0, table->sizeZ);
         table->treeZ->index = table->invpermZ[0];
     }
     nvars = table->sizeZ;
 
 #ifdef DD_DEBUG
     if (pr > 0 && !tempTree)
-        (void) fprintf(table->out,"cuddZddTreeSifting:");
-    Mtr_PrintGroups(table->treeZ,pr <= 0);
+        (void)fprintf(table->out, "cuddZddTreeSifting:");
+    Mtr_PrintGroups(table->treeZ, pr <= 0);
 #endif
 #if 0
     /* Debugging code. */
@@ -292,10 +283,10 @@ cuddZddTreeSifting(
     secdiff = 0;
     secdiffmisfire = 0;
 
-    (void) fprintf(table->out,"\n");
+    (void)fprintf(table->out, "\n");
     if (!tempTree)
-        (void) fprintf(table->out,"#:IM_NODES  %8d: group tree nodes\n",
-                       zddCountInternalMtrNodes(table,table->treeZ));
+        (void)fprintf(table->out, "#:IM_NODES  %8d: group tree nodes\n",
+                      zddCountInternalMtrNodes(table, table->treeZ));
 #endif
 
     /* Initialize the group of each subtable to itself. Initially
@@ -308,32 +299,27 @@ cuddZddTreeSifting(
     /* Reorder. */
     result = zddTreeSiftingAux(table, table->treeZ, method);
 
-#ifdef DD_STATS         /* print stats */
-    if (!tempTree && method == CUDD_REORDER_GROUP_SIFT &&
-        (table->groupcheck == CUDD_GROUP_CHECK7 ||
-         table->groupcheck == CUDD_GROUP_CHECK5)) {
-        (void) fprintf(table->out,"\nextsymmcalls = %d\n",extsymmcalls);
-        (void) fprintf(table->out,"extsymm = %d",extsymm);
+#ifdef DD_STATS /* print stats */
+    if (!tempTree && method == CUDD_REORDER_GROUP_SIFT && (table->groupcheck == CUDD_GROUP_CHECK7 || table->groupcheck == CUDD_GROUP_CHECK5)) {
+        (void)fprintf(table->out, "\nextsymmcalls = %d\n", extsymmcalls);
+        (void)fprintf(table->out, "extsymm = %d", extsymm);
     }
-    if (!tempTree && method == CUDD_REORDER_GROUP_SIFT &&
-        table->groupcheck == CUDD_GROUP_CHECK7) {
-        (void) fprintf(table->out,"\nsecdiffcalls = %d\n",secdiffcalls);
-        (void) fprintf(table->out,"secdiff = %d\n",secdiff);
-        (void) fprintf(table->out,"secdiffmisfire = %d",secdiffmisfire);
+    if (!tempTree && method == CUDD_REORDER_GROUP_SIFT && table->groupcheck == CUDD_GROUP_CHECK7) {
+        (void)fprintf(table->out, "\nsecdiffcalls = %d\n", secdiffcalls);
+        (void)fprintf(table->out, "secdiff = %d\n", secdiff);
+        (void)fprintf(table->out, "secdiffmisfire = %d", secdiffmisfire);
     }
 #endif
 
     if (tempTree)
         Cudd_FreeZddTree(table);
-    return(result);
+    return (result);
 
 } /* end of cuddZddTreeSifting */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -347,36 +333,34 @@ cuddZddTreeSifting(
 ******************************************************************************/
 static int
 zddTreeSiftingAux(
-  DdManager * table,
-  MtrNode * treenode,
-  Cudd_ReorderingType method)
-{
-    MtrNode  *auxnode;
+    DdManager* table,
+    MtrNode* treenode,
+    Cudd_ReorderingType method) {
+    MtrNode* auxnode;
     int res;
 
 #ifdef DD_DEBUG
-    Mtr_PrintGroups(treenode,1);
+    Mtr_PrintGroups(treenode, 1);
 #endif
 
     auxnode = treenode;
     while (auxnode != NULL) {
         if (auxnode->child != NULL) {
             if (!zddTreeSiftingAux(table, auxnode->child, method))
-                return(0);
+                return (0);
             res = zddReorderChildren(table, auxnode, CUDD_REORDER_GROUP_SIFT);
             if (res == 0)
-                return(0);
+                return (0);
         } else if (auxnode->size > 1) {
             if (!zddReorderChildren(table, auxnode, method))
-                return(0);
+                return (0);
         }
         auxnode = auxnode->younger;
     }
 
-    return(1);
+    return (1);
 
 } /* end of zddTreeSiftingAux */
-
 
 #ifdef DD_STATS
 /**Function********************************************************************
@@ -391,29 +375,26 @@ zddTreeSiftingAux(
 ******************************************************************************/
 static int
 zddCountInternalMtrNodes(
-  DdManager * table,
-  MtrNode * treenode)
-{
-    MtrNode *auxnode;
-    int     count,nodeCount;
-
+    DdManager* table,
+    MtrNode* treenode) {
+    MtrNode* auxnode;
+    int count, nodeCount;
 
     nodeCount = 0;
     auxnode = treenode;
     while (auxnode != NULL) {
-        if (!(MTR_TEST(auxnode,MTR_TERMINAL))) {
+        if (!(MTR_TEST(auxnode, MTR_TERMINAL))) {
             nodeCount++;
-            count = zddCountInternalMtrNodes(table,auxnode->child);
+            count = zddCountInternalMtrNodes(table, auxnode->child);
             nodeCount += count;
         }
         auxnode = auxnode->younger;
     }
 
-    return(nodeCount);
+    return (nodeCount);
 
 } /* end of zddCountInternalMtrNodes */
 #endif
-
 
 /**Function********************************************************************
 
@@ -431,72 +412,71 @@ zddCountInternalMtrNodes(
 ******************************************************************************/
 static int
 zddReorderChildren(
-  DdManager * table,
-  MtrNode * treenode,
-  Cudd_ReorderingType method)
-{
+    DdManager* table,
+    MtrNode* treenode,
+    Cudd_ReorderingType method) {
     int lower;
     int upper = -1;
     int result;
     unsigned int initialSize;
 
-    zddFindNodeHiLo(table,treenode,&lower,&upper);
+    zddFindNodeHiLo(table, treenode, &lower, &upper);
     /* If upper == -1 these variables do not exist yet. */
     if (upper == -1)
-        return(1);
+        return (1);
 
     if (treenode->flags == MTR_FIXED) {
         result = 1;
     } else {
 #ifdef DD_STATS
-        (void) fprintf(table->out," ");
+        (void)fprintf(table->out, " ");
 #endif
         switch (method) {
-        case CUDD_REORDER_RANDOM:
-        case CUDD_REORDER_RANDOM_PIVOT:
-            result = cuddZddSwapping(table,lower,upper,method);
-            break;
-        case CUDD_REORDER_SIFT:
-            result = cuddZddSifting(table,lower,upper);
-            break;
-        case CUDD_REORDER_SIFT_CONVERGE:
-            do {
-                initialSize = table->keysZ;
-                result = cuddZddSifting(table,lower,upper);
-                if (initialSize <= table->keysZ)
-                    break;
+            case CUDD_REORDER_RANDOM:
+            case CUDD_REORDER_RANDOM_PIVOT:
+                result = cuddZddSwapping(table, lower, upper, method);
+                break;
+            case CUDD_REORDER_SIFT:
+                result = cuddZddSifting(table, lower, upper);
+                break;
+            case CUDD_REORDER_SIFT_CONVERGE:
+                do {
+                    initialSize = table->keysZ;
+                    result = cuddZddSifting(table, lower, upper);
+                    if (initialSize <= table->keysZ)
+                        break;
 #ifdef DD_STATS
-                else
-                    (void) fprintf(table->out,"\n");
+                    else
+                        (void)fprintf(table->out, "\n");
 #endif
-            } while (result != 0);
-            break;
-        case CUDD_REORDER_SYMM_SIFT:
-            result = cuddZddSymmSifting(table,lower,upper);
-            break;
-        case CUDD_REORDER_SYMM_SIFT_CONV:
-            result = cuddZddSymmSiftingConv(table,lower,upper);
-            break;
-        case CUDD_REORDER_GROUP_SIFT:
-            result = zddGroupSifting(table,lower,upper);
-            break;
-        case CUDD_REORDER_LINEAR:
-            result = cuddZddLinearSifting(table,lower,upper);
-            break;
-        case CUDD_REORDER_LINEAR_CONVERGE:
-            do {
-                initialSize = table->keysZ;
-                result = cuddZddLinearSifting(table,lower,upper);
-                if (initialSize <= table->keysZ)
-                    break;
+                } while (result != 0);
+                break;
+            case CUDD_REORDER_SYMM_SIFT:
+                result = cuddZddSymmSifting(table, lower, upper);
+                break;
+            case CUDD_REORDER_SYMM_SIFT_CONV:
+                result = cuddZddSymmSiftingConv(table, lower, upper);
+                break;
+            case CUDD_REORDER_GROUP_SIFT:
+                result = zddGroupSifting(table, lower, upper);
+                break;
+            case CUDD_REORDER_LINEAR:
+                result = cuddZddLinearSifting(table, lower, upper);
+                break;
+            case CUDD_REORDER_LINEAR_CONVERGE:
+                do {
+                    initialSize = table->keysZ;
+                    result = cuddZddLinearSifting(table, lower, upper);
+                    if (initialSize <= table->keysZ)
+                        break;
 #ifdef DD_STATS
-                else
-                    (void) fprintf(table->out,"\n");
+                    else
+                        (void)fprintf(table->out, "\n");
 #endif
-            } while (result != 0);
-            break;
-        default:
-            return(0);
+                } while (result != 0);
+                break;
+            default:
+                return (0);
         }
     }
 
@@ -504,16 +484,15 @@ zddReorderChildren(
     ** so that they will be treated as a single block by successive
     ** invocations of zddGroupSifting.
     */
-    zddMergeGroups(table,treenode,lower,upper);
+    zddMergeGroups(table, treenode, lower, upper);
 
 #ifdef DD_DEBUG
-    if (pr > 0) (void) fprintf(table->out,"zddReorderChildren:");
+    if (pr > 0) (void)fprintf(table->out, "zddReorderChildren:");
 #endif
 
-    return(result);
+    return (result);
 
 } /* end of zddReorderChildren */
-
 
 /**Function********************************************************************
 
@@ -532,11 +511,10 @@ zddReorderChildren(
 ******************************************************************************/
 static void
 zddFindNodeHiLo(
-  DdManager * table,
-  MtrNode * treenode,
-  int * lower,
-  int * upper)
-{
+    DdManager* table,
+    MtrNode* treenode,
+    int* lower,
+    int* upper) {
     int low;
     int high;
 
@@ -544,14 +522,14 @@ zddFindNodeHiLo(
     ** If so, return immediately. The calling procedure will know from
     ** the values of upper that no reordering is needed.
     */
-    if ((int) treenode->low >= table->sizeZ) {
+    if ((int)treenode->low >= table->sizeZ) {
         *lower = table->sizeZ;
         *upper = -1;
         return;
     }
 
-    *lower = low = (unsigned int) table->permZ[treenode->index];
-    high = (int) (low + treenode->size - 1);
+    *lower = low = (unsigned int)table->permZ[treenode->index];
+    high = (int)(low + treenode->size - 1);
 
     if (high >= table->sizeZ) {
         /* This is the case of a partially existing group. The aim is to
@@ -561,9 +539,9 @@ zddFindNodeHiLo(
         ** subgroups, then we only reorder those subgroups that are
         ** fully instantiated.  This way we avoid breaking up a group.
         */
-        MtrNode *auxnode = treenode->child;
+        MtrNode* auxnode = treenode->child;
         if (auxnode == NULL) {
-            *upper = (unsigned int) table->sizeZ - 1;
+            *upper = (unsigned int)table->sizeZ - 1;
         } else {
             /* Search the subgroup that strands the table->sizeZ line.
             ** If the first group starts at 0 and goes past table->sizeZ
@@ -574,13 +552,13 @@ zddFindNodeHiLo(
                 int thisLower = table->permZ[auxnode->low];
                 int thisUpper = thisLower + auxnode->size - 1;
                 if (thisUpper >= table->sizeZ && thisLower < table->sizeZ)
-                    *upper = (unsigned int) thisLower - 1;
+                    *upper = (unsigned int)thisLower - 1;
                 auxnode = auxnode->younger;
             }
         }
     } else {
         /* Normal case: All the variables of the group exist. */
-        *upper = (unsigned int) high;
+        *upper = (unsigned int)high;
     }
 
 #ifdef DD_DEBUG
@@ -591,7 +569,6 @@ zddFindNodeHiLo(
     return;
 
 } /* end of zddFindNodeHiLo */
-
 
 /**Function********************************************************************
 
@@ -607,18 +584,16 @@ zddFindNodeHiLo(
 ******************************************************************************/
 static int
 zddUniqueCompareGroup(
-  int * ptrX,
-  int * ptrY)
-{
+    int* ptrX,
+    int* ptrY) {
 #if 0
     if (entry[*ptrY] == entry[*ptrX]) {
         return((*ptrX) - (*ptrY));
     }
 #endif
-    return(entry[*ptrY] - entry[*ptrX]);
+    return (entry[*ptrY] - entry[*ptrX]);
 
 } /* end of zddUniqueCompareGroup */
-
 
 /**Function********************************************************************
 
@@ -635,37 +610,36 @@ zddUniqueCompareGroup(
 ******************************************************************************/
 static int
 zddGroupSifting(
-  DdManager * table,
-  int  lower,
-  int  upper)
-{
-    int         *var;
-    int         i,j,x,xInit;
-    int         nvars;
-    int         classes;
-    int         result;
-    int         *sifted;
+    DdManager* table,
+    int lower,
+    int upper) {
+    int* var;
+    int i, j, x, xInit;
+    int nvars;
+    int classes;
+    int result;
+    int* sifted;
 #ifdef DD_STATS
-    unsigned    previousSize;
+    unsigned previousSize;
 #endif
-    int         xindex;
+    int xindex;
 
     nvars = table->sizeZ;
 
     /* Order variables to sift. */
     entry = NULL;
     sifted = NULL;
-    var = ABC_ALLOC(int,nvars);
+    var = ABC_ALLOC(int, nvars);
     if (var == NULL) {
         table->errorCode = CUDD_MEMORY_OUT;
         goto zddGroupSiftingOutOfMem;
     }
-    entry = ABC_ALLOC(int,nvars);
+    entry = ABC_ALLOC(int, nvars);
     if (entry == NULL) {
         table->errorCode = CUDD_MEMORY_OUT;
         goto zddGroupSiftingOutOfMem;
     }
-    sifted = ABC_ALLOC(int,nvars);
+    sifted = ABC_ALLOC(int, nvars);
     if (sifted == NULL) {
         table->errorCode = CUDD_MEMORY_OUT;
         goto zddGroupSiftingOutOfMem;
@@ -675,17 +649,17 @@ zddGroupSifting(
     for (i = 0, classes = 0; i < nvars; i++) {
         sifted[i] = 0;
         x = table->permZ[i];
-        if ((unsigned) x >= table->subtableZ[x].next) {
+        if ((unsigned)x >= table->subtableZ[x].next) {
             entry[i] = table->subtableZ[x].keys;
             var[classes] = i;
             classes++;
         }
     }
 
-    qsort((void *)var,(size_t)classes,sizeof(int),(DD_QSFP)zddUniqueCompareGroup);
+    qsort((void*)var, (size_t)classes, sizeof(int), (DD_QSFP)zddUniqueCompareGroup);
 
     /* Now sift. */
-    for (i = 0; i < ddMin(table->siftMaxVar,classes); i++) {
+    for (i = 0; i < ddMin(table->siftMaxVar, classes); i++) {
         if (zddTotalNumberSwapping >= table->siftMaxSwap)
             break;
         xindex = var[i];
@@ -699,25 +673,25 @@ zddGroupSifting(
 #endif
 #ifdef DD_DEBUG
         /* x is bottom of group */
-        assert((unsigned) x >= table->subtableZ[x].next);
+        assert((unsigned)x >= table->subtableZ[x].next);
 #endif
-        result = zddGroupSiftingAux(table,x,lower,upper);
+        result = zddGroupSiftingAux(table, x, lower, upper);
         if (!result) goto zddGroupSiftingOutOfMem;
 
 #ifdef DD_STATS
         if (table->keysZ < previousSize) {
-            (void) fprintf(table->out,"-");
+            (void)fprintf(table->out, "-");
         } else if (table->keysZ > previousSize) {
-            (void) fprintf(table->out,"+");
+            (void)fprintf(table->out, "+");
         } else {
-            (void) fprintf(table->out,"=");
+            (void)fprintf(table->out, "=");
         }
         fflush(table->out);
 #endif
 
         /* Mark variables in the group just sifted. */
         x = table->permZ[xindex];
-        if ((unsigned) x != table->subtableZ[x].next) {
+        if ((unsigned)x != table->subtableZ[x].next) {
             xInit = x;
             do {
                 j = table->invpermZ[x];
@@ -727,7 +701,7 @@ zddGroupSifting(
         }
 
 #ifdef DD_DEBUG
-        if (pr > 0) (void) fprintf(table->out,"zddGroupSifting:");
+        if (pr > 0) (void)fprintf(table->out, "zddGroupSifting:");
 #endif
     } /* for */
 
@@ -735,17 +709,16 @@ zddGroupSifting(
     ABC_FREE(var);
     ABC_FREE(entry);
 
-    return(1);
+    return (1);
 
 zddGroupSiftingOutOfMem:
-    if (entry != NULL)  ABC_FREE(entry);
-    if (var != NULL)    ABC_FREE(var);
+    if (entry != NULL) ABC_FREE(entry);
+    if (var != NULL) ABC_FREE(var);
     if (sifted != NULL) ABC_FREE(sifted);
 
-    return(0);
+    return (0);
 
 } /* end of zddGroupSifting */
-
 
 /**Function********************************************************************
 
@@ -764,20 +737,18 @@ zddGroupSiftingOutOfMem:
 ******************************************************************************/
 static int
 zddGroupSiftingAux(
-  DdManager * table,
-  int  x,
-  int  xLow,
-  int  xHigh)
-{
-    Move *move;
-    Move *moves;        /* list of moves */
-    int  initialSize;
-    int  result;
-
+    DdManager* table,
+    int x,
+    int xLow,
+    int xHigh) {
+    Move* move;
+    Move* moves; /* list of moves */
+    int initialSize;
+    int result;
 
 #ifdef DD_DEBUG
-    if (pr > 0) (void) fprintf(table->out,"zddGroupSiftingAux from %d to %d\n",xLow,xHigh);
-    assert((unsigned) x >= table->subtableZ[x].next); /* x is bottom of group */
+    if (pr > 0) (void)fprintf(table->out, "zddGroupSiftingAux from %d to %d\n", xLow, xHigh);
+    assert((unsigned)x >= table->subtableZ[x].next); /* x is bottom of group */
 #endif
 
     initialSize = table->keysZ;
@@ -786,42 +757,42 @@ zddGroupSiftingAux(
     if (x == xLow) { /* Sift down */
 #ifdef DD_DEBUG
         /* x must be a singleton */
-        assert((unsigned) x == table->subtableZ[x].next);
+        assert((unsigned)x == table->subtableZ[x].next);
 #endif
-        if (x == xHigh) return(1);      /* just one variable */
+        if (x == xHigh) return (1); /* just one variable */
 
-        if (!zddGroupSiftingDown(table,x,xHigh,&moves))
+        if (!zddGroupSiftingDown(table, x, xHigh, &moves))
             goto zddGroupSiftingAuxOutOfMem;
         /* at this point x == xHigh, unless early term */
 
         /* move backward and stop at best position */
-        result = zddGroupSiftingBackward(table,moves,initialSize);
+        result = zddGroupSiftingBackward(table, moves, initialSize);
 #ifdef DD_DEBUG
-        assert(table->keysZ <= (unsigned) initialSize);
+        assert(table->keysZ <= (unsigned)initialSize);
 #endif
         if (!result) goto zddGroupSiftingAuxOutOfMem;
 
-    } else if (cuddZddNextHigh(table,x) > xHigh) { /* Sift up */
+    } else if (cuddZddNextHigh(table, x) > xHigh) { /* Sift up */
 #ifdef DD_DEBUG
         /* x is bottom of group */
-        assert((unsigned) x >= table->subtableZ[x].next);
+        assert((unsigned)x >= table->subtableZ[x].next);
 #endif
         /* Find top of x's group */
         x = table->subtableZ[x].next;
 
-        if (!zddGroupSiftingUp(table,x,xLow,&moves))
+        if (!zddGroupSiftingUp(table, x, xLow, &moves))
             goto zddGroupSiftingAuxOutOfMem;
         /* at this point x == xLow, unless early term */
 
         /* move backward and stop at best position */
-        result = zddGroupSiftingBackward(table,moves,initialSize);
+        result = zddGroupSiftingBackward(table, moves, initialSize);
 #ifdef DD_DEBUG
-        assert(table->keysZ <= (unsigned) initialSize);
+        assert(table->keysZ <= (unsigned)initialSize);
 #endif
         if (!result) goto zddGroupSiftingAuxOutOfMem;
 
     } else if (x - xLow > xHigh - x) { /* must go down first: shorter */
-        if (!zddGroupSiftingDown(table,x,xHigh,&moves))
+        if (!zddGroupSiftingDown(table, x, xHigh, &moves))
             goto zddGroupSiftingAuxOutOfMem;
         /* at this point x == xHigh, unless early term */
 
@@ -829,21 +800,21 @@ zddGroupSiftingAux(
         if (moves) {
             x = moves->y;
         }
-        while ((unsigned) x < table->subtableZ[x].next)
+        while ((unsigned)x < table->subtableZ[x].next)
             x = table->subtableZ[x].next;
         x = table->subtableZ[x].next;
 #ifdef DD_DEBUG
         /* x should be the top of a group */
-        assert((unsigned) x <= table->subtableZ[x].next);
+        assert((unsigned)x <= table->subtableZ[x].next);
 #endif
 
-        if (!zddGroupSiftingUp(table,x,xLow,&moves))
+        if (!zddGroupSiftingUp(table, x, xLow, &moves))
             goto zddGroupSiftingAuxOutOfMem;
 
         /* move backward and stop at best position */
-        result = zddGroupSiftingBackward(table,moves,initialSize);
+        result = zddGroupSiftingBackward(table, moves, initialSize);
 #ifdef DD_DEBUG
-        assert(table->keysZ <= (unsigned) initialSize);
+        assert(table->keysZ <= (unsigned)initialSize);
 #endif
         if (!result) goto zddGroupSiftingAuxOutOfMem;
 
@@ -851,27 +822,27 @@ zddGroupSiftingAux(
         /* Find top of x's group */
         x = table->subtableZ[x].next;
 
-        if (!zddGroupSiftingUp(table,x,xLow,&moves))
+        if (!zddGroupSiftingUp(table, x, xLow, &moves))
             goto zddGroupSiftingAuxOutOfMem;
         /* at this point x == xHigh, unless early term */
 
         if (moves) {
             x = moves->x;
         }
-        while ((unsigned) x < table->subtableZ[x].next)
+        while ((unsigned)x < table->subtableZ[x].next)
             x = table->subtableZ[x].next;
 #ifdef DD_DEBUG
         /* x is bottom of a group */
-        assert((unsigned) x >= table->subtableZ[x].next);
+        assert((unsigned)x >= table->subtableZ[x].next);
 #endif
 
-        if (!zddGroupSiftingDown(table,x,xHigh,&moves))
+        if (!zddGroupSiftingDown(table, x, xHigh, &moves))
             goto zddGroupSiftingAuxOutOfMem;
 
         /* move backward and stop at best position */
-        result = zddGroupSiftingBackward(table,moves,initialSize);
+        result = zddGroupSiftingBackward(table, moves, initialSize);
 #ifdef DD_DEBUG
-        assert(table->keysZ <= (unsigned) initialSize);
+        assert(table->keysZ <= (unsigned)initialSize);
 #endif
         if (!result) goto zddGroupSiftingAuxOutOfMem;
     }
@@ -882,7 +853,7 @@ zddGroupSiftingAux(
         moves = move;
     }
 
-    return(1);
+    return (1);
 
 zddGroupSiftingAuxOutOfMem:
     while (moves != NULL) {
@@ -891,10 +862,9 @@ zddGroupSiftingAuxOutOfMem:
         moves = move;
     }
 
-    return(0);
+    return (0);
 
 } /* end of zddGroupSiftingAux */
-
 
 /**Function********************************************************************
 
@@ -913,32 +883,30 @@ zddGroupSiftingAuxOutOfMem:
 ******************************************************************************/
 static int
 zddGroupSiftingUp(
-  DdManager * table,
-  int  y,
-  int  xLow,
-  Move ** moves)
-{
-    Move *move;
-    int  x;
-    int  size;
-    int  gxtop;
-    int  limitSize;
+    DdManager* table,
+    int y,
+    int xLow,
+    Move** moves) {
+    Move* move;
+    int x;
+    int size;
+    int gxtop;
+    int limitSize;
 
     limitSize = table->keysZ;
 
-    x = cuddZddNextLow(table,y);
+    x = cuddZddNextLow(table, y);
     while (x >= xLow) {
         gxtop = table->subtableZ[x].next;
-        if (table->subtableZ[x].next == (unsigned) x &&
-            table->subtableZ[y].next == (unsigned) y) {
+        if (table->subtableZ[x].next == (unsigned)x && table->subtableZ[y].next == (unsigned)y) {
             /* x and y are self groups */
-            size = cuddZddSwapInPlace(table,x,y);
+            size = cuddZddSwapInPlace(table, x, y);
 #ifdef DD_DEBUG
-            assert(table->subtableZ[x].next == (unsigned) x);
-            assert(table->subtableZ[y].next == (unsigned) y);
+            assert(table->subtableZ[x].next == (unsigned)x);
+            assert(table->subtableZ[y].next == (unsigned)y);
 #endif
             if (size == 0) goto zddGroupSiftingUpOutOfMem;
-            move = (Move *)cuddDynamicAllocNode(table);
+            move = (Move*)cuddDynamicAllocNode(table);
             if (move == NULL) goto zddGroupSiftingUpOutOfMem;
             move->x = x;
             move->y = y;
@@ -948,23 +916,23 @@ zddGroupSiftingUp(
             *moves = move;
 
 #ifdef DD_DEBUG
-            if (pr > 0) (void) fprintf(table->out,"zddGroupSiftingUp (2 single groups):\n");
+            if (pr > 0) (void)fprintf(table->out, "zddGroupSiftingUp (2 single groups):\n");
 #endif
-            if ((double) size > (double) limitSize * table->maxGrowth)
-                return(1);
+            if ((double)size > (double)limitSize * table->maxGrowth)
+                return (1);
             if (size < limitSize) limitSize = size;
         } else { /* group move */
-            size = zddGroupMove(table,x,y,moves);
+            size = zddGroupMove(table, x, y, moves);
             if (size == 0) goto zddGroupSiftingUpOutOfMem;
-            if ((double) size > (double) limitSize * table->maxGrowth)
-                return(1);
+            if ((double)size > (double)limitSize * table->maxGrowth)
+                return (1);
             if (size < limitSize) limitSize = size;
         }
         y = gxtop;
-        x = cuddZddNextLow(table,y);
+        x = cuddZddNextLow(table, y);
     }
 
-    return(1);
+    return (1);
 
 zddGroupSiftingUpOutOfMem:
     while (*moves != NULL) {
@@ -972,10 +940,9 @@ zddGroupSiftingUpOutOfMem:
         cuddDeallocMove(table, *moves);
         *moves = move;
     }
-    return(0);
+    return (0);
 
 } /* end of zddGroupSiftingUp */
-
 
 /**Function********************************************************************
 
@@ -990,39 +957,36 @@ zddGroupSiftingUpOutOfMem:
 ******************************************************************************/
 static int
 zddGroupSiftingDown(
-  DdManager * table,
-  int  x,
-  int  xHigh,
-  Move ** moves)
-{
-    Move *move;
-    int  y;
-    int  size;
-    int  limitSize;
-    int  gybot;
-
+    DdManager* table,
+    int x,
+    int xHigh,
+    Move** moves) {
+    Move* move;
+    int y;
+    int size;
+    int limitSize;
+    int gybot;
 
     /* Initialize R */
     limitSize = size = table->keysZ;
-    y = cuddZddNextHigh(table,x);
+    y = cuddZddNextHigh(table, x);
     while (y <= xHigh) {
         /* Find bottom of y group. */
         gybot = table->subtableZ[y].next;
-        while (table->subtableZ[gybot].next != (unsigned) y)
+        while (table->subtableZ[gybot].next != (unsigned)y)
             gybot = table->subtableZ[gybot].next;
 
-        if (table->subtableZ[x].next == (unsigned) x &&
-            table->subtableZ[y].next == (unsigned) y) {
+        if (table->subtableZ[x].next == (unsigned)x && table->subtableZ[y].next == (unsigned)y) {
             /* x and y are self groups */
-            size = cuddZddSwapInPlace(table,x,y);
+            size = cuddZddSwapInPlace(table, x, y);
 #ifdef DD_DEBUG
-            assert(table->subtableZ[x].next == (unsigned) x);
-            assert(table->subtableZ[y].next == (unsigned) y);
+            assert(table->subtableZ[x].next == (unsigned)x);
+            assert(table->subtableZ[y].next == (unsigned)y);
 #endif
             if (size == 0) goto zddGroupSiftingDownOutOfMem;
 
             /* Record move. */
-            move = (Move *) cuddDynamicAllocNode(table);
+            move = (Move*)cuddDynamicAllocNode(table);
             if (move == NULL) goto zddGroupSiftingDownOutOfMem;
             move->x = x;
             move->y = y;
@@ -1032,25 +996,25 @@ zddGroupSiftingDown(
             *moves = move;
 
 #ifdef DD_DEBUG
-            if (pr > 0) (void) fprintf(table->out,"zddGroupSiftingDown (2 single groups):\n");
+            if (pr > 0) (void)fprintf(table->out, "zddGroupSiftingDown (2 single groups):\n");
 #endif
-            if ((double) size > (double) limitSize * table->maxGrowth)
-                return(1);
+            if ((double)size > (double)limitSize * table->maxGrowth)
+                return (1);
             if (size < limitSize) limitSize = size;
             x = y;
-            y = cuddZddNextHigh(table,x);
+            y = cuddZddNextHigh(table, x);
         } else { /* Group move */
-            size = zddGroupMove(table,x,y,moves);
+            size = zddGroupMove(table, x, y, moves);
             if (size == 0) goto zddGroupSiftingDownOutOfMem;
-            if ((double) size > (double) limitSize * table->maxGrowth)
-                return(1);
+            if ((double)size > (double)limitSize * table->maxGrowth)
+                return (1);
             if (size < limitSize) limitSize = size;
         }
         x = gybot;
-        y = cuddZddNextHigh(table,x);
+        y = cuddZddNextHigh(table, x);
     }
 
-    return(1);
+    return (1);
 
 zddGroupSiftingDownOutOfMem:
     while (*moves != NULL) {
@@ -1059,10 +1023,9 @@ zddGroupSiftingDownOutOfMem:
         *moves = move;
     }
 
-    return(0);
+    return (0);
 
 } /* end of zddGroupSiftingDown */
-
 
 /**Function********************************************************************
 
@@ -1076,17 +1039,16 @@ zddGroupSiftingDownOutOfMem:
 ******************************************************************************/
 static int
 zddGroupMove(
-  DdManager * table,
-  int  x,
-  int  y,
-  Move ** moves)
-{
-    Move *move;
-    int  size;
-    int  i,j,xtop,xbot,xsize,ytop,ybot,ysize,newxtop;
-    int  swapx=-1,swapy=-1;
+    DdManager* table,
+    int x,
+    int y,
+    Move** moves) {
+    Move* move;
+    int size;
+    int i, j, xtop, xbot, xsize, ytop, ybot, ysize, newxtop;
+    int swapx = -1, swapy = -1;
 #if defined(DD_DEBUG) && defined(DD_VERBOSE)
-    int  initialSize,bestSize;
+    int initialSize, bestSize;
 #endif
 
 #ifdef DD_DEBUG
@@ -1098,7 +1060,7 @@ zddGroupMove(
     xtop = table->subtableZ[x].next;
     xsize = xbot - xtop + 1;
     ybot = y;
-    while ((unsigned) ybot < table->subtableZ[ybot].next)
+    while ((unsigned)ybot < table->subtableZ[ybot].next)
         ybot = table->subtableZ[ybot].next;
     ytop = y;
     ysize = ybot - ytop + 1;
@@ -1109,46 +1071,47 @@ zddGroupMove(
     /* Sift the variables of the second group up through the first group */
     for (i = 1; i <= ysize; i++) {
         for (j = 1; j <= xsize; j++) {
-            size = cuddZddSwapInPlace(table,x,y);
+            size = cuddZddSwapInPlace(table, x, y);
             if (size == 0) goto zddGroupMoveOutOfMem;
 #if defined(DD_DEBUG) && defined(DD_VERBOSE)
             if (size < bestSize)
                 bestSize = size;
 #endif
-            swapx = x; swapy = y;
+            swapx = x;
+            swapy = y;
             y = x;
-            x = cuddZddNextLow(table,y);
+            x = cuddZddNextLow(table, y);
         }
         y = ytop + i;
-        x = cuddZddNextLow(table,y);
+        x = cuddZddNextLow(table, y);
     }
 #if defined(DD_DEBUG) && defined(DD_VERBOSE)
     if ((bestSize < initialSize) && (bestSize < size))
-        (void) fprintf(table->out,"Missed local minimum: initialSize:%d  bestSize:%d  finalSize:%d\n",initialSize,bestSize,size);
+        (void)fprintf(table->out, "Missed local minimum: initialSize:%d  bestSize:%d  finalSize:%d\n", initialSize, bestSize, size);
 #endif
 
     /* fix groups */
     y = xtop; /* ytop is now where xtop used to be */
     for (i = 0; i < ysize - 1; i++) {
-        table->subtableZ[y].next = cuddZddNextHigh(table,y);
-        y = cuddZddNextHigh(table,y);
+        table->subtableZ[y].next = cuddZddNextHigh(table, y);
+        y = cuddZddNextHigh(table, y);
     }
     table->subtableZ[y].next = xtop; /* y is bottom of its group, join */
-                                    /* it to top of its group */
-    x = cuddZddNextHigh(table,y);
+                                     /* it to top of its group */
+    x = cuddZddNextHigh(table, y);
     newxtop = x;
     for (i = 0; i < xsize - 1; i++) {
-        table->subtableZ[x].next = cuddZddNextHigh(table,x);
-        x = cuddZddNextHigh(table,x);
+        table->subtableZ[x].next = cuddZddNextHigh(table, x);
+        x = cuddZddNextHigh(table, x);
     }
     table->subtableZ[x].next = newxtop; /* x is bottom of its group, join */
-                                    /* it to top of its group */
+                                        /* it to top of its group */
 #ifdef DD_DEBUG
-    if (pr > 0) (void) fprintf(table->out,"zddGroupMove:\n");
+    if (pr > 0) (void)fprintf(table->out, "zddGroupMove:\n");
 #endif
 
     /* Store group move */
-    move = (Move *) cuddDynamicAllocNode(table);
+    move = (Move*)cuddDynamicAllocNode(table);
     if (move == NULL) goto zddGroupMoveOutOfMem;
     move->x = swapx;
     move->y = swapy;
@@ -1157,7 +1120,7 @@ zddGroupMove(
     move->next = *moves;
     *moves = move;
 
-    return(table->keysZ);
+    return (table->keysZ);
 
 zddGroupMoveOutOfMem:
     while (*moves != NULL) {
@@ -1165,10 +1128,9 @@ zddGroupMoveOutOfMem:
         cuddDeallocMove(table, *moves);
         *moves = move;
     }
-    return(0);
+    return (0);
 
 } /* end of zddGroupMove */
-
 
 /**Function********************************************************************
 
@@ -1182,13 +1144,11 @@ zddGroupMoveOutOfMem:
 ******************************************************************************/
 static int
 zddGroupMoveBackward(
-  DdManager * table,
-  int  x,
-  int  y)
-{
+    DdManager* table,
+    int x,
+    int y) {
     int size;
-    int i,j,xtop,xbot,xsize,ytop,ybot,ysize,newxtop;
-
+    int i, j, xtop, xbot, xsize, ytop, ybot, ysize, newxtop;
 
 #ifdef DD_DEBUG
     /* We assume that x < y */
@@ -1200,7 +1160,7 @@ zddGroupMoveBackward(
     xtop = table->subtableZ[x].next;
     xsize = xbot - xtop + 1;
     ybot = y;
-    while ((unsigned) ybot < table->subtableZ[ybot].next)
+    while ((unsigned)ybot < table->subtableZ[ybot].next)
         ybot = table->subtableZ[ybot].next;
     ytop = y;
     ysize = ybot - ytop + 1;
@@ -1208,40 +1168,39 @@ zddGroupMoveBackward(
     /* Sift the variables of the second group up through the first group */
     for (i = 1; i <= ysize; i++) {
         for (j = 1; j <= xsize; j++) {
-            size = cuddZddSwapInPlace(table,x,y);
+            size = cuddZddSwapInPlace(table, x, y);
             if (size == 0)
-                return(0);
+                return (0);
             y = x;
-            x = cuddZddNextLow(table,y);
+            x = cuddZddNextLow(table, y);
         }
         y = ytop + i;
-        x = cuddZddNextLow(table,y);
+        x = cuddZddNextLow(table, y);
     }
 
     /* fix groups */
     y = xtop;
     for (i = 0; i < ysize - 1; i++) {
-        table->subtableZ[y].next = cuddZddNextHigh(table,y);
-        y = cuddZddNextHigh(table,y);
+        table->subtableZ[y].next = cuddZddNextHigh(table, y);
+        y = cuddZddNextHigh(table, y);
     }
     table->subtableZ[y].next = xtop; /* y is bottom of its group, join */
-                                    /* to its top */
-    x = cuddZddNextHigh(table,y);
+                                     /* to its top */
+    x = cuddZddNextHigh(table, y);
     newxtop = x;
     for (i = 0; i < xsize - 1; i++) {
-        table->subtableZ[x].next = cuddZddNextHigh(table,x);
-        x = cuddZddNextHigh(table,x);
+        table->subtableZ[x].next = cuddZddNextHigh(table, x);
+        x = cuddZddNextHigh(table, x);
     }
     table->subtableZ[x].next = newxtop; /* x is bottom of its group, join */
-                                    /* to its top */
+                                        /* to its top */
 #ifdef DD_DEBUG
-    if (pr > 0) (void) fprintf(table->out,"zddGroupMoveBackward:\n");
+    if (pr > 0) (void)fprintf(table->out, "zddGroupMoveBackward:\n");
 #endif
 
-    return(1);
+    return (1);
 
 } /* end of zddGroupMoveBackward */
-
 
 /**Function********************************************************************
 
@@ -1256,13 +1215,11 @@ zddGroupMoveBackward(
 ******************************************************************************/
 static int
 zddGroupSiftingBackward(
-  DdManager * table,
-  Move * moves,
-  int  size)
-{
-    Move *move;
-    int  res;
-
+    DdManager* table,
+    Move* moves,
+    int size) {
+    Move* move;
+    int res;
 
     for (move = moves; move != NULL; move = move->next) {
         if (move->size < size) {
@@ -1271,26 +1228,24 @@ zddGroupSiftingBackward(
     }
 
     for (move = moves; move != NULL; move = move->next) {
-        if (move->size == size) return(1);
-        if ((table->subtableZ[move->x].next == move->x) &&
-        (table->subtableZ[move->y].next == move->y)) {
-            res = cuddZddSwapInPlace(table,(int)move->x,(int)move->y);
-            if (!res) return(0);
+        if (move->size == size) return (1);
+        if ((table->subtableZ[move->x].next == move->x) && (table->subtableZ[move->y].next == move->y)) {
+            res = cuddZddSwapInPlace(table, (int)move->x, (int)move->y);
+            if (!res) return (0);
 #ifdef DD_DEBUG
-            if (pr > 0) (void) fprintf(table->out,"zddGroupSiftingBackward:\n");
+            if (pr > 0) (void)fprintf(table->out, "zddGroupSiftingBackward:\n");
             assert(table->subtableZ[move->x].next == move->x);
             assert(table->subtableZ[move->y].next == move->y);
 #endif
         } else { /* Group move necessary */
-            res = zddGroupMoveBackward(table,(int)move->x,(int)move->y);
-            if (!res) return(0);
+            res = zddGroupMoveBackward(table, (int)move->x, (int)move->y);
+            if (!res) return (0);
         }
     }
 
-    return(1);
+    return (1);
 
 } /* end of zddGroupSiftingBackward */
-
 
 /**Function********************************************************************
 
@@ -1304,13 +1259,12 @@ zddGroupSiftingBackward(
 ******************************************************************************/
 static void
 zddMergeGroups(
-  DdManager * table,
-  MtrNode * treenode,
-  int  low,
-  int  high)
-{
+    DdManager* table,
+    MtrNode* treenode,
+    int low,
+    int high) {
     int i;
-    MtrNode *auxnode;
+    MtrNode* auxnode;
     int saveindex;
     int newindex;
 
@@ -1319,7 +1273,7 @@ zddMergeGroups(
     ** we lose the symmetry information. */
     if (treenode != table->treeZ) {
         for (i = low; i < high; i++)
-            table->subtableZ[i].next = i+1;
+            table->subtableZ[i].next = i + 1;
         table->subtableZ[high].next = low;
     }
 
@@ -1330,8 +1284,7 @@ zddMergeGroups(
     auxnode = treenode;
     do {
         auxnode->index = newindex;
-        if (auxnode->parent == NULL ||
-                (int) auxnode->parent->index != saveindex)
+        if (auxnode->parent == NULL || (int)auxnode->parent->index != saveindex)
             break;
         auxnode = auxnode->parent;
     } while (1);
@@ -1339,6 +1292,4 @@ zddMergeGroups(
 
 } /* end of zddMergeGroups */
 
-
 ABC_NAMESPACE_IMPL_END
-

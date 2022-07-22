@@ -1,5 +1,5 @@
 /*===================================================================*/
-//  
+//
 //     place_inc.c
 //
 //        Aaron P. Hurst, 2003-2007
@@ -17,9 +17,8 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 inline int sqHashId(int id, int max) {
-  return ((id * (id+17)) % max);
+    return ((id * (id + 17)) % max);
 }
 
 #if 0
@@ -89,23 +88,23 @@ float fastPlace(int numCells, ConcreteCell *cells[],
 // fastEstimate()
 //
 // --------------------------------------------------------------------
-float fastEstimate(ConcreteCell *cell, 
-                   int numNets, ConcreteNet *nets[]) {
-  float len = 0;
-  int n;
-  Rect box;
+float fastEstimate(ConcreteCell* cell,
+                   int numNets,
+                   ConcreteNet* nets[]) {
+    float len = 0;
+    int n;
+    Rect box;
 
-  assert(cell);
+    assert(cell);
 
-  for(n=0; n<numNets; n++) {
-    box = getNetBBox(nets[n]);
-    if (cell->m_x < box.x) len += (box.x - cell->m_x);
-    if (cell->m_x > box.x+box.w) len += (cell->m_x-box.x-box.w);
-    if (cell->m_y < box.y) len += (box.x - cell->m_y);
-    if (cell->m_y > box.y+box.h) len += (cell->m_y-box.y-box.h);
-  }
-  
-  return len;
+    for (n = 0; n < numNets; n++) {
+        box = getNetBBox(nets[n]);
+        if (cell->m_x < box.x) len += (box.x - cell->m_x);
+        if (cell->m_x > box.x + box.w) len += (cell->m_x - box.x - box.w);
+        if (cell->m_y < box.y) len += (box.x - cell->m_y);
+        if (cell->m_y > box.y + box.h) len += (cell->m_y - box.y - box.h);
+    }
+
+    return len;
 }
 ABC_NAMESPACE_IMPL_END
-

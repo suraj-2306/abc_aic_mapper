@@ -19,12 +19,12 @@
 
 ***********************************************************************/
 #ifndef ABC__sat__xSAT__xsatUtils_h
-#define ABC__sat__xSAT__xsatUtils_h
+#    define ABC__sat__xSAT__xsatUtils_h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
 ////////////////////////////////////////////////////////////////////////
-#include "misc/util/abc_global.h"
+#    include "misc/util/abc_global.h"
 
 ABC_NAMESPACE_HEADER_START
 
@@ -39,17 +39,14 @@ ABC_NAMESPACE_HEADER_START
   SeeAlso     []
 
 ***********************************************************************/
-static inline void xSAT_UtilSelectSort( void** pArray, int nSize, int(* CompFnct )( const void *, const void * ) )
-{
+static inline void xSAT_UtilSelectSort(void** pArray, int nSize, int (*CompFnct)(const void*, const void*)) {
     int i, j, iBest;
     void* pTmp;
 
-    for ( i = 0; i < ( nSize - 1 ); i++ )
-    {
+    for (i = 0; i < (nSize - 1); i++) {
         iBest = i;
-        for ( j = i + 1; j < nSize; j++ )
-        {
-            if ( CompFnct( pArray[j], pArray[iBest] ) )
+        for (j = i + 1; j < nSize; j++) {
+            if (CompFnct(pArray[j], pArray[iBest]))
                 iBest = j;
         }
         pTmp = pArray[i];
@@ -69,23 +66,24 @@ static inline void xSAT_UtilSelectSort( void** pArray, int nSize, int(* CompFnct
   SeeAlso     []
 
 ***********************************************************************/
-static void xSAT_UtilSort( void** pArray, int nSize, int(* CompFnct )( const void *, const void *) )
-{
-    if ( nSize <= 15 )
-        xSAT_UtilSelectSort( pArray, nSize, CompFnct );
-    else
-    {
+static void xSAT_UtilSort(void** pArray, int nSize, int (*CompFnct)(const void*, const void*)) {
+    if (nSize <= 15)
+        xSAT_UtilSelectSort(pArray, nSize, CompFnct);
+    else {
         void* pPivot = pArray[nSize / 2];
         void* pTmp;
         int i = -1;
         int j = nSize;
 
-        for(;;)
-        {
-            do i++; while( CompFnct( pArray[i], pPivot ) );
-            do j--; while( CompFnct( pPivot, pArray[j] ) );
+        for (;;) {
+            do
+                i++;
+            while (CompFnct(pArray[i], pPivot));
+            do
+                j--;
+            while (CompFnct(pPivot, pArray[j]));
 
-            if ( i >= j )
+            if (i >= j)
                 break;
 
             pTmp = pArray[i];
@@ -93,8 +91,8 @@ static void xSAT_UtilSort( void** pArray, int nSize, int(* CompFnct )( const voi
             pArray[j] = pTmp;
         }
 
-        xSAT_UtilSort( pArray, i, CompFnct );
-        xSAT_UtilSort( pArray + i, ( nSize - i ), CompFnct );
+        xSAT_UtilSort(pArray, i, CompFnct);
+        xSAT_UtilSort(pArray + i, (nSize - i), CompFnct);
     }
 }
 

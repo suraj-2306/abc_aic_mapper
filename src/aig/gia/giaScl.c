@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,31 +41,32 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-int Gia_ManCombMarkUsed_rec( Gia_Man_t * p, Gia_Obj_t * pObj )
-{
-    if ( pObj == NULL )
+int Gia_ManCombMarkUsed_rec(Gia_Man_t* p, Gia_Obj_t* pObj) {
+    if (pObj == NULL)
         return 0;
-    if ( !pObj->fMark0 )
+    if (!pObj->fMark0)
         return 0;
     pObj->fMark0 = 0;
-    assert( Gia_ObjIsAnd(pObj) );
-    assert( !Gia_ObjIsBuf(pObj) );
-    return 1 + Gia_ManCombMarkUsed_rec( p, Gia_ObjFanin0(pObj) )
-             + Gia_ManCombMarkUsed_rec( p, Gia_ObjFanin1(pObj) )
-             + (p->pNexts ? Gia_ManCombMarkUsed_rec( p, Gia_ObjNextObj(p, Gia_ObjId(p, pObj)) ) : 0)
-             + (p->pSibls ? Gia_ManCombMarkUsed_rec( p, Gia_ObjSiblObj(p, Gia_ObjId(p, pObj)) ) : 0)
-             + (p->pMuxes ? Gia_ManCombMarkUsed_rec( p, Gia_ObjFanin2(p, pObj) ) : 0);
+    assert(Gia_ObjIsAnd(pObj));
+    assert(!Gia_ObjIsBuf(pObj));
+    return 1 + Gia_ManCombMarkUsed_rec(p, Gia_ObjFanin0(pObj))
+           + Gia_ManCombMarkUsed_rec(p, Gia_ObjFanin1(pObj))
+           + (p->pNexts ? Gia_ManCombMarkUsed_rec(p, Gia_ObjNextObj(p, Gia_ObjId(p, pObj))) : 0)
+           + (p->pSibls ? Gia_ManCombMarkUsed_rec(p, Gia_ObjSiblObj(p, Gia_ObjId(p, pObj))) : 0)
+           + (p->pMuxes ? Gia_ManCombMarkUsed_rec(p, Gia_ObjFanin2(p, pObj)) : 0);
 }
-int Gia_ManCombMarkUsed( Gia_Man_t * p )
-{
-    Gia_Obj_t * pObj;
+int Gia_ManCombMarkUsed(Gia_Man_t* p) {
+    Gia_Obj_t* pObj;
     int i, nNodes = 0;
-    Gia_ManForEachObj( p, pObj, i )
-        pObj->fMark0 = Gia_ObjIsAnd(pObj) && !Gia_ObjIsBuf(pObj);
-    Gia_ManForEachBuf( p, pObj, i )
-        nNodes += Gia_ManCombMarkUsed_rec( p, Gia_ObjFanin0(pObj) );
-    Gia_ManForEachCo( p, pObj, i )
-        nNodes += Gia_ManCombMarkUsed_rec( p, Gia_ObjFanin0(pObj) );
+    Gia_ManForEachObj(p, pObj, i)
+        pObj->fMark0
+        = Gia_ObjIsAnd(pObj) && !Gia_ObjIsBuf(pObj);
+    Gia_ManForEachBuf(p, pObj, i)
+        nNodes
+        += Gia_ManCombMarkUsed_rec(p, Gia_ObjFanin0(pObj));
+    Gia_ManForEachCo(p, pObj, i)
+        nNodes
+        += Gia_ManCombMarkUsed_rec(p, Gia_ObjFanin0(pObj));
     return nNodes;
 }
 
@@ -81,10 +81,9 @@ int Gia_ManCombMarkUsed( Gia_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Gia_Man_t * Gia_ManCleanup( Gia_Man_t * p )
-{
-    Gia_ManCombMarkUsed( p );
-    return Gia_ManDupMarked( p );
+Gia_Man_t* Gia_ManCleanup(Gia_Man_t* p) {
+    Gia_ManCombMarkUsed(p);
+    return Gia_ManDupMarked(p);
 }
 
 /**Function*************************************************************
@@ -98,21 +97,18 @@ Gia_Man_t * Gia_ManCleanup( Gia_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Gia_Man_t * Gia_ManCleanupOutputs( Gia_Man_t * p, int nOutputs )
-{
-    Gia_Obj_t * pObj;
+Gia_Man_t* Gia_ManCleanupOutputs(Gia_Man_t* p, int nOutputs) {
+    Gia_Obj_t* pObj;
     int i;
-    assert( Gia_ManRegNum(p) == 0 );
-    assert( nOutputs < Gia_ManCoNum(p) );
-    Gia_ManCombMarkUsed( p );
-    Gia_ManForEachCo( p, pObj, i )
-        if ( i < nOutputs )
-            pObj->fMark0 = 1;
-        else
-            break;
-    return Gia_ManDupMarked( p );
+    assert(Gia_ManRegNum(p) == 0);
+    assert(nOutputs < Gia_ManCoNum(p));
+    Gia_ManCombMarkUsed(p);
+    Gia_ManForEachCo(p, pObj, i) if (i < nOutputs)
+        pObj->fMark0
+        = 1;
+    else break;
+    return Gia_ManDupMarked(p);
 }
-
 
 /**Function*************************************************************
 
@@ -125,21 +121,19 @@ Gia_Man_t * Gia_ManCleanupOutputs( Gia_Man_t * p, int nOutputs )
   SeeAlso     []
 
 ***********************************************************************/
-int Gia_ManSeqMarkUsed_rec( Gia_Man_t * p, Gia_Obj_t * pObj, Vec_Int_t * vRoots )
-{
-    if ( !pObj->fMark0 )
+int Gia_ManSeqMarkUsed_rec(Gia_Man_t* p, Gia_Obj_t* pObj, Vec_Int_t* vRoots) {
+    if (!pObj->fMark0)
         return 0;
     pObj->fMark0 = 0;
-    if ( Gia_ObjIsCo(pObj) )
-        return Gia_ManSeqMarkUsed_rec( p, Gia_ObjFanin0(pObj), vRoots );
-    if ( Gia_ObjIsRo(p, pObj) )
-    {
-        Vec_IntPush( vRoots, Gia_ObjId(p, Gia_ObjRoToRi(p, pObj)) );
+    if (Gia_ObjIsCo(pObj))
+        return Gia_ManSeqMarkUsed_rec(p, Gia_ObjFanin0(pObj), vRoots);
+    if (Gia_ObjIsRo(p, pObj)) {
+        Vec_IntPush(vRoots, Gia_ObjId(p, Gia_ObjRoToRi(p, pObj)));
         return 0;
     }
-    assert( Gia_ObjIsAnd(pObj) );
-    return 1 + Gia_ManSeqMarkUsed_rec( p, Gia_ObjFanin0(pObj), vRoots )
-             + Gia_ManSeqMarkUsed_rec( p, Gia_ObjFanin1(pObj), vRoots );
+    assert(Gia_ObjIsAnd(pObj));
+    return 1 + Gia_ManSeqMarkUsed_rec(p, Gia_ObjFanin0(pObj), vRoots)
+           + Gia_ManSeqMarkUsed_rec(p, Gia_ObjFanin1(pObj), vRoots);
 }
 
 /**Function*************************************************************
@@ -153,19 +147,20 @@ int Gia_ManSeqMarkUsed_rec( Gia_Man_t * p, Gia_Obj_t * pObj, Vec_Int_t * vRoots 
   SeeAlso     []
 
 ***********************************************************************/
-int Gia_ManSeqMarkUsed( Gia_Man_t * p )
-{
-    Vec_Int_t * vRoots;
-    Gia_Obj_t * pObj;
+int Gia_ManSeqMarkUsed(Gia_Man_t* p) {
+    Vec_Int_t* vRoots;
+    Gia_Obj_t* pObj;
     int i, nNodes = 0;
-    Gia_ManSetMark0( p );
+    Gia_ManSetMark0(p);
     Gia_ManConst0(p)->fMark0 = 0;
-    Gia_ManForEachPi( p, pObj, i )
-        pObj->fMark0 = 0;
-    vRoots = Gia_ManCollectPoIds( p );
-    Gia_ManForEachObjVec( vRoots, p, pObj, i )
-        nNodes += Gia_ManSeqMarkUsed_rec( p, pObj, vRoots );
-    Vec_IntFree( vRoots );
+    Gia_ManForEachPi(p, pObj, i)
+        pObj->fMark0
+        = 0;
+    vRoots = Gia_ManCollectPoIds(p);
+    Gia_ManForEachObjVec(vRoots, p, pObj, i)
+        nNodes
+        += Gia_ManSeqMarkUsed_rec(p, pObj, vRoots);
+    Vec_IntFree(vRoots);
     return nNodes;
 }
 
@@ -180,10 +175,9 @@ int Gia_ManSeqMarkUsed( Gia_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Gia_Man_t * Gia_ManSeqCleanup( Gia_Man_t * p )
-{
-    Gia_ManSeqMarkUsed( p );
-    return Gia_ManDupMarked( p );
+Gia_Man_t* Gia_ManSeqCleanup(Gia_Man_t* p) {
+    Gia_ManSeqMarkUsed(p);
+    return Gia_ManDupMarked(p);
 }
 
 /**Function*************************************************************
@@ -197,30 +191,31 @@ Gia_Man_t * Gia_ManSeqCleanup( Gia_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Gia_Man_t * Gia_ManReduceEquiv( Gia_Man_t * p, int fVerbose )
-{
-    Gia_Man_t * pNew;
-    Gia_Obj_t * pObjRi, * pObjRo;
-    unsigned * pCi2Lit, * pMaps;
+Gia_Man_t* Gia_ManReduceEquiv(Gia_Man_t* p, int fVerbose) {
+    Gia_Man_t* pNew;
+    Gia_Obj_t *pObjRi, *pObjRo;
+    unsigned *pCi2Lit, *pMaps;
     int i, iLit, nFanins = 1, Counter0 = 0, Counter = 0;
-    Gia_ManForEachRi( p, pObjRi, i )
-        Gia_ObjFanin0(pObjRi)->Value = 0;
-    Gia_ManForEachRi( p, pObjRi, i )
-        if ( Gia_ObjFanin0(pObjRi)->Value == 0 )
-            Gia_ObjFanin0(pObjRi)->Value = 2*nFanins++;
-    pCi2Lit = ABC_FALLOC( unsigned, Gia_ManCiNum(p) );
-    pMaps   = ABC_FALLOC( unsigned, 2 * nFanins );
-    Gia_ManForEachRiRo( p, pObjRi, pObjRo, i )
-    {
-        iLit = Gia_ObjFanin0Copy( pObjRi );
-        if ( Gia_ObjFaninId0p(p, pObjRi) == 0 && Gia_ObjFaninC0(pObjRi) == 0 ) // const 0 
-            pCi2Lit[Gia_ManPiNum(p)+i] = 0, Counter0++;
-        else if ( ~pMaps[iLit] ) // in this case, ID(pObj) > ID(pRepr) 
-            pCi2Lit[Gia_ManPiNum(p)+i] = pMaps[iLit], Counter++; 
+    Gia_ManForEachRi(p, pObjRi, i)
+        Gia_ObjFanin0(pObjRi)
+            ->Value
+        = 0;
+    Gia_ManForEachRi(p, pObjRi, i) if (Gia_ObjFanin0(pObjRi)->Value == 0)
+        Gia_ObjFanin0(pObjRi)
+            ->Value
+        = 2 * nFanins++;
+    pCi2Lit = ABC_FALLOC(unsigned, Gia_ManCiNum(p));
+    pMaps = ABC_FALLOC(unsigned, 2 * nFanins);
+    Gia_ManForEachRiRo(p, pObjRi, pObjRo, i) {
+        iLit = Gia_ObjFanin0Copy(pObjRi);
+        if (Gia_ObjFaninId0p(p, pObjRi) == 0 && Gia_ObjFaninC0(pObjRi) == 0) // const 0
+            pCi2Lit[Gia_ManPiNum(p) + i] = 0, Counter0++;
+        else if (~pMaps[iLit]) // in this case, ID(pObj) > ID(pRepr)
+            pCi2Lit[Gia_ManPiNum(p) + i] = pMaps[iLit], Counter++;
         else
-            pMaps[iLit] = Abc_Var2Lit( Gia_ObjId(p, pObjRo), 0 );
+            pMaps[iLit] = Abc_Var2Lit(Gia_ObjId(p, pObjRo), 0);
     }
-/*
+    /*
     Gia_ManForEachCi( p, pObjRo, i )
     {
         if ( ~pCi2Lit[i] )
@@ -233,14 +228,14 @@ Gia_Man_t * Gia_ManReduceEquiv( Gia_Man_t * p, int fVerbose )
         }
     }
 */
-//    if ( fVerbose )
-//        printf( "ReduceEquiv detected %d constant regs and %d equivalent regs.\n", Counter0, Counter );
-    ABC_FREE( pMaps );
-    if ( Counter0 || Counter )
-        pNew = Gia_ManDupDfsCiMap( p, (int *)pCi2Lit, NULL );
+    //    if ( fVerbose )
+    //        printf( "ReduceEquiv detected %d constant regs and %d equivalent regs.\n", Counter0, Counter );
+    ABC_FREE(pMaps);
+    if (Counter0 || Counter)
+        pNew = Gia_ManDupDfsCiMap(p, (int*)pCi2Lit, NULL);
     else
         pNew = p;
-    ABC_FREE( pCi2Lit );
+    ABC_FREE(pCi2Lit);
     return pNew;
 }
 
@@ -255,39 +250,36 @@ Gia_Man_t * Gia_ManReduceEquiv( Gia_Man_t * p, int fVerbose )
   SeeAlso     []
 
 ***********************************************************************/
-Gia_Man_t * Gia_ManSeqStructSweep( Gia_Man_t * p, int fConst, int fEquiv, int fVerbose )
-{
-    Gia_Man_t * pTemp;
-    if ( Gia_ManRegNum(p) == 0 )
-        return Gia_ManCleanup( p );
-    if ( fVerbose )
-        printf( "Performing sequential cleanup.\n" );
-    p = Gia_ManSeqCleanup( pTemp = p );
-    if ( fVerbose )
-        Gia_ManReportImprovement( pTemp, p );
-    if ( fConst && Gia_ManRegNum(p) )
-    {
-        p = Gia_ManReduceConst( pTemp = p, fVerbose );
-        if ( fVerbose )
-            Gia_ManReportImprovement( pTemp, p );
-        Gia_ManStop( pTemp );
+Gia_Man_t* Gia_ManSeqStructSweep(Gia_Man_t* p, int fConst, int fEquiv, int fVerbose) {
+    Gia_Man_t* pTemp;
+    if (Gia_ManRegNum(p) == 0)
+        return Gia_ManCleanup(p);
+    if (fVerbose)
+        printf("Performing sequential cleanup.\n");
+    p = Gia_ManSeqCleanup(pTemp = p);
+    if (fVerbose)
+        Gia_ManReportImprovement(pTemp, p);
+    if (fConst && Gia_ManRegNum(p)) {
+        p = Gia_ManReduceConst(pTemp = p, fVerbose);
+        if (fVerbose)
+            Gia_ManReportImprovement(pTemp, p);
+        Gia_ManStop(pTemp);
     }
-    if ( fVerbose && fEquiv )
-        printf( "Merging combinationally equivalent flops.\n" );
-    if ( fEquiv )
-    while ( 1 )
-    {
-        p = Gia_ManSeqCleanup( pTemp = p );
-        if ( fVerbose )
-            Gia_ManReportImprovement( pTemp, p );
-        Gia_ManStop( pTemp );
-        if ( Gia_ManRegNum(p) == 0 )
-            break;
-        p = Gia_ManReduceEquiv( pTemp = p, fVerbose );
-        if ( p == pTemp )
-            break;
-        Gia_ManStop( pTemp );
-    }
+    if (fVerbose && fEquiv)
+        printf("Merging combinationally equivalent flops.\n");
+    if (fEquiv)
+        while (1) {
+            p = Gia_ManSeqCleanup(pTemp = p);
+            if (fVerbose)
+                Gia_ManReportImprovement(pTemp, p);
+            Gia_ManStop(pTemp);
+            if (Gia_ManRegNum(p) == 0)
+                break;
+            p = Gia_ManReduceEquiv(pTemp = p, fVerbose);
+            if (p == pTemp)
+                break;
+            Gia_ManStop(pTemp);
+        }
     return p;
 }
 
@@ -295,6 +287,4 @@ Gia_Man_t * Gia_ManSeqStructSweep( Gia_Man_t * p, int fConst, int fEquiv, int fV
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -34,9 +34,12 @@ typedef word sdbl_t;
 static sdbl_t SDBL_CONST1 = ABC_CONST(0x0000800000000000);
 static sdbl_t SDBL_MAX = ~(sdbl_t)(0);
 
-union ui64_dbl { word ui64; double dbl; };
+union ui64_dbl {
+    word ui64;
+    double dbl;
+};
 
-static inline word sdbl_exp(sdbl_t a) { return a >> 48;         }
+static inline word sdbl_exp(sdbl_t a) { return a >> 48; }
 static inline word sdbl_mnt(sdbl_t a) { return (a << 16) >> 16; }
 
 static inline double sdbl2double(sdbl_t a) {
@@ -46,8 +49,7 @@ static inline double sdbl2double(sdbl_t a) {
     return temp.dbl;
 }
 
-static inline sdbl_t double2sdbl(double value)
-{
+static inline sdbl_t double2sdbl(double value) {
     union ui64_dbl temp;
     sdbl_t expt, mnt;
     assert(value >= 1.0);
@@ -57,8 +59,7 @@ static inline sdbl_t double2sdbl(double value)
     return (expt << 48) + mnt;
 }
 
-static inline sdbl_t sdbl_add(sdbl_t a, sdbl_t b)
-{
+static inline sdbl_t sdbl_add(sdbl_t a, sdbl_t b) {
     sdbl_t expt, mnt;
     if (a < b) {
         a ^= b;
@@ -78,8 +79,7 @@ static inline sdbl_t sdbl_add(sdbl_t a, sdbl_t b)
     return (expt << 48) + mnt;
 }
 
-static inline sdbl_t sdbl_mult(sdbl_t a, sdbl_t b)
-{
+static inline sdbl_t sdbl_mult(sdbl_t a, sdbl_t b) {
     sdbl_t expt, mnt;
     sdbl_t a_mnt, a_mnt_hi, a_mnt_lo;
     sdbl_t b_mnt, b_mnt_hi, b_mnt_lo;
@@ -88,17 +88,14 @@ static inline sdbl_t sdbl_mult(sdbl_t a, sdbl_t b)
         b ^= a;
         a ^= b;
     }
-    assert( a >= b );
-    a_mnt  = sdbl_mnt(a);
-    b_mnt  = sdbl_mnt(b);
-    a_mnt_hi = a_mnt>>32;
-    b_mnt_hi = b_mnt>>32;
-    a_mnt_lo = (a_mnt<<32)>>32;
-    b_mnt_lo = (b_mnt<<32)>>32;
-    mnt = ((a_mnt_hi * b_mnt_hi) << 17) +
-          ((a_mnt_lo * b_mnt_lo) >> 47) +
-          ((a_mnt_lo * b_mnt_hi) >> 15) +
-          ((a_mnt_hi * b_mnt_lo) >> 15);
+    assert(a >= b);
+    a_mnt = sdbl_mnt(a);
+    b_mnt = sdbl_mnt(b);
+    a_mnt_hi = a_mnt >> 32;
+    b_mnt_hi = b_mnt >> 32;
+    a_mnt_lo = (a_mnt << 32) >> 32;
+    b_mnt_lo = (b_mnt << 32) >> 32;
+    mnt = ((a_mnt_hi * b_mnt_hi) << 17) + ((a_mnt_lo * b_mnt_lo) >> 47) + ((a_mnt_lo * b_mnt_hi) >> 15) + ((a_mnt_hi * b_mnt_lo) >> 15);
     expt = sdbl_exp(a) + sdbl_exp(b);
     /* Check for carry */
     if (mnt >> 48) {
@@ -110,22 +107,19 @@ static inline sdbl_t sdbl_mult(sdbl_t a, sdbl_t b)
     return (expt << 48) + mnt;
 }
 
-static inline sdbl_t sdbl_div(sdbl_t a, unsigned deg2)
-{
+static inline sdbl_t sdbl_div(sdbl_t a, unsigned deg2) {
     if (sdbl_exp(a) >= (word)deg2)
         return ((sdbl_exp(a) - deg2) << 48) + sdbl_mnt(a);
     return SDBL_CONST1;
 }
 
-static inline void sdbl_test()
-{
+static inline void sdbl_test() {
     sdbl_t ten100_ = ABC_CONST(0x014c924d692ca61b);
     printf("%f\n", sdbl2double(ten100_));
     //printf("%016lX\n", double2sdbl(1 /0.95));
     //printf("%016lX\n", SDBL_CONST1);
     printf("%f\n", sdbl2double(SDBL_CONST1));
     printf("%f\n", sdbl2double(ABC_CONST(0x000086BCA1AF286B)));
-
 }
 
 ABC_NAMESPACE_HEADER_END
