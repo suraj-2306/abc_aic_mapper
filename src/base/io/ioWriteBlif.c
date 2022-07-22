@@ -597,7 +597,7 @@ void Io_NtkWriteNodeMappingMO(FILE* pFile, Abc_Obj_t* pNode) {
         if (pCellPinIn->FaninId >= Abc_ObjFaninNum(pNode))
             printf("Fanin of %d: %d/%d\n", pNode->Id, pCellPinIn->FaninId, Abc_ObjFaninNum(pNode));
         Abc_Obj_t* pFanin = Abc_ObjFanin(pNode, pCellPinIn->FaninId);
-        int expressionLength = sprintf(pPrintStr, " %s=%s", pCellPinIn->pPinIn->pName, Abc_ObjName(pFanin));
+        int expressionLength = sprintf(pPrintStr, " %s=%s", MiMo_GateInRenamer(pCellPinIn->pPinIn), Abc_ObjName(pFanin));
         if (expressionLength + addedLength + 3 > IO_WRITE_LINE_LENGTH) {
             fprintf(pFile, " \\\n");
             addedLength = 0;
@@ -610,7 +610,8 @@ void Io_NtkWriteNodeMappingMO(FILE* pFile, Abc_Obj_t* pNode) {
     MiMo_CellPinOut_t* pCellPinOut = pCell->pPinOutList;
     while (pCellPinOut) {
         pFanout = Abc_ObjFanout(pNode, pCellPinOut->FanoutNetId);
-        int expressionLength = sprintf(pPrintStr, " %s=%s", pCellPinOut->pPinOut->pName, Abc_ObjName(pFanout));
+        // TODO: please fix the renamer
+        int expressionLength = sprintf(pPrintStr, " %s=%s", "out[0]", Abc_ObjName(pFanout));
         if (expressionLength + addedLength + 3 > IO_WRITE_LINE_LENGTH) {
             fprintf(pFile, " \\\n");
             addedLength = 0;
@@ -788,7 +789,7 @@ void Io_NtkWriteMiMoLibBlackboxes(FILE* pFile, MiMo_Library_t* pLib, int fWriteS
         fprintf(pFile, "%s", pPrintStr);
         MiMo_PinIn_t* pPinIn;
         MiMo_GateForEachPinIn(pGate, pPinIn, j) {
-            int expressionLength = sprintf(pPrintStr, " %s", pPinIn->pName);
+            int expressionLength = sprintf(pPrintStr, " %s", MiMo_GateInRenamer(pPinIn));
             if (expressionLength + addedLength + 2 > IO_WRITE_LINE_LENGTH) {
                 fprintf(pFile, " \\\n");
                 addedLength = 0;
@@ -801,7 +802,7 @@ void Io_NtkWriteMiMoLibBlackboxes(FILE* pFile, MiMo_Library_t* pLib, int fWriteS
         fprintf(pFile, "%s", pPrintStr);
         MiMo_PinOut_t* pPinOut;
         MiMo_GateForEachPinOut(pGate, pPinOut, j) {
-            int expressionLength = sprintf(pPrintStr, " %s", pPinOut->pName);
+            int expressionLength = sprintf(pPrintStr, " %s", MiMo_GateOutRenamer(pPinOut));
             if (expressionLength + addedLength + 2 > IO_WRITE_LINE_LENGTH) {
                 fprintf(pFile, " \\\n");
                 addedLength = 0;

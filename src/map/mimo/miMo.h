@@ -187,6 +187,8 @@ extern void MiMo_DelayListSetDelay(MiMo_PinOut_t* pPinOut, MiMo_PinDelay_t* pLas
 extern int MiMo_DelayListAdd(MiMo_Gate_t* pGate, MiMo_PinOut_t* pToPinOut, char* pFromPinStr);
 extern int MiMo_LibCheck(MiMo_Library_t* pLib);
 extern void MiMo_GateCalcMaxDelay(MiMo_Gate_t* pGate);
+extern char* MiMo_GateInRenamer(MiMo_PinIn_t* pPinIn);
+extern char* MiMo_GateOutRenamer(MiMo_PinOut_t* pPinOut);
 
 ABC_NAMESPACE_HEADER_END
 
