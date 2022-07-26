@@ -102,7 +102,8 @@ Cm_Obj_t* Cm_ManBalanceCut(Cm_Man_t* p, Cm_Obj_t* pObj) {
     int balancedDepth = Hop_ManCountLevels(pN);
     Hop_ManStop(pHm);
     if (balancedDepth < d && d >= 2 && balancedDepth > 0) {
-        Cm_PrintBestCut(pObj);
+        if (p->pPars->fVerbose)
+            Cm_PrintBestCut(pObj);
         pHopRoot = Hop_ObjFanin0(Hop_ManPo(pN, 0));
         // get last element in equivalence list
         Cm_Obj_t* pPre = pObj;
@@ -121,8 +122,10 @@ Cm_Obj_t* Cm_ManBalanceCut(Cm_Man_t* p, Cm_Obj_t* pObj) {
         Cm_Obj_t* pNodes[128];
         pNodes[1] = pEq;
         Cm_FaBuildWithMaximumDepth(pNodes, balancedDepth);
-        Cm_PrintFa(pNodes, balancedDepth);
-        Cm_PrintBestCut(pEq);
+        if (p->pPars->fVerbose) {
+            Cm_PrintFa(pNodes, balancedDepth);
+            Cm_PrintBestCut(pEq);
+        }
         // add node
         pPre->pEquiv = pEq;
         pEqCut = pEq;

@@ -102,6 +102,7 @@ Abc_Ntk_t* Abc_NtkCm(Abc_Ntk_t* pNtk, Cm_Par_t* pPars) {
     pCmMan->pOrderedOutputPins = pOrderedOutputPins;
     // perform macpping
     Cm_ManPerformMapping(pCmMan);
+
     if (pPars->fVeryVerbose)
         Cm_PrintAigStructure(pCmMan, 10);
 
