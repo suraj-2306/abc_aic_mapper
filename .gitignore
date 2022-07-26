@@ -1,6 +1,8 @@
 Buildir
 Testing
 clang-format-all
+compile_commands.json
+.cache
 
 DebugLib/
 DebugExe/

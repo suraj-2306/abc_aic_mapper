@@ -148,7 +148,16 @@ void Cm_ManCalcRequiredStructural(Cm_Man_t* p) {
                 pArrival[i] = ar;
         }
     }
+    if (p->pPars->fVeryVerbose) {
+        printf("Arrival time array\n");
+        for (int i = 0; i <= p->nLevelMax; i++) {
+            printf("%3.1f ", pArrival[i]);
+        }
+        printf("\n\n");
+    }
+
     float circuitArrival = pArrival[p->nLevelMax] * p->pPars->ArrivalRelaxFactor;
+
     // set required time to at least arrival time
     // this ensures that every slack can be respected, even if some nodes may not be usefull on
     // critical path
@@ -170,6 +179,9 @@ void Cm_ManCalcRequiredStructural(Cm_Man_t* p) {
                 pObj->pFanin2->iTemp = pObj->iTemp + 1;
         }
     }
+    if (p->pPars->fVeryVerbose)
+        Cm_PrintAllRequired(p);
+
     ABC_FREE(pArrival);
 }
 

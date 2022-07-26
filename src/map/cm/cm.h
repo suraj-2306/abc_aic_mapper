@@ -326,6 +326,7 @@ extern void Cm_PrintBestCut(Cm_Obj_t* pObj);
 extern void Cm_PrintBestCutStats(Cm_Man_t* p);
 extern void Cm_PrintCoArrival(Cm_Man_t* pObj);
 extern void Cm_PrintCiRequired(Cm_Man_t* pObj);
+extern void Cm_PrintAllRequired(Cm_Man_t* pObj);
 /*=== cmRequired.c ===================================================*/
 extern void Cm_ManCalcVisibleRequired(Cm_Man_t* p);
 extern void Cm_ManSetInvisibleRequired(Cm_Man_t* p);

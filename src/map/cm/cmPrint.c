@@ -285,5 +285,23 @@ void Cm_PrintCiRequired(Cm_Man_t* p) {
         printf(" %3.1f", pObj->Required);
     printf("\n");
 }
+/**Function*************************************************************
 
+  Synopsis    [Prints for the required time for all the nodes.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintAllRequired(Cm_Man_t* p) {
+    int i;
+    Cm_Obj_t* pObj;
+    printf("Required time for all nodes \n");
+    Cm_ManForEachNode(p, pObj, i)
+        printf("Node %d: %3.1f\n", i, pObj->Required);
+    printf("\n");
+}
 ABC_NAMESPACE_IMPL_END
