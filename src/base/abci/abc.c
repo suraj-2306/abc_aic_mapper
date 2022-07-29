@@ -17938,7 +17938,7 @@ static int Abc_CommandCm(Abc_Frame_t* pAbc, int argc, char** argv) {
     Cm_ManSetDefaultPars(pPars);
     int c;
     Extra_UtilGetoptReset();
-    while ((c = Extra_UtilGetopt(argc, argv, "DAarcHEWbtvwpdSsRTh")) != EOF) {
+    while ((c = Extra_UtilGetopt(argc, argv, "DAarcHEWbtvwpdSsRThkV")) != EOF) {
         switch (c) {
             case 'D':
                 if (globalUtilOptind >= argc) {
@@ -18056,6 +18056,20 @@ static int Abc_CommandCm(Abc_Frame_t* pAbc, int argc, char** argv) {
             case 'h':
                 goto usage;
                 break;
+            case 'k':
+                if (globalUtilOptind >= argc) {
+                    Abc_Print(-1, "Command line switch \"-k\" should be followed by a floating point number.\n");
+                    goto usage;
+                }
+                pPars->AreaFactor= (float)atof(argv[globalUtilOptind]);
+                globalUtilOptind++;
+                if (pPars->AreaFactor <= 0.0 && pPars->AreaFactor > 1)
+                    goto usage;
+                break;
+             case 'V':
+                pPars->fVerboseCSV^=1;
+              
+                break;   
             default:
                 goto usage;
         }
@@ -18148,7 +18162,9 @@ usage:;
     Abc_Print(-2, "\t-v        toggle verbose output [default = %s]\n", pPars->fVerbose ? "yes" : "no");
     Abc_Print(-2, "\t-w        toggle very verbose output [default = %s]\n", pPars->fVeryVerbose ? "yes" : "no");
     Abc_Print(-2, "\t-t        run extra validity checks [default = %s]\n", pPars->fExtraValidityChecks ? "yes" : "no");
+    Abc_Print(-2, "\t-k        define the AreaFactor [default = %f]\n",pPars->AreaFactor);
     Abc_Print(-2, "\t-h        print the command usage\n");
+    Abc_Print(-2, "\t-V        toggle the usage of CSV files for print statistics\n");
     return 1;
 }
 

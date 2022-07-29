@@ -207,25 +207,11 @@ void Cm_PrintBestCut(Cm_Obj_t* pObj) {
 
 ***********************************************************************/
 void Cm_PrintBestCutStats(Cm_Man_t* p) {
-    int enumerator;
-    Cm_Obj_t* pObj;
-    int cnt[CM_MAX_DEPTH + 1];
-    for (int i = 0; i <= CM_MAX_DEPTH; i++)
-        cnt[i] = 0;
-    Cm_ManForEachNode(p, pObj, enumerator) if ((pObj->fMark & CM_MARK_VISIBLE))
-        cnt[pObj->BestCut.Depth]++;
-    int nGates = 0;
-    float area = 0;
-    for (int i = 1; i <= p->pPars->nConeDepth; i++) {
-        nGates += cnt[i] * ((1 << i) - 1);
-        area += cnt[i] * p->pPars->AicArea[i];
-    }
-    printf("Number of cones (depth: #):");
-    for (int i = 0; i <= CM_MAX_DEPTH; i++)
-        printf(" (%d %d)", i, cnt[i]);
+    Cm_ManAreaAnal_t* paAnal = Cm_ManGetAreaMetrics(p);
+
     printf("\n");
-    printf("\tgateCount: %d\n", nGates);
-    printf("\tarea: %3.1f\n", area);
+    printf("\tgateCount: %d\n", paAnal->GateCountAll);
+    printf("\tarea: %3.1f\n", paAnal->GateAreaAll);
 }
 
 /**Function*************************************************************
@@ -304,4 +290,50 @@ void Cm_PrintAllRequired(Cm_Man_t* p) {
         printf("Node %d: %3.1f\n", i, pObj->Required);
     printf("\n");
 }
+/**Function*************************************************************
+
+  Synopsis    [Prints for the Area Information along with the AreaFactor chosen ]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintAreaMetrics(Cm_Man_t* p) {
+    Cm_ManAreaAnal_t* paAnal = Cm_ManGetAreaMetrics(p);
+    printf("Area Metrics:\n");
+    printf("Area Factor: %f\n", p->pPars->AreaFactor);
+    printf("\tTotal gate area: %.1f\n", paAnal->GateAreaAll);
+    printf("\tTotal gate count: %d\n", paAnal->GateCountAll);
+    printf("\tThe number of gates used depth wise:\n \t\t");
+    for (int i = 0; i < p->pPars->nConeDepth; i++) {
+        printf("%d:%d\n\t\t", p->pPars->nConeDepth - i + 1, paAnal->GateCount[i]);
+    }
+    printf("\n");
+
+    if (p->pPars->fVerboseCSV) {
+    }
+}
+/**Function*************************************************************
+
+  Synopsis    [Prints for the Area Information along with the AreaFactor chosen in a CSV file ]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
+    Cm_ManAreaAnal_t* paAnal = Cm_ManGetAreaMetrics(p);
+    FILE* fpt;
+    fpt = fopen("AreaMetrics.csv", "w+");
+    fprintf(fpt, "Area Factor, Gate count, Gate area\n");
+    fprintf(fpt, "%1.1f, %.1f, %d", p->pPars->AreaFactor, paAnal->GateAreaAll, paAnal->GateCountAll);
+    fclose(fpt);
+}
+
 ABC_NAMESPACE_IMPL_END

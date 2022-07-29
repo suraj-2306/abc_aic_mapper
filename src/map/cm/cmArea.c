@@ -299,6 +299,8 @@ float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t* p, Cm_Obj_t** pNodes, float late
     const int maxNodeSize = (2 << depth);
     float eps = p->pPars->Epsilon;
     float af[maxNodeSize];
+    float slack;
+    float areaFactor = p->pPars->AreaFactor;
     // count number of occurences in iTemp
     for (int i = 1; i < (2 << depth); i++)
         if (pNodes[i])
@@ -307,8 +309,10 @@ float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t* p, Cm_Obj_t** pNodes, float late
         if (pNodes[i])
             pNodes[i]->iTemp++;
     for (int i = 1; i < (2 << depth); i++)
-        if (pNodes[i])
-            af[i] = pNodes[i]->BestCut.AreaFlow / pNodes[i]->iTemp;
+        if (pNodes[i]) {
+            slack = Cm_ManLatestCoArrival(p) - pNodes[i]->Required;
+            af[i] = (pNodes[i]->BestCut.AreaFlow / pNodes[i]->iTemp) + areaFactor * slack;
+        }
     // iterate now bottom up through the cone to optimize area flow
     // nodes are replaced by parent if area flow is [locally] decreased
     for (int cdepth = depth - 1; cdepth > 0; cdepth--) {

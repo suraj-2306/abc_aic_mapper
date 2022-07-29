@@ -234,4 +234,35 @@ float Cm_ObjSoArrival(Cm_Obj_t* pObj, float* coneDelay) {
     return latestArrival + coneDelay[maxDepth];
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Calculation of area metrics]
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Cm_ManAreaAnal_t* Cm_ManGetAreaMetrics(Cm_Man_t* p) {
+    Cm_ManAreaAnal_t* paAnal = ABC_ALLOC(Cm_ManAreaAnal_t, 1);
+    int enumerator;
+    Cm_Obj_t* pObj;
+    for (int i = 0; i <= CM_MAX_DEPTH; i++)
+        paAnal->GateCount[i] = 0;
+    Cm_ManForEachNode(p, pObj, enumerator) if ((pObj->fMark & CM_MARK_VISIBLE))
+        paAnal->GateCount[pObj->BestCut.Depth]++;
+    paAnal->GateAreaAll = 0;
+    paAnal->GateCountAll = 0;
+    for (int i = 1; i <= p->pPars->nConeDepth; i++) {
+        paAnal->GateCountAll += paAnal->GateCount[i] * ((1 << i) - 1);
+        paAnal->GateAreaAll += paAnal->GateCount[i] * p->pPars->AicArea[i];
+    }
+    for (int i = 1; i <= p->pPars->nConeDepth; i++) {
+        paAnal->GateArea[i] = paAnal->GateCount[i] * p->pPars->AicArea[i];
+    }
+    return paAnal;
+}
+
 ABC_NAMESPACE_IMPL_END

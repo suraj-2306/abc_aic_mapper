@@ -94,6 +94,7 @@ typedef struct Cm_Par_t_ Cm_Par_t;
 typedef struct Cm_Man_t_ Cm_Man_t;
 typedef struct Cm_Obj_t_ Cm_Obj_t;
 typedef struct Cm_Cut_t_ Cm_Cut_t;
+typedef struct Cm_ManAreaAnal_t_ Cm_ManAreaAnal_t;
 
 struct Cm_Par_t_ {
     int nConeDepth;           // cone depth to map for
@@ -120,6 +121,8 @@ struct Cm_Par_t_ {
     MiMo_Library_t* pMiMoLib;
     float* pCiArrival;
     float* pCoRequired;
+    float AreaFactor;
+    int fVerboseCSV;
 };
 
 struct Cm_Man_t_ {
@@ -140,6 +143,15 @@ struct Cm_Man_t_ {
     MiMo_Gate_t* pConeGates[CM_MAX_DEPTH + 1];
     Vec_Ptr_t* pOrderedInputPins;
     Vec_Ptr_t* pOrderedOutputPins;
+    float aTotalArea;
+    float aTotalUsedGates;
+};
+
+struct Cm_ManAreaAnal_t_ {
+    int GateCount[CM_MAX_DEPTH + 1];  //Array of number of used gates in the total mapping
+    int GateCountAll;                 //Sum of all used gates in the mapping
+    float GateArea[CM_MAX_DEPTH + 1]; //Array of area of used gates in the total mapping
+    float GateAreaAll;                //Sum of areas of all used gates in the mapping
 };
 
 struct Cm_Cut_t_ {
@@ -327,6 +339,8 @@ extern void Cm_PrintBestCutStats(Cm_Man_t* p);
 extern void Cm_PrintCoArrival(Cm_Man_t* pObj);
 extern void Cm_PrintCiRequired(Cm_Man_t* pObj);
 extern void Cm_PrintAllRequired(Cm_Man_t* pObj);
+extern void Cm_PrintAreaMetrics(Cm_Man_t* pObj);
+extern void Cm_PrintAreaMetricsCSV(Cm_Man_t* pObj);
 /*=== cmRequired.c ===================================================*/
 extern void Cm_ManCalcVisibleRequired(Cm_Man_t* p);
 extern void Cm_ManSetInvisibleRequired(Cm_Man_t* p);
@@ -348,6 +362,7 @@ extern float Cm_CutLeafAreaFlowSum(Cm_Cut_t* pCut);
 extern float Cm_ManCutAreaFlow(Cm_Man_t* p, Cm_Cut_t* pCut);
 extern void Cm_CutCopy(Cm_Cut_t* pFrom, Cm_Cut_t* pTo);
 extern float Cm_ObjSoArrival(Cm_Obj_t* pObj, float* coneDelay);
+extern Cm_ManAreaAnal_t* Cm_ManGetAreaMetrics(Cm_Man_t* p);
 ABC_NAMESPACE_HEADER_END
 
 #endif

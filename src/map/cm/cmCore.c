@@ -63,7 +63,9 @@ void Cm_ManSetDefaultPars(Cm_Par_t* pPars) {
     pPars->ArrivalRelaxFactor = (float)1.0;
     pPars->Epsilon = (float)0.005;
     pPars->WireDelay = (float)0;
+    pPars->AreaFactor = 0;
     pPars->nMaxCycleDetectionRecDepth = 5;
+    pPars->fVerboseCSV = 0;
 }
 
 /**Function*************************************************************
@@ -305,6 +307,8 @@ int Cm_ManPerformMapping(Cm_Man_t* p) {
                 Cm_TestPositiveSlacks(p, 1);
         }
     }
+    if (p->pPars->fVerboseCSV)
+        Cm_PrintAreaMetricsCSV(p);
     return 0;
 }
 
