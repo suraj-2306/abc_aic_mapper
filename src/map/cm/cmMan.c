@@ -51,6 +51,85 @@ Cm_Obj_t* Cm_ManSetupObj(Cm_Man_t* p) {
     Vec_PtrPush(p->vObjs, pObj);
     return pObj;
 }
+/**Function*************************************************************
+
+  Synopsis    [Creates a Cm_Man_t from an already existing instance ]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Cm_Man_t* Cm_ManStartFromCo(Cm_Man_t* p, Vec_Ptr_t* vCoTemp) {
+    Cm_Man_t* pNew = ABC_ALLOC(Cm_Man_t, 1);
+    int i;
+    Cm_Obj_t* pObjTemp;
+    Vec_Ptr_t *vNodes, *vTemp;
+    // memset(p, 0, sizeof(Cm_Man_t));
+    // pNew = p;
+
+    // Cm_ManForEachObj(p, pObj, i) {
+    //     if (pObj->Type == CM_AND)
+    //         printf("as\n");
+    //     pObj = NULL;
+    // }
+    // Vec_PtrFree(pNew->vObjs);
+    // pNew->vObjs = Vec_PtrAlloc(100);
+    pNew->pName = p->pName;
+    pNew->pPars = p->pPars;
+    pNew->pConst1 = p->pConst1;
+    pNew->vObjs = Vec_PtrAlloc(10);
+    pNew->vCis = Vec_PtrAlloc(10);
+    pNew->vCos = Vec_PtrAlloc(10);
+    for (i = 0; i < CM_VOID; i++)
+        //     pNew->nObjs[i] = p->nObjs[i];
+        pNew->nObjs[i] = 0;
+    pNew->nLevelMax = p->nLevelMax;
+    pNew->nObjBytes = sizeof(Cm_Obj_t);
+    pNew->pMemObj = Mem_FixedStart(sizeof(Cm_Obj_t));
+    for (i = 0; i < CM_MAX_DEPTH + 1; i++) {
+        pNew->pConeGates[i] = p->pConeGates[i];
+    }
+    pNew->pOrderedInputPins = Vec_PtrAlloc(10);
+    pNew->pOrderedOutputPins = Vec_PtrAlloc(10);
+    pNew->vTravIds = Vec_IntAlloc(10);
+    pNew->nTravIds = 0;
+    pNew->aTotalArea = 0;
+    pNew->aTotalUsedGates = 0;
+
+    // Cm_Obj_t* ptemp = vCo->pArray[0];
+    // Vec_PtrForEachEntry(Vec_Ptr_t*, vCoTemp, vTemp, i)
+    //     Vec_PtrPush(pNew->vCos, vCoTemp->pArray[i]);
+
+    // Cm_ManForEachCo(pNew, pObjTemp, i) {
+    // pObjTemp = (Cm_Obj_t*)vCoTemp->pArray[0];
+    Vec_PtrForEachEntry(Vec_Ptr_t*, vCoTemp, vTemp, i) {
+        pObjTemp = (Cm_Obj_t*)vTemp;
+        vNodes = Cm_ManDfs(pNew, vCoTemp);
+    }
+
+    Vec_PtrForEachEntry(Vec_Ptr_t*, vNodes, vTemp, i) {
+        pObjTemp = (Cm_Obj_t*)vTemp;
+        Vec_PtrPush(pNew->vObjs, vNodes->pArray[i]);
+        if (pObjTemp->Type == CM_CI) {
+            Vec_PtrPush(pNew->vCis, vNodes->pArray[i]);
+            pNew->nObjs[CM_CI]++;
+        } else if (pObjTemp->Type == CM_AND)
+            pNew->nObjs[CM_AND]++;
+    }
+
+    Vec_PtrForEachEntry(Vec_Ptr_t*, vCoTemp, vTemp, i)
+        Cm_ManCreateCo(pNew, (Cm_Obj_t*)vTemp);
+    // Vec_PtrForEachEntry(Vec_Ptr_t*, vCoTemp, vTemp, i) {
+    //     pObjTemp = (Cm_Obj_t*)vTemp;
+    // }
+    // Cm_ManCreateCo(pNew, pNew->vCos->pArray[0]);
+    Cm_ManSortById(pNew);
+    // Cm_PrintAigStructure(pNew, 10);
+    return pNew;
+}
 
 /**Function*************************************************************
 
@@ -158,7 +237,38 @@ Cm_Obj_t* Cm_ManCreateCo(Cm_Man_t* p, Cm_Obj_t* pDriver) {
     p->nObjs[CM_CO]++;
     return pObj;
 }
+/**Function*************************************************************
 
+  Synopsis    [Create the new node assuming it does not exist.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Cm_Obj_t* Cm_ManCreateBalanceAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1) {
+    Cm_Obj_t* pObj;
+
+    // get memory for the new object
+    pObj = Cm_ManSetupObj(p);
+    pObj->Type = CM_AND;
+    pObj->fRepr = 1;
+    pObj->fCompl0 = Cm_IsComplement(pFan0);
+    pFan0 = Cm_Regular(pFan0);
+    pObj->fCompl1 = Cm_IsComplement(pFan1);
+    pFan1 = Cm_Regular(pFan1);
+    pObj->pFanin0 = pFan0;
+    pObj->pFanin1 = pFan1;
+    pObj->pFanin2 = NULL;
+    pObj->fPhase = (pObj->fCompl0 ^ pFan0->fPhase) & (pObj->fCompl1 ^ pFan1->fPhase);
+    pObj->Level = 1 + CM_MAX(pFan0->Level, pFan1->Level);
+    if (p->nLevelMax < (int)pObj->Level)
+        p->nLevelMax = (int)pObj->Level;
+    p->nObjs[CM_AND]++;
+    return pObj;
+}
 /**Function*************************************************************
 
   Synopsis    [Create the new node assuming it does not exist.]

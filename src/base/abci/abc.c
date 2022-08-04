@@ -18091,8 +18091,8 @@ static int Abc_CommandCm(Abc_Frame_t* pAbc, int argc, char** argv) {
             Abc_Print(-1, "Strashing before cone mapping has failed.\n");
             return 1;
         }
-        pNtk = Abc_NtkBalance(pNtkRes = pNtk, 0, 0, 1);
-        Abc_NtkDelete(pNtkRes);
+        // pNtk = Abc_NtkBalance(pNtkRes = pNtk, 0, 0, 1);
+        // Abc_NtkDelete(pNtkRes);
         if (pNtk == NULL) {
             Abc_Print(-1, "Balancing before cone mapping has failed.\n");
             return 1;

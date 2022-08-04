@@ -265,4 +265,56 @@ Cm_ManAreaAnal_t* Cm_ManGetAreaMetrics(Cm_Man_t* p) {
     return paAnal;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Procedure used for sorting the nodes in decreasing order of levels.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Cm_NodeCompareLevelsDecrease(Cm_Obj_t* pp1, Cm_Obj_t* pp2) {
+    int Diff = pp1->Level - pp2->Level;
+    if (Diff > 0)
+        return -1;
+    if (Diff < 0)
+        return 1;
+    Diff = pp1->Id - pp2->Id;
+    if (Diff > 0)
+        return -1;
+    if (Diff < 0)
+        return 1;
+    return 0;
+}
+/**Function*************************************************************
+
+  Synopsis    [Inserts a new node in the order by levels.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Vec_Ptr_t* Cm_VecObjPushUniqueOrderByLevel(Vec_Ptr_t* p, Cm_Obj_t* pObj) {
+    Cm_Obj_t *pObj1, *pObj2;
+    int i;
+    if (Vec_PtrPushUnique(p, pObj))
+        return NULL;
+    // find the p of the node
+    for (i = p->nSize - 1; i > 0; i--) {
+        pObj1 = (Cm_Obj_t*)p->pArray[i];
+        pObj2 = (Cm_Obj_t*)p->pArray[i - 1];
+        if (pObj1->Level <= pObj2->Level)
+            break;
+        p->pArray[i] = pObj2;
+        p->pArray[i - 1] = pObj1;
+    }
+    return p;
+}
+
 ABC_NAMESPACE_IMPL_END

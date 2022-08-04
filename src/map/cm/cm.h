@@ -33,6 +33,7 @@
 #    include "misc/util/utilNam.h"
 #    include "misc/util/abc_global.h"
 #    include "aig/hop/hop.h"
+#    include "misc/vec/vecInt.h"
 
 #    include "cmMiMo.h"
 
@@ -92,6 +93,7 @@ typedef enum {
 
 typedef struct Cm_Par_t_ Cm_Par_t;
 typedef struct Cm_Man_t_ Cm_Man_t;
+typedef struct Cm_ManObjId_t_ Cm_ManObjId_t;
 typedef struct Cm_Obj_t_ Cm_Obj_t;
 typedef struct Cm_Cut_t_ Cm_Cut_t;
 typedef struct Cm_ManAreaAnal_t_ Cm_ManAreaAnal_t;
@@ -143,6 +145,8 @@ struct Cm_Man_t_ {
     MiMo_Gate_t* pConeGates[CM_MAX_DEPTH + 1];
     Vec_Ptr_t* pOrderedInputPins;
     Vec_Ptr_t* pOrderedOutputPins;
+    Vec_Int_t* vTravIds;
+    int nTravIds; // the unique traversal IDs of nodes
     float aTotalArea;
     float aTotalUsedGates;
 };
@@ -183,13 +187,13 @@ struct Cm_Obj_t_ {
     int nVisits;
     float nRefsEstimate; // estimation how often node will be used as MO (area recovery)
     float Required;      // time requirement on node
+    union {              // used as temporary storage for pointers
+        void* pCopy;
+        int iCopy;
+    };
     union {
         float fTemp; // used as temporary storage for calculations
         int iTemp;
-    };
-    union { // used as temporary storage for pointers
-        void* pCopy;
-        int iCopy;
     };
     unsigned fRepr;   // representative node over all equivalent nodes
     Cm_Obj_t* pEquiv; // choice nodes
@@ -197,10 +201,26 @@ struct Cm_Obj_t_ {
     Cm_Cut_t BestCut;
 };
 
-static inline Cm_Obj_t* Cm_Regular(Cm_Obj_t* p) { return (Cm_Obj_t*)((ABC_PTRUINT_T)(p) & ~01); }
-static inline Cm_Obj_t* Cm_Not(Cm_Obj_t* p) { return (Cm_Obj_t*)((ABC_PTRUINT_T)(p) ^ 01); }
+// working with the traversal ID
+static inline int Cm_ManObjNumMax(Cm_Man_t* p) { return Vec_PtrSize(p->vObjs); }
+static inline void Cm_ManIncrementTravId(Cm_Man_t* p) {
+    if (!p->vTravIds) {
+        p->vTravIds = Vec_IntAlloc(10);
+        Vec_IntFill(p->vTravIds, Cm_ManObjNumMax(p) + 500, 0);
+    }
+    p->nTravIds++;
+    assert(p->nTravIds < (1 << 30));
+}
+static inline unsigned Cm_ObjId(Cm_Obj_t* pObj) { return pObj->Id; }
+static inline int Cm_ManTravId(Cm_Man_t* p, Cm_Obj_t* pObj) { return Vec_IntGetEntry(p->vTravIds, Cm_ObjId(pObj)); }
+static inline void Cm_ObjSetTravId(Cm_Man_t* p, Cm_Obj_t* pObj, int TravId) { Vec_IntSetEntry(p->vTravIds, Cm_ObjId(pObj), TravId); }
+static inline void Cm_ObjSetTravIdCurrent(Cm_Man_t* p, Cm_Obj_t* pObj) { Cm_ObjSetTravId(p, pObj, p->nTravIds); }
+static inline int Cm_ManIsTravIdCurrent(Cm_Man_t* p, Cm_Obj_t* pObj) { return (Cm_ManTravId(p, pObj) == p->nTravIds); }
+
+static inline Cm_Obj_t* Cm_Regular(Cm_Obj_t* p) { return (Cm_Obj_t*)((ABC_PTRUINT_T)(p) & ~(ABC_PTRUINT_T)01); }
+static inline Cm_Obj_t* Cm_Not(Cm_Obj_t* p) { return (Cm_Obj_t*)((ABC_PTRUINT_T)(p) ^ (ABC_PTRUINT_T)01); }
 static inline Cm_Obj_t* Cm_NotCond(Cm_Obj_t* p, int c) { return (Cm_Obj_t*)((ABC_PTRUINT_T)(p) ^ (c)); }
-static inline int Cm_IsComplement(Cm_Obj_t* p) { return (int)(((ABC_PTRUINT_T)p) & 01); }
+static inline int Cm_IsComplement(Cm_Obj_t* p) { return (int)(((ABC_PTRUINT_T)p) & (ABC_PTRUINT_T)01); }
 
 static inline int Cm_ManCiNum(Cm_Man_t* p) { return p->nObjs[CM_CI]; }
 static inline int Cm_ManCoNum(Cm_Man_t* p) { return p->nObjs[CM_CO]; }
@@ -208,6 +228,8 @@ static inline int Cm_ManAndNum(Cm_Man_t* p) { return p->nObjs[CM_AND]; }
 static inline int Cm_ManObjNum(Cm_Man_t* p) { return Vec_PtrSize(p->vObjs); }
 
 static inline int Cm_ObjIsAnd(Cm_Obj_t* pObj) { return pObj ? pObj->Type == CM_AND : 0; }
+static inline int Cm_ObjIsCi(Cm_Obj_t* pObj) { return pObj ? pObj->Type == CM_CI : 0; }
+static inline int Cm_ObjIsCo(Cm_Obj_t* pObj) { return pObj ? pObj->Type == CM_CO : 0; }
 static inline Cm_Obj_t* Cm_ManCi(Cm_Man_t* p, int i) { return (Cm_Obj_t*)(Vec_PtrEntry(p->vCis, i)); }
 static inline Cm_Obj_t* Cm_ManCo(Cm_Man_t* p, int i) { return (Cm_Obj_t*)(Vec_PtrEntry(p->vCos, i)); }
 static inline void Cm_ObjSetCopy(Cm_Obj_t* pObj, void* pCopy) { pObj->pCopy = pCopy; }
@@ -303,6 +325,7 @@ extern float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t* p, Cm_Obj_t** pNodes, flo
 extern float Cm_ManMinimizeCutAreaFlowDirect3(Cm_Man_t* p, Cm_Obj_t** pNodes, float latestArrival, Cm_Cut_t* pCut);
 /*=== cmBalance.c ====================================================*/
 extern Cm_Obj_t* Cm_ManBalanceCut(Cm_Man_t* p, Cm_Obj_t* pObj);
+extern Cm_Man_t* Cm_ManBalance(Cm_Man_t* p);
 /*=== cmCore.c =======================================================*/
 extern void Cm_ManSetDefaultPars(Cm_Par_t* pPars);
 extern int Cm_ManPerformMapping(Cm_Man_t* p);
@@ -322,12 +345,16 @@ extern float Cm_FaLatestMoInputArrival(Cm_Obj_t** pFa, int depth);
 extern float Cm_Fa3LatestMoInputArrival(Cm_Obj_t** pFa, int depth);
 /*=== cmMan.c ========================================================*/
 extern Cm_Man_t* Cm_ManStart(Cm_Par_t* pPars);
+extern Cm_Man_t* Cm_ManStartFromCo(Cm_Man_t* p, Vec_Ptr_t* vCo);
 extern void Cm_ManStop(Cm_Man_t* p);
 extern Cm_Obj_t* Cm_ManCreateCi(Cm_Man_t* p);
 extern Cm_Obj_t* Cm_ManCreateCo(Cm_Man_t* p, Cm_Obj_t* pDriver);
 extern Cm_Obj_t* Cm_ManCreateAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1);
 extern Cm_Obj_t* Cm_ManCreateAnd3(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1, Cm_Obj_t* pFan2);
 extern Cm_Obj_t* Cm_ManCreateAndEq(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1);
+extern Vec_Ptr_t* Cm_ManDfs(Cm_Man_t* p, Vec_Ptr_t* vCoTemp);
+extern void Cm_ManSortById(Cm_Man_t* p);
+
 /*=== cmPrint.c ======================================================*/
 extern void Cm_PrintPars(Cm_Par_t* pPars);
 extern void Cm_PrintFa(Cm_Obj_t** pFaninArray, int depth);
@@ -363,6 +390,8 @@ extern float Cm_ManCutAreaFlow(Cm_Man_t* p, Cm_Cut_t* pCut);
 extern void Cm_CutCopy(Cm_Cut_t* pFrom, Cm_Cut_t* pTo);
 extern float Cm_ObjSoArrival(Cm_Obj_t* pObj, float* coneDelay);
 extern Cm_ManAreaAnal_t* Cm_ManGetAreaMetrics(Cm_Man_t* p);
+extern int Cm_NodeCompareLevelsDecrease(Cm_Obj_t* pObj1, Cm_Obj_t* pObj2);
+extern Vec_Ptr_t* Cm_VecObjPushUniqueOrderByLevel(Vec_Ptr_t* p, Cm_Obj_t* pObj);
 ABC_NAMESPACE_HEADER_END
 
 #endif
