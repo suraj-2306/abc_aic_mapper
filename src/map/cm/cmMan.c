@@ -32,6 +32,36 @@ static Cm_Obj_t* Cm_ManSetupObj(Cm_Man_t* p);
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
+unsigned Cm_HashKeyX(Vec_Ptr_t* vObjsCi, int TableSize) {
+    unsigned Key = 0;
+    int i;
+    Vec_Ptr_t* pNode;
+    //Need to update this to accomadate the actual ram cell configuration
+    Vec_PtrForEachEntry(Vec_Ptr_t*, vObjsCi, pNode, i) {
+        Key ^= Cm_Regular((Cm_Obj_t*)pNode)->Id * 7937;
+        Key ^= Cm_IsComplement((Cm_Obj_t*)pNode) * 911;
+    }
+    return Key % TableSize;
+}
+/**Function*************************************************************
+
+  Synopsis    [Add the Hash table for each output in terms of input]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static unsigned Cm_HashKey2(Cm_Obj_t* p0, Cm_Obj_t* p1, int TableSize) {
+    unsigned Key = 0;
+    Key ^= Cm_Regular(p0)->Id * 7937;
+    Key ^= Cm_Regular(p1)->Id * 2971;
+    Key ^= Cm_IsComplement(p0) * 911;
+    Key ^= Cm_IsComplement(p1) * 353;
+    return Key % TableSize;
+}
 /**Function*************************************************************
 
   Synopsis    [Prepares the memory for the next AIG node]
@@ -49,86 +79,41 @@ Cm_Obj_t* Cm_ManSetupObj(Cm_Man_t* p) {
     memset(pObj, 0, sizeof(Cm_Obj_t));
     pObj->Id = Vec_PtrSize(p->vObjs);
     Vec_PtrPush(p->vObjs, pObj);
+
+    //For fanout pins
+    pObj->pIfFanout = NULL;
+    pObj->pIfFanout = Vec_PtrAlloc(1);
+
     return pObj;
 }
+
 /**Function*************************************************************
 
   Synopsis    [Creates a Cm_Man_t from an already existing instance ]
 
-  Description []
+  Description [This function is called before the AND balancing stage
+  and it clears all the output and intermediate nodes]
                
   SideEffects []
 
   SeeAlso     []
 
 ***********************************************************************/
-Cm_Man_t* Cm_ManStartFromCo(Cm_Man_t* p, Vec_Ptr_t* vCoTemp) {
-    Cm_Man_t* pNew = ABC_ALLOC(Cm_Man_t, 1);
+void Cm_ManStartFromCo(Cm_Man_t* p) {
     int i;
     Cm_Obj_t* pObjTemp;
-    Vec_Ptr_t *vNodes, *vTemp;
-    // memset(p, 0, sizeof(Cm_Man_t));
-    // pNew = p;
 
-    // Cm_ManForEachObj(p, pObj, i) {
-    //     if (pObj->Type == CM_AND)
-    //         printf("as\n");
-    //     pObj = NULL;
-    // }
-    // Vec_PtrFree(pNew->vObjs);
-    // pNew->vObjs = Vec_PtrAlloc(100);
-    pNew->pName = p->pName;
-    pNew->pPars = p->pPars;
-    pNew->pConst1 = p->pConst1;
-    pNew->vObjs = Vec_PtrAlloc(10);
-    pNew->vCis = Vec_PtrAlloc(10);
-    pNew->vCos = Vec_PtrAlloc(10);
-    for (i = 0; i < CM_VOID; i++)
-        //     pNew->nObjs[i] = p->nObjs[i];
-        pNew->nObjs[i] = 0;
-    pNew->nLevelMax = p->nLevelMax;
-    pNew->nObjBytes = sizeof(Cm_Obj_t);
-    pNew->pMemObj = Mem_FixedStart(sizeof(Cm_Obj_t));
-    for (i = 0; i < CM_MAX_DEPTH + 1; i++) {
-        pNew->pConeGates[i] = p->pConeGates[i];
+    //Remove the output nodes from the objects array
+    Vec_PtrForEachEntry(Cm_Obj_t*, p->vObjs, pObjTemp, i) {
+        if (pObjTemp->Type == CM_CO)
+            Vec_PtrRemove(p->vObjs, p->vObjs->pArray[i--]);
     }
-    pNew->pOrderedInputPins = Vec_PtrAlloc(10);
-    pNew->pOrderedOutputPins = Vec_PtrAlloc(10);
-    pNew->vTravIds = Vec_IntAlloc(10);
-    pNew->nTravIds = 0;
-    pNew->aTotalArea = 0;
-    pNew->aTotalUsedGates = 0;
-
-    // Cm_Obj_t* ptemp = vCo->pArray[0];
-    // Vec_PtrForEachEntry(Vec_Ptr_t*, vCoTemp, vTemp, i)
-    //     Vec_PtrPush(pNew->vCos, vCoTemp->pArray[i]);
-
-    // Cm_ManForEachCo(pNew, pObjTemp, i) {
-    // pObjTemp = (Cm_Obj_t*)vCoTemp->pArray[0];
-    Vec_PtrForEachEntry(Vec_Ptr_t*, vCoTemp, vTemp, i) {
-        pObjTemp = (Cm_Obj_t*)vTemp;
-        vNodes = Cm_ManDfs(pNew, vCoTemp);
-    }
-
-    Vec_PtrForEachEntry(Vec_Ptr_t*, vNodes, vTemp, i) {
-        pObjTemp = (Cm_Obj_t*)vTemp;
-        Vec_PtrPush(pNew->vObjs, vNodes->pArray[i]);
-        if (pObjTemp->Type == CM_CI) {
-            Vec_PtrPush(pNew->vCis, vNodes->pArray[i]);
-            pNew->nObjs[CM_CI]++;
-        } else if (pObjTemp->Type == CM_AND)
-            pNew->nObjs[CM_AND]++;
-    }
-
-    Vec_PtrForEachEntry(Vec_Ptr_t*, vCoTemp, vTemp, i)
-        Cm_ManCreateCo(pNew, (Cm_Obj_t*)vTemp);
-    // Vec_PtrForEachEntry(Vec_Ptr_t*, vCoTemp, vTemp, i) {
-    //     pObjTemp = (Cm_Obj_t*)vTemp;
-    // }
-    // Cm_ManCreateCo(pNew, pNew->vCos->pArray[0]);
-    Cm_ManSortById(pNew);
-    // Cm_PrintAigStructure(pNew, 10);
-    return pNew;
+    //Create a temporary array for copying all the ouputs
+    p->vCosTemp = Vec_PtrAllocArrayCopy(p->vCos->pArray, p->vCos->nSize);
+    //Free the current array to be populated after the balancing
+    ABC_FREE(p->vCos);
+    p->nObjs[CM_CO] = 0;
+    p->vCos = Vec_PtrAlloc(10);
 }
 
 /**Function*************************************************************
@@ -162,6 +147,18 @@ Cm_Man_t* Cm_ManStart(Cm_Par_t* pPars) {
     p->nObjs[CM_CI] = p->nObjs[CM_CO] = p->nObjs[CM_AND] = 0;
     // additional init
     p->nObjBytes = sizeof(Cm_Obj_t);
+    //Hash table entries
+    p->nBins = Abc_PrimeCudd(10000);
+    p->pBins = ABC_ALLOC(Cm_Obj_t*, p->nBins);
+    memset(p->pBins, 0, sizeof(Cm_Obj_t*) * p->nBins);
+
+    p->nBinsBal = Abc_PrimeCudd(10000);
+    p->pBinsBal = ABC_ALLOC(Vec_Ptr_t*, p->nBinsBal);
+    int i;
+    for (i = 0; i < 10000; i++)
+        p->pBinsBal[i] = Vec_PtrAlloc(1);
+    memset(p->pBinsBal, 0, sizeof(Vec_Ptr_t*) * p->nBinsBal);
+    p->vRefNodes = Vec_PtrAlloc(1);
     return p;
 }
 
@@ -235,6 +232,7 @@ Cm_Obj_t* Cm_ManCreateCo(Cm_Man_t* p, Cm_Obj_t* pDriver) {
     if (p->nLevelMax < (int)pObj->Level)
         p->nLevelMax = (int)pObj->Level;
     p->nObjs[CM_CO]++;
+    Vec_PtrPush(pObj->pFanin0->pIfFanout, pObj);
     return pObj;
 }
 /**Function*************************************************************
@@ -280,19 +278,23 @@ Cm_Obj_t* Cm_ManCreateBalanceAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1) 
   SeeAlso     []
 
 ***********************************************************************/
-Cm_Obj_t* Cm_ManCreateAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1) {
+Cm_Obj_t* Cm_ManCreateAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1, int fFirst) {
     Cm_Obj_t* pObj;
-    // perform constant propagation
-    if (pFan0 == pFan1)
-        return pFan0;
-    if (pFan0 == Cm_Not(pFan1))
-        return Cm_Not(p->pConst1);
-    if (Cm_Regular(pFan0) == p->pConst1)
-        return pFan0 == p->pConst1 ? pFan1 : Cm_Not(p->pConst1);
-    if (Cm_Regular(pFan1) == p->pConst1)
-        return pFan1 == p->pConst1 ? pFan0 : Cm_Not(p->pConst1);
-    // get memory for the new object
+    unsigned Key;
+    //perform constant propagation only if it is the first time that the and node is being formed
+    if (fFirst) {
+        if (pFan0 == pFan1)
+            return pFan0;
+        if (pFan0 == Cm_Not(pFan1))
+            return Cm_Not(p->pConst1);
+        if (Cm_Regular(pFan0) == p->pConst1)
+            return pFan0 == p->pConst1 ? pFan1 : Cm_Not(p->pConst1);
+        if (Cm_Regular(pFan1) == p->pConst1)
+            return pFan1 == p->pConst1 ? pFan0 : Cm_Not(p->pConst1);
+    }
     pObj = Cm_ManSetupObj(p);
+    // if (Cm_Regular(pFan0)->Id > Cm_Regular(pFan1)->Id)
+    //     pObj = pFan0, pFan0 = pFan1, pFan1 = pObj;
     pObj->Type = CM_AND;
     pObj->fRepr = 1;
     pObj->fCompl0 = Cm_IsComplement(pFan0);
@@ -311,9 +313,94 @@ Cm_Obj_t* Cm_ManCreateAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1) {
     if (p->nLevelMax < (int)pObj->Level)
         p->nLevelMax = (int)pObj->Level;
     p->nObjs[CM_AND]++;
+
+    //Adding fanout information
+    Vec_PtrPush(pObj->pFanin0->pIfFanout, pObj);
+    Vec_PtrPush(pObj->pFanin1->pIfFanout, pObj);
+
+    // add the node to the corresponding linked list in the table
+    Key = Cm_HashKey2(pFan0, pFan1, p->nBins);
+    pObj->pNext = p->pBins[Key];
+    p->pBins[Key] = pObj;
+    p->nEntries++;
+    pObj->pCopy = NULL;
+
+    //To indicate that the node is formed newly only the time it has been called by the balancing
+    if (!fFirst)
+        pObj->fMark |= CM_MARK_CO;
     return pObj;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Performs canonicization step.]
+
+  Description [The argument nodes can be complemented.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Cm_Obj_t* Cm_ManNodeLookup(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1) {
+    Cm_Obj_t* pObj;
+    unsigned Key;
+    // perform constant propagation
+    if (pFan0 == pFan1) {
+        //This is not the best way but since we are only calculating
+        //the total number of references this should be fine for now we can change it later if requried
+        return pFan0;
+    }
+    if (pFan0 == Cm_Not(pFan1))
+        return Cm_Not(p->pConst1);
+    if (Cm_Regular(pFan0) == p->pConst1)
+        return pFan0 == p->pConst1 ? pFan1 : Cm_Not(p->pConst1);
+    if (Cm_Regular(pFan1) == p->pConst1)
+        return pFan1 == p->pConst1 ? pFan0 : Cm_Not(p->pConst1);
+    {
+        int nFans0 = pFan0->pIfFanout->nSize;
+        int nFans1 = pFan1->pIfFanout->nSize;
+        if (nFans0 == 0 || nFans1 == 0)
+            return NULL;
+    }
+
+    // order the arguments
+    if (Cm_Regular(pFan0)->Id > Cm_Regular(pFan1)->Id)
+        pObj = pFan0, pFan0 = pFan1, pFan1 = pObj;
+    // get the hash key for these two nodes
+    Key = Cm_HashKey2(pFan0, pFan1, p->nBins);
+    // find the matching node in the table
+    Cm_ManBinForEachEntry(Cm_Obj_t*, p->pBins[Key], pObj) {
+        if (pFan0 == pObj->pFanin0 && pFan1 == pObj->pFanin1) {
+            // Vec_PtrPush(pFan1->pIfFanout, pObj);
+            // Vec_PtrPush(pFan0->pIfFanout, pObj);
+            return pObj;
+        }
+    }
+    return NULL;
+}
+/**Function*************************************************************
+
+  Synopsis    [Performs canonicization step.]
+
+  Description [The argument nodes can be complemented.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Cm_Obj_t* Cm_ManAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1) {
+    Cm_Obj_t* pObj;
+    if ((pObj = Cm_ManNodeLookup(p, pFan0, pFan1))) {
+        // This is to indicate that this could be a co created after balancing
+        pObj->fMark |= CM_MARK_COBAL;
+        return pObj;
+    }
+
+    pObj = Cm_ManCreateAnd(p, pFan0, pFan1, 0);
+    return pObj;
+}
 /**Function*************************************************************
 
   Synopsis    [Create a new 3-input node assuming it does not exist.]

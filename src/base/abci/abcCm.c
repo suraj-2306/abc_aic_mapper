@@ -159,7 +159,7 @@ Cm_Man_t* Abc_Ntk2ToCm(Abc_Ntk_t* pNtk, Cm_Par_t* pPars) {
         // add node
         pNode->pCopy = (Abc_Obj_t*)Cm_ManCreateAnd(pCmMan,
                                                    Cm_NotCond(Abc_ObjCmCopy(Abc_ObjFanin0(pNode)), pNode->fCompl0),
-                                                   Cm_NotCond(Abc_ObjCmCopy(Abc_ObjFanin1(pNode)), pNode->fCompl1));
+                                                   Cm_NotCond(Abc_ObjCmCopy(Abc_ObjFanin1(pNode)), pNode->fCompl1), 1);
         // note that the choices nodes are currently ignored
     }
     Extra_ProgressBarStop(pProgress);

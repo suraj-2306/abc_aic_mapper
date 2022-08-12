@@ -75,6 +75,8 @@ ABC_NAMESPACE_HEADER_START
 #    define CM_MARK_FIXED (16)
 #    define CM_MARK_LEAF_SUB (32)
 #    define CM_MARK_SEEN (64)
+#    define CM_MARK_COBAL (128)
+#    define CM_MARK_CO (256)
 
 /* Defines the type of the objects in the AIG  */
 typedef enum {
@@ -97,6 +99,17 @@ typedef struct Cm_ManObjId_t_ Cm_ManObjId_t;
 typedef struct Cm_Obj_t_ Cm_Obj_t;
 typedef struct Cm_Cut_t_ Cm_Cut_t;
 typedef struct Cm_ManAreaAnal_t_ Cm_ManAreaAnal_t;
+typedef struct Cm_Strash_t_ Cm_Strash_t;
+
+// the simple Strash manager for Cm
+struct Cm_Strash_t_ {
+    Cm_Man_t* p;        // the AIG network
+    Cm_Obj_t** pBins;   // the table bins
+    int nBins;          // the size of the table
+    int nEntries;       // the total number of entries in the table
+    Vec_Ptr_t* vNodes;  // the temporary array of nodes
+    Vec_Vec_t* vLevels; // the nodes to be updated
+};
 
 struct Cm_Par_t_ {
     int nConeDepth;           // cone depth to map for
@@ -131,11 +144,12 @@ struct Cm_Man_t_ {
     char* pName;
     Cm_Par_t* pPars;
     // nodes
-    Cm_Obj_t* pConst1;  // constant 1 node in AIG
-    Vec_Ptr_t* vObjs;   // all objects
-    Vec_Ptr_t* vCis;    // primary inputs
-    Vec_Ptr_t* vCos;    // primary outputs
-    int nObjs[CM_VOID]; // number of object by type
+    Cm_Obj_t* pConst1;   // constant 1 node in AIG
+    Vec_Ptr_t* vObjs;    // all objects
+    Vec_Ptr_t* vCis;     // primary inputs
+    Vec_Ptr_t* vCos;     // primary outputs
+    Vec_Ptr_t* vCosTemp; // temporary primary outputs
+    int nObjs[CM_VOID];  // number of object by type
     // additional
     int nLevelMax;
     int nObjBytes;
@@ -149,6 +163,20 @@ struct Cm_Man_t_ {
     int nTravIds; // the unique traversal IDs of nodes
     float aTotalArea;
     float aTotalUsedGates;
+
+    //Hash table entries
+    int nBins;              // the size of the table
+    int nEntries;           // the total number of entries in the table
+    Cm_Obj_t** pBins;       // the table bins
+    Vec_Ptr_t* vAddedCells; // the added nodes
+
+    //Hash table for balancing
+    int nBinsBal;         // the size of the table
+    int nEntriesBal;      // the total number of entries in the table
+    Vec_Ptr_t** pBinsBal; // the table bins
+    //List to hold the updated nodes after balancing
+    // These are the nodes refered during the and call in the balancing circuit
+    Vec_Ptr_t* vRefNodes;
 };
 
 struct Cm_ManAreaAnal_t_ {
@@ -199,6 +227,13 @@ struct Cm_Obj_t_ {
     Cm_Obj_t* pEquiv; // choice nodes
     unsigned fMark;   // used as temporary storage for marking/coloring
     Cm_Cut_t BestCut;
+    Vec_Ptr_t* pIfFanout; // the next pointer in the hash table
+
+    //Hash table entries
+    Cm_Obj_t* pNext; // the next pointer in the hash table
+
+    //Hash table entries
+    Vec_Ptr_t* pNextBal; // the next pointer in the hash table
 };
 
 // working with the traversal ID
@@ -219,8 +254,8 @@ static inline int Cm_ManIsTravIdCurrent(Cm_Man_t* p, Cm_Obj_t* pObj) { return (C
 
 static inline Cm_Obj_t* Cm_Regular(Cm_Obj_t* p) { return (Cm_Obj_t*)((ABC_PTRUINT_T)(p) & ~(ABC_PTRUINT_T)01); }
 static inline Cm_Obj_t* Cm_Not(Cm_Obj_t* p) { return (Cm_Obj_t*)((ABC_PTRUINT_T)(p) ^ (ABC_PTRUINT_T)01); }
-static inline Cm_Obj_t* Cm_NotCond(Cm_Obj_t* p, int c) { return (Cm_Obj_t*)((ABC_PTRUINT_T)(p) ^ (c)); }
-static inline int Cm_IsComplement(Cm_Obj_t* p) { return (int)(((ABC_PTRUINT_T)p) & (ABC_PTRUINT_T)01); }
+static inline Cm_Obj_t* Cm_NotCond(Cm_Obj_t* p, int c) { return (Cm_Obj_t*)((ABC_PTRUINT_T)(p) ^ (ABC_PTRUINT_T)(c != 0)); }
+static inline int Cm_IsComplement(Cm_Obj_t* p) { return (int)((ABC_PTRUINT_T)p & (ABC_PTRUINT_T)01); }
 
 static inline int Cm_ManCiNum(Cm_Man_t* p) { return p->nObjs[CM_CI]; }
 static inline int Cm_ManCoNum(Cm_Man_t* p) { return p->nObjs[CM_CO]; }
@@ -304,6 +339,8 @@ static inline MiMo_PinOut_t* Cm_ManGetOutputPin(Cm_Man_t* p, int coneDepth, int 
 // iterator over the primary outputs
 #    define Cm_ManForEachCo(p, pObj, i) \
         Vec_PtrForEachEntry(Cm_Obj_t*, p->vCos, pObj, i)
+#    define Cm_ManForEachCoTemp(p, pObj, i) \
+        Vec_PtrForEachEntry(Cm_Obj_t*, p->vCosTemp, pObj, i)
 #    define Cm_ManForEachObj(p, pObj, i) \
         Vec_PtrForEachEntry(Cm_Obj_t*, p->vObjs, pObj, i)
 // iterator over all objects in reverse topological order
@@ -313,6 +350,12 @@ static inline MiMo_PinOut_t* Cm_ManGetOutputPin(Cm_Man_t* p, int coneDepth, int 
 #    define Cm_ManForEachNode(p, pObj, i)                         \
         Cm_ManForEachObj(p, pObj, i) if (pObj->Type != CM_AND) {} \
         else
+
+// iterators through the entries in the linked lists of nodes
+#    define Cm_ManBinForEachEntry(Type, pBin, pEnt) \
+        for (pEnt = (Type)pBin;                     \
+             pEnt;                                  \
+             pEnt = (Type)pEnt->pNext)
 ////////////////////////////////////////////////////////////////////////
 ///                    FUNCTION DECLARATIONS                         ///
 ////////////////////////////////////////////////////////////////////////
@@ -345,16 +388,19 @@ extern float Cm_FaLatestMoInputArrival(Cm_Obj_t** pFa, int depth);
 extern float Cm_Fa3LatestMoInputArrival(Cm_Obj_t** pFa, int depth);
 /*=== cmMan.c ========================================================*/
 extern Cm_Man_t* Cm_ManStart(Cm_Par_t* pPars);
-extern Cm_Man_t* Cm_ManStartFromCo(Cm_Man_t* p, Vec_Ptr_t* vCo);
+extern void Cm_ManStartFromCo(Cm_Man_t* p);
 extern void Cm_ManStop(Cm_Man_t* p);
 extern Cm_Obj_t* Cm_ManCreateCi(Cm_Man_t* p);
 extern Cm_Obj_t* Cm_ManCreateCo(Cm_Man_t* p, Cm_Obj_t* pDriver);
-extern Cm_Obj_t* Cm_ManCreateAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1);
+extern Cm_Obj_t* Cm_ManAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1);
+extern Cm_Obj_t* Cm_ManCreateAnd(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1, int fFirst);
 extern Cm_Obj_t* Cm_ManCreateAnd3(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1, Cm_Obj_t* pFan2);
 extern Cm_Obj_t* Cm_ManCreateAndEq(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1);
-extern Vec_Ptr_t* Cm_ManDfs(Cm_Man_t* p, Vec_Ptr_t* vCoTemp);
+extern unsigned Cm_HashKeyX(Vec_Ptr_t* vObjsCi, int TableSize);
+// extern Vec_Ptr_t* Cm_ManDfs(Cm_Man_t* p, Vec_Ptr_t* vCoTemp);
 extern void Cm_ManSortById(Cm_Man_t* p);
-
+extern int Cm_ManNodeBalanceFindLeft(Vec_Ptr_t* vSuper);
+extern Cm_Obj_t* Cm_ManNodeLookup(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1);
 /*=== cmPrint.c ======================================================*/
 extern void Cm_PrintPars(Cm_Par_t* pPars);
 extern void Cm_PrintFa(Cm_Obj_t** pFaninArray, int depth);
@@ -389,9 +435,11 @@ extern float Cm_CutLeafAreaFlowSum(Cm_Cut_t* pCut);
 extern float Cm_ManCutAreaFlow(Cm_Man_t* p, Cm_Cut_t* pCut);
 extern void Cm_CutCopy(Cm_Cut_t* pFrom, Cm_Cut_t* pTo);
 extern float Cm_ObjSoArrival(Cm_Obj_t* pObj, float* coneDelay);
-extern Cm_ManAreaAnal_t* Cm_ManGetAreaMetrics(Cm_Man_t* p);
-extern int Cm_NodeCompareLevelsDecrease(Cm_Obj_t* pObj1, Cm_Obj_t* pObj2);
+extern ABC_DLL Cm_ManAreaAnal_t* Cm_ManGetAreaMetrics(Cm_Man_t* p);
+extern int Cm_NodeCompareLevelsDecrease(Cm_Obj_t** pObj1, Cm_Obj_t** pObj2);
 extern Vec_Ptr_t* Cm_VecObjPushUniqueOrderByLevel(Vec_Ptr_t* p, Cm_Obj_t* pObj);
+extern Cm_Obj_t* Cm_ObjCopy(Cm_Obj_t* pObj);
+
 ABC_NAMESPACE_HEADER_END
 
 #endif
