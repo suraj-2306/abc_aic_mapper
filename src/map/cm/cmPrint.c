@@ -329,11 +329,17 @@ void Cm_PrintAreaMetrics(Cm_Man_t* p) {
 ***********************************************************************/
 void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
     Cm_ManAreaAnal_t* paAnal = Cm_ManGetAreaMetrics(p);
-    FILE* fpt;
-    fpt = fopen("AreaMetrics.csv", "w+");
-    fprintf(fpt, "Area Factor, Gate count, Gate area\n");
-    fprintf(fpt, "%1.1f, %.1f, %d", p->pPars->AreaFactor, paAnal->GateAreaAll, paAnal->GateCountAll);
-    fclose(fpt);
+    if (paAnal->GateArea > 0) {
+        char* cAreaMetricsFileName = ABC_ALLOC(char, 1);
+        char* cAreaMetricsBaseName = ABC_ALLOC(char, 1);
+        sprintf(cAreaMetricsFileName, "%s_k%1.20fAreaMetrics.csv", p->pName, p->pPars->AreaFactor);
+        sprintf(cAreaMetricsBaseName, "%s_k%1.20f", p->pName, p->pPars->AreaFactor);
+        FILE* fpt;
+        fpt = fopen(cAreaMetricsFileName, "w+");
+        fprintf(fpt, "Area_Factor,Gate_count,Gate_area,FileName\n");
+        fprintf(fpt, "%1.20f,%.20f,%d,%s", p->pPars->AreaFactor, paAnal->GateAreaAll, paAnal->GateCountAll, cAreaMetricsBaseName);
+        fclose(fpt);
+    }
 }
 
 ABC_NAMESPACE_IMPL_END

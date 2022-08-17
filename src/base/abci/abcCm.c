@@ -95,7 +95,7 @@ Abc_Ntk_t* Abc_NtkCm(Abc_Ntk_t* pNtk, Cm_Par_t* pPars) {
     pPars->pCoRequired = Abc_NtkGetCoRequiredFloats(pNtk);
 
     Cm_Man_t* pCmMan = pPars->fThreeInputGates ? Abc_Ntk3ToCm(pNtk, pPars) : Abc_Ntk2ToCm(pNtk, pPars);
-    pCmMan = Cm_ManBalance(pCmMan);
+    // pCmMan = Cm_ManBalance(pCmMan);
 
     for (int i = 0; i <= CM_MAX_DEPTH; i++)
         pCmMan->pConeGates[i] = pConeGates[i];

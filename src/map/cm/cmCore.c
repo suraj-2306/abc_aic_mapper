@@ -171,6 +171,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p) {
             float bestAreaFlow = CM_FLOAT_LARGE;
             for (int d = minDepth; d <= maxDepth; d++) {
                 pNodes[1] = pObj;
+                //This gives the maximum depth possible for the current node
                 int cdepth = Cm_FaBuildWithMaximumDepth(pNodes, d);
                 if (cdepth < d)
                     break;
@@ -187,6 +188,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p) {
                 }
             }
             if (fUpdate)
+                //Add the slack part here when you get the better
                 pObj->BestCut.AreaFlow = bestAreaFlow / (pObj->nRefsEstimate);
             else
                 pObj->BestCut.AreaFlow = Cm_ManCutAreaFlow(p, &pObj->BestCut) / pObj->nRefsEstimate;

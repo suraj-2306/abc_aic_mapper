@@ -18058,7 +18058,7 @@ static int Abc_CommandCm(Abc_Frame_t* pAbc, int argc, char** argv) {
                 break;
             case 'k':
                 if (globalUtilOptind >= argc) {
-                    Abc_Print(-1, "Command line switch \"-k\" should be followed by a floating point number.\n");
+                    Abc_Print(-1, "Command line switch \"-k\" should be followed by a double floating point number.\n");
                     goto usage;
                 }
                 pPars->AreaFactor= (float)atof(argv[globalUtilOptind]);

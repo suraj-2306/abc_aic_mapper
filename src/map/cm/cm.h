@@ -136,7 +136,7 @@ struct Cm_Par_t_ {
     MiMo_Library_t* pMiMoLib;
     float* pCiArrival;
     float* pCoRequired;
-    float AreaFactor;
+    double AreaFactor;
     int fVerboseCSV;
 };
 
@@ -161,8 +161,8 @@ struct Cm_Man_t_ {
     Vec_Ptr_t* pOrderedOutputPins;
     Vec_Int_t* vTravIds;
     int nTravIds; // the unique traversal IDs of nodes
-    float aTotalArea;
-    float aTotalUsedGates;
+    double aTotalArea;
+    double aTotalUsedGates;
 
     //Hash table entries
     int nBins;              // the size of the table
