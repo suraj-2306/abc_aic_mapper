@@ -329,15 +329,32 @@ void Cm_PrintAreaMetrics(Cm_Man_t* p) {
 ***********************************************************************/
 void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
     Cm_ManAreaAnal_t* paAnal = Cm_ManGetAreaMetrics(p);
+    int i;
+    // Counting the number of individual gates
+    char* gateInfoString = ABC_ALLOC(char, 100);
+    char* cAreaMetricsFileName = ABC_ALLOC(char, 100);
+    char* cAreaMetricsBaseName = ABC_ALLOC(char, 100);
+    sprintf(gateInfoString, "%s", "");
+    sprintf(cAreaMetricsBaseName, "%s", "");
+    sprintf(cAreaMetricsFileName, "%s", "");
+
     if (paAnal->GateArea > 0) {
-        char* cAreaMetricsFileName = ABC_ALLOC(char, 1);
-        char* cAreaMetricsBaseName = ABC_ALLOC(char, 1);
         sprintf(cAreaMetricsFileName, "%s_k%1.20fAreaMetrics.csv", p->pName, p->pPars->AreaFactor);
         sprintf(cAreaMetricsBaseName, "%s_k%1.20f", p->pName, p->pPars->AreaFactor);
         FILE* fpt;
+
+        //Collecting the string which contains the usage of number of cones
+        for (i = 0; i < CM_MAX_DEPTH + 1; i++) {
+            sprintf(gateInfoString, "%s%d", gateInfoString, paAnal->GateCount[i]);
+            if (i < CM_MAX_DEPTH)
+                sprintf(gateInfoString, "%s,", gateInfoString);
+        }
+
         fpt = fopen(cAreaMetricsFileName, "w+");
-        fprintf(fpt, "Area_Factor,Gate_count,Gate_area,FileName\n");
-        fprintf(fpt, "%1.20f,%.20f,%d,%s", p->pPars->AreaFactor, paAnal->GateAreaAll, paAnal->GateCountAll, cAreaMetricsBaseName);
+        fprintf(fpt, "Area_Factor,Gate_area,Gate_count,FileName,");
+        fprintf(fpt, "cone_2,cone_3,cone_4,cone_5,cone_6\n");
+        fprintf(fpt, "%1.20f,%f,%d,%s", p->pPars->AreaFactor, paAnal->GateAreaAll, paAnal->GateCountAll, cAreaMetricsBaseName);
+        fprintf(fpt, "%s", gateInfoString);
         fclose(fpt);
     }
 }
