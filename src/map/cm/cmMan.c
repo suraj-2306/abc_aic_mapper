@@ -159,6 +159,7 @@ Cm_Man_t* Cm_ManStart(Cm_Par_t* pPars) {
         p->pBinsBal[i] = Vec_PtrAlloc(1);
     memset(p->pBinsBal, 0, sizeof(Vec_Ptr_t*) * p->nBinsBal);
     p->vRefNodes = Vec_PtrAlloc(1);
+    p->paAnal = ABC_CALLOC(Cm_ManAreaAnal_t, 1);
     return p;
 }
 

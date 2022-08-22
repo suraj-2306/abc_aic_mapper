@@ -433,6 +433,10 @@ MiMo_Cell_t* Cm_ManBuildCellWithInputs(Cm_Man_t* pCmMan, Cm_Obj_t* pCmObj, int f
     MiMo_Gate_t* pGate = pCmMan->pConeGates[depth];
     MiMo_Cell_t* pCell = (MiMo_Cell_t*)MiMo_CmCellFromFa(pGate, (void**)pFaninCone, fMoCompl);
 
+    //for area metrics calculation purposes
+    pCmMan->paAnal->CellCount[pGate->Depth - minDepth]++;
+    pCmMan->paAnal->CellArea[pGate->Depth - minDepth] += pGate->Area;
+
     for (int i = (1 << depth); i < (2 << depth); i++) {
         if (pFaninCone[i] && (pFaninCone[i]->fMark & CM_MARK_LEAF))
             MiMo_CellAddPinIn(pCell, Cm_ManGetInputPin(pCmMan, i), pFaninCone[i]->iTemp);
@@ -686,5 +690,9 @@ Abc_Ntk_t* Abc_NtkFromCm(Cm_Man_t* pCmMan, Abc_Ntk_t* pNtk) {
         pNode->fMarkA = 0;
         pNode->fMarkB = 0;
     }
+
+    //For area metric calclulation purposes
+    if (pCmMan->pPars->fVerboseCSV)
+        Cm_PrintAreaMetricsCSV(pCmMan);
     return pNtkNew;
 }

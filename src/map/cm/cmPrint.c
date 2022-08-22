@@ -207,11 +207,25 @@ void Cm_PrintBestCut(Cm_Obj_t* pObj) {
 
 ***********************************************************************/
 void Cm_PrintBestCutStats(Cm_Man_t* p) {
-    Cm_ManAreaAnal_t* paAnal = Cm_ManGetAreaMetrics(p);
-
+    int enumerator;
+    Cm_Obj_t* pObj;
+    int cnt[CM_MAX_DEPTH + 1];
+    for (int i = 0; i <= CM_MAX_DEPTH; i++)
+        cnt[i] = 0;
+    Cm_ManForEachNode(p, pObj, enumerator) if ((pObj->fMark & CM_MARK_VISIBLE))
+        cnt[pObj->BestCut.Depth]++;
+    int nGates = 0;
+    float area = 0;
+    for (int i = 1; i <= p->pPars->nConeDepth; i++) {
+        nGates += cnt[i] * ((1 << i) - 1);
+        area += cnt[i] * p->pPars->AicArea[i];
+    }
+    printf("Number of cones (depth: #):");
+    for (int i = 0; i <= CM_MAX_DEPTH; i++)
+        printf(" (%d %d)", i, cnt[i]);
     printf("\n");
-    printf("\tgateCount: %d\n", paAnal->GateCountAll);
-    printf("\tarea: %3.1f\n", paAnal->GateAreaAll);
+    printf("\tgateCount: %d\n", nGates);
+    printf("\tarea: %3.1f\n", area);
 }
 
 /**Function*************************************************************
@@ -301,15 +315,15 @@ void Cm_PrintAllRequired(Cm_Man_t* p) {
   SeeAlso     []
 
 ***********************************************************************/
-void Cm_PrintAreaMetrics(Cm_Man_t* p) {
-    Cm_ManAreaAnal_t* paAnal = Cm_ManGetAreaMetrics(p);
+void Cm_CalculateAreaMetrics(Cm_Man_t* p) {
+    Cm_ManGetAreaMetrics(p);
     printf("Area Metrics:\n");
     printf("Area Factor: %f\n", p->pPars->AreaFactor);
-    printf("\tTotal gate area: %.1f\n", paAnal->GateAreaAll);
-    printf("\tTotal gate count: %d\n", paAnal->GateCountAll);
+    printf("\tTotal gate area: %.1f\n", p->paAnal->CellAreaAll);
+    printf("\tTotal gate count: %d\n", p->paAnal->CellCountAll);
     printf("\tThe number of gates used depth wise:\n \t\t");
     for (int i = 0; i < p->pPars->nConeDepth; i++) {
-        printf("%d:%d\n\t\t", p->pPars->nConeDepth - i + 1, paAnal->GateCount[i]);
+        printf("%d:%d\n\t\t", p->pPars->nConeDepth - i + 1, p->paAnal->CellCount[i]);
     }
     printf("\n");
 
@@ -328,9 +342,9 @@ void Cm_PrintAreaMetrics(Cm_Man_t* p) {
 
 ***********************************************************************/
 void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
-    Cm_ManAreaAnal_t* paAnal = Cm_ManGetAreaMetrics(p);
     int i;
     // Counting the number of individual gates
+    Cm_ManGetAreaMetrics(p);
     char* gateInfoString = ABC_ALLOC(char, 100);
     char* cAreaMetricsFileName = ABC_ALLOC(char, 100);
     char* cAreaMetricsBaseName = ABC_ALLOC(char, 100);
@@ -338,25 +352,23 @@ void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
     sprintf(cAreaMetricsBaseName, "%s", "");
     sprintf(cAreaMetricsFileName, "%s", "");
 
-    if (paAnal->GateArea > 0) {
-        sprintf(cAreaMetricsFileName, "%s_k%1.20fAreaMetrics.csv", p->pName, p->pPars->AreaFactor);
-        sprintf(cAreaMetricsBaseName, "%s_k%1.20f", p->pName, p->pPars->AreaFactor);
-        FILE* fpt;
+    sprintf(cAreaMetricsFileName, "%s_k%1.20fAreaMetrics.csv", p->pName, p->pPars->AreaFactor);
+    sprintf(cAreaMetricsBaseName, "%s_k%1.20f", p->pName, p->pPars->AreaFactor);
+    FILE* fpt;
 
-        //Collecting the string which contains the usage of number of cones
-        for (i = 0; i < CM_MAX_DEPTH + 1; i++) {
-            sprintf(gateInfoString, "%s%d", gateInfoString, paAnal->GateCount[i]);
-            if (i < CM_MAX_DEPTH)
-                sprintf(gateInfoString, "%s,", gateInfoString);
-        }
-
-        fpt = fopen(cAreaMetricsFileName, "w+");
-        fprintf(fpt, "Area_Factor,Gate_area,Gate_count,FileName,");
-        fprintf(fpt, "cone_2,cone_3,cone_4,cone_5,cone_6\n");
-        fprintf(fpt, "%1.20f,%f,%d,%s", p->pPars->AreaFactor, paAnal->GateAreaAll, paAnal->GateCountAll, cAreaMetricsBaseName);
-        fprintf(fpt, "%s", gateInfoString);
-        fclose(fpt);
+    //Collecting the string which contains the usage of number of cones
+    for (i = 0; i < CM_MAX_DEPTH - 1; i++) {
+        sprintf(gateInfoString, "%s%d", gateInfoString, p->paAnal->CellCount[i]);
+        if (i < CM_MAX_DEPTH - 2)
+            sprintf(gateInfoString, "%s,", gateInfoString);
     }
+
+    fpt = fopen(cAreaMetricsFileName, "w+");
+    fprintf(fpt, "Area_Factor,Gate_area,Gate_count,FileName,");
+    fprintf(fpt, "cone_2,cone_3,cone_4,cone_5,cone_6\n");
+    fprintf(fpt, "%1.20f,%f,%d,%s,", p->pPars->AreaFactor, p->paAnal->CellAreaAll, p->paAnal->CellCountAll, cAreaMetricsBaseName);
+    fprintf(fpt, "%s", gateInfoString);
+    fclose(fpt);
 }
 
 ABC_NAMESPACE_IMPL_END

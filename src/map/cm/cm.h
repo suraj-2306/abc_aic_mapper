@@ -177,13 +177,16 @@ struct Cm_Man_t_ {
     //List to hold the updated nodes after balancing
     // These are the nodes refered during the and call in the balancing circuit
     Vec_Ptr_t* vRefNodes;
+
+    //For the area metrics and calculation purposes
+    Cm_ManAreaAnal_t* paAnal;
 };
 
 struct Cm_ManAreaAnal_t_ {
-    int GateCount[CM_MAX_DEPTH + 1];  //Array of number of used gates in the total mapping
-    int GateCountAll;                 //Sum of all used gates in the mapping
-    float GateArea[CM_MAX_DEPTH + 1]; //Array of area of used gates in the total mapping
-    float GateAreaAll;                //Sum of areas of all used gates in the mapping
+    int CellCount[CM_MAX_DEPTH];  //Array of number of used gates in the total mapping
+    int CellCountAll;             //Sum of all used gates in the mapping
+    float CellArea[CM_MAX_DEPTH]; //Array of area of used gates in the total mapping
+    float CellAreaAll;            //Sum of areas of all used gates in the mapping
 };
 
 struct Cm_Cut_t_ {
@@ -435,7 +438,7 @@ extern float Cm_CutLeafAreaFlowSum(Cm_Cut_t* pCut);
 extern float Cm_ManCutAreaFlow(Cm_Man_t* p, Cm_Cut_t* pCut);
 extern void Cm_CutCopy(Cm_Cut_t* pFrom, Cm_Cut_t* pTo);
 extern float Cm_ObjSoArrival(Cm_Obj_t* pObj, float* coneDelay);
-extern ABC_DLL Cm_ManAreaAnal_t* Cm_ManGetAreaMetrics(Cm_Man_t* p);
+extern ABC_DLL void Cm_ManGetAreaMetrics(Cm_Man_t* p);
 extern int Cm_NodeCompareLevelsDecrease(Cm_Obj_t** pObj1, Cm_Obj_t** pObj2);
 extern Vec_Ptr_t* Cm_VecObjPushUniqueOrderByLevel(Vec_Ptr_t* p, Cm_Obj_t* pObj);
 extern Cm_Obj_t* Cm_ObjCopy(Cm_Obj_t* pObj);

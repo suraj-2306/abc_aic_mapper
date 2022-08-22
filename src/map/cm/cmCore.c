@@ -309,8 +309,6 @@ int Cm_ManPerformMapping(Cm_Man_t* p) {
                 Cm_TestPositiveSlacks(p, 1);
         }
     }
-    if (p->pPars->fVerboseCSV)
-        Cm_PrintAreaMetricsCSV(p);
     return 0;
 }
 
