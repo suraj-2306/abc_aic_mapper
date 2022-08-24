@@ -240,6 +240,7 @@ char* MiMo_GateOutRenamer(MiMo_PinOut_t* pPinOutOld) {
     char pNewPinName[7] = {};
     // Basically handling the case for two digit numbers. Caution: To work with 3
     // digit numbers, you would have to change this function
+    assert(pPinOut.pName[5] != '\[');
     if (pPinOutOld->pName[4] == '\0')
         sprintf(pNewPinName, "out[%d]", pPinOutOld->pName[3] - 48);
     else
@@ -264,14 +265,13 @@ to in[7]]
 char* MiMo_GateInRenamer(MiMo_PinIn_t* pPinInOld) {
     MiMo_PinIn_t pPinIn = *pPinInOld;
     char pNewPinName[7] = {};
-    // TODO: Need to still implement a better mapping approach to handle NNC2 and
-    // NNC3 together
+    // TODO: Need to still implement a better mapping approach to handle NNC2 and NNC3 together
     if (pPinInOld->pName[3] == '\[')
         sprintf(pNewPinName, "in[%d]",
-                (pPinIn.pName[2] - 48) * 3 + (pPinIn.pName[4] - 48));
+                (pPinIn.pName[2] - 48) * 4 + (pPinIn.pName[4] - 48));
     else
         sprintf(pNewPinName, "in[%d]",
-                ((pPinIn.pName[2] - 48) * 10 + (pPinIn.pName[3] - 48)) * 3 + (pPinIn.pName[5] - 48));
+                ((pPinIn.pName[2] - 48) * 10 + (pPinIn.pName[3] - 48)) * 4 + (pPinIn.pName[5] - 48));
 
     pPinIn.pName = pNewPinName;
     return pPinIn.pName;

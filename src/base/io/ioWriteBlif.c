@@ -610,8 +610,7 @@ void Io_NtkWriteNodeMappingMO(FILE* pFile, Abc_Obj_t* pNode) {
     MiMo_CellPinOut_t* pCellPinOut = pCell->pPinOutList;
     while (pCellPinOut) {
         pFanout = Abc_ObjFanout(pNode, pCellPinOut->FanoutNetId);
-        // TODO: please fix the renamer
-        int expressionLength = sprintf(pPrintStr, " %s=%s", "out[0]", Abc_ObjName(pFanout));
+        int expressionLength = sprintf(pPrintStr, " %s=%s", MiMo_GateOutRenamer(pCellPinOut->pPinOut), Abc_ObjName(pFanout));
         if (expressionLength + addedLength + 3 > IO_WRITE_LINE_LENGTH) {
             fprintf(pFile, " \\\n");
             addedLength = 0;
