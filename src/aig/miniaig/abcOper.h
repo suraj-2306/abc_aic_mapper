@@ -29,7 +29,9 @@
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
+#ifndef _YOSYS_
 ABC_NAMESPACE_HEADER_START 
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
@@ -224,10 +226,34 @@ static inline const char * Abc_OperName( int Type )
     if ( Type == ABC_OPER_ZEROPAD      )   return "zPad";   
     if ( Type == ABC_OPER_SIGNEXT      )   return "sExt";   
 
+    if ( Type == ABC_OPER_BIT_MUX      )   return "mux";       
+    if ( Type == ABC_OPER_SEL_NMUX     )   return "nmux";   
+    if ( Type == ABC_OPER_SEL_SEL      )   return "pmux";   
+
     if ( Type == ABC_OPER_CONST        )   return "const";  
     if ( Type == ABC_OPER_TABLE        )   return "table";  
     if ( Type == ABC_OPER_LUT          )   return "lut";  
     if ( Type == ABC_OPER_LAST         )   return NULL;     
+    assert( 0 );
+    return NULL;
+}
+
+// printing operator types
+static inline const char * Abc_OperNameSimple( int Type )
+{
+    if ( Type == ABC_OPER_NONE         )   return NULL;  
+    if ( Type == ABC_OPER_CONST_F      )   return "buf";    
+    if ( Type == ABC_OPER_CONST_T      )   return "buf";    
+    if ( Type == ABC_OPER_CONST_X      )   return "buf";    
+    if ( Type == ABC_OPER_CONST_Z      )   return "buf";   
+    if ( Type == ABC_OPER_BIT_BUF      )   return "buf";    
+    if ( Type == ABC_OPER_BIT_INV      )   return "not";      
+    if ( Type == ABC_OPER_BIT_AND      )   return "and";      
+    if ( Type == ABC_OPER_BIT_OR       )   return "or";      
+    if ( Type == ABC_OPER_BIT_XOR      )   return "xor";      
+    if ( Type == ABC_OPER_BIT_NAND     )   return "nand";     
+    if ( Type == ABC_OPER_BIT_NOR      )   return "nor";     
+    if ( Type == ABC_OPER_BIT_NXOR     )   return "xnor";     
     assert( 0 );
     return NULL;
 }
@@ -244,9 +270,9 @@ static inline const char * Abc_OperName( int Type )
 ///                    FUNCTION DECLARATIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
-
+#ifndef _YOSYS_
 ABC_NAMESPACE_HEADER_END
-
+#endif
 
 #endif
 

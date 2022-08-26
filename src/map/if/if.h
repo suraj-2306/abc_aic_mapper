@@ -275,6 +275,8 @@ struct If_Man_t_
     void *             pUserMan;
     Vec_Int_t *        vDump;
     int                pDumpIns[16];
+    Vec_Str_t *        vMarks;
+    Vec_Int_t *        vVisited2;
 
     // timing manager
     Tim_Man_t *        pManTim;
@@ -564,7 +566,7 @@ extern If_DsdMan_t *   If_DsdManAlloc( int nVars, int nLutSize );
 extern void            If_DsdManAllocIsops( If_DsdMan_t * p, int nLutSize );
 extern void            If_DsdManPrint( If_DsdMan_t * p, char * pFileName, int Number, int Support, int fOccurs, int fTtDump, int fVerbose );
 extern void            If_DsdManTune( If_DsdMan_t * p, int LutSize, int fFast, int fAdd, int fSpec, int fVerbose );
-extern void            Id_DsdManTuneStr( If_DsdMan_t * p, char * pStruct, int nConfls, int nProcs, int fVerbose );
+extern void            Id_DsdManTuneStr( If_DsdMan_t * p, char * pStruct, int nConfls, int nProcs, int nInputs, int fVerbose );
 extern void            If_DsdManFree( If_DsdMan_t * p, int fVerbose );
 extern void            If_DsdManSave( If_DsdMan_t * p, char * pFileName );
 extern If_DsdMan_t *   If_DsdManLoad( char * pFileName );

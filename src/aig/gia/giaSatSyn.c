@@ -1,12 +1,12 @@
 /**CFile****************************************************************
 
-  FileName    [giaSim4.c]
+  FileName    [giaSyn.c]
 
   SystemName  [ABC: Logic synthesis and verification system.]
 
   PackageName [Scalable AIG package.]
 
-  Synopsis    [Simulation engine.]
+  Synopsis    [High-effort synthesis.]
 
   Author      [Alan Mishchenko]
   
@@ -14,17 +14,21 @@
 
   Date        [Ver. 1.0. Started - June 20, 2005.]
 
-  Revision    [$Id: giaSim4.c,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
+  Revision    [$Id: giaSyn.c,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
 
 #include "gia.h"
+#include "misc/util/utilTruth.h"
+#include "sat/glucose/AbcGlucose.h"
 
 ABC_NAMESPACE_IMPL_START
+
 
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
+ 
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -35,15 +39,16 @@ ABC_NAMESPACE_IMPL_START
   Synopsis    []
 
   Description []
-
+               
   SideEffects []
 
   SeeAlso     []
 
 ***********************************************************************/
-int Gia_Sim4Try( char * pFileName0, char * pFileName1, char * pFileName2, int nTimeout, int nWords, int nBeam, int LevL, int LevU, int fOrder, int fFancy, int fUseBuf, int fSkipMffc, int fVerbose )
+Gia_Man_t * Gia_ManSyn( Gia_Man_t * p, int nNodes, int nOuts, int nTimeLimit, int fUseXor, int fFancy, int fVerbose )
 {
-    return 0;
+    Gia_Man_t * pNew = NULL;
+    return pNew;
 }
 
 ////////////////////////////////////////////////////////////////////////

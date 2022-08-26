@@ -14,8 +14,11 @@ SRC +=    src/aig/gia/giaAig.c \
     src/aig/gia/giaCSatOld.c \
     src/aig/gia/giaCSat.c \
     src/aig/gia/giaCSat2.c \
+    src/aig/gia/giaCSat3.c \
+    src/aig/gia/giaCSatP.c \
     src/aig/gia/giaCTas.c \
     src/aig/gia/giaCut.c \
+    src/aig/gia/giaDecs.c \
     src/aig/gia/giaDeep.c \
     src/aig/gia/giaDfs.c \
     src/aig/gia/giaDup.c \
@@ -52,15 +55,21 @@ SRC +=    src/aig/gia/giaAig.c \
     src/aig/gia/giaMfs.c \
     src/aig/gia/giaMini.c \
     src/aig/gia/giaMinLut.c \
+    src/aig/gia/giaMinLut2.c \
     src/aig/gia/giaMuxes.c \
     src/aig/gia/giaNf.c \
     src/aig/gia/giaOf.c \
     src/aig/gia/giaPack.c \
     src/aig/gia/giaPat.c \
+    src/aig/gia/giaPat2.c \
     src/aig/gia/giaPf.c \
     src/aig/gia/giaQbf.c \
+    src/aig/gia/giaReshape1.c \
+    src/aig/gia/giaReshape2.c \
     src/aig/gia/giaResub.c \
     src/aig/gia/giaResub2.c \
+    src/aig/gia/giaResub3.c \
+    src/aig/gia/giaResub6.c \
     src/aig/gia/giaRetime.c \
     src/aig/gia/giaRex.c \
     src/aig/gia/giaSatEdge.c \
@@ -68,6 +77,7 @@ SRC +=    src/aig/gia/giaAig.c \
     src/aig/gia/giaSatLut.c \
     src/aig/gia/giaSatMap.c \
     src/aig/gia/giaSatoko.c \
+    src/aig/gia/giaSatSyn.c \
     src/aig/gia/giaSat3.c \
     src/aig/gia/giaScl.c \
     src/aig/gia/giaScript.c \
@@ -75,18 +85,19 @@ SRC +=    src/aig/gia/giaAig.c \
     src/aig/gia/giaShrink.c \
     src/aig/gia/giaShrink6.c \
     src/aig/gia/giaShrink7.c \
+    src/aig/gia/giaSif.c \
     src/aig/gia/giaSim.c \
     src/aig/gia/giaSim2.c \
-    src/aig/gia/giaSim4.c \
-    src/aig/gia/giaSim5.c \
     src/aig/gia/giaSimBase.c \
     src/aig/gia/giaSort.c \
     src/aig/gia/giaSpeedup.c \
     src/aig/gia/giaSplit.c \
     src/aig/gia/giaStg.c \
+    src/aig/gia/giaStoch.c \
     src/aig/gia/giaStr.c \
     src/aig/gia/giaSupMin.c \
     src/aig/gia/giaSupp.c \
+    src/aig/gia/giaSupps.c \
     src/aig/gia/giaSweep.c \
     src/aig/gia/giaSweeper.c \
     src/aig/gia/giaSwitch.c \

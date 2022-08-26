@@ -35,6 +35,22 @@ ABC_NAMESPACE_HEADER_START
 ///                         BASIC TYPES                              ///
 ////////////////////////////////////////////////////////////////////////
 
+static unsigned s_Truths5[6] = {
+    0xAAAAAAAA,
+    0xCCCCCCCC,
+    0xF0F0F0F0,
+    0xFF00FF00,
+    0xFFFF0000
+};
+
+static unsigned s_Truths5Neg[6] = {
+    0x55555555,
+    0x33333333,
+    0x0F0F0F0F,
+    0x00FF00FF,
+    0x0000FFFF
+};
+
 static word s_Truths6[6] = {
     ABC_CONST(0xAAAAAAAAAAAAAAAA),
     ABC_CONST(0xCCCCCCCCCCCCCCCC),
@@ -262,6 +278,12 @@ static inline void Abc_TtCopy( word * pOut, word * pIn, int nWords, int fCompl )
         for ( w = 0; w < nWords; w++ )
             pOut[w] = pIn[w];
 }
+static inline word * Abc_TtDup( word * pIn, int nWords, int fCompl )
+{
+    word * pOut = ABC_ALLOC( word, nWords );
+    Abc_TtCopy( pOut, pIn, nWords, fCompl );
+    return pOut;
+}
 static inline void Abc_TtAnd( word * pOut, word * pIn1, word * pIn2, int nWords, int fCompl )
 {
     int w;
@@ -322,11 +344,23 @@ static inline void Abc_TtOrXor( word * pOut, word * pIn1, word * pIn2, int nWord
     for ( w = 0; w < nWords; w++ )
         pOut[w] |= pIn1[w] ^ pIn2[w];
 }
+static inline void Abc_TtAndXor( word * pOut, word * pIn1, word * pIn2, int nWords )
+{
+    int w;
+    for ( w = 0; w < nWords; w++ )
+        pOut[w] &= pIn1[w] ^ pIn2[w];
+}
 static inline void Abc_TtOrAnd( word * pOut, word * pIn1, word * pIn2, int nWords )
 {
     int w;
     for ( w = 0; w < nWords; w++ )
         pOut[w] |= pIn1[w] & pIn2[w];
+}
+static inline void Abc_TtSharpOr( word * pOut, word * pIn1, word * pIn2, int nWords )
+{
+    int w;
+    for ( w = 0; w < nWords; w++ )
+        pOut[w] = (pOut[w] & ~pIn1[w]) | pIn2[w];
 }
 static inline void Abc_TtXor( word * pOut, word * pIn1, word * pIn2, int nWords, int fCompl )
 {
@@ -377,7 +411,23 @@ static inline int Abc_TtIntersect( word * pIn1, word * pIn2, int nWords, int fCo
     }
     return 0;
 }
-static inline int Abc_TtIntersectOne( word * pOut, int fComp, word * pIn, int fComp0, int nWords )
+static inline int Abc_TtIntersectCare( word * pIn1, word * pIn2, word * pCare, int nWords, int fCompl )
+{
+    int w;
+    if ( fCompl )
+    {
+        for ( w = 0; w < nWords; w++ )
+            if ( ~pIn1[w] & pIn2[w] & pCare[w] )
+                return 1;
+    }
+    else
+    {
+        for ( w = 0; w < nWords; w++ )
+            if ( pIn1[w] & pIn2[w] & pCare[w] )
+                return 1;
+    }
+    return 0;
+}static inline int Abc_TtIntersectOne( word * pOut, int fComp, word * pIn, int fComp0, int nWords )
 {
     int w;
     if ( fComp0 )
@@ -518,6 +568,23 @@ static inline int Abc_TtEqual( word * pIn1, word * pIn2, int nWords )
     for ( w = 0; w < nWords; w++ )
         if ( pIn1[w] != pIn2[w] )
             return 0;
+    return 1;
+}
+static inline int Abc_TtEqualCare( word * pIn1, word * pIn2, word * pCare, int fComp, int nWords )
+{
+    int w;
+    if ( fComp )
+    {
+        for ( w = 0; w < nWords; w++ )
+            if ( (~pIn1[w] ^ pIn2[w]) & pCare[w] )
+                return 0;
+    }
+    else
+    {
+        for ( w = 0; w < nWords; w++ )
+            if ( (pIn1[w] ^ pIn2[w]) & pCare[w] )
+                return 0;
+    }
     return 1;
 }
 static inline int Abc_TtOpposite( word * pIn1, word * pIn2, int nWords )
@@ -818,6 +885,33 @@ static inline void Abc_TtElemInit2( word * pTtElems, int nVars )
                 pTruth[k] = (k & (1 << (i-6))) ? ~(word)0 : 0;
     }
 }
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline int Abc_Tt5HasVar( unsigned t, int iVar )
+{
+    return ((t << (1<<iVar)) & s_Truths5[iVar]) != (t & s_Truths5[iVar]);
+}
+static inline unsigned Abc_Tt5Cofactor0( unsigned t, int iVar )
+{
+    assert( iVar >= 0 && iVar < 5 );
+    return (t &s_Truths5Neg[iVar]) | ((t &s_Truths5Neg[iVar]) << (1<<iVar));
+}
+static inline unsigned Abc_Tt5Cofactor1( unsigned t, int iVar )
+{
+    assert( iVar >= 0 && iVar < 5 );
+    return (t & s_Truths5[iVar]) | ((t & s_Truths5[iVar]) >> (1<<iVar));
+}
+
 
 /**Function*************************************************************
 
@@ -1377,6 +1471,24 @@ static inline void Abc_TtPrintBinary( word * pTruth, int nVars )
             printf( "%d", Abc_InfoHasBit( (unsigned *)pThis, k ) );
     printf( "\n" );
 }
+static inline void Abc_TtPrintBinary1( FILE * pFile, word * pTruth, int nVars )
+{
+    word * pThis, * pLimit = pTruth + Abc_TtWordNum(nVars);
+    int k, Limit = Abc_MinInt( 64, (1 << nVars) );
+    assert( nVars >= 2 );
+    for ( pThis = pTruth; pThis < pLimit; pThis++ )
+        for ( k = 0; k < Limit; k++ )
+            fprintf( pFile, "%d", Abc_InfoHasBit( (unsigned *)pThis, k ) );
+}
+static inline void Abc_TtPrintBinary2( FILE * pFile, word * pTruth, int nVars )
+{
+    word * pThis;
+    int k, Limit = Abc_MinInt( 64, (1 << nVars) );
+    assert( nVars >= 2 );
+    for ( pThis = pTruth + Abc_TtWordNum(nVars) - 1; pThis >= pTruth; pThis-- )
+        for ( k = Limit-1; k >= 0; k-- )
+            fprintf( pFile, "%d", Abc_InfoHasBit( (unsigned *)pThis, k ) );
+}
 
 /**Function*************************************************************
 
@@ -1625,31 +1737,6 @@ static inline void Abc_TtFlip( word * pTruth, int nWords, int iVar )
   SeeAlso     []
 
 ***********************************************************************/
-static inline word Abc_Tt6Permute_rec( word t, int * pPerm, int nVars )
-{
-    word uRes0, uRes1; int Var;
-    if (  t == 0 ) return 0;
-    if ( ~t == 0 ) return ~(word)0;
-    for ( Var = nVars-1; Var >= 0; Var-- )
-        if ( Abc_Tt6HasVar( t, Var ) )
-             break;
-    assert( Var >= 0 );
-    uRes0 = Abc_Tt6Permute_rec( Abc_Tt6Cofactor0(t, Var), pPerm, Var );
-    uRes1 = Abc_Tt6Permute_rec( Abc_Tt6Cofactor1(t, Var), pPerm, Var );
-    return (uRes0 & s_Truths6Neg[pPerm[Var]]) | (uRes1 & s_Truths6[pPerm[Var]]);
-}
-
-/**Function*************************************************************
-
-  Synopsis    []
-
-  Description []
-               
-  SideEffects []
-
-  SeeAlso     []
-
-***********************************************************************/
 static inline word Abc_Tt6SwapAdjacent( word Truth, int iVar )
 {
     return (Truth & s_PMasks[iVar][0]) | ((Truth & s_PMasks[iVar][1]) << (1 << iVar)) | ((Truth & s_PMasks[iVar][2]) >> (1 << iVar));
@@ -1752,6 +1839,69 @@ static inline word Abc_Tt6RemoveVar( word t, int iVar )
     while ( iVar < 5 )
         t = Abc_Tt6SwapAdjacent( t, iVar++ );
     return t;
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline word Abc_Tt6Permute_rec( word t, int * pPerm, int nVars )
+{
+    word uRes0, uRes1; int Var;
+    if (  t == 0 ) return 0;
+    if ( ~t == 0 ) return ~(word)0;
+    for ( Var = nVars-1; Var >= 0; Var-- )
+        if ( Abc_Tt6HasVar( t, Var ) )
+             break;
+    assert( Var >= 0 );
+    uRes0 = Abc_Tt6Permute_rec( Abc_Tt6Cofactor0(t, Var), pPerm, Var );
+    uRes1 = Abc_Tt6Permute_rec( Abc_Tt6Cofactor1(t, Var), pPerm, Var );
+    return (uRes0 & s_Truths6Neg[pPerm[Var]]) | (uRes1 & s_Truths6[pPerm[Var]]);
+}
+static inline void Abc_TtPermute( word * p, int * pPerm, int nVars )
+{
+    int v, UnPerm[16], Perm[16];
+    assert( nVars <= 16 );
+    for ( v = 0; v < nVars; v++ )
+        UnPerm[v] = Perm[v] = v;
+    for ( v = nVars-1; v >= 0; v-- )
+    {
+        int Lev = UnPerm[pPerm[v]];
+        if ( v == Lev )
+            continue;
+        Abc_TtSwapVars( p, nVars, v, Lev );
+        ABC_SWAP( int, Perm[v], Perm[Lev] );
+        UnPerm[Perm[Lev]] = Lev;
+        UnPerm[Perm[v]] = v;
+    }
+    for ( v = 0; v < nVars; v++ )
+        assert( Perm[v] == pPerm[v] );
+}
+static inline void Abc_TtUnpermute( word * p, int * pPerm, int nVars )
+{
+    int v, Perm[16];
+    assert( nVars <= 16 );
+    for ( v = 0; v < nVars; v++ )
+        Perm[v] = pPerm[v];
+    for ( v = nVars-1; v >= 0; v-- )
+    {
+        while ( v != Perm[v] )
+        {
+            int vCur = Perm[v];
+            Abc_TtSwapVars( p, nVars, v, vCur );
+            Perm[v] = Perm[vCur];
+            Perm[vCur]= vCur;
+        }
+    }
+    for ( v = 0; v < nVars; v++ )
+        assert( Perm[v] == v );
 }
 
 /**Function*************************************************************
@@ -1974,22 +2124,30 @@ static inline int Abc_TtCountOnes( word x )
     x = x + (x >> 32); 
     return (int)(x & 0xFF);
 }
+static inline int Abc_TtCountOnes2( word x )
+{
+    return x ? Abc_TtCountOnes(x) : 0;
+}
 static inline int Abc_TtCountOnesVec( word * x, int nWords )
 {
     int w, Count = 0;
     for ( w = 0; w < nWords; w++ )
-        Count += Abc_TtCountOnes( x[w] );
+        Count += Abc_TtCountOnes2( x[w] );
     return Count;
 }
 static inline int Abc_TtCountOnesVecMask( word * x, word * pMask, int nWords, int fCompl )
 {
     int w, Count = 0;
     if ( fCompl )
+    {
         for ( w = 0; w < nWords; w++ )
-            Count += Abc_TtCountOnes( pMask[w] & ~x[w] );
+            Count += Abc_TtCountOnes2( pMask[w] & ~x[w] );
+    }
     else
+    {
         for ( w = 0; w < nWords; w++ )
-            Count += Abc_TtCountOnes( pMask[w] & x[w] );
+            Count += Abc_TtCountOnes2( pMask[w] & x[w] );
+    }
     return Count;
 }
 static inline int Abc_TtCountOnesVecMask2( word * x0, word * x1, int fComp0, int fComp1, word * pMask, int nWords )
@@ -1997,23 +2155,23 @@ static inline int Abc_TtCountOnesVecMask2( word * x0, word * x1, int fComp0, int
     int w, Count = 0;
     if ( !fComp0 && !fComp1 )
         for ( w = 0; w < nWords; w++ )
-            Count += Abc_TtCountOnes( pMask[w] &  x0[w] &  x1[w] );
+            Count += Abc_TtCountOnes2( pMask[w] &  x0[w] &  x1[w] );
     else if (  fComp0 && !fComp1 )
         for ( w = 0; w < nWords; w++ )
-            Count += Abc_TtCountOnes( pMask[w] & ~x0[w] &  x1[w] );
+            Count += Abc_TtCountOnes2( pMask[w] & ~x0[w] &  x1[w] );
     else if ( !fComp0 &&  fComp1 )
         for ( w = 0; w < nWords; w++ )
-            Count += Abc_TtCountOnes( pMask[w] &  x0[w] & ~x1[w] );
+            Count += Abc_TtCountOnes2( pMask[w] &  x0[w] & ~x1[w] );
     else 
         for ( w = 0; w < nWords; w++ )
-            Count += Abc_TtCountOnes( pMask[w] & ~x0[w] & ~x1[w] );
+            Count += Abc_TtCountOnes2( pMask[w] & ~x0[w] & ~x1[w] );
     return Count;
 }
 static inline int Abc_TtCountOnesVecXor( word * x, word * y, int nWords )
 {
     int w, Count = 0;
     for ( w = 0; w < nWords; w++ )
-        Count += Abc_TtCountOnes( x[w] ^ y[w] );
+        Count += Abc_TtCountOnes2( x[w] ^ y[w] );
     return Count;
 }
 static inline int Abc_TtCountOnesVecXorMask( word * x, word * y, int fCompl, word * pMask, int nWords )
@@ -2021,10 +2179,10 @@ static inline int Abc_TtCountOnesVecXorMask( word * x, word * y, int fCompl, wor
     int w, Count = 0;
     if ( fCompl )
         for ( w = 0; w < nWords; w++ )
-            Count += Abc_TtCountOnes( pMask[w] & (x[w] ^ ~y[w]) );
+            Count += Abc_TtCountOnes2( pMask[w] & (x[w] ^ ~y[w]) );
     else
         for ( w = 0; w < nWords; w++ )
-            Count += Abc_TtCountOnes( pMask[w] & (x[w] ^ y[w]) );
+            Count += Abc_TtCountOnes2( pMask[w] & (x[w] ^ y[w]) );
     return Count;
 }
 static inline int Abc_TtAndXorSum( word * pOut, word * pIn1, word * pIn2, int nWords )
@@ -2033,9 +2191,19 @@ static inline int Abc_TtAndXorSum( word * pOut, word * pIn1, word * pIn2, int nW
     for ( w = 0; w < nWords; w++ )
     {
         pOut[w] &= pIn1[w] ^ pIn2[w];
-        Count += Abc_TtCountOnes( pOut[w] );
+        Count += Abc_TtCountOnes2( pOut[w] );
     }
     return Count;
+}
+static inline void Abc_TtIsfPrint( word * pOff, word * pOn, int nWords )
+{
+    int nTotal  = 64*nWords;
+    int nOffset = Abc_TtCountOnesVec(pOff, nWords);
+    int nOnset  = Abc_TtCountOnesVec(pOn, nWords);
+    int nDcset  = nTotal - nOffset - nOnset;
+    printf( "OFF =%6d (%6.2f %%)  ", nOffset, 100.0*nOffset/nTotal );
+    printf( "ON =%6d (%6.2f %%)  ",  nOnset,  100.0*nOnset/nTotal );
+    printf( "DC =%6d (%6.2f %%)",    nDcset,  100.0*nDcset/nTotal );
 }
 
 /**Function*************************************************************
@@ -2135,6 +2303,22 @@ static inline int Abc_TtFindLastDiffBit2( word * pIn1, word * pIn2, int nWords )
     for ( w = nWords - 1; w >= 0; w-- )
         if ( pIn1[w] ^ pIn2[w] )
             return 64*w + Abc_Tt6LastBit(pIn1[w] ^ pIn2[w]);
+    return -1;
+}
+static inline int Abc_TtFindFirstAndBit2( word * pIn1, word * pIn2, int nWords )
+{
+    int w;
+    for ( w = 0; w < nWords; w++ )
+        if ( pIn1[w] & pIn2[w] )
+            return 64*w + Abc_Tt6FirstBit(pIn1[w] & pIn2[w]);
+    return -1;
+}
+static inline int Abc_TtFindLastAndBit2( word * pIn1, word * pIn2, int nWords )
+{
+    int w;
+    for ( w = nWords - 1; w >= 0; w-- )
+        if ( pIn1[w] & pIn2[w] )
+            return 64*w + Abc_Tt6LastBit(pIn1[w] & pIn2[w]);
     return -1;
 }
 static inline int Abc_TtFindFirstZero( word * pIn, int nVars )

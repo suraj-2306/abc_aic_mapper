@@ -1141,8 +1141,8 @@ float If_CutAreaRefed( If_Man_t * p, If_Cut_t * pCut )
         return 0;
     aResult2 = If_CutAreaDeref( p, pCut );
     aResult  = If_CutAreaRef( p, pCut );
-    assert( aResult > aResult2 - p->fEpsilon );
-    assert( aResult < aResult2 + p->fEpsilon );
+//    assert( aResult > aResult2 - p->fEpsilon );
+//    assert( aResult < aResult2 + p->fEpsilon );
     return aResult;
 }
 
@@ -1219,8 +1219,8 @@ float If_CutEdgeDerefed( If_Man_t * p, If_Cut_t * pCut )
         return pCut->nLeaves;
     aResult2 = If_CutEdgeRef( p, pCut );
     aResult  = If_CutEdgeDeref( p, pCut );
-    assert( aResult > aResult2 - 3*p->fEpsilon );
-    assert( aResult < aResult2 + 3*p->fEpsilon );
+//    assert( aResult > aResult2 - 3*p->fEpsilon );
+//    assert( aResult < aResult2 + 3*p->fEpsilon );
     return aResult;
 }
 
@@ -1242,8 +1242,8 @@ float If_CutEdgeRefed( If_Man_t * p, If_Cut_t * pCut )
         return pCut->nLeaves;
     aResult2 = If_CutEdgeDeref( p, pCut );
     aResult  = If_CutEdgeRef( p, pCut );
-    assert( aResult > aResult2 - p->fEpsilon );
-    assert( aResult < aResult2 + p->fEpsilon );
+//    assert( aResult > aResult2 - p->fEpsilon );
+//    assert( aResult < aResult2 + p->fEpsilon );
     return aResult;
 }
 
@@ -1492,6 +1492,68 @@ int If_CutCountTotalFanins( If_Man_t * p )
     Abc_PrintTime( 1, "Fanins", Abc_Clock() - clk );
     Vec_IntFree( vLeaves );
     return 1;
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int If_CutFilter2_rec( If_Man_t * p, If_Obj_t * pObj, int LevelMin )
+{
+    char * pVisited = Vec_StrEntryP(p->vMarks, pObj->Id);
+    if ( *pVisited )
+        return *pVisited;
+    Vec_IntPush( p->vVisited2, pObj->Id );
+    if ( (int)pObj->Level <= LevelMin )
+        return (*pVisited = 1);
+    if ( If_CutFilter2_rec( p, pObj->pFanin0, LevelMin ) == 1 )
+        return (*pVisited = 1);
+    if ( If_CutFilter2_rec( p, pObj->pFanin1, LevelMin ) == 1 )
+        return (*pVisited = 1);
+    return (*pVisited = 2);
+}
+int If_CutFilter2( If_Man_t * p, If_Obj_t * pNode, If_Cut_t * pCut )
+{
+    If_Obj_t * pLeaf, * pTemp;  int i, Count = 0; 
+//    printf( "Considering node %d and cut {", pNode->Id );
+//    If_CutForEachLeaf( p, pCut, pLeaf, i )
+//        printf( " %d", pLeaf->Id );
+//    printf( " }\n" );
+    If_CutForEachLeaf( p, pCut, pLeaf, i )
+    {
+        int k, iObj, RetValue, nLevelMin = ABC_INFINITY;
+        Vec_IntClear( p->vVisited2 );
+        If_CutForEachLeaf( p, pCut, pTemp, k )
+        {
+            if ( pTemp == pLeaf )
+                continue;
+            nLevelMin = Abc_MinInt( nLevelMin, (int)pTemp->Level );
+            assert( Vec_StrEntry(p->vMarks, pTemp->Id) == 0 );
+            Vec_StrWriteEntry( p->vMarks, pTemp->Id, 2 );
+            Vec_IntPush( p->vVisited2, pTemp->Id );
+        }
+        RetValue = If_CutFilter2_rec( p, pLeaf, nLevelMin );
+        Vec_IntForEachEntry( p->vVisited2, iObj, k )
+            Vec_StrWriteEntry( p->vMarks, iObj, 0 );
+        if ( RetValue == 2 )
+        {
+            Count++;
+            pCut->nLeaves--;
+            for ( k = i; k < (int)pCut->nLeaves; k++ )
+                pCut->pLeaves[k] = pCut->pLeaves[k+1];
+            i--;
+        }
+    }
+    //if ( Count )
+    //    printf( "%d", Count );
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////

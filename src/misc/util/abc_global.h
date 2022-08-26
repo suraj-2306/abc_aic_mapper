@@ -288,6 +288,8 @@ static inline int      Abc_Base2Log( unsigned n )             { int r; if ( n < 
 static inline int      Abc_Base10Log( unsigned n )            { int r; if ( n < 2 ) return (int)n; for ( r = 0, n--; n; n /= 10, r++ ) {}; return r; }
 static inline int      Abc_Base16Log( unsigned n )            { int r; if ( n < 2 ) return (int)n; for ( r = 0, n--; n; n /= 16, r++ ) {}; return r; }
 static inline char *   Abc_UtilStrsav( char * s )             { return s ? strcpy(ABC_ALLOC(char, strlen(s)+1), s) : NULL;  }
+static inline char *   Abc_UtilStrsavTwo( char * s, char * a ){ char * r; if (!a) return Abc_UtilStrsav(s); r = ABC_ALLOC(char, strlen(s)+strlen(a)+1); sprintf(r, "%s%s", s, a ); return r; }
+static inline char *   Abc_UtilStrsavNum( char * s, int n )   { char * r; if (!s) return NULL;              r = ABC_ALLOC(char, strlen(s)+12+1);        sprintf(r, "%s%d", s, n ); return r; }
 static inline int      Abc_BitByteNum( int nBits )            { return (nBits>>3) + ((nBits&7)  > 0);                       }
 static inline int      Abc_BitWordNum( int nBits )            { return (nBits>>5) + ((nBits&31) > 0);                       }
 static inline int      Abc_Bit6WordNum( int nBits )           { return (nBits>>6) + ((nBits&63) > 0);                       }
@@ -327,7 +329,12 @@ static inline int      Abc_Lit2Att4( int Lit )                { assert(Lit >= 0)
 typedef ABC_INT64_T abctime;
 static inline abctime Abc_Clock()
 {
-#if (defined(LIN) || defined(LIN64)) && !(__APPLE__ & __MACH__) && !defined(__MINGW32__)
+#if defined(__APPLE__) && defined(__MACH__)
+  #define APPLE_MACH (__APPLE__ & __MACH__)
+#else
+  #define APPLE_MACH 0
+#endif
+#if (defined(LIN) || defined(LIN64)) && !APPLE_MACH && !defined(__MINGW32__)
     struct timespec ts;
     if ( clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) < 0 ) 
         return (abctime)-1;
@@ -513,6 +520,8 @@ static inline void Abc_ReverseOrder( int * pA, int nA )
 // sorting
 extern void   Abc_MergeSort( int * pInput, int nSize );
 extern int *  Abc_MergeSortCost( int * pCosts, int nSize );
+extern void   Abc_MergeSortCost2( int * pInput, int nSize, int * pCost );
+extern void   Abc_MergeSortCost2Reverse( int * pInput, int nSize, int * pCost );
 extern void   Abc_QuickSort1( word * pData, int nSize, int fDecrease );
 extern void   Abc_QuickSort2( word * pData, int nSize, int fDecrease );
 extern void   Abc_QuickSort3( word * pData, int nSize, int fDecrease );

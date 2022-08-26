@@ -96,7 +96,7 @@ void Wln_NtkToNdrTest( Wln_Ntk_t * p )
         ppNames[i] = Abc_UtilStrsav(Wln_ObjName(p, i));
 
     // verify by writing Verilog
-    Ndr_WriteVerilog( NULL, pDesign, ppNames );
+    Ndr_WriteVerilog( NULL, pDesign, ppNames, 0 );
     Ndr_Write( "test.ndr", pDesign );
 
     // cleanup
@@ -256,7 +256,7 @@ Wln_Ntk_t * Wln_NtkFromNdr( void * pData, int fDump )
     pNtk->pManName = Abc_NamStart( NameIdMax+1, 10 );
     for ( i = 1; i <= NameIdMax; i++ )
     {
-        char pName[20]; sprintf( pName, "s%0*d", nDigits, i );
+        char pName[100]; sprintf( pName, "s%0*d", nDigits, i );
         NameId = Abc_NamStrFindOrAdd( pNtk->pManName, pName, &fFound );
         assert( !fFound && i == NameId );
     }
@@ -301,7 +301,7 @@ Wln_Ntk_t * Wln_ReadNdr( char * pFileName )
     Wln_Ntk_t * pNtk = pData ? Wln_NtkFromNdr( pData, 0 ) : NULL;
     if ( pNtk ) return NULL;
     //char * ppNames[10] = { NULL, "a", "b", "c", "d", "e", "f", "g", "h", "i" };
-    //Ndr_WriteVerilog( NULL, pData, ppNames );
+    //Ndr_WriteVerilog( NULL, pData, ppNames, 0 );
     Ndr_Delete( pData );
     return pNtk;
 }
@@ -314,7 +314,7 @@ void Wln_ReadNdrTest()
     Wln_NtkStaticFanoutTest( pNtk );
     Wln_NtkFree( pNtk );
 }
-void Wln_NtkRetimeTest( char * pFileName, int fSkipSimple, int fDump, int fVerbose )
+void Wln_NtkRetimeTest( char * pFileName, int fIgnoreIO, int fSkipSimple, int fDump, int fVerbose )
 {
     Vec_Int_t * vMoves;
     void * pData = Ndr_Read( pFileName );
@@ -326,7 +326,7 @@ void Wln_NtkRetimeTest( char * pFileName, int fSkipSimple, int fDump, int fVerbo
         return;
     }
     Wln_NtkRetimeCreateDelayInfo( pNtk );
-    vMoves = Wln_NtkRetime( pNtk, fSkipSimple, fVerbose );
+    vMoves = Wln_NtkRetime( pNtk, fIgnoreIO, fSkipSimple, fVerbose );
     //Vec_IntPrint( vMoves );
     Vec_IntFree( vMoves );
     Wln_NtkFree( pNtk );

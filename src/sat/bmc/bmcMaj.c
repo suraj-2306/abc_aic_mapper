@@ -22,6 +22,7 @@
 #include "misc/extra/extra.h"
 #include "misc/util/utilTruth.h"
 #include "sat/glucose/AbcGlucose.h"
+#include "aig/miniaig/miniaig.h"
 
 ABC_NAMESPACE_IMPL_START
 
@@ -30,7 +31,7 @@ ABC_NAMESPACE_IMPL_START
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-#define MAJ_NOBJS  32 // Const0 + Const1 + nVars + nNodes
+#define MAJ_NOBJS  64 // Const0 + Const1 + nVars + nNodes
 
 typedef struct Maj_Man_t_ Maj_Man_t;
 struct Maj_Man_t_ 
@@ -422,6 +423,8 @@ struct Exa_Man_t_
     int               VarVals[MAJ_NOBJS]; // values of the first nVars variables
     Vec_Wec_t *       vOutLits;  // output vars
     bmcg_sat_solver * pSat;      // SAT solver
+    FILE *            pFile;
+    int               nCnfClauses;
 };
 
 static inline word *  Exa_ManTruth( Exa_Man_t * p, int v ) { return Vec_WrdEntryP( p->vInfo, p->nWords * v ); }
@@ -451,7 +454,7 @@ int Exa_ManMarkup( Exa_Man_t * p )
     int i, k, j;
     assert( p->nObjs <= MAJ_NOBJS );
     // assign functionality
-    p->iVar = 1 + p->nNodes * 3;
+    p->iVar = 1 + 3*p->nNodes;//
     // assign connectivity variables
     for ( i = p->nVars; i < p->nObjs; i++ )
     {
@@ -502,10 +505,26 @@ Exa_Man_t * Exa_ManAlloc( Bmc_EsPar_t * pPars, word * pTruth )
     bmcg_sat_solver_set_nvars( p->pSat, p->iVar );
     if ( pPars->RuntimeLim )
         bmcg_sat_solver_set_runtime_limit( p->pSat, Abc_Clock() + pPars->RuntimeLim * CLOCKS_PER_SEC );
+    if ( pPars->fDumpCnf )
+    {
+        char Buffer[1000];
+        sprintf( Buffer, "%s_%d_%d.cnf", p->pPars->pTtStr, 2, p->nNodes );
+        p->pFile = fopen( Buffer, "wb" );
+        fputs( "p cnf                \n", p->pFile );
+    }
     return p;
 }
 void Exa_ManFree( Exa_Man_t * p )
 {
+    if ( p->pFile ) 
+    {
+        char Buffer[1000];
+        sprintf( Buffer, "%s_%d_%d.cnf", p->pPars->pTtStr, 2, p->nNodes );
+        rewind( p->pFile );
+        fprintf( p->pFile, "p cnf %d %d", bmcg_sat_solver_varnum(p->pSat), p->nCnfClauses );
+        fclose( p->pFile );
+        printf( "CNF was dumped into file \"%s\".\n", Buffer );
+    }
     bmcg_sat_solver_stop( p->pSat );
     Vec_WrdFree( p->vInfo );
     Vec_WecFree( p->vOutLits );
@@ -542,7 +561,7 @@ static inline int Exa_ManEval( Exa_Man_t * p )
     int i, k, iMint; word * pFanins[2];
     for ( i = p->nVars; i < p->nObjs; i++ )
     {
-        int iVarStart = 1 + 3*(i - p->nVars);
+        int iVarStart = 1 + 3*(i - p->nVars);//
         for ( k = 0; k < 2; k++ )
             pFanins[k] = Exa_ManTruth( p, Exa_ManFindFanin(p, i, k) );
         Abc_TtConst0( Exa_ManTruth(p, i), p->nWords );
@@ -596,7 +615,7 @@ void Exa_ManDumpBlif( Exa_Man_t * p, int fCompl )
     fprintf( pFile, ".outputs F\n" );
     for ( i = p->nObjs - 1; i >= p->nVars; i-- )
     {
-        int iVarStart = 1 + 3*(i - p->nVars);
+        int iVarStart = 1 + 3*(i - p->nVars);//
         int Val1 = bmcg_sat_solver_read_cex_varvalue(p->pSat, iVarStart);
         int Val2 = bmcg_sat_solver_read_cex_varvalue(p->pSat, iVarStart+1);
         int Val3 = bmcg_sat_solver_read_cex_varvalue(p->pSat, iVarStart+2);
@@ -634,7 +653,7 @@ void Exa_ManPrintSolution( Exa_Man_t * p, int fCompl )
 //    for ( i = p->nVars + 2; i < p->nObjs; i++ )
     for ( i = p->nObjs - 1; i >= p->nVars; i-- )
     {
-        int iVarStart = 1 + 3*(i - p->nVars);
+        int iVarStart = 1 + 3*(i - p->nVars);//
         int Val1 = bmcg_sat_solver_read_cex_varvalue(p->pSat, iVarStart);
         int Val2 = bmcg_sat_solver_read_cex_varvalue(p->pSat, iVarStart+1);
         int Val3 = bmcg_sat_solver_read_cex_varvalue(p->pSat, iVarStart+2);
@@ -666,13 +685,79 @@ void Exa_ManPrintSolution( Exa_Man_t * p, int fCompl )
   SeeAlso     []
 
 ***********************************************************************/
-int Exa_ManAddCnfStart( Exa_Man_t * p, int fOnlyAnd )
+static inline int Exa_ManAddClause( Exa_Man_t * p, int * pLits, int nLits )
+{
+    int i;
+    if ( p->pFile )
+    {
+        p->nCnfClauses++;
+        for ( i = 0; i < nLits; i++ )
+            fprintf( p->pFile, "%s%d ", Abc_LitIsCompl(pLits[i]) ? "-" : "", Abc_Lit2Var(pLits[i]) );
+        fprintf( p->pFile, "0\n" );
+    }
+    return bmcg_sat_solver_addclause( p->pSat, pLits, nLits );
+}
+int Exa_ManAddCnfAdd( Exa_Man_t * p, int * pnAdded )
 {
     int pLits[MAJ_NOBJS], pLits2[2], i, j, k, n, m;
+    *pnAdded = 0;
+    for ( i = p->nVars; i < p->nObjs; i++ )
+    {
+        for ( k = 0; k < 2; k++ )
+        {
+            int nLits = 0;
+            for ( j = 0; j < p->nObjs; j++ )
+                if ( p->VarMarks[i][k][j] && bmcg_sat_solver_read_cex_varvalue(p->pSat, p->VarMarks[i][k][j]) )
+                    pLits[nLits++] = Abc_Var2Lit( p->VarMarks[i][k][j], 0 );
+            assert( nLits > 0 );
+            // input uniqueness
+            for ( n = 0;   n < nLits; n++ )
+            for ( m = n+1; m < nLits; m++ )
+            {
+                (*pnAdded)++;
+                pLits2[0] = Abc_LitNot(pLits[n]);
+                pLits2[1] = Abc_LitNot(pLits[m]);
+                if ( !Exa_ManAddClause( p, pLits2, 2 ) )
+                    return 0;
+            }
+            if ( k == 1 )
+                break;
+            // symmetry breaking
+            for ( j = 0; j < p->nObjs; j++ ) if ( p->VarMarks[i][k][j]   && bmcg_sat_solver_read_cex_varvalue(p->pSat, p->VarMarks[i][k][j]) )
+            for ( n = j; n < p->nObjs; n++ ) if ( p->VarMarks[i][k+1][n] && bmcg_sat_solver_read_cex_varvalue(p->pSat, p->VarMarks[i][k+1][j]) )
+            {
+                (*pnAdded)++;
+                pLits2[0] = Abc_Var2Lit( p->VarMarks[i][k][j], 1 );
+                pLits2[1] = Abc_Var2Lit( p->VarMarks[i][k+1][n], 1 );
+                if ( !Exa_ManAddClause( p, pLits2, 2 ) )
+                    return 0;
+            }
+        }
+    }
+    return 1;
+}
+int Exa_ManSolverSolve( Exa_Man_t * p )
+{
+    int nAdded = 1;
+    while ( nAdded )
+    {
+        int status = bmcg_sat_solver_solve( p->pSat, NULL, 0 );
+        if ( status != GLUCOSE_SAT )
+            return status;
+        status = Exa_ManAddCnfAdd( p, &nAdded );
+        //printf( "Added %d clauses.\n", nAdded );
+        if ( status != GLUCOSE_SAT )
+            return status;
+    }
+    return GLUCOSE_SAT;
+}
+int Exa_ManAddCnfStart( Exa_Man_t * p, int fOnlyAnd )
+{
+    int pLits[MAJ_NOBJS], pLits2[3], i, j, k, n, m;
     // input constraints
     for ( i = p->nVars; i < p->nObjs; i++ )
     {
-        int iVarStart = 1 + 3*(i - p->nVars);
+        int iVarStart = 1 + 3*(i - p->nVars);//
         for ( k = 0; k < 2; k++ )
         {
             int nLits = 0;
@@ -680,27 +765,33 @@ int Exa_ManAddCnfStart( Exa_Man_t * p, int fOnlyAnd )
                 if ( p->VarMarks[i][k][j] )
                     pLits[nLits++] = Abc_Var2Lit( p->VarMarks[i][k][j], 0 );
             assert( nLits > 0 );
-            // input uniqueness
-            if ( !bmcg_sat_solver_addclause( p->pSat, pLits, nLits ) )
+            if ( !Exa_ManAddClause( p, pLits, nLits ) )
                 return 0;
-            for ( n = 0;   n < nLits; n++ )
-            for ( m = n+1; m < nLits; m++ )
+            // input uniqueness
+            if ( !p->pPars->fDynConstr )
             {
-                pLits2[0] = Abc_LitNot(pLits[n]);
-                pLits2[1] = Abc_LitNot(pLits[m]);
-                if ( !bmcg_sat_solver_addclause( p->pSat, pLits2, 2 ) )
-                    return 0;
+                for ( n = 0;   n < nLits; n++ )
+                for ( m = n+1; m < nLits; m++ )
+                {
+                    pLits2[0] = Abc_LitNot(pLits[n]);
+                    pLits2[1] = Abc_LitNot(pLits[m]);
+                    if ( !Exa_ManAddClause( p, pLits2, 2 ) )
+                        return 0;
+                }
             }
             if ( k == 1 )
                 break;
             // symmetry breaking
-            for ( j = 0; j < p->nObjs; j++ ) if ( p->VarMarks[i][k][j] )
-            for ( n = j; n < p->nObjs; n++ ) if ( p->VarMarks[i][k+1][n] )
+            if ( !p->pPars->fDynConstr )
             {
-                pLits2[0] = Abc_Var2Lit( p->VarMarks[i][k][j], 1 );
-                pLits2[1] = Abc_Var2Lit( p->VarMarks[i][k+1][n], 1 );
-                if ( !bmcg_sat_solver_addclause( p->pSat, pLits2, 2 ) )
-                    return 0;
+                for ( j = 0; j < p->nObjs; j++ ) if ( p->VarMarks[i][k][j] )
+                for ( n = j; n < p->nObjs; n++ ) if ( p->VarMarks[i][k+1][n] )
+                {
+                    pLits2[0] = Abc_Var2Lit( p->VarMarks[i][k][j], 1 );
+                    pLits2[1] = Abc_Var2Lit( p->VarMarks[i][k+1][n], 1 );
+                    if ( !Exa_ManAddClause( p, pLits2, 2 ) )
+                        return 0;
+                }
             }
         }
 #ifdef USE_NODE_ORDER
@@ -711,17 +802,34 @@ int Exa_ManAddCnfStart( Exa_Man_t * p, int fOnlyAnd )
         {
             pLits2[0] = Abc_Var2Lit( p->VarMarks[i][0][n], 1 );
             pLits2[1] = Abc_Var2Lit( p->VarMarks[j][0][m], 1 );
-            if ( !bmcg_sat_solver_addclause( p->pSat, pLits2, 2 ) )
+            if ( !Exa_ManAddClause( p, pLits2, 2 ) )
                 return 0;
         }
 #endif
+        // unique functions
+        for ( j = p->nVars; j < i; j++ )
+        for ( k = 0; k < 2; k++ ) if ( p->VarMarks[i][k][j] )
+        {
+            pLits2[0] = Abc_Var2Lit( p->VarMarks[i][k][j], 1 );
+            for ( n = 0; n < p->nObjs; n++ ) 
+            for ( m = 0; m < 2; m++ )
+            {
+                if ( p->VarMarks[i][!k][n] && p->VarMarks[j][m][n] )
+                {
+                    pLits2[1] = Abc_Var2Lit( p->VarMarks[i][!k][n], 1 );
+                    pLits2[2] = Abc_Var2Lit( p->VarMarks[j][m][n], 1 );
+                    if ( !Exa_ManAddClause( p, pLits2, 3 ) )
+                        return 0;
+                }
+            }
+        }
         // two input functions
         for ( k = 0; k < 3; k++ )
         {
             pLits[0] = Abc_Var2Lit( iVarStart,   k==1 );
             pLits[1] = Abc_Var2Lit( iVarStart+1, k==2 );
             pLits[2] = Abc_Var2Lit( iVarStart+2, k!=0 );
-            if ( !bmcg_sat_solver_addclause( p->pSat, pLits, 3 ) )
+            if ( !Exa_ManAddClause( p, pLits, 3 ) )
                 return 0;
         }
         if ( fOnlyAnd )
@@ -729,7 +837,7 @@ int Exa_ManAddCnfStart( Exa_Man_t * p, int fOnlyAnd )
             pLits[0] = Abc_Var2Lit( iVarStart,   1 );
             pLits[1] = Abc_Var2Lit( iVarStart+1, 1 );
             pLits[2] = Abc_Var2Lit( iVarStart+2, 0 );
-            if ( !bmcg_sat_solver_addclause( p->pSat, pLits, 3 ) )
+            if ( !Exa_ManAddClause( p, pLits, 3 ) )
                 return 0;
         }
     }
@@ -738,7 +846,7 @@ int Exa_ManAddCnfStart( Exa_Man_t * p, int fOnlyAnd )
     {
         Vec_Int_t * vArray = Vec_WecEntry(p->vOutLits, i);
         assert( Vec_IntSize(vArray) > 0 );
-        if ( !bmcg_sat_solver_addclause( p->pSat, Vec_IntArray(vArray), Vec_IntSize(vArray) ) )
+        if ( !Exa_ManAddClause( p, Vec_IntArray(vArray), Vec_IntSize(vArray) ) )
             return 0;
     }
     return 1;
@@ -754,7 +862,7 @@ int Exa_ManAddCnf( Exa_Man_t * p, int iMint )
     for ( i = p->nVars; i < p->nObjs; i++ )
     {
         // fanin connectivity
-        int iVarStart = 1 + 3*(i - p->nVars);
+        int iVarStart = 1 + 3*(i - p->nVars);//
         int iBaseSatVarI = p->iVar + 3*(i - p->nVars);
         for ( k = 0; k < 2; k++ )
         {
@@ -770,7 +878,7 @@ int Exa_ManAddCnf( Exa_Man_t * p, int iMint )
                         pLits[nLits++] = Abc_Var2Lit( iBaseSatVarJ + 2, !n );
                     else if ( p->VarVals[j] == n )
                         continue;
-                    if ( !bmcg_sat_solver_addclause( p->pSat, pLits, nLits ) )
+                    if ( !Exa_ManAddClause( p, pLits, nLits ) )
                         return 0;
                 }
             }
@@ -790,7 +898,7 @@ int Exa_ManAddCnf( Exa_Man_t * p, int iMint )
                 if ( i != p->nObjs - 1 ) pLits[nLits++] = Abc_Var2Lit( iBaseSatVarI + 2, !n );
                 if ( k > 0 )             pLits[nLits++] = Abc_Var2Lit( iVarStart +  k-1,  n );
                 assert( nLits <= 4 );
-                if ( !bmcg_sat_solver_addclause( p->pSat, pLits, nLits ) )
+                if ( !Exa_ManAddClause( p, pLits, nLits ) )
                     return 0;
             }
         }
@@ -815,7 +923,10 @@ void Exa_ManExactSynthesis( Bmc_EsPar_t * pPars )
         abctime clk = Abc_Clock();
         if ( !Exa_ManAddCnf( p, iMint ) )
             break;
-        status = bmcg_sat_solver_solve( p->pSat, NULL, 0 );
+        if ( pPars->fDynConstr )
+            status = Exa_ManSolverSolve( p );
+        else
+            status = bmcg_sat_solver_solve( p->pSat, NULL, 0 );
         if ( pPars->fVerbose )
         {
             printf( "Iter %3d : ", i );
@@ -1347,6 +1458,1259 @@ void Exa3_ManExactSynthesis( Bmc_EsPar_t * pPars )
     printf( "Added = %d.  Tried = %d.  ", p->nUsed[1], p->nUsed[0] );
     Exa3_ManFree( p );
     Abc_PrintTime( 1, "Total runtime", Abc_Clock() - clkTotal );
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Exa_ManIsNormalized( Vec_Wrd_t * vSimsIn, Vec_Wrd_t * vSimsOut )
+{
+    int i, Count = 0; word Temp;
+    Vec_WrdForEachEntry( vSimsIn, Temp, i )
+        if ( Temp & 1 )
+            Count++;
+    if ( Count )
+        printf( "The data for %d divisors are not normalized.\n", Count );
+    if ( !(Vec_WrdEntry(vSimsOut, 0) & 1) )
+        printf( "The output data is not normalized.\n" );
+//    else if ( Count == 0 )
+//        printf( "The data is fully normalized.\n" );
+}
+static inline void Exa_ManPrintFanin( int nIns, int nDivs, int iNode, int fComp )
+{
+    if ( iNode == 0 )
+        printf( " %s", fComp ? "const1" : "const0" );
+    else if ( iNode > 0 && iNode <= nIns )
+        printf( " %s%c", fComp ? "~" : "", 'a'+iNode-1 );
+    else if ( iNode > nIns && iNode < nDivs )
+        printf( " %s%c", fComp ? "~" : "", 'A'+iNode-nIns-1 );
+    else
+        printf( " %s%d", fComp ? "~" : "", iNode );
+}
+void Exa_ManMiniPrint( Mini_Aig_t * p, int nIns )
+{
+    int i, nDivs = 1 + Mini_AigPiNum(p), nNodes = Mini_AigAndNum(p);
+    printf( "This %d-var function (%d divisors) has %d gates (%d xor) and %d levels:\n", 
+        nIns, nDivs, nNodes, Mini_AigXorNum(p), Mini_AigLevelNum(p) );
+    for ( i = nDivs + nNodes; i < Mini_AigNodeNum(p); i++ )
+    {
+        int Lit0 = Mini_AigNodeFanin0( p, i );
+        printf( "%2d  = ", i );
+        Exa_ManPrintFanin( nIns, nDivs, Abc_Lit2Var(Lit0), Abc_LitIsCompl(Lit0) );
+        printf( "\n" );
+    }
+    for ( i = nDivs + nNodes - 1; i >= nDivs; i-- )
+    {
+        int Lit0 = Mini_AigNodeFanin0( p, i );
+        int Lit1 = Mini_AigNodeFanin1( p, i );
+        printf( "%2d  = ", i );
+        if ( Lit0 < Lit1 )
+        {
+            Exa_ManPrintFanin( nIns, nDivs, Abc_Lit2Var(Lit0), Abc_LitIsCompl(Lit0) );
+            printf( " &" );
+            Exa_ManPrintFanin( nIns, nDivs, Abc_Lit2Var(Lit1), Abc_LitIsCompl(Lit1) );
+        }
+        else
+        {
+            Exa_ManPrintFanin( nIns, nDivs, Abc_Lit2Var(Lit1), Abc_LitIsCompl(Lit1) );
+            printf( " ^" );
+            Exa_ManPrintFanin( nIns, nDivs, Abc_Lit2Var(Lit0), Abc_LitIsCompl(Lit0) );
+        }
+        printf( "\n" );
+    }
+}
+void Exa_ManMiniVerify( Mini_Aig_t * p, Vec_Wrd_t * vSimsIn, Vec_Wrd_t * vSimsOut )
+{
+    extern void Extra_BitMatrixTransposeP( Vec_Wrd_t * vSimsIn, int nWordsIn, Vec_Wrd_t * vSimsOut, int nWordsOut );
+    int i, nDivs = 1 + Mini_AigPiNum(p), nNodes = Mini_AigAndNum(p); 
+    int k, nOuts = Mini_AigPoNum(p), nErrors = 0; word Outs[6] = {0};
+    Vec_Wrd_t * vSimsIn2 = Vec_WrdStart( 64 );
+    assert( nOuts <= 6 );
+    assert( Vec_WrdSize(vSimsIn) <= 64 );
+    assert( Vec_WrdSize(vSimsIn) == Vec_WrdSize(vSimsOut) );
+    Vec_WrdFillExtra( vSimsIn, 64, 0 );
+    Extra_BitMatrixTransposeP( vSimsIn, 1, vSimsIn2, 1 );
+    assert( Mini_AigNodeNum(p) <= 64 );
+    for ( i = nDivs; i < nDivs + nNodes; i++ )
+    {
+        int Lit0 = Mini_AigNodeFanin0( p, i );
+        int Lit1 = Mini_AigNodeFanin1( p, i );
+        word Sim0 = Vec_WrdEntry( vSimsIn2, Abc_Lit2Var(Lit0) );
+        word Sim1 = Vec_WrdEntry( vSimsIn2, Abc_Lit2Var(Lit1) );
+        Sim0 = Abc_LitIsCompl(Lit0) ? ~Sim0 : Sim0;
+        Sim1 = Abc_LitIsCompl(Lit1) ? ~Sim1 : Sim1;
+        Vec_WrdWriteEntry( vSimsIn2, i, Lit0 < Lit1 ? Sim0 & Sim1 : Sim0 ^ Sim1 );
+    }
+    for ( i = nDivs + nNodes; i < Mini_AigNodeNum(p); i++ )
+    {
+        int Lit0 = Mini_AigNodeFanin0( p, i );
+        word Sim0 = Vec_WrdEntry( vSimsIn2, Abc_Lit2Var(Lit0) );
+        Outs[i - (nDivs + nNodes)] = Abc_LitIsCompl(Lit0) ? ~Sim0 : Sim0;
+    }
+    Vec_WrdFree( vSimsIn2 );
+    for ( i = 0; i < Vec_WrdSize(vSimsOut); i++ )
+    {
+        int iOutMint = 0;
+        for ( k = 0; k < nOuts; k++ )
+            if ( (Outs[k] >> i) & 1 )
+                iOutMint |= 1 << k;
+        nErrors += !Abc_TtGetBit(Vec_WrdEntryP(vSimsOut, i), iOutMint);
+    }
+    if ( nErrors == 0 )
+        printf( "Verification successful.  " );
+    else 
+        printf( "Verification failed for %d (out of %d) minterms.\n", nErrors, Vec_WrdSize(vSimsOut) );
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Vec_Int_t * Exa4_ManParse( char * pFileName )
+{
+    Vec_Int_t * vRes = NULL;
+    char * pToken, pBuffer[1000];
+    FILE * pFile = fopen( pFileName, "rb" );
+    if ( pFile == NULL )
+    {
+        Abc_Print( -1, "Cannot open file \"%s\".\n", pFileName );
+        return NULL;
+    }
+    while ( fgets( pBuffer, 1000, pFile ) != NULL )
+    {
+        if ( pBuffer[0] == 's' )
+        {
+            if ( strncmp(pBuffer+2, "SAT", 3) )
+                break;
+            assert( vRes == NULL );
+            vRes = Vec_IntAlloc( 100 );
+        }
+        else if ( pBuffer[0] == 'v' )
+        {
+            pToken = strtok( pBuffer+1, " \n\r\t" );
+            while ( pToken )
+            {
+                int Token = atoi(pToken);
+                if ( Token == 0 )
+                    break;
+                Vec_IntSetEntryFull( vRes, Abc_AbsInt(Token), Token > 0 );
+                pToken = strtok( NULL, " \n\r\t" );
+            }
+        }
+        else if ( pBuffer[0] != 'c' )
+            assert( 0 );
+    }
+    fclose( pFile );
+    return vRes;
+}
+Vec_Int_t * Exa4_ManSolve( char * pFileNameIn, char * pFileNameOut, int TimeOut, int fVerbose )
+{
+    int fVerboseSolver = 0;
+    abctime clkTotal = Abc_Clock();
+    Vec_Int_t * vRes = NULL;
+#ifdef _WIN32
+    char * pKissat = "kissat.exe";
+#else
+    char * pKissat = "kissat";
+#endif
+    char Command[1000], * pCommand = (char *)&Command;
+    {
+        FILE * pFile = fopen( pKissat, "rb" );
+        if ( pFile == NULL )
+        {
+            printf( "Cannot find the Kissat binary \"%s\".\n", pKissat );
+            return NULL;
+        }
+        fclose( pFile );        
+    }
+    if ( TimeOut )
+        sprintf( pCommand, "%s --time=%d %s %s > %s", pKissat, TimeOut, fVerboseSolver ? "": "-q", pFileNameIn, pFileNameOut );
+    else
+        sprintf( pCommand, "%s %s %s > %s", pKissat, fVerboseSolver ? "": "-q", pFileNameIn, pFileNameOut );
+    if ( system( pCommand ) == -1 )
+    {
+        fprintf( stdout, "Command \"%s\" did not succeed.\n", pCommand );
+        return 0;
+    }
+    vRes = Exa4_ManParse( pFileNameOut );
+    if ( fVerbose )
+    {
+        if ( vRes )
+            printf( "The problem has a solution. " );
+        else if ( vRes == NULL && TimeOut == 0 )
+            printf( "The problem has no solution. " );
+        else if ( vRes == NULL )
+            printf( "The problem has no solution or timed out after %d sec. ", TimeOut );
+        Abc_PrintTime( 1, "SAT solver time", Abc_Clock() - clkTotal );
+    }
+    return vRes;
+}
+
+
+typedef struct Exa4_Man_t_ Exa4_Man_t;
+struct Exa4_Man_t_ 
+{
+    Vec_Wrd_t *       vSimsIn;   // input signatures  (nWords = 1, nIns <= 64)
+    Vec_Wrd_t *       vSimsOut;  // output signatures (nWords = 1, nOuts <= 6)
+    int               fVerbose; 
+    int               nIns;     
+    int               nDivs;     // divisors (const + inputs + tfi + sidedivs)
+    int               nNodes;
+    int               nOuts; 
+    int               nObjs;
+    int               VarMarks[MAJ_NOBJS][2][MAJ_NOBJS];
+    int               nCnfVars; 
+    int               nCnfClauses;
+    FILE *            pFile;
+};
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Exa4_ManMarkup( Exa4_Man_t * p )
+{
+    int i, k, j, nVars[3] = {1 + 5*p->nNodes, 0, 3*p->nNodes*Vec_WrdSize(p->vSimsIn)};
+    assert( p->nObjs <= MAJ_NOBJS );
+    for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+        for ( k = 0; k < 2; k++ )
+            for ( j = 1+!k; j < i-k; j++ )
+                p->VarMarks[i][k][j] = nVars[0] + nVars[1]++;
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+        for ( j = p->nOuts == 1 ? p->nDivs + p->nNodes - 1 : 0; j < p->nDivs + p->nNodes; j++ )
+            p->VarMarks[i][0][j] = nVars[0] + nVars[1]++;
+    if ( p->fVerbose )
+        printf( "Variables:  Function = %d.  Structure = %d.  Internal = %d.  Total = %d.\n", 
+            nVars[0], nVars[1], nVars[2], nVars[0] + nVars[1] + nVars[2] );
+    if ( 0 )
+    {
+        for ( j = 0; j < 2; j++ )
+        {
+            printf( "   : " );
+            for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+            {
+                for ( k = 0; k < 2; k++ )
+                    printf( "%3d ", j ? k : i );
+                printf( " " );
+            }
+            printf( " " );
+            for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+            {
+                printf( "%3d ", j ? 0 : i );
+                printf( " " );
+            }
+            printf( "\n" );
+        }
+        for ( j = 0; j < 5 + p->nNodes*9 + p->nOuts*5; j++ )
+            printf( "-" );
+        printf( "\n" );
+        for ( j = p->nObjs - 2; j >= 0; j-- )
+        {
+            if ( j > 0 && j <= p->nIns )
+                printf( " %c : ", 'a'+j-1 );
+            else
+                printf( "%2d : ", j );
+            for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+            {
+                for ( k = 0; k < 2; k++ )
+                    printf( "%3d ", p->VarMarks[i][k][j] );
+                printf( " " );
+            }
+            printf( " " );
+            for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+            {
+                printf( "%3d ", p->VarMarks[i][0][j] );
+                printf( " " );
+            }
+            printf( "\n" );
+        }
+    }
+    return nVars[0] + nVars[1] + nVars[2];
+}
+Exa4_Man_t * Exa4_ManAlloc( Vec_Wrd_t * vSimsIn, Vec_Wrd_t * vSimsOut, int nIns, int nDivs, int nOuts, int nNodes, int fVerbose )
+{
+    Exa4_Man_t * p = ABC_CALLOC( Exa4_Man_t, 1 );
+    assert( Vec_WrdSize(vSimsIn) == Vec_WrdSize(vSimsOut) );
+    p->vSimsIn     = vSimsIn;
+    p->vSimsOut    = vSimsOut;
+    p->fVerbose    = fVerbose;
+    p->nIns        = nIns;  
+    p->nDivs       = nDivs; 
+    p->nNodes      = nNodes;
+    p->nOuts       = nOuts; 
+    p->nObjs       = p->nDivs + p->nNodes + p->nOuts;
+    p->nCnfVars    = Exa4_ManMarkup( p );
+    return p;
+}
+void Exa4_ManFree( Exa4_Man_t * p )
+{
+    ABC_FREE( p );
+}
+
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline int Exa4_ManAddClause( Exa4_Man_t * p, int * pLits, int nLits )
+{
+    int i, k = 0;
+    for ( i = 0; i < nLits; i++ )
+        if ( pLits[i] == 1 )
+            return 0;
+        else if ( pLits[i] == 0 )
+            continue;
+        else if ( pLits[i] <= 2*p->nCnfVars )
+            pLits[k++] = pLits[i];
+        else assert( 0 );
+    nLits = k;
+    assert( nLits > 0 );
+    if ( p->pFile )
+    {
+        p->nCnfClauses++;
+        for ( i = 0; i < nLits; i++ )
+            fprintf( p->pFile, "%s%d ", Abc_LitIsCompl(pLits[i]) ? "-" : "", Abc_Lit2Var(pLits[i]) );
+        fprintf( p->pFile, "0\n" );
+    }
+    if ( 0 )
+    {
+        for ( i = 0; i < nLits; i++ )
+            fprintf( stdout, "%s%d ", Abc_LitIsCompl(pLits[i]) ? "-" : "", Abc_Lit2Var(pLits[i]) );
+        fprintf( stdout, "\n" );
+    }
+    return 1;
+}
+static inline int Exa4_ManAddClause4( Exa4_Man_t * p, int Lit0, int Lit1, int Lit2, int Lit3 )
+{
+    int pLits[4] = { Lit0, Lit1, Lit2, Lit3 };
+    return Exa4_ManAddClause( p, pLits, 4 );
+}
+int Exa4_ManGenStart( Exa4_Man_t * p, int fOnlyAnd, int fFancy, int fOrderNodes, int fUniqFans )
+{
+    int pLits[2*MAJ_NOBJS], i, j, k, n, m, nLits;
+    for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+    {
+        int iVarStart = 1 + 5*(i - p->nDivs);//
+        for ( k = 0; k < 2; k++ )
+        {
+            nLits = 0;
+            for ( j = 0; j < p->nObjs; j++ )
+                if ( p->VarMarks[i][k][j] )
+                    pLits[nLits++] = Abc_Var2Lit( p->VarMarks[i][k][j], 0 );
+            assert( nLits > 0 );
+            Exa4_ManAddClause( p, pLits, nLits );
+            for ( n = 0;   n < nLits; n++ )
+            for ( m = n+1; m < nLits; m++ )
+                Exa4_ManAddClause4( p, Abc_LitNot(pLits[n]), Abc_LitNot(pLits[m]), 0, 0 );
+            if ( k == 1 )
+                break;
+            for ( j = 0; j < p->nObjs; j++ ) if ( p->VarMarks[i][0][j] )
+            for ( n = j; n < p->nObjs; n++ ) if ( p->VarMarks[i][1][n] )
+                Exa4_ManAddClause4( p, Abc_Var2Lit(p->VarMarks[i][0][j], 1), Abc_Var2Lit(p->VarMarks[i][1][n], 1), 0, 0 );
+        }
+        if ( fOrderNodes )
+        for ( j = p->nDivs; j < i; j++ )
+        for ( n = 0;   n < p->nObjs; n++ ) if ( p->VarMarks[i][0][n] )
+        for ( m = n+1; m < p->nObjs; m++ ) if ( p->VarMarks[j][0][m] )
+            Exa4_ManAddClause4( p, Abc_Var2Lit(p->VarMarks[i][0][n], 1), Abc_Var2Lit(p->VarMarks[j][0][m], 1), 0, 0 );
+        for ( j = p->nDivs; j < i; j++ )
+        for ( k = 0; k < 2; k++ )        if ( p->VarMarks[i][k][j] )
+        for ( n = 0; n < p->nObjs; n++ ) if ( p->VarMarks[i][!k][n] )
+        for ( m = 0; m < 2; m++ )        if ( p->VarMarks[j][m][n] )
+            Exa4_ManAddClause4( p, Abc_Var2Lit(p->VarMarks[i][k][j], 1), Abc_Var2Lit(p->VarMarks[i][!k][n], 1), Abc_Var2Lit(p->VarMarks[j][m][n], 1), 0 );
+        if ( fFancy )
+        {
+            nLits = 0;
+            for ( k = 0; k < 5-fOnlyAnd; k++ )
+                pLits[nLits++] = Abc_Var2Lit( iVarStart+k, 0 );
+            Exa4_ManAddClause( p, pLits, nLits );
+            for ( n = 0;   n < nLits; n++ )
+            for ( m = n+1; m < nLits; m++ )
+                Exa4_ManAddClause4( p, Abc_LitNot(pLits[n]), Abc_LitNot(pLits[m]), 0, 0 );
+        }
+        else
+        {
+            for ( k = 0; k < 3; k++ )
+                Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart, k==1), Abc_Var2Lit(iVarStart+1, k==2), Abc_Var2Lit(iVarStart+2, k!=0), 0);
+            if ( fOnlyAnd )
+                Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart, 1), Abc_Var2Lit(iVarStart+1, 1), Abc_Var2Lit(iVarStart+2, 0), 0);
+        }
+    }
+    for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+    {
+        nLits = 0;
+        for ( k = 0; k < 2; k++ )
+            for ( j = i+1; j < p->nObjs; j++ )
+                if ( p->VarMarks[j][k][i] )
+                    pLits[nLits++] = Abc_Var2Lit( p->VarMarks[j][k][i], 0 );
+        Exa4_ManAddClause( p, pLits, nLits );
+        if ( fUniqFans )
+            for ( n = 0;   n < nLits; n++ )
+            for ( m = n+1; m < nLits; m++ )
+                Exa4_ManAddClause4( p, Abc_LitNot(pLits[n]), Abc_LitNot(pLits[m]), 0, 0 );
+    }
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+    {
+        nLits = 0;
+        for ( j = 0; j < p->nDivs + p->nNodes; j++ ) if ( p->VarMarks[i][0][j] )
+            pLits[nLits++] = Abc_Var2Lit( p->VarMarks[i][0][j], 0 );
+        Exa4_ManAddClause( p, pLits, nLits );
+        for ( n = 0;   n < nLits; n++ )
+        for ( m = n+1; m < nLits; m++ )
+            Exa4_ManAddClause4( p, Abc_LitNot(pLits[n]), Abc_LitNot(pLits[m]), 0, 0 );
+    }
+    return 1;
+}
+void Exa4_ManGenMint( Exa4_Man_t * p, int iMint, int fOnlyAnd, int fFancy )
+{
+    int iNodeVar = p->nCnfVars + 3*p->nNodes*(iMint - Vec_WrdSize(p->vSimsIn));
+    int iOutMint = Abc_Tt6FirstBit( Vec_WrdEntry(p->vSimsOut, iMint) );
+    int i, k, n, j, VarVals[MAJ_NOBJS];
+    assert( p->nObjs <= MAJ_NOBJS );
+    assert( iMint < Vec_WrdSize(p->vSimsIn) );
+    for ( i = 0; i < p->nDivs; i++ )
+        VarVals[i] = (Vec_WrdEntry(p->vSimsIn, iMint) >> i) & 1;
+    for ( i = 0; i < p->nNodes; i++ )
+        VarVals[p->nDivs + i] = Abc_Var2Lit(iNodeVar + 3*i + 2, 0);
+    for ( i = 0; i < p->nOuts; i++ )
+        VarVals[p->nDivs + p->nNodes + i] = (iOutMint >> i) & 1;
+    if ( 0 )
+    {
+        printf( "Adding minterm %d: ", iMint );
+        for ( i = 0; i < p->nObjs; i++ )
+            printf( " %d=%d", i, VarVals[i] );
+        printf( "\n" );
+    }
+    for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+    {
+        int iVarStart = 1 + 5*(i - p->nDivs);//
+        int iBaseVarI = iNodeVar + 3*(i - p->nDivs);
+        for ( k = 0; k < 2; k++ )
+        for ( j = 0; j < i; j++ ) if ( p->VarMarks[i][k][j] )
+        for ( n = 0; n < 2; n++ )
+            Exa4_ManAddClause4( p, Abc_Var2Lit(p->VarMarks[i][k][j], 1), Abc_Var2Lit(iBaseVarI + k, n), Abc_LitNotCond(VarVals[j], !n), 0);
+        if ( fFancy )
+        {
+            //  Clauses for a*b = c
+            //  a + ~c
+            //  b + ~c
+            // ~a + ~b + c
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 0, 1), Abc_Var2Lit(iBaseVarI + 0, 0), 0,                             Abc_Var2Lit(iBaseVarI + 2, 1) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 0, 1), 0,                             Abc_Var2Lit(iBaseVarI + 1, 0), Abc_Var2Lit(iBaseVarI + 2, 1) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 0, 1), Abc_Var2Lit(iBaseVarI + 0, 1), Abc_Var2Lit(iBaseVarI + 1, 1), Abc_Var2Lit(iBaseVarI + 2, 0) );
+
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 1, 1), Abc_Var2Lit(iBaseVarI + 0, 1), 0,                             Abc_Var2Lit(iBaseVarI + 2, 1) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 1, 1), 0,                             Abc_Var2Lit(iBaseVarI + 1, 0), Abc_Var2Lit(iBaseVarI + 2, 1) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 1, 1), Abc_Var2Lit(iBaseVarI + 0, 0), Abc_Var2Lit(iBaseVarI + 1, 1), Abc_Var2Lit(iBaseVarI + 2, 0) );
+
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 2, 1), Abc_Var2Lit(iBaseVarI + 0, 0), 0,                             Abc_Var2Lit(iBaseVarI + 2, 1) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 2, 1), 0,                             Abc_Var2Lit(iBaseVarI + 1, 1), Abc_Var2Lit(iBaseVarI + 2, 1) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 2, 1), Abc_Var2Lit(iBaseVarI + 0, 1), Abc_Var2Lit(iBaseVarI + 1, 0), Abc_Var2Lit(iBaseVarI + 2, 0) );
+            //  Clauses for a+b = c
+            // ~a +  c
+            // ~b +  c
+            //  a +  b + ~c
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 3, 1), Abc_Var2Lit(iBaseVarI + 0, 1), 0,                             Abc_Var2Lit(iBaseVarI + 2, 0) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 3, 1), 0,                             Abc_Var2Lit(iBaseVarI + 1, 1), Abc_Var2Lit(iBaseVarI + 2, 0) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 3, 1), Abc_Var2Lit(iBaseVarI + 0, 0), Abc_Var2Lit(iBaseVarI + 1, 0), Abc_Var2Lit(iBaseVarI + 2, 1) );
+            //  Clauses for a^b = c
+            // ~a + ~b + ~c
+            // ~a +  b +  c
+            //  a + ~b +  c
+            //  a +  b + ~c
+            if ( !fOnlyAnd )
+            {
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 4, 1), Abc_Var2Lit(iBaseVarI + 0, 1), Abc_Var2Lit(iBaseVarI + 1, 1), Abc_Var2Lit(iBaseVarI + 2, 1) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 4, 1), Abc_Var2Lit(iBaseVarI + 0, 1), Abc_Var2Lit(iBaseVarI + 1, 0), Abc_Var2Lit(iBaseVarI + 2, 0) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 4, 1), Abc_Var2Lit(iBaseVarI + 0, 0), Abc_Var2Lit(iBaseVarI + 1, 1), Abc_Var2Lit(iBaseVarI + 2, 0) );
+            Exa4_ManAddClause4( p, Abc_Var2Lit(iVarStart + 4, 1), Abc_Var2Lit(iBaseVarI + 0, 0), Abc_Var2Lit(iBaseVarI + 1, 0), Abc_Var2Lit(iBaseVarI + 2, 1) );
+            }
+        }
+        else
+        {
+            for ( k = 0; k < 4; k++ )
+            for ( n = 0; n < 2; n++ )
+                Exa4_ManAddClause4( p, Abc_Var2Lit(iBaseVarI + 0, k&1), Abc_Var2Lit(iBaseVarI + 1, k>>1), Abc_Var2Lit(iBaseVarI + 2, !n), Abc_Var2Lit(k ? iVarStart + k-1 : 0, n));
+        }
+    }
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+    {
+        for ( j = 0; j < p->nDivs + p->nNodes; j++ ) if ( p->VarMarks[i][0][j] )
+        for ( n = 0; n < 2; n++ )
+            Exa4_ManAddClause4( p, Abc_Var2Lit(p->VarMarks[i][0][j], 1), Abc_LitNotCond(VarVals[j], n), Abc_LitNotCond(VarVals[i], !n), 0);
+    }
+}
+void Exa4_ManGenCnf( Exa4_Man_t * p, char * pFileName, int fOnlyAnd, int fFancy, int fOrderNodes, int fUniqFans )
+{
+    int m;
+    assert( p->pFile == NULL );
+    p->pFile = fopen( pFileName, "wb" );
+    fputs( "p cnf                \n", p->pFile );
+    Exa4_ManGenStart( p, fOnlyAnd, fFancy, fOrderNodes, fUniqFans );
+    for ( m = 1; m < Vec_WrdSize(p->vSimsIn); m++ )
+        Exa4_ManGenMint( p, m, fOnlyAnd, fFancy );
+    rewind( p->pFile );
+    fprintf( p->pFile, "p cnf %d %d", p->nCnfVars, p->nCnfClauses );
+    fclose( p->pFile );
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline int Exa4_ManFindFanin( Exa4_Man_t * p, Vec_Int_t * vValues, int i, int k )
+{
+    int j, Count = 0, iVar = -1;
+    for ( j = 0; j < p->nObjs; j++ )
+        if ( p->VarMarks[i][k][j] && Vec_IntEntry(vValues, p->VarMarks[i][k][j]) )
+        {
+            iVar = j;
+            Count++;
+        }
+    assert( Count == 1 );
+    return iVar;
+}
+static inline void Exa4_ManPrintFanin( Exa4_Man_t * p, int iNode, int fComp )
+{
+    if ( iNode == 0 )
+        printf( " %s", fComp ? "const1" : "const0" );
+    else if ( iNode > 0 && iNode <= p->nIns )
+        printf( " %s%c", fComp ? "~" : "", 'a'+iNode-1 );
+    else if ( iNode > p->nIns && iNode < p->nDivs )
+        printf( " %s%c", fComp ? "~" : "", 'A'+iNode-p->nIns-1 );
+    else
+        printf( " %s%d", fComp ? "~" : "", iNode );
+}
+void Exa4_ManPrintSolution( Exa4_Man_t * p, Vec_Int_t * vValues, int fFancy )
+{
+    int i, k;
+    printf( "Circuit for %d-var function with %d divisors contains %d two-input gates:\n", p->nIns, p->nDivs, p->nNodes );
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+    {
+        int iVar = Exa4_ManFindFanin( p, vValues, i, 0 );
+        printf( "%2d  = ", i );
+        Exa4_ManPrintFanin( p, iVar, 0 );
+        printf( "\n" );
+    }
+    for ( i = p->nDivs + p->nNodes - 1; i >= p->nDivs; i-- )
+    {
+        int iVarStart = 1 + 5*(i - p->nDivs);//
+        if ( fFancy )
+        {
+            int Val1 = Vec_IntEntry(vValues, iVarStart);
+            int Val2 = Vec_IntEntry(vValues, iVarStart+1);
+            int Val3 = Vec_IntEntry(vValues, iVarStart+2);
+            int Val4 = Vec_IntEntry(vValues, iVarStart+3);
+            //int Val5 = Vec_IntEntry(vValues, iVarStart+4);
+            printf( "%2d  = ", i );
+            for ( k = 0; k < 2; k++ )
+            {
+                int iNode = Exa4_ManFindFanin( p, vValues, i, !k );
+                int fComp = k ? Val1 | Val3 : Val2 | Val3;
+                Exa4_ManPrintFanin( p, iNode, fComp );
+                if ( k ) break;
+                printf( " %c", (Val1 || Val2 || Val3) ? '&' : (Val4 ? '|' : '^') );
+            }
+        }
+        else
+        {
+            int Val1 = Vec_IntEntry(vValues, iVarStart);
+            int Val2 = Vec_IntEntry(vValues, iVarStart+1);
+            int Val3 = Vec_IntEntry(vValues, iVarStart+2);
+            printf( "%2d  = ", i );
+            for ( k = 0; k < 2; k++ )
+            {
+                int iNode = Exa4_ManFindFanin( p, vValues, i, !k );
+                int fComp = k ? !Val1 && Val2 && !Val3 : Val1 && !Val2 && !Val3;
+                Exa4_ManPrintFanin( p, iNode, fComp );
+                if ( k ) break;
+                printf( " %c", (Val1 && Val2) ? (Val3 ? '|' : '^') : '&' );
+            }
+        }
+        printf( "\n" );
+    }
+}
+Mini_Aig_t * Exa4_ManMiniAig( Exa4_Man_t * p, Vec_Int_t * vValues, int fFancy )
+{
+    int i, k, Compl[MAJ_NOBJS] = {0};
+    Mini_Aig_t * pMini = Mini_AigStartSupport( p->nDivs-1, p->nObjs );
+    for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+    {
+        int iNodes[2] = {0};
+        int iVarStart = 1 + 5*(i - p->nDivs);//
+        if ( fFancy )
+        {
+            int Val1 = Vec_IntEntry(vValues, iVarStart);
+            int Val2 = Vec_IntEntry(vValues, iVarStart+1);
+            int Val3 = Vec_IntEntry(vValues, iVarStart+2);
+            int Val4 = Vec_IntEntry(vValues, iVarStart+3);
+            int Val5 = Vec_IntEntry(vValues, iVarStart+4);
+            for ( k = 0; k < 2; k++ )
+            {
+                int iNode = Exa4_ManFindFanin( p, vValues, i, !k );
+                int fComp = k ? Val1 | Val3 : Val2 | Val3;
+                iNodes[k] = Abc_Var2Lit(iNode, fComp ^ Compl[iNode]);
+            }
+            if ( Val1 || Val2 || Val3 ) 
+                Mini_AigAnd( pMini, iNodes[0], iNodes[1] );
+            else
+            {
+                if ( Val4 )
+                    Mini_AigOr( pMini, iNodes[0], iNodes[1] );
+                else if ( Val5 )
+                    Mini_AigXorSpecial( pMini, iNodes[0], iNodes[1] );
+                else assert( 0 );
+            }
+        }
+        else
+        {
+            int Val1 = Vec_IntEntry(vValues, iVarStart);
+            int Val2 = Vec_IntEntry(vValues, iVarStart+1);
+            int Val3 = Vec_IntEntry(vValues, iVarStart+2);
+            Compl[i] = Val1 && Val2 && Val3;
+            for ( k = 0; k < 2; k++ )
+            {
+                int iNode = Exa4_ManFindFanin( p, vValues, i, !k );
+                int fComp = k ? !Val1 && Val2 && !Val3 : Val1 && !Val2 && !Val3;
+                iNodes[k] = Abc_Var2Lit(iNode, fComp ^ Compl[iNode]);
+            }
+            if ( Val1 && Val2 ) 
+            {
+                if ( Val3 )
+                    Mini_AigOr( pMini, iNodes[0], iNodes[1] );
+                else
+                    Mini_AigXorSpecial( pMini, iNodes[0], iNodes[1] );
+            }
+            else
+                Mini_AigAnd( pMini, iNodes[0], iNodes[1] );
+        }
+    }
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+    {
+        int iVar = Exa4_ManFindFanin( p, vValues, i, 0 );
+        Mini_AigCreatePo( pMini, Abc_Var2Lit(iVar, Compl[iVar]) );
+    }
+    assert( p->nObjs == Mini_AigNodeNum(pMini) );
+    return pMini;
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Mini_Aig_t * Exa4_ManGenTest( Vec_Wrd_t * vSimsIn, Vec_Wrd_t * vSimsOut, int nIns, int nDivs, int nOuts, int nNodes, int TimeOut, int fOnlyAnd, int fFancy, int fOrderNodes, int fUniqFans, int fVerbose )
+{
+    Mini_Aig_t * pMini = NULL;
+    abctime clkTotal = Abc_Clock();
+    Vec_Int_t * vValues = NULL;
+    char * pFileNameIn  = "_temp_.cnf";
+    char * pFileNameOut = "_temp_out.cnf";
+    Exa4_Man_t * p = Exa4_ManAlloc( vSimsIn, vSimsOut, nIns, nDivs, nOuts, nNodes, fVerbose );
+    Exa_ManIsNormalized( vSimsIn, vSimsOut );
+    Exa4_ManGenCnf( p, pFileNameIn, fOnlyAnd, fFancy, fOrderNodes, fUniqFans );
+    if ( fVerbose )
+        printf( "Timeout = %d. OnlyAnd = %d. Fancy = %d. OrderNodes = %d. UniqueFans = %d. Verbose = %d.\n", TimeOut, fOnlyAnd, fFancy, fOrderNodes, fUniqFans, fVerbose );
+    if ( fVerbose )
+        printf( "CNF with %d variables and %d clauses was dumped into file \"%s\".\n", p->nCnfVars, p->nCnfClauses, pFileNameIn );
+    vValues = Exa4_ManSolve( pFileNameIn, pFileNameOut, TimeOut, fVerbose );
+    if ( vValues ) pMini = Exa4_ManMiniAig( p, vValues, fFancy );
+    //if ( vValues ) Exa4_ManPrintSolution( p, vValues, fFancy );
+    if ( vValues ) Exa_ManMiniPrint( pMini, p->nIns );
+    if ( vValues ) Exa_ManMiniVerify( pMini, vSimsIn, vSimsOut );
+    Vec_IntFreeP( &vValues );
+    Exa4_ManFree( p );
+    Abc_PrintTime( 1, "Total runtime", Abc_Clock() - clkTotal );
+    return pMini;
+}
+void Exa_ManExactSynthesis4_( Bmc_EsPar_t * pPars )
+{
+    Mini_Aig_t * pMini = NULL;
+    int i, m;
+    Vec_Wrd_t * vSimsIn  = Vec_WrdStart( 8 );
+    Vec_Wrd_t * vSimsOut = Vec_WrdStart( 8 );
+    int Truths[2] = { 0x96, 0xE8 };
+    for ( m = 0; m < 8; m++ )
+    {
+        int iOutMint = 0;
+        for ( i = 0; i < 2; i++ )
+            if ( (Truths[i] >> m) & 1 )
+                iOutMint |= 1 << i;
+        Abc_TtSetBit( Vec_WrdEntryP(vSimsOut, m), iOutMint );
+        for ( i = 0; i < 3; i++ )
+            if ( (m >> i) & 1 )
+                Abc_TtSetBit( Vec_WrdEntryP(vSimsIn, m), 1+i );
+    }
+    pMini = Exa4_ManGenTest( vSimsIn, vSimsOut, 3, 4, 2, pPars->nNodes, pPars->RuntimeLim, pPars->fOnlyAnd, pPars->fFewerVars, pPars->fOrderNodes, pPars->fUniqFans, pPars->fVerbose );
+    if ( pMini ) Mini_AigStop( pMini );
+    Vec_WrdFree( vSimsIn );
+    Vec_WrdFree( vSimsOut );
+}
+void Exa_ManExactSynthesis4( Bmc_EsPar_t * pPars )
+{
+    Mini_Aig_t * pMini = NULL;
+    int i, m, nMints = 1 << pPars->nVars, fCompl = 0;
+    Vec_Wrd_t * vSimsIn  = Vec_WrdStart( nMints );
+    Vec_Wrd_t * vSimsOut = Vec_WrdStart( nMints );
+    word pTruth[16]; Abc_TtReadHex( pTruth, pPars->pTtStr );
+    if ( pTruth[0] & 1 ) { fCompl = 1; Abc_TtNot( pTruth, Abc_TtWordNum(pPars->nVars) ); }
+    assert( pPars->nVars <= 10 );
+    for ( m = 0; m < nMints; m++ )
+    {
+        Abc_TtSetBit( Vec_WrdEntryP(vSimsOut, m), Abc_TtGetBit(pTruth, m) );
+        for ( i = 0; i < pPars->nVars; i++ )
+            if ( (m >> i) & 1 )
+                Abc_TtSetBit( Vec_WrdEntryP(vSimsIn, m), 1+i );
+    }
+    assert( Vec_WrdSize(vSimsIn) == (1 << pPars->nVars) );
+    pMini = Exa4_ManGenTest( vSimsIn, vSimsOut, pPars->nVars, 1+pPars->nVars, 1, pPars->nNodes, pPars->RuntimeLim, pPars->fOnlyAnd, pPars->fFewerVars, pPars->fOrderNodes, pPars->fUniqFans, pPars->fVerbose );
+    if ( pMini ) Mini_AigStop( pMini );
+    if ( fCompl ) printf( "The resulting circuit, if computed, will be complemented.\n" );
+    Vec_WrdFree( vSimsIn );
+    Vec_WrdFree( vSimsOut );
+}
+
+
+
+typedef struct Exa5_Man_t_ Exa5_Man_t;
+struct Exa5_Man_t_ 
+{
+    Vec_Wrd_t *       vSimsIn;  
+    Vec_Wrd_t *       vSimsOut; 
+    int               fVerbose; 
+    int               nIns;     
+    int               nDivs;   // divisors (const + inputs + tfi + sidedivs)   
+    int               nNodes;   
+    int               nOuts;    
+    int               nObjs;    
+    int               VarMarks[MAJ_NOBJS][MAJ_NOBJS];
+    int               nCnfVars;
+    int               nCnfClauses;
+    FILE *            pFile;
+    Vec_Int_t *       vFans;
+};
+
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Exa5_ManMarkup( Exa5_Man_t * p )
+{
+    int i, j, k, nVars[3] = {1 + 3*p->nNodes, 0, p->nNodes*Vec_WrdSize(p->vSimsIn)};
+    assert( p->nObjs <= MAJ_NOBJS );
+    Vec_IntFill( p->vFans, 1 + 3*p->nNodes, 0 );
+    for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+    for ( j = 2; j < i; j++ )
+    {
+        p->VarMarks[i][j] = nVars[0] + nVars[1];
+        Vec_IntPush( p->vFans, 0 );
+        for ( k = 1; k < j; k++ )
+            Vec_IntPush( p->vFans, (i << 16) | (j << 8) | k );
+        nVars[1] += j;
+    }
+    assert( Vec_IntSize(p->vFans) == nVars[0] + nVars[1] );
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+        for ( j = p->nOuts == 1 ? p->nDivs + p->nNodes - 1 : 0; j < p->nDivs + p->nNodes; j++ )
+            p->VarMarks[i][j] = nVars[0] + nVars[1]++;
+    if ( p->fVerbose )
+        printf( "Variables:  Function = %d.  Structure = %d.  Internal = %d.  Total = %d.\n", 
+            nVars[0], nVars[1], nVars[2], nVars[0] + nVars[1] + nVars[2] );
+    if ( 0 )
+    {
+        {
+            printf( "   : " );
+            for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+            {
+                printf( "%3d ", i );
+                printf( " " );
+            }
+            printf( " " );
+            for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+            {
+                printf( "%3d ", i );
+                printf( " " );
+            }
+            printf( "\n" );
+        }
+        for ( j = 0; j < 5 + p->nNodes*5 + p->nOuts*5; j++ )
+            printf( "-" );
+        printf( "\n" );
+        for ( j = p->nObjs - 2; j >= 0; j-- )
+        {
+            if ( j > 0 && j <= p->nIns )
+                printf( " %c : ", 'a'+j-1 );
+            else
+                printf( "%2d : ", j );
+            for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+            {
+                printf( "%3d ", p->VarMarks[i][j] );
+                printf( " " );
+            }
+            printf( " " );
+            for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+            {
+                printf( "%3d ", p->VarMarks[i][j] );
+                printf( " " );
+            }
+            printf( "\n" );
+        }
+    }
+    return nVars[0] + nVars[1] + nVars[2];
+}
+Exa5_Man_t * Exa5_ManAlloc( Vec_Wrd_t * vSimsIn, Vec_Wrd_t * vSimsOut, int nIns, int nDivs, int nOuts, int nNodes, int fVerbose )
+{
+    Exa5_Man_t * p = ABC_CALLOC( Exa5_Man_t, 1 );
+    assert( Vec_WrdSize(vSimsIn) == Vec_WrdSize(vSimsOut) );
+    p->vSimsIn     = vSimsIn;
+    p->vSimsOut    = vSimsOut;
+    p->fVerbose    = fVerbose;
+    p->nIns        = nIns;  
+    p->nDivs       = nDivs;
+    p->nNodes      = nNodes;
+    p->nOuts       = nOuts; 
+    p->nObjs       = p->nDivs + p->nNodes + p->nOuts;
+    p->vFans       = Vec_IntAlloc( 5000 );
+    p->nCnfVars    = Exa5_ManMarkup( p );
+    return p;
+}
+void Exa5_ManFree( Exa5_Man_t * p )
+{
+    Vec_IntFree( p->vFans );
+    ABC_FREE( p );
+}
+
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline int Exa5_ManAddClause( Exa5_Man_t * p, int * pLits, int nLits )
+{
+    int i, k = 0;
+    for ( i = 0; i < nLits; i++ )
+        if ( pLits[i] == 1 )
+            return 0;
+        else if ( pLits[i] == 0 )
+            continue;
+        else if ( pLits[i] <= 2*p->nCnfVars )
+            pLits[k++] = pLits[i];
+        else assert( 0 );
+    nLits = k;
+    assert( nLits > 0 );
+    if ( p->pFile )
+    {
+        p->nCnfClauses++;
+        for ( i = 0; i < nLits; i++ )
+            fprintf( p->pFile, "%s%d ", Abc_LitIsCompl(pLits[i]) ? "-" : "", Abc_Lit2Var(pLits[i]) );
+        fprintf( p->pFile, "0\n" );
+    }
+    if ( 0 )
+    {
+        for ( i = 0; i < nLits; i++ )
+            fprintf( stdout, "%s%d ", Abc_LitIsCompl(pLits[i]) ? "-" : "", Abc_Lit2Var(pLits[i]) );
+        fprintf( stdout, "\n" );
+    }
+    return 1;
+}
+static inline int Exa5_ManAddClause4( Exa5_Man_t * p, int Lit0, int Lit1, int Lit2, int Lit3, int Lit4 )
+{
+    int pLits[5] = { Lit0, Lit1, Lit2, Lit3, Lit4 };
+    return Exa5_ManAddClause( p, pLits, 5 );
+}
+static inline void Exa5_ManAddOneHot( Exa5_Man_t * p, int * pLits, int nLits )
+{
+    int n, m;
+    for ( n = 0;   n < nLits; n++ )
+    for ( m = n+1; m < nLits; m++ )
+        Exa5_ManAddClause4( p, Abc_LitNot(pLits[n]), Abc_LitNot(pLits[m]), 0, 0, 0 );
+}
+static inline void Exa5_ManAddGroup( Exa5_Man_t * p, int iVar, int nVars )
+{
+    int i, pLits[MAJ_NOBJS];
+    assert( nVars+1 <= MAJ_NOBJS );
+    pLits[0] = Abc_Var2Lit( iVar, 1 );
+    for ( i = 1; i <= nVars; i++ )
+        pLits[i] = Abc_Var2Lit( iVar+i, 0 );
+    Exa5_ManAddClause( p, pLits, nVars+1 );
+    Exa5_ManAddOneHot( p, pLits+1, nVars );
+    for ( i = 1; i <= nVars; i++ )
+        Exa5_ManAddClause4( p, Abc_LitNot(pLits[0]), Abc_LitNot(pLits[i]), 0, 0, 0 );
+}
+int Exa5_ManGenStart( Exa5_Man_t * p, int fOnlyAnd, int fFancy, int fOrderNodes, int fUniqFans )
+{
+    Vec_Int_t * vArray = Vec_IntAlloc( 100 );
+    int pLits[MAJ_NOBJS], i, j, k, n, m, nLits, iObj;
+    for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+    {
+        int iVarStart = 1 + 3*(i - p->nDivs);//
+        nLits = 0;
+        for ( j = 0; j < i; j++ ) if ( p->VarMarks[i][j] )
+            Exa5_ManAddGroup( p, p->VarMarks[i][j], j-1 ), pLits[nLits++] = Abc_Var2Lit(p->VarMarks[i][j], 0);
+        Exa5_ManAddClause( p, pLits, nLits );
+        Exa5_ManAddOneHot( p, pLits, nLits );
+        if ( fOrderNodes )
+        for ( j = p->nDivs; j < i; j++ )
+        for ( n = 0;   n < p->nObjs; n++ ) if ( p->VarMarks[i][n] )
+        for ( m = n+1; m < p->nObjs; m++ ) if ( p->VarMarks[j][m] )
+            Exa5_ManAddClause4( p, Abc_Var2Lit(p->VarMarks[i][n], 1), Abc_Var2Lit(p->VarMarks[j][m], 1), 0, 0, 0 );
+        for ( j = p->nDivs; j < i; j++ ) if ( p->VarMarks[i][j] )
+        {
+            // go through all variables of i that point to j and k
+            for ( n = 1; n < j; n++ )
+            {
+                int iVar   = p->VarMarks[i][j] + n; // variable of i pointing to j
+                int iObj   = Vec_IntEntry( p->vFans, iVar );
+                int iNode0 = (iObj >>  0) & 0xFF;
+                int iNode1 = (iObj >>  8) & 0xFF;
+                int iNode2 = (iObj >> 16) & 0xFF;
+                assert( iObj > 0 );
+                assert( iNode1 == j );
+                assert( iNode2 == i );
+                // go through all variables of j and block those that point to k
+                assert( p->VarMarks[j][2]   > 0 );
+                assert( p->VarMarks[j+1][2] > 0 );
+                for ( m = p->VarMarks[j][2]+1; m < p->VarMarks[j+1][2]; m++ )
+                {
+                    int jObj   = Vec_IntEntry( p->vFans, m );
+                    int jNode0 = (jObj >>  0) & 0xFF;
+                    int jNode1 = (jObj >>  8) & 0xFF;
+                    int jNode2 = (jObj >> 16) & 0xFF;
+                    if ( jObj == 0 )
+                        continue;
+                    assert( jNode2 == j );
+                    if ( iNode0 == jNode0 || iNode0 == jNode1 )
+                        Exa5_ManAddClause4( p, Abc_Var2Lit(iVar, 1), Abc_Var2Lit(m, 1), 0, 0, 0 );
+                }
+            }
+        }
+        for ( k = 0; k < 3; k++ )
+            Exa5_ManAddClause4( p, Abc_Var2Lit(iVarStart, k==1), Abc_Var2Lit(iVarStart+1, k==2), Abc_Var2Lit(iVarStart+2, k!=0), 0, 0);
+        if ( fOnlyAnd )
+            Exa5_ManAddClause4( p, Abc_Var2Lit(iVarStart, 1), Abc_Var2Lit(iVarStart+1, 1), Abc_Var2Lit(iVarStart+2, 0), 0, 0);
+    }
+    for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+    {
+        Vec_IntClear( vArray );
+        Vec_IntForEachEntry( p->vFans, iObj, k )
+            if ( iObj && ((iObj & 0xFF) == i || ((iObj >> 8) & 0xFF) == i) )
+                Vec_IntPush( vArray, Abc_Var2Lit(k, 0) );
+        for ( k = p->nDivs + p->nNodes; k < p->nObjs; k++ ) if ( p->VarMarks[k][i] )
+            Vec_IntPush( vArray, Abc_Var2Lit(p->VarMarks[k][i], 0) );
+        Exa5_ManAddClause( p, Vec_IntArray(vArray), Vec_IntSize(vArray) );
+        if ( fUniqFans )
+            Exa5_ManAddOneHot( p, Vec_IntArray(vArray), Vec_IntSize(vArray) );
+    }
+    Vec_IntFree( vArray );
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+    {
+        nLits = 0;
+        for ( j = 0; j < p->nDivs + p->nNodes; j++ ) if ( p->VarMarks[i][j] )
+            pLits[nLits++] = Abc_Var2Lit( p->VarMarks[i][j], 0 );
+        Exa5_ManAddClause( p, pLits, nLits );
+        Exa5_ManAddOneHot( p, pLits, nLits );
+    }
+    return 1;
+}
+void Exa5_ManGenMint( Exa5_Man_t * p, int iMint, int fOnlyAnd, int fFancy )
+{
+    int iNodeVar = p->nCnfVars + p->nNodes*(iMint - Vec_WrdSize(p->vSimsIn));
+    int iOutMint = Abc_Tt6FirstBit( Vec_WrdEntry(p->vSimsOut, iMint) );
+    int i, k, n, j, VarVals[MAJ_NOBJS], iNodes[3], iVarStart, iObj;
+    assert( p->nObjs <= MAJ_NOBJS );
+    assert( iMint < Vec_WrdSize(p->vSimsIn) );
+    for ( i = 0; i < p->nDivs; i++ )
+        VarVals[i] = (Vec_WrdEntry(p->vSimsIn, iMint) >> i) & 1;
+    for ( i = 0; i < p->nNodes; i++ )
+        VarVals[p->nDivs + i] = Abc_Var2Lit(iNodeVar + i, 0);
+    for ( i = 0; i < p->nOuts; i++ )
+        VarVals[p->nDivs + p->nNodes + i] = (iOutMint >> i) & 1;
+    if ( 0 )
+    {
+        printf( "Adding minterm %d: ", iMint );
+        for ( i = 0; i < p->nObjs; i++ )
+            printf( " %d=%d", i, VarVals[i] );
+        printf( "\n" );
+    }
+    Vec_IntForEachEntry( p->vFans, iObj, i )
+    {
+        if ( iObj == 0 ) continue;
+        iNodes[1] = (iObj >>  0) & 0xFF;
+        iNodes[0] = (iObj >>  8) & 0xFF;
+        iNodes[2] = (iObj >> 16) & 0xFF;
+        iVarStart = 1 + 3*(iNodes[2] - p->nDivs);//
+        for ( k = 0; k < 4; k++ )
+        for ( n = 0; n < 2; n++ )
+            Exa5_ManAddClause4( p, Abc_Var2Lit(i, 1), Abc_LitNotCond(VarVals[iNodes[0]], k&1), Abc_LitNotCond(VarVals[iNodes[1]], k>>1), Abc_LitNotCond(VarVals[iNodes[2]], !n), Abc_Var2Lit(k ? iVarStart + k-1 : 0, n));
+    }
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+    {
+        for ( j = 0; j < p->nDivs + p->nNodes; j++ ) if ( p->VarMarks[i][j] )
+        for ( n = 0; n < 2; n++ )
+            Exa5_ManAddClause4( p, Abc_Var2Lit(p->VarMarks[i][j], 1), Abc_LitNotCond(VarVals[j], n), Abc_LitNotCond(VarVals[i], !n), 0, 0);
+    }
+}
+void Exa5_ManGenCnf( Exa5_Man_t * p, char * pFileName, int fOnlyAnd, int fFancy, int fOrderNodes, int fUniqFans )
+{
+    int m;
+    assert( p->pFile == NULL );
+    p->pFile = fopen( pFileName, "wb" );
+    fputs( "p cnf                \n", p->pFile );
+    Exa5_ManGenStart( p, fOnlyAnd, fFancy, fOrderNodes, fUniqFans );
+    for ( m = 1; m < Vec_WrdSize(p->vSimsIn); m++ )
+        Exa5_ManGenMint( p, m, fOnlyAnd, fFancy );
+    rewind( p->pFile );
+    fprintf( p->pFile, "p cnf %d %d", p->nCnfVars, p->nCnfClauses );
+    fclose( p->pFile );
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline int Exa5_ManFindFanin( Exa5_Man_t * p, Vec_Int_t * vValues, int i )
+{
+    int j, Count = 0, iVar = -1;
+    for ( j = 0; j < p->nObjs; j++ )
+        if ( p->VarMarks[i][j] && Vec_IntEntry(vValues, p->VarMarks[i][j]) )
+        {
+            iVar = j;
+            Count++;
+        }
+    assert( Count == 1 );
+    return iVar;
+}
+static inline void Exa5_ManPrintFanin( Exa5_Man_t * p, int iNode, int fComp )
+{
+    if ( iNode == 0 )
+        printf( " %s", fComp ? "const1" : "const0" );
+    else if ( iNode > 0 && iNode <= p->nIns )
+        printf( " %s%c", fComp ? "~" : "", 'a'+iNode-1 );
+    else if ( iNode > p->nIns && iNode < p->nDivs )
+        printf( " %s%c", fComp ? "~" : "", 'A'+iNode-p->nIns-1 );
+    else
+        printf( " %s%d", fComp ? "~" : "", iNode );
+}
+void Exa5_ManPrintSolution( Exa5_Man_t * p, Vec_Int_t * vValues, int fFancy )
+{
+    int Fan0[MAJ_NOBJS] = {0};
+    int Fan1[MAJ_NOBJS] = {0};
+    int Count[MAJ_NOBJS] = {0};
+    int i, k, iObj, iNodes[3];
+    printf( "Circuit for %d-var function with %d divisors contains %d two-input gates:\n", p->nIns, p->nDivs, p->nNodes );
+    Vec_IntForEachEntry( p->vFans, iObj, i )
+    {
+        if ( iObj == 0 || Vec_IntEntry(vValues, i) == 0 )
+            continue;
+        iNodes[0] = (iObj >>  0) & 0xFF;
+        iNodes[1] = (iObj >>  8) & 0xFF;
+        iNodes[2] = (iObj >> 16) & 0xFF;
+        assert( p->nDivs <= iNodes[2] && iNodes[2] < p->nDivs + p->nNodes );
+        Fan0[iNodes[2]] = iNodes[0];
+        Fan1[iNodes[2]] = iNodes[1];
+        Count[iNodes[2]]++;
+    }
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+    {
+        int iVar = Exa5_ManFindFanin( p, vValues, i );
+        printf( "%2d  = ", i );
+        Exa5_ManPrintFanin( p, iVar, 0 );
+        printf( "\n" );
+    }
+    for ( i = p->nDivs + p->nNodes - 1; i >= p->nDivs; i-- )
+    {
+        int iVarStart = 1 + 3*(i - p->nDivs);//
+        int Val1 = Vec_IntEntry(vValues, iVarStart);
+        int Val2 = Vec_IntEntry(vValues, iVarStart+1);
+        int Val3 = Vec_IntEntry(vValues, iVarStart+2);
+        assert( Count[i] == 1 );
+        printf( "%2d  = ", i );
+        for ( k = 0; k < 2; k++ )
+        {
+            int iNode = k ? Fan1[i] : Fan0[i];
+            int fComp = k ? !Val1 && Val2 && !Val3 : Val1 && !Val2 && !Val3;
+            Exa5_ManPrintFanin( p, iNode, fComp );
+            if ( k ) break;
+            printf( " %c", (Val1 && Val2) ? (Val3 ? '|' : '^') : '&' );
+        }
+        printf( "\n" );
+    }
+}
+Mini_Aig_t * Exa5_ManMiniAig( Exa5_Man_t * p, Vec_Int_t * vValues )
+{
+    Mini_Aig_t * pMini = Mini_AigStartSupport( p->nDivs-1, p->nObjs );
+    int Compl[MAJ_NOBJS] = {0};
+    int Fan0[MAJ_NOBJS]  = {0};
+    int Fan1[MAJ_NOBJS]  = {0};
+    int Count[MAJ_NOBJS] = {0};
+    int i, k, iObj, iNodes[3];
+    Vec_IntForEachEntry( p->vFans, iObj, i )
+    {
+        if ( iObj == 0 || Vec_IntEntry(vValues, i) == 0 )
+            continue;
+        iNodes[0] = (iObj >>  0) & 0xFF;
+        iNodes[1] = (iObj >>  8) & 0xFF;
+        iNodes[2] = (iObj >> 16) & 0xFF;
+        assert( p->nDivs <= iNodes[2] && iNodes[2] < p->nDivs + p->nNodes );
+        Fan0[iNodes[2]] = iNodes[0];
+        Fan1[iNodes[2]] = iNodes[1];
+        Count[iNodes[2]]++;
+    }
+    assert( p->nDivs == Mini_AigNodeNum(pMini) );
+    for ( i = p->nDivs; i < p->nDivs + p->nNodes; i++ )
+    {
+        int iNodes[2] = {0};
+        int iVarStart = 1 + 3*(i - p->nDivs);//
+        int Val1 = Vec_IntEntry(vValues, iVarStart);
+        int Val2 = Vec_IntEntry(vValues, iVarStart+1);
+        int Val3 = Vec_IntEntry(vValues, iVarStart+2);
+        assert( Count[i] == 1 );
+        Compl[i] = Val1 && Val2 && Val3;
+        for ( k = 0; k < 2; k++ )
+        {
+            int iNode = k ? Fan1[i] : Fan0[i];
+            int fComp = k ? !Val1 && Val2 && !Val3 : Val1 && !Val2 && !Val3;
+            iNodes[k] = Abc_Var2Lit(iNode, fComp ^ Compl[iNode]);
+        }
+        if ( Val1 && Val2 ) 
+        {
+            if ( Val3 )
+                Mini_AigOr( pMini, iNodes[0], iNodes[1] );
+            else
+                Mini_AigXorSpecial( pMini, iNodes[0], iNodes[1] );
+        }
+        else
+            Mini_AigAnd( pMini, iNodes[0], iNodes[1] );
+    }
+    for ( i = p->nDivs + p->nNodes; i < p->nObjs; i++ )
+    {
+        int iVar = Exa5_ManFindFanin( p, vValues, i );
+        Mini_AigCreatePo( pMini, Abc_Var2Lit(iVar, Compl[iVar]) );
+    }
+    assert( p->nObjs == Mini_AigNodeNum(pMini) );
+    return pMini;
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Mini_Aig_t * Exa5_ManGenTest( Vec_Wrd_t * vSimsIn, Vec_Wrd_t * vSimsOut, int nIns, int nDivs, int nOuts, int nNodes, int TimeOut, int fOnlyAnd, int fFancy, int fOrderNodes, int fUniqFans, int fVerbose )
+{
+    abctime clkTotal = Abc_Clock();
+    Mini_Aig_t * pMini  = NULL;
+    Vec_Int_t * vValues = NULL;
+    char * pFileNameIn  = "_temp_.cnf";
+    char * pFileNameOut = "_temp_out.cnf";
+    Exa5_Man_t * p = Exa5_ManAlloc( vSimsIn, vSimsOut, nIns, nDivs, nOuts, nNodes, fVerbose );
+    Exa_ManIsNormalized( vSimsIn, vSimsOut );
+    Exa5_ManGenCnf( p, pFileNameIn, fOnlyAnd, fFancy, fOrderNodes, fUniqFans );
+    if ( fVerbose )
+        printf( "Timeout = %d. OnlyAnd = %d. Fancy = %d. OrderNodes = %d. UniqueFans = %d. Verbose = %d.\n", TimeOut, fOnlyAnd, fFancy, fOrderNodes, fUniqFans, fVerbose );
+    if ( fVerbose )
+        printf( "CNF with %d variables and %d clauses was dumped into file \"%s\".\n", p->nCnfVars, p->nCnfClauses, pFileNameIn );
+    vValues = Exa4_ManSolve( pFileNameIn, pFileNameOut, TimeOut, fVerbose );
+    if ( vValues ) pMini = Exa5_ManMiniAig( p, vValues );
+    //if ( vValues ) Exa5_ManPrintSolution( p, vValues, fFancy );
+    if ( vValues ) Exa_ManMiniPrint( pMini, p->nIns );
+    if ( vValues ) Exa_ManMiniVerify( pMini, vSimsIn, vSimsOut );
+    Vec_IntFreeP( &vValues );
+    Exa5_ManFree( p );
+    Abc_PrintTime( 1, "Total runtime", Abc_Clock() - clkTotal );
+    return pMini;
+}
+void Exa_ManExactSynthesis5( Bmc_EsPar_t * pPars )
+{
+    Mini_Aig_t * pMini = NULL;
+    int i, m, nMints = 1 << pPars->nVars, fCompl = 0;
+    Vec_Wrd_t * vSimsIn  = Vec_WrdStart( nMints );
+    Vec_Wrd_t * vSimsOut = Vec_WrdStart( nMints );
+    word pTruth[16]; Abc_TtReadHex( pTruth, pPars->pTtStr );
+    if ( pTruth[0] & 1 ) { fCompl = 1; Abc_TtNot( pTruth, Abc_TtWordNum(pPars->nVars) ); }
+    assert( pPars->nVars <= 10 );
+    for ( m = 0; m < nMints; m++ )
+    {
+        Abc_TtSetBit( Vec_WrdEntryP(vSimsOut, m), Abc_TtGetBit(pTruth, m) );
+        for ( i = 0; i < pPars->nVars; i++ )
+            if ( (m >> i) & 1 )
+                Abc_TtSetBit( Vec_WrdEntryP(vSimsIn, m), 1+i );
+    }
+    assert( Vec_WrdSize(vSimsIn) == (1 << pPars->nVars) );
+    pMini = Exa5_ManGenTest( vSimsIn, vSimsOut, pPars->nVars, 1+pPars->nVars, 1, pPars->nNodes, pPars->RuntimeLim, pPars->fOnlyAnd, pPars->fFewerVars, pPars->fOrderNodes, pPars->fUniqFans, pPars->fVerbose );
+    if ( pMini ) Mini_AigStop( pMini );
+    if ( fCompl ) printf( "The resulting circuit, if computed, will be complemented.\n" );
+    Vec_WrdFree( vSimsIn );
+    Vec_WrdFree( vSimsOut );
 }
 
 ////////////////////////////////////////////////////////////////////////

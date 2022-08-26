@@ -91,7 +91,7 @@ void Abc_CollectTopOr( Abc_Obj_t * pObj, Vec_Ptr_t * vSuper )
     if ( Abc_ObjIsComplement(pObj) )
     {
         Abc_CollectTopOr_rec( Abc_ObjNot(pObj), vSuper );
-        Vec_PtrUniqify( vSuper, (int (*)())Abc_ObjCompareById );
+        Vec_PtrUniqify( vSuper, (int (*)(const void *, const void *))Abc_ObjCompareById );
     }
     else
         Vec_PtrPush( vSuper, Abc_ObjNot(pObj) );
@@ -658,6 +658,33 @@ Abc_Ntk_t * Abc_NtkFromAigPhase( Aig_Man_t * pMan )
 }
 
 
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Abc_NtkFromGiaCollapse( Gia_Man_t * pGia )
+{
+    Aig_Man_t * pMan = Gia_ManToAig( pGia, 0 ); int Res;
+    Abc_Ntk_t * pNtk = Abc_NtkFromAigPhase( pMan ), * pTemp;
+    //pNtk->pName      = Extra_UtilStrsav(pGia->pName);
+    Aig_ManStop( pMan );
+    // collapse the network 
+    pNtk = Abc_NtkCollapse( pTemp = pNtk, 10000, 0, 1, 0, 0, 0 );
+    Abc_NtkDelete( pTemp );
+    if ( pNtk == NULL )
+        return 0;
+    Res = Abc_NtkGetBddNodeNum( pNtk );
+    Abc_NtkDelete( pNtk );
+    return Res == 0;
+}
+
 
 /**Function*************************************************************
 
@@ -1204,7 +1231,11 @@ Abc_Ntk_t * Abc_NtkFromDarChoices( Abc_Ntk_t * pNtkOld, Aig_Man_t * pMan )
     Aig_ManForEachCo( pMan, pObj, i )
         Abc_ObjAddFanin( Abc_NtkCo(pNtkNew, i), (Abc_Obj_t *)Aig_ObjChild0Copy(pObj) );
     if ( !Abc_NtkCheck( pNtkNew ) )
-        Abc_Print( 1, "Abc_NtkFromDar(): Network check has failed.\n" );
+    {
+        Abc_Print( 1, "Abc_NtkFromDar(): Network check has failed. Returning original network.\n" );
+        Abc_NtkDelete( pNtkNew );
+        pNtkNew = Abc_NtkDup( pNtkOld );
+    }
 
     // verify topological order
     if ( 0 )
@@ -1651,6 +1682,7 @@ Abc_Ntk_t * Abc_NtkDChoice( Abc_Ntk_t * pNtk, int fBalance, int fUpdateLevel, in
 ***********************************************************************/
 Abc_Ntk_t * Abc_NtkDch( Abc_Ntk_t * pNtk, Dch_Pars_t * pPars )
 {
+    extern Aig_Man_t * Dar_ManChoiceNew( Aig_Man_t * pAig, Dch_Pars_t * pPars );
     extern Gia_Man_t * Dar_NewChoiceSynthesis( Aig_Man_t * pAig, int fBalance, int fUpdateLevel, int fPower, int fLightSynth, int fVerbose );
     extern Aig_Man_t * Cec_ComputeChoices( Gia_Man_t * pGia, Dch_Pars_t * pPars );
 
@@ -1662,23 +1694,28 @@ Abc_Ntk_t * Abc_NtkDch( Abc_Ntk_t * pNtk, Dch_Pars_t * pPars )
     pMan = Abc_NtkToDar( pNtk, 0, 0 );
     if ( pMan == NULL )
         return NULL;
+    if ( pPars->fUseNew )
+        pMan = Dar_ManChoiceNew( pMan, pPars );
+    else 
+    {
 clk = Abc_Clock();
-    if ( pPars->fSynthesis )
-        pGia = Dar_NewChoiceSynthesis( pMan, 1, 1, pPars->fPower, pPars->fLightSynth, pPars->fVerbose );
-    else
-    {
-        pGia = Gia_ManFromAig( pMan );
-        Aig_ManStop( pMan );
-    }
+        if ( pPars->fSynthesis )
+            pGia = Dar_NewChoiceSynthesis( pMan, 1, 1, pPars->fPower, pPars->fLightSynth, pPars->fVerbose );
+        else
+        {
+            pGia = Gia_ManFromAig( pMan );
+            Aig_ManStop( pMan );
+        }
 pPars->timeSynth = Abc_Clock() - clk;
-    if ( pPars->fUseGia )
-        pMan = Cec_ComputeChoices( pGia, pPars );
-    else
-    {
-        pMan = Gia_ManToAigSkip( pGia, 3 );
-        Gia_ManStop( pGia );
-        pMan = Dch_ComputeChoices( pTemp = pMan, pPars );
-        Aig_ManStop( pTemp );
+        if ( pPars->fUseGia )
+            pMan = Cec_ComputeChoices( pGia, pPars );
+        else
+        {
+            pMan = Gia_ManToAigSkip( pGia, 3 );
+            Gia_ManStop( pGia );
+            pMan = Dch_ComputeChoices( pTemp = pMan, pPars );
+            Aig_ManStop( pTemp );
+        }
     }
     pNtkAig = Abc_NtkFromDarChoices( pNtk, pMan );
     Aig_ManStop( pMan );
@@ -2265,7 +2302,7 @@ Abc_Ntk_t * Abc_NtkDarLcorr( Abc_Ntk_t * pNtk, int nFramesP, int nConfMax, int f
   SeeAlso     []
  
 ***********************************************************************/
-Abc_Ntk_t * Abc_NtkDarLcorrNew( Abc_Ntk_t * pNtk, int nVarsMax, int nConfMax, int fVerbose )
+Abc_Ntk_t * Abc_NtkDarLcorrNew( Abc_Ntk_t * pNtk, int nVarsMax, int nConfMax, int nLimitMax, int fVerbose )
 {
     Ssw_Pars_t Pars, * pPars = &Pars;
     Aig_Man_t * pMan, * pTemp;
@@ -2277,6 +2314,7 @@ Abc_Ntk_t * Abc_NtkDarLcorrNew( Abc_Ntk_t * pNtk, int nVarsMax, int nConfMax, in
     pPars->fLatchCorrOpt = 1;
     pPars->nBTLimit      = nConfMax;
     pPars->nSatVarMax    = nVarsMax;
+    pPars->nLimitMax     = nLimitMax;
     pPars->fVerbose      = fVerbose;
     pMan = Ssw_SignalCorrespondence( pTemp = pMan, pPars );
     Aig_ManStop( pTemp );

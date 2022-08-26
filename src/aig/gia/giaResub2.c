@@ -733,7 +733,7 @@ void Gia_RsbCiWindowTest( Gia_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int  Gia_ObjFaninId( Gia_Obj_t * pObj, int iObj, int n )          { return n ? Gia_ObjFaninId1(pObj, iObj) : Gia_ObjFaninId0(pObj, iObj);  }
+//static inline int  Gia_ObjFaninId( Gia_Obj_t * pObj, int iObj, int n )          { return n ? Gia_ObjFaninId1(pObj, iObj) : Gia_ObjFaninId0(pObj, iObj);  }
 
 static inline int  Gia_ObjTravIsTopTwo( Gia_Man_t * p, int iNodeA )            { return (p->pTravIds[iNodeA] >= p->nTravIds - 1);       }
 static inline int  Gia_ObjTravIsSame( Gia_Man_t * p, int iNodeA, int iNodeB )  { return (p->pTravIds[iNodeA] == p->pTravIds[iNodeB]);   }
@@ -1116,13 +1116,24 @@ int Gia_RsbFindFaninToAddToCut( Gia_Man_t * p, Vec_Int_t * vIns )
         assert( nFanins < 64 );
     }
     // find fanin with the highest count
-    for ( i = 0; i < nFanins; i++ )
-//        if ( CountMax < pFaninCounts[i] )
-        if ( CountMax < pFaninCounts[i] || (CountMax == pFaninCounts[i] && (Gia_ObjFanoutNumId(p, iFanMax) < Gia_ObjFanoutNumId(p, pFanins[i]))) )
-        {
-            CountMax = pFaninCounts[i];
-            iFanMax  = pFanins[i];
-        }
+    if ( p->vFanoutNums != NULL )
+    {
+        for ( i = 0; i < nFanins; i++ )
+            if ( CountMax < pFaninCounts[i] || (CountMax == pFaninCounts[i] && (Gia_ObjFanoutNumId(p, iFanMax) < Gia_ObjFanoutNumId(p, pFanins[i]))) )
+            {
+                CountMax = pFaninCounts[i];
+                iFanMax  = pFanins[i];
+            }
+    }
+    else
+    {
+        for ( i = 0; i < nFanins; i++ )
+            if ( CountMax < pFaninCounts[i] || (CountMax == pFaninCounts[i] && (Gia_ObjRefNumId(p, iFanMax) < Gia_ObjRefNumId(p, pFanins[i]))) )
+            {
+                CountMax = pFaninCounts[i];
+                iFanMax  = pFanins[i];
+            }
+    }
     return iFanMax;
 }
 // precondition: nodes in vWin and in vIns are marked with the current ID
@@ -1167,7 +1178,7 @@ void Gia_RsbWindowGrow2( Gia_Man_t * p, int iObj, Vec_Wec_t * vLevels, Vec_Int_t
         else
             assert( Vec_IntSize(vIns) > nInputsMax );
     }
-    if ( Vec_IntSize(vIns) <= nInputsMax )
+    if ( vLevels && Vec_IntSize(vIns) <= nInputsMax )
     {
         Vec_IntSort( vIns, 0 );
         Gia_WinCreateFromCut( p, iObj, vIns, vLevels, vWin );
@@ -1498,10 +1509,50 @@ void Gia_RsbTestArray()
     Vec_IntFree( vArray );
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Computing cuts of the nodes.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+Vec_Wec_t * Gia_ManExtractCuts2( Gia_Man_t * p, int nCutSize, int nCuts, int fVerbose )
+{
+    int c, nLevelMax = 8;
+    abctime clk = Abc_Clock();
+    Vec_Wec_t * vCuts = Vec_WecStart( nCuts );
+    Vec_Int_t * vPaths = Vec_IntStart( Gia_ManObjNum(p) );
+    srand( time(NULL) );
+    for ( c = 0; c < nCuts; )
+    {
+        Vec_Int_t * vCut, * vWin = NULL;
+        while ( vWin == NULL )
+        {
+            int iPivot = 1 + Gia_ManCiNum(p) + rand() % Gia_ManAndNum(p);
+            assert( Gia_ObjIsAnd(Gia_ManObj(p, iPivot)) );
+            vWin = Gia_RsbWindowInit( p, vPaths, iPivot, nLevelMax );
+        }
+        vCut = Gia_RsbCreateWindowInputs( p, vWin );
+        if ( Vec_IntSize(vCut) >= nCutSize - 2 && Vec_IntSize(vCut) <= nCutSize )
+        {
+            Vec_IntPush( Vec_WecEntry(vCuts, c), Vec_IntSize(vCut) );
+            Vec_IntAppend( Vec_WecEntry(vCuts, c++), vCut );
+        }
+        Vec_IntFree( vCut );
+        Vec_IntFree( vWin );
+    }
+    Vec_IntFree( vPaths );
+    Abc_PrintTime( 0, "Computing cuts  ", Abc_Clock() - clk );
+    return vCuts;
+}
+
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-
 
 ABC_NAMESPACE_IMPL_END
 
