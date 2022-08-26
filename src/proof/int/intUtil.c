@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -30,7 +29,6 @@ ABC_NAMESPACE_IMPL_START
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
-
 
 /**Function*************************************************************
 
@@ -43,31 +41,27 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-int Inter_ManCheckInitialState( Aig_Man_t * p )
-{
-    Cnf_Dat_t * pCnf;
-    Aig_Obj_t * pObj;
-    sat_solver * pSat;
+int Inter_ManCheckInitialState(Aig_Man_t* p) {
+    Cnf_Dat_t* pCnf;
+    Aig_Obj_t* pObj;
+    sat_solver* pSat;
     int i, status;
     //abctime clk = Abc_Clock();
-    pCnf = Cnf_Derive( p, Saig_ManRegNum(p) ); 
-    pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnf, 1, 1 );
-    if ( pSat == NULL )
-    {
-        Cnf_DataFree( pCnf );
+    pCnf = Cnf_Derive(p, Saig_ManRegNum(p));
+    pSat = (sat_solver*)Cnf_DataWriteIntoSolver(pCnf, 1, 1);
+    if (pSat == NULL) {
+        Cnf_DataFree(pCnf);
         return 0;
     }
-    status = sat_solver_solve( pSat, NULL, NULL, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+    status = sat_solver_solve(pSat, NULL, NULL, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
     //ABC_PRT( "Time", Abc_Clock() - clk );
-    if ( status == l_True )
-    {
-        p->pSeqModel = Abc_CexAlloc( Aig_ManRegNum(p), Saig_ManPiNum(p), 1 );
-        Saig_ManForEachPi( p, pObj, i )
-            if ( sat_solver_var_value( pSat, pCnf->pVarNums[Aig_ObjId(pObj)] ) )
-                Abc_InfoSetBit( p->pSeqModel->pData, Aig_ManRegNum(p) + i );
+    if (status == l_True) {
+        p->pSeqModel = Abc_CexAlloc(Aig_ManRegNum(p), Saig_ManPiNum(p), 1);
+        Saig_ManForEachPi(p, pObj, i) if (sat_solver_var_value(pSat, pCnf->pVarNums[Aig_ObjId(pObj)]))
+            Abc_InfoSetBit(p->pSeqModel->pData, Aig_ManRegNum(p) + i);
     }
-    Cnf_DataFree( pCnf );
-    sat_solver_delete( pSat );
+    Cnf_DataFree(pCnf);
+    sat_solver_delete(pSat);
     return status == l_True;
 }
 
@@ -82,20 +76,19 @@ int Inter_ManCheckInitialState( Aig_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Inter_ManCheckAllStates( Aig_Man_t * p )
-{
-    Cnf_Dat_t * pCnf;
-    sat_solver * pSat;
+int Inter_ManCheckAllStates(Aig_Man_t* p) {
+    Cnf_Dat_t* pCnf;
+    sat_solver* pSat;
     int status;
     abctime clk = Abc_Clock();
-    pCnf = Cnf_Derive( p, Saig_ManRegNum(p) ); 
-    pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnf, 1, 0 );
-    Cnf_DataFree( pCnf );
-    if ( pSat == NULL )
+    pCnf = Cnf_Derive(p, Saig_ManRegNum(p));
+    pSat = (sat_solver*)Cnf_DataWriteIntoSolver(pCnf, 1, 0);
+    Cnf_DataFree(pCnf);
+    if (pSat == NULL)
         return 1;
-    status = sat_solver_solve( pSat, NULL, NULL, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
-    sat_solver_delete( pSat );
-    ABC_PRT( "Time", Abc_Clock() - clk );
+    status = sat_solver_solve(pSat, NULL, NULL, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+    sat_solver_delete(pSat);
+    ABC_PRT("Time", Abc_Clock() - clk);
     return status == l_False;
 }
 
@@ -103,6 +96,4 @@ int Inter_ManCheckAllStates( Aig_Man_t * p )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

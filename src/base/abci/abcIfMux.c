@@ -23,11 +23,10 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
- 
+
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
@@ -43,10 +42,9 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Abc_NtkFuncCof0( int t, int v )
-{
-    static int s_Truth[3] = { 0xAA, 0xCC, 0xF0 };
-    return 0xff & ((t & ~s_Truth[v]) | ((t & ~s_Truth[v]) << (1<<v)));
+static inline int Abc_NtkFuncCof0(int t, int v) {
+    static int s_Truth[3] = {0xAA, 0xCC, 0xF0};
+    return 0xff & ((t & ~s_Truth[v]) | ((t & ~s_Truth[v]) << (1 << v)));
 }
 
 /**Function*************************************************************
@@ -60,10 +58,9 @@ static inline int Abc_NtkFuncCof0( int t, int v )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Abc_NtkFuncCof1( int t, int v )
-{
-    static int s_Truth[3] = { 0xAA, 0xCC, 0xF0 };
-    return 0xff & ((t &  s_Truth[v]) | ((t &  s_Truth[v]) >> (1<<v)));
+static inline int Abc_NtkFuncCof1(int t, int v) {
+    static int s_Truth[3] = {0xAA, 0xCC, 0xF0};
+    return 0xff & ((t & s_Truth[v]) | ((t & s_Truth[v]) >> (1 << v)));
 }
 
 /**Function*************************************************************
@@ -77,10 +74,9 @@ static inline int Abc_NtkFuncCof1( int t, int v )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Abc_NtkFuncHasVar( int t, int v )
-{
-    static int s_Truth[3] = { 0xAA, 0xCC, 0xF0 };
-    return ((t & s_Truth[v]) >> (1<<v)) != (t & ~s_Truth[v]);
+static inline int Abc_NtkFuncHasVar(int t, int v) {
+    static int s_Truth[3] = {0xAA, 0xCC, 0xF0};
+    return ((t & s_Truth[v]) >> (1 << v)) != (t & ~s_Truth[v]);
 }
 
 /**Function*************************************************************
@@ -94,8 +90,7 @@ static inline int Abc_NtkFuncHasVar( int t, int v )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Abc_NtkFuncSuppSize( int t )
-{
+static inline int Abc_NtkFuncSuppSize(int t) {
     return Abc_NtkFuncHasVar(t, 0) + Abc_NtkFuncHasVar(t, 1) + Abc_NtkFuncHasVar(t, 2);
 }
 
@@ -110,28 +105,22 @@ static inline int Abc_NtkFuncSuppSize( int t )
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_NtkCutCostMuxPrecompute()
-{
+void Abc_NtkCutCostMuxPrecompute() {
     int i, Value;
     int CounterM = 0;
-    for ( i = 0; i < 256; i++ )
-    {
+    for (i = 0; i < 256; i++) {
         Value = 0;
-        if ( Abc_NtkFuncSuppSize( i ) < 3 )
+        if (Abc_NtkFuncSuppSize(i) < 3)
             Value = 1;
-        else
-        {
-            if ( (Abc_NtkFuncSuppSize(Abc_NtkFuncCof0(i,0)) == 1 && Abc_NtkFuncSuppSize(Abc_NtkFuncCof1(i,0)) == 1) ||
-                 (Abc_NtkFuncSuppSize(Abc_NtkFuncCof0(i,1)) == 1 && Abc_NtkFuncSuppSize(Abc_NtkFuncCof1(i,1)) == 1) ||
-                 (Abc_NtkFuncSuppSize(Abc_NtkFuncCof0(i,2)) == 1 && Abc_NtkFuncSuppSize(Abc_NtkFuncCof1(i,2)) == 1) )
-            {
-                 Value = 1;
-                 CounterM++;
+        else {
+            if ((Abc_NtkFuncSuppSize(Abc_NtkFuncCof0(i, 0)) == 1 && Abc_NtkFuncSuppSize(Abc_NtkFuncCof1(i, 0)) == 1) || (Abc_NtkFuncSuppSize(Abc_NtkFuncCof0(i, 1)) == 1 && Abc_NtkFuncSuppSize(Abc_NtkFuncCof1(i, 1)) == 1) || (Abc_NtkFuncSuppSize(Abc_NtkFuncCof0(i, 2)) == 1 && Abc_NtkFuncSuppSize(Abc_NtkFuncCof1(i, 2)) == 1)) {
+                Value = 1;
+                CounterM++;
             }
         }
-        printf( "%d, // %3d  0x%02X\n", Value, i, i );
+        printf("%d, // %3d  0x%02X\n", Value, i, i);
     }
-    printf( "Total number of MUXes = %d.\n", CounterM );
+    printf("Total number of MUXes = %d.\n", CounterM);
 }
 
 /**Function*************************************************************
@@ -145,8 +134,7 @@ void Abc_NtkCutCostMuxPrecompute()
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_NtkCutCostMux( If_Man_t * p, If_Cut_t * pCut )
-{    
+int Abc_NtkCutCostMux(If_Man_t* p, If_Cut_t* pCut) {
     static char uLookup[256] = {
         1, //   0  0x00
         0, //   1  0x01
@@ -403,20 +391,17 @@ int Abc_NtkCutCostMux( If_Man_t * p, If_Cut_t * pCut )
         1, // 252  0xFC
         0, // 253  0xFD
         0, // 254  0xFE
-        1  // 255  0xFF    
+        1  // 255  0xFF
     };
-    if ( pCut->nLeaves < 3 )
+    if (pCut->nLeaves < 3)
         return 1;
-    if ( pCut->nLeaves == 3 && uLookup[0xff & *If_CutTruth(p, pCut)] )
+    if (pCut->nLeaves == 3 && uLookup[0xff & *If_CutTruth(p, pCut)])
         return 1;
     return (1 << pCut->nLeaves) - 1;
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

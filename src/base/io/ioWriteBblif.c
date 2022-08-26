@@ -23,7 +23,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 // For description of Binary BLIF format, refer to "abc/src/aig/bbl/bblif.h"
 
 ////////////////////////////////////////////////////////////////////////
@@ -51,37 +50,36 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Bbl_Man_t * Bbl_ManFromAbc( Abc_Ntk_t * pNtk )
-{
-    Bbl_Man_t * p;
-    Vec_Ptr_t * vNodes;
-    Abc_Obj_t * pObj, * pFanin;
+Bbl_Man_t* Bbl_ManFromAbc(Abc_Ntk_t* pNtk) {
+    Bbl_Man_t* p;
+    Vec_Ptr_t* vNodes;
+    Abc_Obj_t *pObj, *pFanin;
     int i, k;
-    assert( Abc_NtkIsSopLogic(pNtk) );
+    assert(Abc_NtkIsSopLogic(pNtk));
     // start the data manager
-    p = Bbl_ManStart( Abc_NtkName(pNtk) );
+    p = Bbl_ManStart(Abc_NtkName(pNtk));
     // collect internal nodes to be added
-    vNodes = Abc_NtkDfs( pNtk, 0 );
+    vNodes = Abc_NtkDfs(pNtk, 0);
     // create combinational inputs
-    Abc_NtkForEachCi( pNtk, pObj, i )
-        Bbl_ManCreateObject( p, BBL_OBJ_CI, Abc_ObjId(pObj), 0, NULL );
-    // create internal nodes 
-    Vec_PtrForEachEntry( Abc_Obj_t *, vNodes, pObj, i )
-        Bbl_ManCreateObject( p, BBL_OBJ_NODE, Abc_ObjId(pObj), Abc_ObjFaninNum(pObj), (char *)pObj->pData );
+    Abc_NtkForEachCi(pNtk, pObj, i)
+        Bbl_ManCreateObject(p, BBL_OBJ_CI, Abc_ObjId(pObj), 0, NULL);
+    // create internal nodes
+    Vec_PtrForEachEntry(Abc_Obj_t*, vNodes, pObj, i)
+        Bbl_ManCreateObject(p, BBL_OBJ_NODE, Abc_ObjId(pObj), Abc_ObjFaninNum(pObj), (char*)pObj->pData);
     // create combinational outputs
-    Abc_NtkForEachCo( pNtk, pObj, i )
-        Bbl_ManCreateObject( p, BBL_OBJ_CO, Abc_ObjId(pObj), 1, NULL );
+    Abc_NtkForEachCo(pNtk, pObj, i)
+        Bbl_ManCreateObject(p, BBL_OBJ_CO, Abc_ObjId(pObj), 1, NULL);
     // create fanin/fanout connections for internal nodes
-    Vec_PtrForEachEntry( Abc_Obj_t *, vNodes, pObj, i )
-        Abc_ObjForEachFanin( pObj, pFanin, k )
-            Bbl_ManAddFanin( p, Abc_ObjId(pObj), Abc_ObjId(pFanin) );
+    Vec_PtrForEachEntry(Abc_Obj_t*, vNodes, pObj, i)
+        Abc_ObjForEachFanin(pObj, pFanin, k)
+            Bbl_ManAddFanin(p, Abc_ObjId(pObj), Abc_ObjId(pFanin));
     // create fanin/fanout connections for combinational outputs
-    Abc_NtkForEachCo( pNtk, pObj, i )
-        Abc_ObjForEachFanin( pObj, pFanin, k )
-            Bbl_ManAddFanin( p, Abc_ObjId(pObj), Abc_ObjId(pFanin) );
-    Vec_PtrFree( vNodes );
+    Abc_NtkForEachCo(pNtk, pObj, i)
+        Abc_ObjForEachFanin(pObj, pFanin, k)
+            Bbl_ManAddFanin(p, Abc_ObjId(pObj), Abc_ObjId(pFanin));
+    Vec_PtrFree(vNodes);
     // sanity check
-    Bbl_ManCheck( p );
+    Bbl_ManCheck(p);
     return p;
 }
 
@@ -96,21 +94,17 @@ Bbl_Man_t * Bbl_ManFromAbc( Abc_Ntk_t * pNtk )
   SeeAlso     []
 
 ***********************************************************************/
-void Io_WriteBblif( Abc_Ntk_t * pNtk, char * pFileName )
-{
-    Bbl_Man_t * p;
-    p = Bbl_ManFromAbc( pNtk );
-//Bbl_ManPrintStats( p );
-//Bbl_ManDumpBlif( p, "test_bbl.blif" );
-    Bbl_ManDumpBinaryBlif( p, pFileName );
-    Bbl_ManStop( p );
+void Io_WriteBblif(Abc_Ntk_t* pNtk, char* pFileName) {
+    Bbl_Man_t* p;
+    p = Bbl_ManFromAbc(pNtk);
+    //Bbl_ManPrintStats( p );
+    //Bbl_ManDumpBlif( p, "test_bbl.blif" );
+    Bbl_ManDumpBinaryBlif(p, pFileName);
+    Bbl_ManStop(p);
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

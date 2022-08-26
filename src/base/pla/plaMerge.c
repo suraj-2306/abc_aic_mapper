@@ -41,8 +41,7 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-int Pla_ManDist1Merge( Pla_Man_t * p )
-{
+int Pla_ManDist1Merge(Pla_Man_t* p) {
     return 0;
 }
 
@@ -50,6 +49,4 @@ int Pla_ManDist1Merge( Pla_Man_t * p )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

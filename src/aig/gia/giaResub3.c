@@ -41,8 +41,7 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Gia_Man_t * Gia_ManPerformNewResub( Gia_Man_t * p, int nWinCount, int nCutSize, int nProcs, int fVerbose )
-{
+Gia_Man_t* Gia_ManPerformNewResub(Gia_Man_t* p, int nWinCount, int nCutSize, int nProcs, int fVerbose) {
     return NULL;
 }
 
@@ -51,4 +50,3 @@ Gia_Man_t * Gia_ManPerformNewResub( Gia_Man_t * p, int nWinCount, int nCutSize, 
 ////////////////////////////////////////////////////////////////////////
 
 ABC_NAMESPACE_IMPL_END
-

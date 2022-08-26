@@ -64,8 +64,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
@@ -78,11 +76,9 @@ ABC_NAMESPACE_IMPL_START
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -92,16 +88,14 @@ ABC_NAMESPACE_IMPL_START
 static char rcsid[] DD_UNUSED = "$Id: cuddZddLin.c,v 1.14 2004/08/13 18:04:53 fabio Exp $";
 #endif
 
-extern  int     *zdd_entry;
-extern  int     zddTotalNumberSwapping;
-static  int     zddTotalNumberLinearTr;
-static  DdNode  *empty;
-
+extern int* zdd_entry;
+extern int zddTotalNumberSwapping;
+static int zddTotalNumberLinearTr;
+static DdNode* empty;
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
-
 
 /**AutomaticStart*************************************************************/
 
@@ -109,27 +103,22 @@ static  DdNode  *empty;
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static int cuddZddLinearInPlace (DdManager * table, int x, int y);
-static int cuddZddLinearAux (DdManager *table, int x, int xLow, int xHigh);
-static Move * cuddZddLinearUp (DdManager *table, int y, int xLow, Move *prevMoves);
-static Move * cuddZddLinearDown (DdManager *table, int x, int xHigh, Move *prevMoves);
-static int cuddZddLinearBackward (DdManager *table, int size, Move *moves);
-static Move* cuddZddUndoMoves (DdManager *table, Move *moves);
+static int cuddZddLinearInPlace(DdManager* table, int x, int y);
+static int cuddZddLinearAux(DdManager* table, int x, int xLow, int xHigh);
+static Move* cuddZddLinearUp(DdManager* table, int y, int xLow, Move* prevMoves);
+static Move* cuddZddLinearDown(DdManager* table, int x, int xHigh, Move* prevMoves);
+static int cuddZddLinearBackward(DdManager* table, int size, Move* moves);
+static Move* cuddZddUndoMoves(DdManager* table, Move* moves);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
-
-
 
 /**Function********************************************************************
 
@@ -152,14 +141,12 @@ static Move* cuddZddUndoMoves (DdManager *table, Move *moves);
   SeeAlso     []
 
 ******************************************************************************/
-int
-cuddZddLinearSifting(
-  DdManager * table,
-  int  lower,
-  int  upper)
-{
+int cuddZddLinearSifting(
+    DdManager* table,
+    int lower,
+    int upper) {
     int i;
-    int *var;
+    int* var;
     int size;
     int x;
     int result;
@@ -189,7 +176,7 @@ cuddZddLinearSifting(
         var[i] = i;
     }
 
-    qsort((void *)var, (size_t)size, sizeof(int), (DD_QSFP)cuddZddUniqueCompare);
+    qsort((void*)var, (size_t)size, sizeof(int), (DD_QSFP)cuddZddUniqueCompare);
 
     /* Now sift. */
     for (i = 0; i < ddMin(table->siftMaxVar, size); i++) {
@@ -204,13 +191,13 @@ cuddZddLinearSifting(
         if (!result)
             goto cuddZddSiftingOutOfMem;
 #ifdef DD_STATS
-        if (table->keysZ < (unsigned) previousSize) {
-            (void) fprintf(table->out,"-");
-        } else if (table->keysZ > (unsigned) previousSize) {
-            (void) fprintf(table->out,"+");     /* should never happen */
-            (void) fprintf(table->out,"\nSize increased from %d to %d while sifting variable %d\n", previousSize, table->keysZ , var[i]);
+        if (table->keysZ < (unsigned)previousSize) {
+            (void)fprintf(table->out, "-");
+        } else if (table->keysZ > (unsigned)previousSize) {
+            (void)fprintf(table->out, "+"); /* should never happen */
+            (void)fprintf(table->out, "\nSize increased from %d to %d while sifting variable %d\n", previousSize, table->keysZ, var[i]);
         } else {
-            (void) fprintf(table->out,"=");
+            (void)fprintf(table->out, "=");
         }
         fflush(table->out);
 #endif
@@ -219,22 +206,20 @@ cuddZddLinearSifting(
     ABC_FREE(var);
     ABC_FREE(zdd_entry);
 
-    return(1);
+    return (1);
 
 cuddZddSiftingOutOfMem:
 
     if (zdd_entry != NULL) ABC_FREE(zdd_entry);
     if (var != NULL) ABC_FREE(var);
 
-    return(0);
+    return (0);
 
 } /* end of cuddZddLinearSifting */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -253,25 +238,24 @@ cuddZddSiftingOutOfMem:
 ******************************************************************************/
 static int
 cuddZddLinearInPlace(
-  DdManager * table,
-  int  x,
-  int  y)
-{
+    DdManager* table,
+    int x,
+    int y) {
     DdNodePtr *xlist, *ylist;
-    int         xindex, yindex;
-    int         xslots, yslots;
-    int         xshift, yshift;
-    int         oldxkeys, oldykeys;
-    int         newxkeys, newykeys;
-    int         i;
-    int         posn;
-    DdNode      *f, *f1, *f0, *f11, *f10, *f01, *f00;
-    DdNode      *newf1, *newf0, *g, *next, *previous;
-    DdNode      *special;
+    int xindex, yindex;
+    int xslots, yslots;
+    int xshift, yshift;
+    int oldxkeys, oldykeys;
+    int newxkeys, newykeys;
+    int i;
+    int posn;
+    DdNode *f, *f1, *f0, *f11, *f10, *f01, *f00;
+    DdNode *newf1, *newf0, *g, *next, *previous;
+    DdNode* special;
 
 #ifdef DD_DEBUG
     assert(x < y);
-    assert(cuddZddNextHigh(table,x) == y);
+    assert(cuddZddNextHigh(table, x) == y);
     assert(table->subtableZ[x].keys != 0);
     assert(table->subtableZ[y].keys != 0);
     assert(table->subtableZ[x].dead == 0);
@@ -281,19 +265,19 @@ cuddZddLinearInPlace(
     zddTotalNumberLinearTr++;
 
     /* Get parameters of x subtable. */
-    xindex   = table->invpermZ[x];
-    xlist    = table->subtableZ[x].nodelist;
+    xindex = table->invpermZ[x];
+    xlist = table->subtableZ[x].nodelist;
     oldxkeys = table->subtableZ[x].keys;
-    xslots   = table->subtableZ[x].slots;
-    xshift   = table->subtableZ[x].shift;
+    xslots = table->subtableZ[x].slots;
+    xshift = table->subtableZ[x].shift;
     newxkeys = 0;
 
     /* Get parameters of y subtable. */
-    yindex   = table->invpermZ[y];
-    ylist    = table->subtableZ[y].nodelist;
+    yindex = table->invpermZ[y];
+    ylist = table->subtableZ[y].nodelist;
     oldykeys = table->subtableZ[y].keys;
-    yslots   = table->subtableZ[y].slots;
-    yshift   = table->subtableZ[y].shift;
+    yslots = table->subtableZ[y].slots;
+    yshift = table->subtableZ[y].shift;
     newykeys = oldykeys;
 
     /* The nodes in the x layer are put in two chains.  The chain
@@ -312,8 +296,7 @@ cuddZddLinearInPlace(
             /* if (f1->index == yindex) */ cuddSatDec(f1->ref);
             f0 = cuddE(f);
             /* if (f0->index == yindex) */ cuddSatDec(f0->ref);
-            if ((int) f1->index == yindex && cuddE(f1) == empty &&
-                (int) f0->index != yindex) {
+            if ((int)f1->index == yindex && cuddE(f1) == empty && (int)f0->index != yindex) {
                 f->next = special;
                 special = f;
             } else {
@@ -322,7 +305,7 @@ cuddZddLinearInPlace(
             }
             f = next;
         } /* while there are elements in the collision chain */
-    } /* for each slot of the x subtable */
+    }     /* for each slot of the x subtable */
 
     /* Mark y nodes with pointers from above x. We mark them by
     **  changing their index to x.
@@ -335,7 +318,7 @@ cuddZddLinearInPlace(
             }
             f = f->next;
         } /* while there are elements in the collision chain */
-    } /* for each slot of the y subtable */
+    }     /* for each slot of the y subtable */
 
     /* Move special nodes to the y list. */
     f = special;
@@ -371,16 +354,20 @@ cuddZddLinearInPlace(
         next = f->next;
         /* Find f1, f0, f11, f10, f01, f00. */
         f1 = cuddT(f);
-        if ((int) f1->index == yindex || (int) f1->index == xindex) {
-            f11 = cuddT(f1); f10 = cuddE(f1);
+        if ((int)f1->index == yindex || (int)f1->index == xindex) {
+            f11 = cuddT(f1);
+            f10 = cuddE(f1);
         } else {
-            f11 = empty; f10 = f1;
+            f11 = empty;
+            f10 = f1;
         }
         f0 = cuddE(f);
-        if ((int) f0->index == yindex || (int) f0->index == xindex) {
-            f01 = cuddT(f0); f00 = cuddE(f0);
+        if ((int)f0->index == yindex || (int)f0->index == xindex) {
+            f01 = cuddT(f0);
+            f00 = cuddE(f0);
         } else {
-            f01 = empty; f00 = f0;
+            f01 = empty;
+            f00 = f0;
         }
         /* Create the new T child. */
         if (f01 == empty) {
@@ -393,18 +380,18 @@ cuddZddLinearInPlace(
             newf1 = ylist[posn];
             /* Search the collision chain skipping the marked nodes. */
             while (newf1 != NULL) {
-                if (cuddT(newf1) == f01 && cuddE(newf1) == f10 &&
-                    (int) newf1->index == yindex) {
+                if (cuddT(newf1) == f01 && cuddE(newf1) == f10 && (int)newf1->index == yindex) {
                     cuddSatInc(newf1->ref);
                     break; /* match */
                 }
                 newf1 = newf1->next;
-            } /* while newf1 */
-            if (newf1 == NULL) {        /* no match */
+            }                    /* while newf1 */
+            if (newf1 == NULL) { /* no match */
                 newf1 = cuddDynamicAllocNode(table);
                 if (newf1 == NULL)
                     goto zddSwapOutOfMem;
-                newf1->index = yindex; newf1->ref = 1;
+                newf1->index = yindex;
+                newf1->ref = 1;
                 cuddT(newf1) = f01;
                 cuddE(newf1) = f10;
                 /* Insert newf1 in the collision list ylist[pos];
@@ -430,19 +417,20 @@ cuddZddLinearInPlace(
             /* For each element newf0 in collision list ylist[posn]. */
             newf0 = ylist[posn];
             while (newf0 != NULL) {
-                if (cuddT(newf0) == f11 && cuddE(newf0) == f00 &&
-                    (int) newf0->index == yindex) {
+                if (cuddT(newf0) == f11 && cuddE(newf0) == f00 && (int)newf0->index == yindex) {
                     cuddSatInc(newf0->ref);
                     break; /* match */
                 }
                 newf0 = newf0->next;
-            } /* while newf0 */
-            if (newf0 == NULL) {        /* no match */
+            }                    /* while newf0 */
+            if (newf0 == NULL) { /* no match */
                 newf0 = cuddDynamicAllocNode(table);
                 if (newf0 == NULL)
                     goto zddSwapOutOfMem;
-                newf0->index = yindex; newf0->ref = 1;
-                cuddT(newf0) = f11; cuddE(newf0) = f00;
+                newf0->index = yindex;
+                newf0->ref = 1;
+                cuddT(newf0) = f11;
+                cuddE(newf0) = f00;
                 /* Insert newf0 in the collision list ylist[posn];
                 ** increase the ref counts of f11 and f00.
                 */
@@ -483,7 +471,7 @@ cuddZddLinearInPlace(
                     ylist[i] = next;
                 else
                     previous->next = next;
-            } else if ((int) f->index == xindex) { /* move marked node */
+            } else if ((int)f->index == xindex) { /* move marked node */
                 if (previous == NULL)
                     ylist[i] = next;
                 else
@@ -495,19 +483,20 @@ cuddZddLinearInPlace(
                 /* For each element newf1 in collision list ylist[posn]. */
                 newf1 = ylist[posn];
                 while (newf1 != NULL) {
-                    if (cuddT(newf1) == f1 && cuddE(newf1) == empty &&
-                        (int) newf1->index == yindex) {
+                    if (cuddT(newf1) == f1 && cuddE(newf1) == empty && (int)newf1->index == yindex) {
                         cuddSatInc(newf1->ref);
                         break; /* match */
                     }
                     newf1 = newf1->next;
-                } /* while newf1 */
-                if (newf1 == NULL) {    /* no match */
+                }                    /* while newf1 */
+                if (newf1 == NULL) { /* no match */
                     newf1 = cuddDynamicAllocNode(table);
                     if (newf1 == NULL)
                         goto zddSwapOutOfMem;
-                    newf1->index = yindex; newf1->ref = 1;
-                    cuddT(newf1) = f1; cuddE(newf1) = empty;
+                    newf1->index = yindex;
+                    newf1->ref = 1;
+                    cuddT(newf1) = f1;
+                    cuddE(newf1) = empty;
                     /* Insert newf1 in the collision list ylist[posn];
                     ** increase the ref counts of f1 and empty.
                     */
@@ -532,11 +521,11 @@ cuddZddLinearInPlace(
             }
             f = next;
         } /* while f */
-    } /* for i */
+    }     /* for i */
 
     /* Set the appropriate fields in table. */
-    table->subtableZ[x].keys     = newxkeys;
-    table->subtableZ[y].keys     = newykeys;
+    table->subtableZ[x].keys = newxkeys;
+    table->subtableZ[y].keys = newykeys;
 
     table->keysZ += newxkeys + newykeys - oldxkeys - oldykeys;
 
@@ -552,12 +541,11 @@ cuddZddLinearInPlace(
     return (table->keysZ);
 
 zddSwapOutOfMem:
-    (void) fprintf(table->err, "Error: cuddZddSwapInPlace out of memory\n");
+    (void)fprintf(table->err, "Error: cuddZddSwapInPlace out of memory\n");
 
     return (0);
 
 } /* end of cuddZddLinearInPlace */
-
 
 /**Function********************************************************************
 
@@ -575,17 +563,16 @@ zddSwapOutOfMem:
 ******************************************************************************/
 static int
 cuddZddLinearAux(
-  DdManager * table,
-  int  x,
-  int  xLow,
-  int  xHigh)
-{
-    Move        *move;
-    Move        *moveUp;        /* list of up move */
-    Move        *moveDown;      /* list of down move */
+    DdManager* table,
+    int x,
+    int xLow,
+    int xHigh) {
+    Move* move;
+    Move* moveUp;   /* list of up move */
+    Move* moveDown; /* list of down move */
 
-    int         initial_size;
-    int         result;
+    int initial_size;
+    int result;
 
     initial_size = table->keysZ;
 
@@ -599,7 +586,7 @@ cuddZddLinearAux(
     if (x == xLow) {
         moveDown = cuddZddLinearDown(table, x, xHigh, NULL);
         /* At this point x --> xHigh. */
-        if (moveDown == (Move *) CUDD_OUT_OF_MEM)
+        if (moveDown == (Move*)CUDD_OUT_OF_MEM)
             goto cuddZddLinearAuxOutOfMem;
         /* Move backward and stop at best position. */
         result = cuddZddLinearBackward(table, initial_size, moveDown);
@@ -609,7 +596,7 @@ cuddZddLinearAux(
     } else if (x == xHigh) {
         moveUp = cuddZddLinearUp(table, x, xLow, NULL);
         /* At this point x --> xLow. */
-        if (moveUp == (Move *) CUDD_OUT_OF_MEM)
+        if (moveUp == (Move*)CUDD_OUT_OF_MEM)
             goto cuddZddLinearAuxOutOfMem;
         /* Move backward and stop at best position. */
         result = cuddZddLinearBackward(table, initial_size, moveUp);
@@ -619,14 +606,14 @@ cuddZddLinearAux(
     } else if ((x - xLow) > (xHigh - x)) { /* must go down first: shorter */
         moveDown = cuddZddLinearDown(table, x, xHigh, NULL);
         /* At this point x --> xHigh. */
-        if (moveDown == (Move *) CUDD_OUT_OF_MEM)
+        if (moveDown == (Move*)CUDD_OUT_OF_MEM)
             goto cuddZddLinearAuxOutOfMem;
-        moveUp = cuddZddUndoMoves(table,moveDown);
+        moveUp = cuddZddUndoMoves(table, moveDown);
 #ifdef DD_DEBUG
         assert(moveUp == NULL || moveUp->x == x);
 #endif
         moveUp = cuddZddLinearUp(table, x, xLow, moveUp);
-        if (moveUp == (Move *) CUDD_OUT_OF_MEM)
+        if (moveUp == (Move*)CUDD_OUT_OF_MEM)
             goto cuddZddLinearAuxOutOfMem;
         /* Move backward and stop at best position. */
         result = cuddZddLinearBackward(table, initial_size, moveUp);
@@ -636,15 +623,15 @@ cuddZddLinearAux(
     } else {
         moveUp = cuddZddLinearUp(table, x, xLow, NULL);
         /* At this point x --> xHigh. */
-        if (moveUp == (Move *) CUDD_OUT_OF_MEM)
+        if (moveUp == (Move*)CUDD_OUT_OF_MEM)
             goto cuddZddLinearAuxOutOfMem;
         /* Then move up. */
-        moveDown = cuddZddUndoMoves(table,moveUp);
+        moveDown = cuddZddUndoMoves(table, moveUp);
 #ifdef DD_DEBUG
         assert(moveDown == NULL || moveDown->y == x);
 #endif
         moveDown = cuddZddLinearDown(table, x, xHigh, moveDown);
-        if (moveDown == (Move *) CUDD_OUT_OF_MEM)
+        if (moveDown == (Move*)CUDD_OUT_OF_MEM)
             goto cuddZddLinearAuxOutOfMem;
         /* Move backward and stop at best position. */
         result = cuddZddLinearBackward(table, initial_size, moveDown);
@@ -663,17 +650,17 @@ cuddZddLinearAux(
         moveUp = move;
     }
 
-    return(1);
+    return (1);
 
 cuddZddLinearAuxOutOfMem:
-    if (moveDown != (Move *) CUDD_OUT_OF_MEM) {
+    if (moveDown != (Move*)CUDD_OUT_OF_MEM) {
         while (moveDown != NULL) {
             move = moveDown->next;
             cuddDeallocMove(table, moveDown);
             moveDown = move;
         }
     }
-    if (moveUp != (Move *) CUDD_OUT_OF_MEM) {
+    if (moveUp != (Move*)CUDD_OUT_OF_MEM) {
         while (moveUp != NULL) {
             move = moveUp->next;
             cuddDeallocMove(table, moveUp);
@@ -681,10 +668,9 @@ cuddZddLinearAuxOutOfMem:
         }
     }
 
-    return(0);
+    return (0);
 
 } /* end of cuddZddLinearAux */
-
 
 /**Function********************************************************************
 
@@ -700,18 +686,17 @@ cuddZddLinearAuxOutOfMem:
   SeeAlso     []
 
 ******************************************************************************/
-static Move *
+static Move*
 cuddZddLinearUp(
-  DdManager * table,
-  int  y,
-  int  xLow,
-  Move * prevMoves)
-{
-    Move        *moves;
-    Move        *move;
-    int         x;
-    int         size, newsize;
-    int         limitSize;
+    DdManager* table,
+    int y,
+    int xLow,
+    Move* prevMoves) {
+    Move* moves;
+    Move* move;
+    int x;
+    int size, newsize;
+    int limitSize;
 
     moves = prevMoves;
     limitSize = table->keysZ;
@@ -724,7 +709,7 @@ cuddZddLinearUp(
         newsize = cuddZddLinearInPlace(table, x, y);
         if (newsize == 0)
             goto cuddZddLinearUpOutOfMem;
-        move = (Move *) cuddDynamicAllocNode(table);
+        move = (Move*)cuddDynamicAllocNode(table);
         if (move == NULL)
             goto cuddZddLinearUpOutOfMem;
         move->x = x;
@@ -737,11 +722,11 @@ cuddZddLinearUp(
             ** its own inverse. Hence, we just apply the transformation
             ** again.
             */
-            newsize = cuddZddLinearInPlace(table,x,y);
+            newsize = cuddZddLinearInPlace(table, x, y);
             if (newsize == 0) goto cuddZddLinearUpOutOfMem;
 #ifdef DD_DEBUG
             if (newsize != size) {
-                (void) fprintf(table->err,"Change in size after identity transformation! From %d to %d\n",size,newsize);
+                (void)fprintf(table->err, "Change in size after identity transformation! From %d to %d\n", size, newsize);
             }
 #endif
         } else {
@@ -758,7 +743,7 @@ cuddZddLinearUp(
         y = x;
         x = cuddZddNextLow(table, y);
     }
-    return(moves);
+    return (moves);
 
 cuddZddLinearUpOutOfMem:
     while (moves != NULL) {
@@ -766,10 +751,9 @@ cuddZddLinearUpOutOfMem:
         cuddDeallocMove(table, moves);
         moves = move;
     }
-    return((Move *) CUDD_OUT_OF_MEM);
+    return ((Move*)CUDD_OUT_OF_MEM);
 
 } /* end of cuddZddLinearUp */
-
 
 /**Function********************************************************************
 
@@ -785,18 +769,17 @@ cuddZddLinearUpOutOfMem:
   SeeAlso     []
 
 ******************************************************************************/
-static Move *
+static Move*
 cuddZddLinearDown(
-  DdManager * table,
-  int  x,
-  int  xHigh,
-  Move * prevMoves)
-{
-    Move        *moves;
-    Move        *move;
-    int         y;
-    int         size, newsize;
-    int         limitSize;
+    DdManager* table,
+    int x,
+    int xHigh,
+    Move* prevMoves) {
+    Move* moves;
+    Move* move;
+    int y;
+    int size, newsize;
+    int limitSize;
 
     moves = prevMoves;
     limitSize = table->keysZ;
@@ -809,7 +792,7 @@ cuddZddLinearDown(
         newsize = cuddZddLinearInPlace(table, x, y);
         if (newsize == 0)
             goto cuddZddLinearDownOutOfMem;
-        move = (Move *) cuddDynamicAllocNode(table);
+        move = (Move*)cuddDynamicAllocNode(table);
         if (move == NULL)
             goto cuddZddLinearDownOutOfMem;
         move->x = x;
@@ -822,10 +805,10 @@ cuddZddLinearDown(
             ** its own inverse. Hence, we just apply the transformation
             ** again.
             */
-            newsize = cuddZddLinearInPlace(table,x,y);
+            newsize = cuddZddLinearInPlace(table, x, y);
             if (newsize == 0) goto cuddZddLinearDownOutOfMem;
             if (newsize != size) {
-                (void) fprintf(table->err,"Change in size after identity transformation! From %d to %d\n",size,newsize);
+                (void)fprintf(table->err, "Change in size after identity transformation! From %d to %d\n", size, newsize);
             }
         } else {
             size = newsize;
@@ -841,7 +824,7 @@ cuddZddLinearDown(
         x = y;
         y = cuddZddNextHigh(table, x);
     }
-    return(moves);
+    return (moves);
 
 cuddZddLinearDownOutOfMem:
     while (moves != NULL) {
@@ -849,10 +832,9 @@ cuddZddLinearDownOutOfMem:
         cuddDeallocMove(table, moves);
         moves = move;
     }
-    return((Move *) CUDD_OUT_OF_MEM);
+    return ((Move*)CUDD_OUT_OF_MEM);
 
 } /* end of cuddZddLinearDown */
-
 
 /**Function********************************************************************
 
@@ -871,12 +853,11 @@ cuddZddLinearDownOutOfMem:
 ******************************************************************************/
 static int
 cuddZddLinearBackward(
-  DdManager * table,
-  int  size,
-  Move * moves)
-{
-    Move        *move;
-    int         res;
+    DdManager* table,
+    int size,
+    Move* moves) {
+    Move* move;
+    int res;
 
     /* Find the minimum size among moves. */
     for (move = moves; move != NULL; move = move->next) {
@@ -886,24 +867,23 @@ cuddZddLinearBackward(
     }
 
     for (move = moves; move != NULL; move = move->next) {
-        if (move->size == size) return(1);
+        if (move->size == size) return (1);
         if (move->flags == CUDD_LINEAR_TRANSFORM_MOVE) {
-            res = cuddZddLinearInPlace(table,(int)move->x,(int)move->y);
-            if (!res) return(0);
+            res = cuddZddLinearInPlace(table, (int)move->x, (int)move->y);
+            if (!res) return (0);
         }
         res = cuddZddSwapInPlace(table, move->x, move->y);
         if (!res)
-            return(0);
+            return (0);
         if (move->flags == CUDD_INVERSE_TRANSFORM_MOVE) {
-            res = cuddZddLinearInPlace(table,(int)move->x,(int)move->y);
-            if (!res) return(0);
+            res = cuddZddLinearInPlace(table, (int)move->x, (int)move->y);
+            if (!res) return (0);
         }
     }
 
-    return(1);
+    return (1);
 
 } /* end of cuddZddLinearBackward */
-
 
 /**Function********************************************************************
 
@@ -919,16 +899,15 @@ cuddZddLinearBackward(
 ******************************************************************************/
 static Move*
 cuddZddUndoMoves(
-  DdManager * table,
-  Move * moves)
-{
-    Move *invmoves = NULL;
-    Move *move;
-    Move *invmove;
+    DdManager* table,
+    Move* moves) {
+    Move* invmoves = NULL;
+    Move* move;
+    Move* invmove;
     int size;
 
     for (move = moves; move != NULL; move = move->next) {
-        invmove = (Move *) cuddDynamicAllocNode(table);
+        invmove = (Move*)cuddDynamicAllocNode(table);
         if (invmove == NULL) goto cuddZddUndoMovesOutOfMem;
         invmove->x = move->x;
         invmove->y = move->y;
@@ -936,28 +915,28 @@ cuddZddUndoMoves(
         invmoves = invmove;
         if (move->flags == CUDD_SWAP_MOVE) {
             invmove->flags = CUDD_SWAP_MOVE;
-            size = cuddZddSwapInPlace(table,(int)move->x,(int)move->y);
+            size = cuddZddSwapInPlace(table, (int)move->x, (int)move->y);
             if (!size) goto cuddZddUndoMovesOutOfMem;
         } else if (move->flags == CUDD_LINEAR_TRANSFORM_MOVE) {
             invmove->flags = CUDD_INVERSE_TRANSFORM_MOVE;
-            size = cuddZddLinearInPlace(table,(int)move->x,(int)move->y);
+            size = cuddZddLinearInPlace(table, (int)move->x, (int)move->y);
             if (!size) goto cuddZddUndoMovesOutOfMem;
-            size = cuddZddSwapInPlace(table,(int)move->x,(int)move->y);
+            size = cuddZddSwapInPlace(table, (int)move->x, (int)move->y);
             if (!size) goto cuddZddUndoMovesOutOfMem;
         } else { /* must be CUDD_INVERSE_TRANSFORM_MOVE */
 #ifdef DD_DEBUG
-            (void) fprintf(table->err,"Unforseen event in ddUndoMoves!\n");
+            (void)fprintf(table->err, "Unforseen event in ddUndoMoves!\n");
 #endif
             invmove->flags = CUDD_LINEAR_TRANSFORM_MOVE;
-            size = cuddZddSwapInPlace(table,(int)move->x,(int)move->y);
+            size = cuddZddSwapInPlace(table, (int)move->x, (int)move->y);
             if (!size) goto cuddZddUndoMovesOutOfMem;
-            size = cuddZddLinearInPlace(table,(int)move->x,(int)move->y);
+            size = cuddZddLinearInPlace(table, (int)move->x, (int)move->y);
             if (!size) goto cuddZddUndoMovesOutOfMem;
         }
         invmove->size = size;
     }
 
-    return(invmoves);
+    return (invmoves);
 
 cuddZddUndoMovesOutOfMem:
     while (invmoves != NULL) {
@@ -965,11 +944,8 @@ cuddZddUndoMovesOutOfMem:
         cuddDeallocMove(table, invmoves);
         invmoves = move;
     }
-    return((Move *) CUDD_OUT_OF_MEM);
+    return ((Move*)CUDD_OUT_OF_MEM);
 
 } /* end of cuddZddUndoMoves */
 
-
 ABC_NAMESPACE_IMPL_END
-
-

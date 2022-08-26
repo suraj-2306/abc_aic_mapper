@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -40,42 +39,34 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CubeCompareInt( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, Mvc_Cube_t * pMask )
-{
-    if ( Mvc_Cube1Words(pC1) )
-    {
-        if ( pC1->pData[0] < pC2->pData[0] )
+int Mvc_CubeCompareInt(Mvc_Cube_t* pC1, Mvc_Cube_t* pC2, Mvc_Cube_t* pMask) {
+    if (Mvc_Cube1Words(pC1)) {
+        if (pC1->pData[0] < pC2->pData[0])
             return -1;
-        if ( pC1->pData[0] > pC2->pData[0] )
+        if (pC1->pData[0] > pC2->pData[0])
             return 1;
         return 0;
-    }
-    else if ( Mvc_Cube2Words(pC1) )
-    {
-        if ( pC1->pData[1] < pC2->pData[1] )
+    } else if (Mvc_Cube2Words(pC1)) {
+        if (pC1->pData[1] < pC2->pData[1])
             return -1;
-        if ( pC1->pData[1] > pC2->pData[1] )
+        if (pC1->pData[1] > pC2->pData[1])
             return 1;
-        if ( pC1->pData[0] < pC2->pData[0] )
+        if (pC1->pData[0] < pC2->pData[0])
             return -1;
-        if ( pC1->pData[0] > pC2->pData[0] )
+        if (pC1->pData[0] > pC2->pData[0])
             return 1;
         return 0;
-    }
-    else                            
-    {
+    } else {
         int i = Mvc_CubeReadLast(pC1);
-        for(; i >= 0; i--)
-        {
-            if ( pC1->pData[i] < pC2->pData[i] )
+        for (; i >= 0; i--) {
+            if (pC1->pData[i] < pC2->pData[i])
                 return -1;
-            if ( pC1->pData[i] > pC2->pData[i] )
+            if (pC1->pData[i] > pC2->pData[i])
                 return 1;
         }
         return 0;
     }
 }
-
 
 /**Function*************************************************************
 
@@ -88,44 +79,37 @@ int Mvc_CubeCompareInt( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, Mvc_Cube_t * pMask )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CubeCompareSizeAndInt( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, Mvc_Cube_t * pMask )
-{
+int Mvc_CubeCompareSizeAndInt(Mvc_Cube_t* pC1, Mvc_Cube_t* pC2, Mvc_Cube_t* pMask) {
     // compare the cubes by size
-    if ( Mvc_CubeReadSize( pC1 ) < Mvc_CubeReadSize( pC2 ) )
+    if (Mvc_CubeReadSize(pC1) < Mvc_CubeReadSize(pC2))
         return 1;
-    if ( Mvc_CubeReadSize( pC1 ) > Mvc_CubeReadSize( pC2 ) )
+    if (Mvc_CubeReadSize(pC1) > Mvc_CubeReadSize(pC2))
         return -1;
     // the cubes have the same size
 
     // compare the cubes as integers
-    if ( Mvc_Cube1Words( pC1 ) )
-    {
-        if ( pC1->pData[0] < pC2->pData[0] )
+    if (Mvc_Cube1Words(pC1)) {
+        if (pC1->pData[0] < pC2->pData[0])
             return -1;
-        if ( pC1->pData[0] > pC2->pData[0] )
+        if (pC1->pData[0] > pC2->pData[0])
             return 1;
         return 0;
-    }
-    else if ( Mvc_Cube2Words( pC1 ) )
-    {
-        if ( pC1->pData[1] < pC2->pData[1] )
+    } else if (Mvc_Cube2Words(pC1)) {
+        if (pC1->pData[1] < pC2->pData[1])
             return -1;
-        if ( pC1->pData[1] > pC2->pData[1] )
+        if (pC1->pData[1] > pC2->pData[1])
             return 1;
-        if ( pC1->pData[0] < pC2->pData[0] )
+        if (pC1->pData[0] < pC2->pData[0])
             return -1;
-        if ( pC1->pData[0] > pC2->pData[0] )
+        if (pC1->pData[0] > pC2->pData[0])
             return 1;
         return 0;
-    }
-    else                            
-    {
-        int i = Mvc_CubeReadLast( pC1 );
-        for(; i >= 0; i--)
-        {
-            if ( pC1->pData[i] < pC2->pData[i] )
+    } else {
+        int i = Mvc_CubeReadLast(pC1);
+        for (; i >= 0; i--) {
+            if (pC1->pData[i] < pC2->pData[i])
                 return -1;
-            if ( pC1->pData[i] > pC2->pData[i] )
+            if (pC1->pData[i] > pC2->pData[i])
                 return 1;
         }
         return 0;
@@ -143,48 +127,41 @@ int Mvc_CubeCompareSizeAndInt( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, Mvc_Cube_t * 
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CubeCompareIntUnderMask( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, Mvc_Cube_t * pMask )
-{
+int Mvc_CubeCompareIntUnderMask(Mvc_Cube_t* pC1, Mvc_Cube_t* pC2, Mvc_Cube_t* pMask) {
     unsigned uBits1, uBits2;
 
     // compare the cubes under the mask
-    if ( Mvc_Cube1Words(pC1) )
-    {
+    if (Mvc_Cube1Words(pC1)) {
         uBits1 = pC1->pData[0] & pMask->pData[0];
         uBits2 = pC2->pData[0] & pMask->pData[0];
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
         // cubes are equal
         return 0;
-    }
-    else if ( Mvc_Cube2Words(pC1) )
-    {
+    } else if (Mvc_Cube2Words(pC1)) {
         uBits1 = pC1->pData[1] & pMask->pData[1];
         uBits2 = pC2->pData[1] & pMask->pData[1];
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
         uBits1 = pC1->pData[0] & pMask->pData[0];
         uBits2 = pC2->pData[0] & pMask->pData[0];
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
         return 0;
-    }
-    else                            
-    {
+    } else {
         int i = Mvc_CubeReadLast(pC1);
-        for(; i >= 0; i--)
-        {
+        for (; i >= 0; i--) {
             uBits1 = pC1->pData[i] & pMask->pData[i];
             uBits2 = pC2->pData[i] & pMask->pData[i];
-            if ( uBits1 < uBits2 )
+            if (uBits1 < uBits2)
                 return -1;
-            if ( uBits1 > uBits2 )
+            if (uBits1 > uBits2)
                 return 1;
         }
         return 0;
@@ -202,54 +179,46 @@ int Mvc_CubeCompareIntUnderMask( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, Mvc_Cube_t 
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CubeCompareIntOutsideMask( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, Mvc_Cube_t * pMask )
-{
+int Mvc_CubeCompareIntOutsideMask(Mvc_Cube_t* pC1, Mvc_Cube_t* pC2, Mvc_Cube_t* pMask) {
     unsigned uBits1, uBits2;
 
     // compare the cubes under the mask
-    if ( Mvc_Cube1Words(pC1) )
-    {
+    if (Mvc_Cube1Words(pC1)) {
         uBits1 = pC1->pData[0] | pMask->pData[0];
         uBits2 = pC2->pData[0] | pMask->pData[0];
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
         // cubes are equal
         return 0;
-    }
-    else if ( Mvc_Cube2Words(pC1) )
-    {
+    } else if (Mvc_Cube2Words(pC1)) {
         uBits1 = pC1->pData[1] | pMask->pData[1];
         uBits2 = pC2->pData[1] | pMask->pData[1];
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
         uBits1 = pC1->pData[0] | pMask->pData[0];
         uBits2 = pC2->pData[0] | pMask->pData[0];
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
         return 0;
-    }
-    else                            
-    {
+    } else {
         int i = Mvc_CubeReadLast(pC1);
-        for(; i >= 0; i--)
-        {
+        for (; i >= 0; i--) {
             uBits1 = pC1->pData[i] | pMask->pData[i];
             uBits2 = pC2->pData[i] | pMask->pData[i];
-            if ( uBits1 < uBits2 )
+            if (uBits1 < uBits2)
                 return -1;
-            if ( uBits1 > uBits2 )
+            if (uBits1 > uBits2)
                 return 1;
         }
         return 0;
     }
 }
-
 
 /**Function*************************************************************
 
@@ -262,94 +231,86 @@ int Mvc_CubeCompareIntOutsideMask( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, Mvc_Cube_
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CubeCompareIntOutsideAndUnderMask( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, Mvc_Cube_t * pMask )
-{
+int Mvc_CubeCompareIntOutsideAndUnderMask(Mvc_Cube_t* pC1, Mvc_Cube_t* pC2, Mvc_Cube_t* pMask) {
     unsigned uBits1, uBits2;
 
-    if ( Mvc_Cube1Words(pC1) )
-    {
+    if (Mvc_Cube1Words(pC1)) {
         // compare the cubes outside the mask
         uBits1 = pC1->pData[0] & ~(pMask->pData[0]);
         uBits2 = pC2->pData[0] & ~(pMask->pData[0]);
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
 
         // compare the cubes under the mask
         uBits1 = pC1->pData[0] & pMask->pData[0];
         uBits2 = pC2->pData[0] & pMask->pData[0];
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
         // cubes are equal
         // should never happen
-        assert( 0 );
+        assert(0);
         return 0;
-    }
-    else if ( Mvc_Cube2Words(pC1) )
-    {
+    } else if (Mvc_Cube2Words(pC1)) {
         // compare the cubes outside the mask
         uBits1 = pC1->pData[1] & ~(pMask->pData[1]);
         uBits2 = pC2->pData[1] & ~(pMask->pData[1]);
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
 
         uBits1 = pC1->pData[0] & ~(pMask->pData[0]);
         uBits2 = pC2->pData[0] & ~(pMask->pData[0]);
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
 
         // compare the cubes under the mask
         uBits1 = pC1->pData[1] & pMask->pData[1];
         uBits2 = pC2->pData[1] & pMask->pData[1];
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
 
         uBits1 = pC1->pData[0] & pMask->pData[0];
         uBits2 = pC2->pData[0] & pMask->pData[0];
-        if ( uBits1 < uBits2 )
+        if (uBits1 < uBits2)
             return -1;
-        if ( uBits1 > uBits2 )
+        if (uBits1 > uBits2)
             return 1;
 
         // cubes are equal
         // should never happen
-        assert( 0 );
+        assert(0);
         return 0;
-    }
-    else                            
-    {
+    } else {
         int i;
 
         // compare the cubes outside the mask
-        for( i = Mvc_CubeReadLast(pC1); i >= 0; i-- )
-        {
+        for (i = Mvc_CubeReadLast(pC1); i >= 0; i--) {
             uBits1 = pC1->pData[i] & ~(pMask->pData[i]);
             uBits2 = pC2->pData[i] & ~(pMask->pData[i]);
-            if ( uBits1 < uBits2 )
+            if (uBits1 < uBits2)
                 return -1;
-            if ( uBits1 > uBits2 )
+            if (uBits1 > uBits2)
                 return 1;
         }
         // compare the cubes under the mask
-        for( i = Mvc_CubeReadLast(pC1); i >= 0; i-- )
-        {
+        for (i = Mvc_CubeReadLast(pC1); i >= 0; i--) {
             uBits1 = pC1->pData[i] & pMask->pData[i];
             uBits2 = pC2->pData[i] & pMask->pData[i];
-            if ( uBits1 < uBits2 )
+            if (uBits1 < uBits2)
                 return -1;
-            if ( uBits1 > uBits2 )
+            if (uBits1 > uBits2)
                 return 1;
         }
-/*
+        /*
         {
             Mvc_Cover_t * pCover;
             pCover = Mvc_CoverAlloc( NULL, 96 );
@@ -360,7 +321,7 @@ int Mvc_CubeCompareIntOutsideAndUnderMask( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, M
 */
         // cubes are equal
         // should never happen
-        assert( 0 );
+        assert(0);
         return 0;
     }
 }
@@ -369,6 +330,4 @@ int Mvc_CubeCompareIntOutsideAndUnderMask( Mvc_Cube_t * pC1, Mvc_Cube_t * pC2, M
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

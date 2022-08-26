@@ -17,22 +17,20 @@
 ***********************************************************************/
 
 #ifndef ABC__map__super__superInt_h
-#define ABC__map__super__superInt_h
-
+#    define ABC__map__super__superInt_h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
 ////////////////////////////////////////////////////////////////////////
 
-#include "base/abc/abc.h"
-#include "base/main/mainInt.h"
-#include "misc/mvc/mvc.h"
-#include "map/mio/mio.h"
-#include "misc/st/stmm.h"
-#include "super.h"
+#    include "base/abc/abc.h"
+#    include "base/main/mainInt.h"
+#    include "misc/mvc/mvc.h"
+#    include "map/mio/mio.h"
+#    include "misc/st/stmm.h"
+#    include "super.h"
 
 ABC_NAMESPACE_HEADER_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                         PARAMETERS                               ///
@@ -53,7 +51,6 @@ ABC_NAMESPACE_HEADER_START
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
-
 
 ABC_NAMESPACE_HEADER_END
 

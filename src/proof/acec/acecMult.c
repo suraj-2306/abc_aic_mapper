@@ -24,7 +24,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -37,8 +36,7 @@ unsigned s_Classes4a[96] = {
     0x7D82, 0x7B84, 0x6F90, 0x78D2, 0x78B4, 0x69F0, 0x6CC6, 0x69CC, 0x6C9C, 0x69AA, 0x6AA6, 0x6A9A,
     0x827D, 0x847B, 0x906F, 0x872D, 0x874B, 0x960F, 0x9339, 0x9633, 0x9363, 0x9655, 0x9559, 0x9565,
     0xBE41, 0xDE21, 0xF609, 0xB4E1, 0xD2E1, 0xF069, 0x9CC9, 0xCC69, 0xC6C9, 0xAA69, 0x9AA9, 0xA6A9,
-    0x41BE, 0x21DE, 0x09F6, 0x4B1E, 0x2D1E, 0x0F96, 0x6336, 0x3396, 0x3936, 0x5596, 0x6556, 0x5956
-};
+    0x41BE, 0x21DE, 0x09F6, 0x4B1E, 0x2D1E, 0x0F96, 0x6336, 0x3396, 0x3936, 0x5596, 0x6556, 0x5956};
 
 unsigned s_Classes4b[384] = {
     0x35C0, 0x53A0, 0x1DC0, 0x4788, 0x2788, 0x1BA0, 0x3C50, 0x5A30, 0x1CD0, 0x4878, 0x2878, 0x1AB0,
@@ -72,8 +70,7 @@ unsigned s_Classes4b[384] = {
     0x035C, 0x053A, 0x0374, 0x112E, 0x114E, 0x0572, 0x053C, 0x035A, 0x0734, 0x121E, 0x141E, 0x0752,
     0x131C, 0x0636, 0x113C, 0x0366, 0x1346, 0x1436, 0x0656, 0x151A, 0x1256, 0x1526, 0x0566, 0x115A,
     0x03AC, 0x05CA, 0x03B8, 0x11E2, 0x11E4, 0x05D8, 0x0A3C, 0x0C5A, 0x0B38, 0x1E12, 0x1E14, 0x0D58,
-    0x232C, 0x3606, 0x223C, 0x3066, 0x3164, 0x3614, 0x5606, 0x454A, 0x5612, 0x5162, 0x5066, 0x445A
-};
+    0x232C, 0x3606, 0x223C, 0x3066, 0x3164, 0x3614, 0x5606, 0x454A, 0x5612, 0x5162, 0x5066, 0x445A};
 
 unsigned s_Classes4c[768] = {
     0x35C0, 0x53A0, 0x1DC0, 0x4788, 0x2788, 0x1BA0, 0x3C50, 0x5A30, 0x1CD0, 0x4878, 0x2878, 0x1AB0,
@@ -139,13 +136,11 @@ unsigned s_Classes4c[768] = {
     0x03AC, 0x05CA, 0x03B8, 0x11E2, 0x11E4, 0x05D8, 0x0A3C, 0x0C5A, 0x0B38, 0x1E12, 0x1E14, 0x0D58,
     0x232C, 0x3606, 0x223C, 0x3066, 0x3164, 0x3614, 0x5606, 0x454A, 0x5612, 0x5162, 0x5066, 0x445A,
     0xFC53, 0xFA35, 0xFC47, 0xEE1D, 0xEE1B, 0xFA27, 0xF5C3, 0xF3A5, 0xF4C7, 0xE1ED, 0xE1EB, 0xF2A7,
-    0xDCD3, 0xC9F9, 0xDDC3, 0xCF99, 0xCE9B, 0xC9EB, 0xA9F9, 0xBAB5, 0xA9ED, 0xAE9D, 0xAF99, 0xBBA5
-};
+    0xDCD3, 0xC9F9, 0xDDC3, 0xCF99, 0xCE9B, 0xC9EB, 0xA9F9, 0xBAB5, 0xA9ED, 0xAE9D, 0xAF99, 0xBBA5};
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
-
 
 /**Function*************************************************************
 
@@ -158,162 +153,151 @@ unsigned s_Classes4c[768] = {
   SeeAlso     []
 
 ***********************************************************************/
-word Extra_TruthCanonNPN3( word uTruth, int nVars, Vec_Wrd_t * vRes )
-{
-    int nMints  = (1 << nVars);
-    int nPerms  = Extra_Factorial( nVars );
-    int * pComp = Extra_GreyCodeSchedule( nVars );
-    int * pPerm = Extra_PermSchedule( nVars );
+word Extra_TruthCanonNPN3(word uTruth, int nVars, Vec_Wrd_t* vRes) {
+    int nMints = (1 << nVars);
+    int nPerms = Extra_Factorial(nVars);
+    int* pComp = Extra_GreyCodeSchedule(nVars);
+    int* pPerm = Extra_PermSchedule(nVars);
     word tCur, tTemp1, tTemp2;
     word uTruthMin = ABC_CONST(0xFFFFFFFFFFFFFFFF);
     int i, p, c;
-    Vec_WrdClear( vRes );
-    for ( i = 0; i < 2; i++ )
-    {
+    Vec_WrdClear(vRes);
+    for (i = 0; i < 2; i++) {
         tCur = i ? ~uTruth : uTruth;
         tTemp1 = tCur;
-        for ( p = 0; p < nPerms; p++ )
-        {
+        for (p = 0; p < nPerms; p++) {
             tTemp2 = tCur;
-            for ( c = 0; c < nMints; c++ )
-            {
-                if ( uTruthMin > tCur )
+            for (c = 0; c < nMints; c++) {
+                if (uTruthMin > tCur)
                     uTruthMin = tCur;
-                Vec_WrdPushUnique( vRes, tCur );
-                tCur = Abc_Tt6Flip( tCur, pComp[c] );
+                Vec_WrdPushUnique(vRes, tCur);
+                tCur = Abc_Tt6Flip(tCur, pComp[c]);
             }
-            assert( tTemp2 == tCur );
-            tCur = Abc_Tt6SwapAdjacent( tCur, pPerm[p] );
+            assert(tTemp2 == tCur);
+            tCur = Abc_Tt6SwapAdjacent(tCur, pPerm[p]);
         }
-        assert( tTemp1 == tCur );
+        assert(tTemp1 == tCur);
     }
-    ABC_FREE( pComp );
-    ABC_FREE( pPerm );
+    ABC_FREE(pComp);
+    ABC_FREE(pPerm);
     return uTruthMin;
 }
-void Acec_MultFuncTest6()
-{
-    Vec_Wrd_t * vRes = Vec_WrdAlloc( 10000 );
-    int i; word Entry;
+void Acec_MultFuncTest6() {
+    Vec_Wrd_t* vRes = Vec_WrdAlloc(10000);
+    int i;
+    word Entry;
 
     word Truth = ABC_CONST(0xfedcba9876543210);
-    word Canon = Extra_TruthCanonNPN3( Truth, 6, vRes );
+    word Canon = Extra_TruthCanonNPN3(Truth, 6, vRes);
 
-    Extra_PrintHex( stdout, (unsigned*)&Truth, 6 );  printf( "\n" );
-    Extra_PrintHex( stdout, (unsigned*)&Canon, 6 );  printf( "\n" );
+    Extra_PrintHex(stdout, (unsigned*)&Truth, 6);
+    printf("\n");
+    Extra_PrintHex(stdout, (unsigned*)&Canon, 6);
+    printf("\n");
 
-    printf( "Members = %d.\n", Vec_WrdSize(vRes) );
-    Vec_WrdForEachEntry( vRes, Entry, i )
-    {
-        Extra_PrintHex( stdout, (unsigned*)&Entry, 6 );  
-        printf( ", " );
-        if ( i % 8 == 7 )
-            printf( "\n" );
+    printf("Members = %d.\n", Vec_WrdSize(vRes));
+    Vec_WrdForEachEntry(vRes, Entry, i) {
+        Extra_PrintHex(stdout, (unsigned*)&Entry, 6);
+        printf(", ");
+        if (i % 8 == 7)
+            printf("\n");
     }
 
-    Vec_WrdFree( vRes );
+    Vec_WrdFree(vRes);
 }
 
-unsigned Extra_TruthCanonNPN2( unsigned uTruth, int nVars, Vec_Int_t * vRes )
-{
+unsigned Extra_TruthCanonNPN2(unsigned uTruth, int nVars, Vec_Int_t* vRes) {
     static int nVarsOld, nPerms;
-    static char ** pPerms = NULL;
+    static char** pPerms = NULL;
 
     unsigned uTruthMin, uTruthC, uPhase, uPerm;
     int nMints, k, i;
 
-    if ( pPerms == NULL )
-    {
-        nPerms = Extra_Factorial( nVars );   
-        pPerms = Extra_Permutations( nVars );
+    if (pPerms == NULL) {
+        nPerms = Extra_Factorial(nVars);
+        pPerms = Extra_Permutations(nVars);
         nVarsOld = nVars;
-    }
-    else if ( nVarsOld != nVars )
-    {
-        ABC_FREE( pPerms );
-        nPerms = Extra_Factorial( nVars );   
-        pPerms = Extra_Permutations( nVars );
+    } else if (nVarsOld != nVars) {
+        ABC_FREE(pPerms);
+        nPerms = Extra_Factorial(nVars);
+        pPerms = Extra_Permutations(nVars);
         nVarsOld = nVars;
     }
 
-    nMints    = (1 << nVars);
-    uTruthC   = (unsigned)( (~uTruth) & ((~((unsigned)0)) >> (32-nMints)) );
+    nMints = (1 << nVars);
+    uTruthC = (unsigned)((~uTruth) & ((~((unsigned)0)) >> (32 - nMints)));
     uTruthMin = 0xFFFFFFFF;
-    for ( i = 0; i < nMints; i++ )
-    {
-        uPhase = Extra_TruthPolarize( uTruth, i, nVars ); 
-        for ( k = 0; k < nPerms; k++ )
-        {
-            uPerm = Extra_TruthPermute( uPhase, pPerms[k], nVars, 0 );
-            if ( !(uPerm & 1) )
-            Vec_IntPushUnique( vRes, uPerm );
-            if ( uTruthMin > uPerm )
+    for (i = 0; i < nMints; i++) {
+        uPhase = Extra_TruthPolarize(uTruth, i, nVars);
+        for (k = 0; k < nPerms; k++) {
+            uPerm = Extra_TruthPermute(uPhase, pPerms[k], nVars, 0);
+            if (!(uPerm & 1))
+                Vec_IntPushUnique(vRes, uPerm);
+            if (uTruthMin > uPerm)
                 uTruthMin = uPerm;
         }
-        uPhase = Extra_TruthPolarize( uTruthC, i, nVars ); 
-        for ( k = 0; k < nPerms; k++ )
-        {
-            uPerm = Extra_TruthPermute( uPhase, pPerms[k], nVars, 0 );
-            if ( !(uPerm & 1) )
-            Vec_IntPushUnique( vRes, uPerm );
-            if ( uTruthMin > uPerm )
+        uPhase = Extra_TruthPolarize(uTruthC, i, nVars);
+        for (k = 0; k < nPerms; k++) {
+            uPerm = Extra_TruthPermute(uPhase, pPerms[k], nVars, 0);
+            if (!(uPerm & 1))
+                Vec_IntPushUnique(vRes, uPerm);
+            if (uTruthMin > uPerm)
                 uTruthMin = uPerm;
         }
     }
     return uTruthMin;
 }
 
-void Acec_MultFuncTest5()
-{
-    Vec_Int_t * vRes = Vec_IntAlloc( 1000 );
+void Acec_MultFuncTest5() {
+    Vec_Int_t* vRes = Vec_IntAlloc(1000);
     int i, Entry;
 
     unsigned Truth = 0xF335ACC0;
-    unsigned Canon = Extra_TruthCanonNPN2( Truth, 5, vRes );
+    unsigned Canon = Extra_TruthCanonNPN2(Truth, 5, vRes);
 
-    Extra_PrintHex( stdout, (unsigned*)&Truth, 5 );  printf( "\n" );
-    Extra_PrintHex( stdout, (unsigned*)&Canon, 5 );  printf( "\n" );
+    Extra_PrintHex(stdout, (unsigned*)&Truth, 5);
+    printf("\n");
+    Extra_PrintHex(stdout, (unsigned*)&Canon, 5);
+    printf("\n");
 
-    printf( "Members = %d.\n", Vec_IntSize(vRes) );
-    Vec_IntForEachEntry( vRes, Entry, i )
-    {
-        Extra_PrintHex( stdout, (unsigned*)&Entry, 5 );  
-        printf( ", " );
-        if ( i % 8 == 7 )
-            printf( "\n" );
+    printf("Members = %d.\n", Vec_IntSize(vRes));
+    Vec_IntForEachEntry(vRes, Entry, i) {
+        Extra_PrintHex(stdout, (unsigned*)&Entry, 5);
+        printf(", ");
+        if (i % 8 == 7)
+            printf("\n");
     }
 
-    Vec_IntFree( vRes );
+    Vec_IntFree(vRes);
 }
 
-void Acec_MultFuncTest4()
-{
-    Vec_Int_t * vRes = Vec_IntAlloc( 1000 );
+void Acec_MultFuncTest4() {
+    Vec_Int_t* vRes = Vec_IntAlloc(1000);
     int i, Entry;
 
     unsigned Truth = 0xF3C0;
-//    unsigned Truth = 0xF335;
-//    unsigned Truth = 0xFD80;
+    //    unsigned Truth = 0xF335;
+    //    unsigned Truth = 0xFD80;
     //unsigned Truth = 0xD728;
     //unsigned Truth = 0x35C0;
     //unsigned Truth = 0xACC0;
-    unsigned Canon = Extra_TruthCanonNPN2( Truth, 4, vRes );
+    unsigned Canon = Extra_TruthCanonNPN2(Truth, 4, vRes);
 
-    Extra_PrintHex( stdout, (unsigned*)&Truth, 4 );  printf( "\n" );
-    Extra_PrintHex( stdout, (unsigned*)&Canon, 4 );  printf( "\n" );
+    Extra_PrintHex(stdout, (unsigned*)&Truth, 4);
+    printf("\n");
+    Extra_PrintHex(stdout, (unsigned*)&Canon, 4);
+    printf("\n");
 
-    printf( "Members = %d.\n", Vec_IntSize(vRes) );
-    Vec_IntForEachEntry( vRes, Entry, i )
-    {
-        Extra_PrintHex( stdout, (unsigned*)&Entry, 4 );  
-        printf( ", " );
-        if ( i % 12 == 11 )
-            printf( "\n" );
+    printf("Members = %d.\n", Vec_IntSize(vRes));
+    Vec_IntForEachEntry(vRes, Entry, i) {
+        Extra_PrintHex(stdout, (unsigned*)&Entry, 4);
+        printf(", ");
+        if (i % 12 == 11)
+            printf("\n");
     }
 
-    Vec_IntFree( vRes );
+    Vec_IntFree(vRes);
 }
-
 
 /**Function*************************************************************
 
@@ -326,94 +310,86 @@ void Acec_MultFuncTest4()
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Int_t * Acec_MultCollectInputs( Vec_Int_t * vPairs, Vec_Int_t * vRanks, int iObj )
-{
-    Vec_Int_t * vItems = Vec_IntAlloc( 100 );
+Vec_Int_t* Acec_MultCollectInputs(Vec_Int_t* vPairs, Vec_Int_t* vRanks, int iObj) {
+    Vec_Int_t* vItems = Vec_IntAlloc(100);
     int k, iObj1, iObj2;
     // collect all those appearing with this one
-    Vec_IntForEachEntryDouble( vPairs, iObj1, iObj2, k )
-        if ( iObj == iObj1 )
-            Vec_IntPushUnique( vItems, iObj2 );
-        else if ( iObj == iObj2 )
-            Vec_IntPushUnique( vItems, iObj1 );
+    Vec_IntForEachEntryDouble(vPairs, iObj1, iObj2, k) if (iObj == iObj1)
+        Vec_IntPushUnique(vItems, iObj2);
+    else if (iObj == iObj2)
+        Vec_IntPushUnique(vItems, iObj1);
     // sort items by rank cost
-    Vec_IntSelectSortCost( Vec_IntArray(vItems), Vec_IntSize(vItems), vRanks );
+    Vec_IntSelectSortCost(Vec_IntArray(vItems), Vec_IntSize(vItems), vRanks);
     return vItems;
 }
-Vec_Int_t * Acec_MultDetectInputs1( Gia_Man_t * p, Vec_Wec_t * vLeafLits, Vec_Wec_t * vRootLits )
-{
-    Vec_Int_t * vInputs = Vec_IntAlloc( 100 );
-    Vec_Int_t * vCounts = Vec_IntStart( Gia_ManObjNum(p) );
-    Vec_Int_t * vRanks  = Vec_IntStart( Gia_ManObjNum(p) );
-    Vec_Int_t * vPairs  = Vec_IntAlloc( 100 );
-    Vec_Int_t * vItems  = Vec_IntAlloc( 100 );
-    Vec_Int_t * vItems0;
-    Vec_Int_t * vItems1;
-    Vec_Int_t * vLevel;
+Vec_Int_t* Acec_MultDetectInputs1(Gia_Man_t* p, Vec_Wec_t* vLeafLits, Vec_Wec_t* vRootLits) {
+    Vec_Int_t* vInputs = Vec_IntAlloc(100);
+    Vec_Int_t* vCounts = Vec_IntStart(Gia_ManObjNum(p));
+    Vec_Int_t* vRanks = Vec_IntStart(Gia_ManObjNum(p));
+    Vec_Int_t* vPairs = Vec_IntAlloc(100);
+    Vec_Int_t* vItems = Vec_IntAlloc(100);
+    Vec_Int_t* vItems0;
+    Vec_Int_t* vItems1;
+    Vec_Int_t* vLevel;
     int i, k, iLit, iObj, Count;
     // count how many times each input appears
-    Vec_WecForEachLevel( vLeafLits, vLevel, i )
-        Vec_IntForEachEntry( vLevel, iLit, k )
-        {
-            iObj = Abc_Lit2Var(iLit);
-            Vec_IntAddToEntry( vCounts, Gia_ObjFaninId0(Gia_ManObj(p, iObj), iObj), 1 );
-            Vec_IntAddToEntry( vCounts, Gia_ObjFaninId1(Gia_ManObj(p, iObj), iObj), 1 );
-/*
+    Vec_WecForEachLevel(vLeafLits, vLevel, i)
+        Vec_IntForEachEntry(vLevel, iLit, k) {
+        iObj = Abc_Lit2Var(iLit);
+        Vec_IntAddToEntry(vCounts, Gia_ObjFaninId0(Gia_ManObj(p, iObj), iObj), 1);
+        Vec_IntAddToEntry(vCounts, Gia_ObjFaninId1(Gia_ManObj(p, iObj), iObj), 1);
+        /*
             printf( "Rank %2d : Leaf = %4d : (%2d, %2d)\n", i, iObj, 
                 Gia_ObjFaninId0(Gia_ManObj(p, iObj), iObj), Gia_ObjFaninId1(Gia_ManObj(p, iObj), iObj) );
             if ( k == Vec_IntSize(vLevel) - 1 )
                 printf( "\n" );
 */
-        }
+    }
     // count ranks for each one
-    Vec_WecForEachLevel( vLeafLits, vLevel, i )
-        Vec_IntForEachEntry( vLevel, iLit, k )
-        {
-            iObj = Abc_Lit2Var(iLit);
-            if ( Vec_IntEntry(vCounts, Gia_ObjFaninId0(Gia_ManObj(p, iObj), iObj)) < 2 )
-            {
-                printf( "Skipping %d.\n", iObj );
-                continue;
-            }
-            if ( Vec_IntEntry(vCounts, Gia_ObjFaninId1(Gia_ManObj(p, iObj), iObj)) < 2 )
-            {
-                printf( "Skipping %d.\n", iObj );
-                continue;
-            }
-            Vec_IntAddToEntry( vRanks, Gia_ObjFaninId0(Gia_ManObj(p, iObj), iObj), i );
-            Vec_IntAddToEntry( vRanks, Gia_ObjFaninId1(Gia_ManObj(p, iObj), iObj), i );
-
-            Vec_IntPushTwo( vPairs, Gia_ObjFaninId0(Gia_ManObj(p, iObj), iObj), Gia_ObjFaninId1(Gia_ManObj(p, iObj), iObj) );
+    Vec_WecForEachLevel(vLeafLits, vLevel, i)
+        Vec_IntForEachEntry(vLevel, iLit, k) {
+        iObj = Abc_Lit2Var(iLit);
+        if (Vec_IntEntry(vCounts, Gia_ObjFaninId0(Gia_ManObj(p, iObj), iObj)) < 2) {
+            printf("Skipping %d.\n", iObj);
+            continue;
         }
+        if (Vec_IntEntry(vCounts, Gia_ObjFaninId1(Gia_ManObj(p, iObj), iObj)) < 2) {
+            printf("Skipping %d.\n", iObj);
+            continue;
+        }
+        Vec_IntAddToEntry(vRanks, Gia_ObjFaninId0(Gia_ManObj(p, iObj), iObj), i);
+        Vec_IntAddToEntry(vRanks, Gia_ObjFaninId1(Gia_ManObj(p, iObj), iObj), i);
+
+        Vec_IntPushTwo(vPairs, Gia_ObjFaninId0(Gia_ManObj(p, iObj), iObj), Gia_ObjFaninId1(Gia_ManObj(p, iObj), iObj));
+    }
 
     // print statistics
-    Vec_IntForEachEntry( vCounts, Count, i )
-    {
-        if ( !Count )
+    Vec_IntForEachEntry(vCounts, Count, i) {
+        if (!Count)
             continue;
-        if ( !Vec_IntEntry(vRanks, i) )
+        if (!Vec_IntEntry(vRanks, i))
             continue;
-        Vec_IntPush( vItems, i );
-        printf( "Obj = %3d  Occurs = %3d  Ranks = %3d\n", i, Count, Vec_IntEntry(vRanks, i) );
+        Vec_IntPush(vItems, i);
+        printf("Obj = %3d  Occurs = %3d  Ranks = %3d\n", i, Count, Vec_IntEntry(vRanks, i));
     }
     // sort items by rank cost
-    Vec_IntSelectSortCost( Vec_IntArray(vItems), Vec_IntSize(vItems), vRanks );
+    Vec_IntSelectSortCost(Vec_IntArray(vItems), Vec_IntSize(vItems), vRanks);
     // collect all those appearing with the last one
-    vItems0 = Acec_MultCollectInputs( vPairs, vRanks, Vec_IntEntryLast(vItems) );
-    Vec_IntAppend( vInputs, vItems0 );
+    vItems0 = Acec_MultCollectInputs(vPairs, vRanks, Vec_IntEntryLast(vItems));
+    Vec_IntAppend(vInputs, vItems0);
     // collect all those appearing with the last one
-    vItems1 = Acec_MultCollectInputs( vPairs, vRanks, Vec_IntEntryLast(vItems0) );
-    Vec_IntAppend( vInputs, vItems1 );
+    vItems1 = Acec_MultCollectInputs(vPairs, vRanks, Vec_IntEntryLast(vItems0));
+    Vec_IntAppend(vInputs, vItems1);
 
-    Vec_IntPrint( vItems0 );
-    Vec_IntPrint( vItems1 );
+    Vec_IntPrint(vItems0);
+    Vec_IntPrint(vItems1);
 
-    Vec_IntFree( vCounts );
-    Vec_IntFree( vRanks );
-    Vec_IntFree( vPairs );
-    Vec_IntFree( vItems );
-    Vec_IntFree( vItems0 );
-    Vec_IntFree( vItems1 );
+    Vec_IntFree(vCounts);
+    Vec_IntFree(vRanks);
+    Vec_IntFree(vPairs);
+    Vec_IntFree(vItems);
+    Vec_IntFree(vItems0);
+    Vec_IntFree(vItems1);
     return vInputs;
 }
 
@@ -428,42 +404,38 @@ Vec_Int_t * Acec_MultDetectInputs1( Gia_Man_t * p, Vec_Wec_t * vLeafLits, Vec_We
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Int_t * Acec_MultDetectInputs( Gia_Man_t * p, Vec_Wec_t * vLeafLits, Vec_Wec_t * vRootLits )
-{
-    Vec_Int_t * vInputs = Vec_IntAlloc( 100 );
-    Vec_Int_t * vSupp = Vec_IntAlloc( 100 );
-    Vec_Wrd_t * vTemp = Vec_WrdStart( Gia_ManObjNum(p) );
-    Vec_Int_t * vRanks  = Vec_IntStart( Gia_ManObjNum(p) );
-    Vec_Int_t * vCounts = Vec_IntStart( Gia_ManObjNum(p) );
-    Vec_Int_t * vLevel;
+Vec_Int_t* Acec_MultDetectInputs(Gia_Man_t* p, Vec_Wec_t* vLeafLits, Vec_Wec_t* vRootLits) {
+    Vec_Int_t* vInputs = Vec_IntAlloc(100);
+    Vec_Int_t* vSupp = Vec_IntAlloc(100);
+    Vec_Wrd_t* vTemp = Vec_WrdStart(Gia_ManObjNum(p));
+    Vec_Int_t* vRanks = Vec_IntStart(Gia_ManObjNum(p));
+    Vec_Int_t* vCounts = Vec_IntStart(Gia_ManObjNum(p));
+    Vec_Int_t* vLevel;
     int i, k, iLit, iObj, j, Entry;
 
-    ABC_FREE( p->pRefs );
-    Gia_ManCreateRefs( p );
-    Gia_ManForEachCiId( p, iObj, i )
-        printf( "%d=%d ", iObj, Gia_ObjRefNumId(p, iObj) );
-    printf( "\n" );
-    Gia_ManForEachAndId( p, iObj )
-        if ( Gia_ObjRefNumId(p, iObj) >= 4 )
-            printf( "%d=%d ", iObj, Gia_ObjRefNumId(p, iObj) );
-    printf( "\n" );
+    ABC_FREE(p->pRefs);
+    Gia_ManCreateRefs(p);
+    Gia_ManForEachCiId(p, iObj, i)
+        printf("%d=%d ", iObj, Gia_ObjRefNumId(p, iObj));
+    printf("\n");
+    Gia_ManForEachAndId(p, iObj) if (Gia_ObjRefNumId(p, iObj) >= 4)
+        printf("%d=%d ", iObj, Gia_ObjRefNumId(p, iObj));
+    printf("\n");
 
-    Vec_WecForEachLevel( vLeafLits, vLevel, i )
-        Vec_IntForEachEntry( vLevel, iLit, k )
-        {
-            word Truth = Gia_ObjComputeTruth6Cis( p, iLit, vSupp, vTemp );
-            if ( Vec_IntSize(vSupp) >= 0 )
-            {
-                printf( "Leaf = %4d : ", Abc_Lit2Var(iLit) );
-                printf( "Rank = %2d  ", i );
-                printf( "Supp = %2d  ", Vec_IntSize(vSupp) );
-                Extra_PrintHex( stdout, (unsigned*)&Truth, Vec_IntSize(vSupp) );
-                if ( Vec_IntSize(vSupp) == 4 ) printf( "    " );
-                if ( Vec_IntSize(vSupp) == 3 ) printf( "      " );
-                if ( Vec_IntSize(vSupp) <= 2 ) printf( "       " );
-                printf( "  " );
-                Vec_IntPrint( vSupp );
-                /*
+    Vec_WecForEachLevel(vLeafLits, vLevel, i)
+        Vec_IntForEachEntry(vLevel, iLit, k) {
+        word Truth = Gia_ObjComputeTruth6Cis(p, iLit, vSupp, vTemp);
+        if (Vec_IntSize(vSupp) >= 0) {
+            printf("Leaf = %4d : ", Abc_Lit2Var(iLit));
+            printf("Rank = %2d  ", i);
+            printf("Supp = %2d  ", Vec_IntSize(vSupp));
+            Extra_PrintHex(stdout, (unsigned*)&Truth, Vec_IntSize(vSupp));
+            if (Vec_IntSize(vSupp) == 4) printf("    ");
+            if (Vec_IntSize(vSupp) == 3) printf("      ");
+            if (Vec_IntSize(vSupp) <= 2) printf("       ");
+            printf("  ");
+            Vec_IntPrint(vSupp);
+            /*
                 if ( Truth == 0xF335ACC0F335ACC0 )
                 {
                     int iObj = Abc_Lit2Var(iLit);
@@ -472,26 +444,24 @@ Vec_Int_t * Acec_MultDetectInputs( Gia_Man_t * p, Vec_Wec_t * vLeafLits, Vec_Wec
                     Gia_ManStop( pGia0 );
                 }
                 */
-            }
-            // support rank counts
-            Vec_IntForEachEntry( vSupp, Entry, j )
-            {
-                Vec_IntAddToEntry( vRanks, Entry, i );
-                Vec_IntAddToEntry( vCounts, Entry, 1 );
-            }
-            if ( k == Vec_IntSize(vLevel)-1 )
-                printf( "\n" );
         }
+        // support rank counts
+        Vec_IntForEachEntry(vSupp, Entry, j) {
+            Vec_IntAddToEntry(vRanks, Entry, i);
+            Vec_IntAddToEntry(vCounts, Entry, 1);
+        }
+        if (k == Vec_IntSize(vLevel) - 1)
+            printf("\n");
+    }
 
-    Vec_IntForEachEntry( vCounts, Entry, j )
-        if ( Entry )
-            printf( "%d=%d(%.2f) ", j, Entry, 1.0*Vec_IntEntry(vRanks, j)/Entry );
-    printf( "\n" );
+    Vec_IntForEachEntry(vCounts, Entry, j) if (Entry)
+        printf("%d=%d(%.2f) ", j, Entry, 1.0 * Vec_IntEntry(vRanks, j) / Entry);
+    printf("\n");
 
-    Vec_IntFree( vSupp );
-    Vec_WrdFree( vTemp );
-    Vec_IntFree( vRanks );
-    Vec_IntFree( vCounts );
+    Vec_IntFree(vSupp);
+    Vec_WrdFree(vTemp);
+    Vec_IntFree(vRanks);
+    Vec_IntFree(vCounts);
     return vInputs;
 }
 
@@ -506,8 +476,7 @@ Vec_Int_t * Acec_MultDetectInputs( Gia_Man_t * p, Vec_Wec_t * vLeafLits, Vec_Wec
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Bit_t * Acec_MultMarkPPs( Gia_Man_t * p )
-{
+Vec_Bit_t* Acec_MultMarkPPs(Gia_Man_t* p) {
     word Saved[32] = {
         ABC_CONST(0xF335ACC0F335ACC0),
         ABC_CONST(0x35C035C035C035C0),
@@ -528,36 +497,32 @@ Vec_Bit_t * Acec_MultMarkPPs( Gia_Man_t * p )
         ABC_CONST(0x5858585858585858),
         ABC_CONST(0xA7A7A7A7A7A7A7A7),
         ABC_CONST(0x2727272727272727),
-        ABC_CONST(0xD8D8D8D8D8D8D8D8)
-    };
+        ABC_CONST(0xD8D8D8D8D8D8D8D8)};
 
-    Vec_Bit_t * vRes = Vec_BitStart( Gia_ManObjNum(p) );
-    Vec_Wrd_t * vTemp = Vec_WrdStart( Gia_ManObjNum(p) );
-    Vec_Int_t * vSupp = Vec_IntAlloc( 100 );
+    Vec_Bit_t* vRes = Vec_BitStart(Gia_ManObjNum(p));
+    Vec_Wrd_t* vTemp = Vec_WrdStart(Gia_ManObjNum(p));
+    Vec_Int_t* vSupp = Vec_IntAlloc(100);
     int i, iObj, nProds = 0;
     Gia_ManCleanMark0(p);
-    Gia_ManForEachAndId( p, iObj )
-    {
-        word Truth = Gia_ObjComputeTruth6Cis( p, Abc_Var2Lit(iObj, 0), vSupp, vTemp );
-        if ( Vec_IntSize(vSupp) > 6  )
+    Gia_ManForEachAndId(p, iObj) {
+        word Truth = Gia_ObjComputeTruth6Cis(p, Abc_Var2Lit(iObj, 0), vSupp, vTemp);
+        if (Vec_IntSize(vSupp) > 6)
             continue;
-        vSupp->nSize = Abc_Tt6MinBase( &Truth, vSupp->pArray, vSupp->nSize );
-        if ( Vec_IntSize(vSupp) > 5  )
+        vSupp->nSize = Abc_Tt6MinBase(&Truth, vSupp->pArray, vSupp->nSize);
+        if (Vec_IntSize(vSupp) > 5)
             continue;
-        for ( i = 0; i < 32 && Saved[i]; i++ )
-        {
-            if ( Truth == Saved[i] || Truth == ~Saved[i] )
-            {
-                Vec_BitWriteEntry( vRes, iObj, 1 );
+        for (i = 0; i < 32 && Saved[i]; i++) {
+            if (Truth == Saved[i] || Truth == ~Saved[i]) {
+                Vec_BitWriteEntry(vRes, iObj, 1);
                 nProds++;
                 break;
             }
         }
     }
     Gia_ManCleanMark0(p);
-    printf( "Collected %d pps.\n", nProds );
-    Vec_IntFree( vSupp );
-    Vec_WrdFree( vTemp );
+    printf("Collected %d pps.\n", nProds);
+    Vec_IntFree(vSupp);
+    Vec_WrdFree(vTemp);
     return vRes;
 }
 
@@ -572,21 +537,19 @@ Vec_Bit_t * Acec_MultMarkPPs( Gia_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Acec_MultFindPPs_rec( Gia_Man_t * p, int iObj, Vec_Int_t * vBold )
-{
-    Gia_Obj_t * pObj;
-    pObj = Gia_ManObj( p, iObj );
-    if ( pObj->fMark0 )
+void Acec_MultFindPPs_rec(Gia_Man_t* p, int iObj, Vec_Int_t* vBold) {
+    Gia_Obj_t* pObj;
+    pObj = Gia_ManObj(p, iObj);
+    if (pObj->fMark0)
         return;
     pObj->fMark0 = 1;
-    if ( !Gia_ObjIsAnd(pObj) )
+    if (!Gia_ObjIsAnd(pObj))
         return;
-    Acec_MultFindPPs_rec( p, Gia_ObjFaninId0(pObj, iObj), vBold );
-    Acec_MultFindPPs_rec( p, Gia_ObjFaninId1(pObj, iObj), vBold );
-    Vec_IntPush( vBold, iObj );
+    Acec_MultFindPPs_rec(p, Gia_ObjFaninId0(pObj, iObj), vBold);
+    Acec_MultFindPPs_rec(p, Gia_ObjFaninId1(pObj, iObj), vBold);
+    Vec_IntPush(vBold, iObj);
 }
-Vec_Int_t * Acec_MultFindPPs( Gia_Man_t * p )
-{
+Vec_Int_t* Acec_MultFindPPs(Gia_Man_t* p) {
     word Saved[32] = {
         ABC_CONST(0xF335ACC0F335ACC0),
         ABC_CONST(0x35C035C035C035C0),
@@ -607,28 +570,24 @@ Vec_Int_t * Acec_MultFindPPs( Gia_Man_t * p )
         ABC_CONST(0x5858585858585858),
         ABC_CONST(0xA7A7A7A7A7A7A7A7),
         ABC_CONST(0x2727272727272727),
-        ABC_CONST(0xD8D8D8D8D8D8D8D8)
-    };
+        ABC_CONST(0xD8D8D8D8D8D8D8D8)};
 
-    Vec_Int_t * vBold = Vec_IntAlloc( 100 );
-    Vec_Int_t * vSupp = Vec_IntAlloc( 100 );
-    Vec_Wrd_t * vTemp = Vec_WrdStart( Gia_ManObjNum(p) );
+    Vec_Int_t* vBold = Vec_IntAlloc(100);
+    Vec_Int_t* vSupp = Vec_IntAlloc(100);
+    Vec_Wrd_t* vTemp = Vec_WrdStart(Gia_ManObjNum(p));
     int i, iObj, nProds = 0;
     Gia_ManCleanMark0(p);
-    Gia_ManForEachAndId( p, iObj )
-    {
-        word Truth = Gia_ObjComputeTruth6Cis( p, Abc_Var2Lit(iObj, 0), vSupp, vTemp );
-        if ( Vec_IntSize(vSupp) > 6  )
+    Gia_ManForEachAndId(p, iObj) {
+        word Truth = Gia_ObjComputeTruth6Cis(p, Abc_Var2Lit(iObj, 0), vSupp, vTemp);
+        if (Vec_IntSize(vSupp) > 6)
             continue;
-        vSupp->nSize = Abc_Tt6MinBase( &Truth, vSupp->pArray, vSupp->nSize );
-        if ( Vec_IntSize(vSupp) > 5  )
+        vSupp->nSize = Abc_Tt6MinBase(&Truth, vSupp->pArray, vSupp->nSize);
+        if (Vec_IntSize(vSupp) > 5)
             continue;
-        for ( i = 0; i < 32 && Saved[i]; i++ )
-        {
-            if ( Truth == Saved[i] || Truth == ~Saved[i] )
-            {
+        for (i = 0; i < 32 && Saved[i]; i++) {
+            if (Truth == Saved[i] || Truth == ~Saved[i]) {
                 //printf( "*** Node %d is PP with support %d.\n", iObj, Vec_IntSize(vSupp) );
-                Acec_MultFindPPs_rec( p, iObj, vBold );
+                Acec_MultFindPPs_rec(p, iObj, vBold);
                 nProds++;
                 break;
             }
@@ -647,33 +606,29 @@ Vec_Int_t * Acec_MultFindPPs( Gia_Man_t * p )
         */
     }
     Gia_ManCleanMark0(p);
-    printf( "Collected %d pps and %d nodes.\n", nProds, Vec_IntSize(vBold) );
+    printf("Collected %d pps and %d nodes.\n", nProds, Vec_IntSize(vBold));
 
-    Vec_IntFree( vSupp );
-    Vec_WrdFree( vTemp );
+    Vec_IntFree(vSupp);
+    Vec_WrdFree(vTemp);
     return vBold;
 }
-Vec_Bit_t * Acec_BoothFindPPG( Gia_Man_t * p )
-{
-    Vec_Bit_t * vIgnore = Vec_BitStart( Gia_ManObjNum(p) );
-    Vec_Int_t * vMap = Acec_MultFindPPs( p );
+Vec_Bit_t* Acec_BoothFindPPG(Gia_Man_t* p) {
+    Vec_Bit_t* vIgnore = Vec_BitStart(Gia_ManObjNum(p));
+    Vec_Int_t* vMap = Acec_MultFindPPs(p);
     int i, Entry;
-    Vec_IntForEachEntry( vMap, Entry, i )
-        Vec_BitWriteEntry( vIgnore, Entry, 1 );
-    Vec_IntFree( vMap );
+    Vec_IntForEachEntry(vMap, Entry, i)
+        Vec_BitWriteEntry(vIgnore, Entry, 1);
+    Vec_IntFree(vMap);
     return vIgnore;
 }
-void Acec_MultFindPPsTest( Gia_Man_t * p )
-{
-    Vec_Int_t * vBold = Acec_MultFindPPs( p );
-    Gia_ManShow( p, vBold, 1, 0, 0 );
-    Vec_IntFree( vBold );
+void Acec_MultFindPPsTest(Gia_Man_t* p) {
+    Vec_Int_t* vBold = Acec_MultFindPPs(p);
+    Gia_ManShow(p, vBold, 1, 0, 0);
+    Vec_IntFree(vBold);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

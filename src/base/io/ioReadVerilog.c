@@ -23,7 +23,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -45,27 +44,25 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Abc_Ntk_t * Io_ReadVerilog( char * pFileName, int fCheck )
-{
-    Abc_Ntk_t * pNtk, * pTemp;
-    Abc_Des_t * pDesign;
+Abc_Ntk_t* Io_ReadVerilog(char* pFileName, int fCheck) {
+    Abc_Ntk_t *pNtk, *pTemp;
+    Abc_Des_t* pDesign;
     int i, RetValue;
 
     // parse the verilog file
-    pDesign = Ver_ParseFile( pFileName, NULL, fCheck, 1 );
-    if ( pDesign == NULL )
+    pDesign = Ver_ParseFile(pFileName, NULL, fCheck, 1);
+    if (pDesign == NULL)
         return NULL;
 
     // detect top-level model
-    RetValue = Abc_DesFindTopLevelModels( pDesign );
-    pNtk = (Abc_Ntk_t *)Vec_PtrEntry( pDesign->vTops, 0 );
-    if ( RetValue > 1 )
-    {
-        printf( "Warning: The design has %d root-level modules: ", Vec_PtrSize(pDesign->vTops) );
-        Vec_PtrForEachEntry( Abc_Ntk_t *, pDesign->vTops, pTemp, i )
-            printf( " %s", Abc_NtkName(pTemp) );
-        printf( "\n" );
-        printf( "The first one (%s) will be used.\n", pNtk->pName );
+    RetValue = Abc_DesFindTopLevelModels(pDesign);
+    pNtk = (Abc_Ntk_t*)Vec_PtrEntry(pDesign->vTops, 0);
+    if (RetValue > 1) {
+        printf("Warning: The design has %d root-level modules: ", Vec_PtrSize(pDesign->vTops));
+        Vec_PtrForEachEntry(Abc_Ntk_t*, pDesign->vTops, pTemp, i)
+            printf(" %s", Abc_NtkName(pTemp));
+        printf("\n");
+        printf("The first one (%s) will be used.\n", pNtk->pName);
     }
 
     // extract the master network
@@ -73,22 +70,19 @@ Abc_Ntk_t * Io_ReadVerilog( char * pFileName, int fCheck )
     pDesign->pManFunc = NULL;
 
     // verify the design for cyclic dependence
-    assert( Vec_PtrSize(pDesign->vModules) > 0 );
-    if ( Vec_PtrSize(pDesign->vModules) == 1 )
-    {
-//        printf( "Warning: The design is not hierarchical.\n" );
-        Abc_DesFree( pDesign, pNtk );
+    assert(Vec_PtrSize(pDesign->vModules) > 0);
+    if (Vec_PtrSize(pDesign->vModules) == 1) {
+        //        printf( "Warning: The design is not hierarchical.\n" );
+        Abc_DesFree(pDesign, pNtk);
         pNtk->pDesign = NULL;
-        pNtk->pSpec = Extra_UtilStrsav( pFileName );
-    }
-    else
-    {
+        pNtk->pSpec = Extra_UtilStrsav(pFileName);
+    } else {
         // check that there is no cyclic dependency
-        Abc_NtkIsAcyclicHierarchy( pNtk );
+        Abc_NtkIsAcyclicHierarchy(pNtk);
     }
 
-//Io_WriteVerilog( pNtk, "_temp.v" );
-//    Abc_NtkPrintBoxInfo( pNtk );
+    //Io_WriteVerilog( pNtk, "_temp.v" );
+    //    Abc_NtkPrintBoxInfo( pNtk );
     return pNtk;
 }
 
@@ -96,7 +90,4 @@ Abc_Ntk_t * Io_ReadVerilog( char * pFileName, int fCheck )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
 ABC_NAMESPACE_IMPL_END
-

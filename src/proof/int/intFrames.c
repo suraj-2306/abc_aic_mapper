@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -44,74 +43,72 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Inter_ManFramesInter( Aig_Man_t * pAig, int nFrames, int fAddRegOuts, int fUseTwoFrames )
-{
-    Aig_Man_t * pFrames;
-    Aig_Obj_t * pObj, * pObjLi, * pObjLo;
-    Aig_Obj_t * pLastPo = NULL;
+Aig_Man_t* Inter_ManFramesInter(Aig_Man_t* pAig, int nFrames, int fAddRegOuts, int fUseTwoFrames) {
+    Aig_Man_t* pFrames;
+    Aig_Obj_t *pObj, *pObjLi, *pObjLo;
+    Aig_Obj_t* pLastPo = NULL;
     int i, f;
-    assert( Saig_ManRegNum(pAig) > 0 );
-    assert( Saig_ManPoNum(pAig)-Saig_ManConstrNum(pAig) == 1 );
-    pFrames = Aig_ManStart( Aig_ManNodeNum(pAig) * nFrames );
+    assert(Saig_ManRegNum(pAig) > 0);
+    assert(Saig_ManPoNum(pAig) - Saig_ManConstrNum(pAig) == 1);
+    pFrames = Aig_ManStart(Aig_ManNodeNum(pAig) * nFrames);
     // map the constant node
-    Aig_ManConst1(pAig)->pData = Aig_ManConst1( pFrames );
+    Aig_ManConst1(pAig)->pData = Aig_ManConst1(pFrames);
     // create variables for register outputs
-    if ( fAddRegOuts )
-    {
-        Saig_ManForEachLo( pAig, pObj, i )
-            pObj->pData = Aig_ManConst0( pFrames );
-    }
-    else
-    {
-        Saig_ManForEachLo( pAig, pObj, i )
-            pObj->pData = Aig_ObjCreateCi( pFrames );
+    if (fAddRegOuts) {
+        Saig_ManForEachLo(pAig, pObj, i)
+            pObj->pData
+            = Aig_ManConst0(pFrames);
+    } else {
+        Saig_ManForEachLo(pAig, pObj, i)
+            pObj->pData
+            = Aig_ObjCreateCi(pFrames);
     }
     // add timeframes
-    for ( f = 0; f < nFrames; f++ )
-    {
+    for (f = 0; f < nFrames; f++) {
         // create PI nodes for this frame
-        Saig_ManForEachPi( pAig, pObj, i )
-            pObj->pData = Aig_ObjCreateCi( pFrames );
+        Saig_ManForEachPi(pAig, pObj, i)
+            pObj->pData
+            = Aig_ObjCreateCi(pFrames);
         // add internal nodes of this frame
-        Aig_ManForEachNode( pAig, pObj, i )
-            pObj->pData = Aig_And( pFrames, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj) );
+        Aig_ManForEachNode(pAig, pObj, i)
+            pObj->pData
+            = Aig_And(pFrames, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj));
         // add outputs for constraints
-        Saig_ManForEachPo( pAig, pObj, i )
-        {
-            if ( i < Saig_ManPoNum(pAig)-Saig_ManConstrNum(pAig) )
+        Saig_ManForEachPo(pAig, pObj, i) {
+            if (i < Saig_ManPoNum(pAig) - Saig_ManConstrNum(pAig))
                 continue;
-            Aig_ObjCreateCo( pFrames, Aig_Not( Aig_ObjChild0Copy(pObj) ) );
+            Aig_ObjCreateCo(pFrames, Aig_Not(Aig_ObjChild0Copy(pObj)));
         }
-        if ( f == nFrames - 1 )
+        if (f == nFrames - 1)
             break;
         // remember the last PO
-        pObj = Aig_ManCo( pAig, 0 );
+        pObj = Aig_ManCo(pAig, 0);
         pLastPo = Aig_ObjChild0Copy(pObj);
         // save register inputs
-        Saig_ManForEachLi( pAig, pObj, i )
-            pObj->pData = Aig_ObjChild0Copy(pObj);
+        Saig_ManForEachLi(pAig, pObj, i)
+            pObj->pData
+            = Aig_ObjChild0Copy(pObj);
         // transfer to register outputs
-        Saig_ManForEachLiLo(  pAig, pObjLi, pObjLo, i )
-            pObjLo->pData = pObjLi->pData;
+        Saig_ManForEachLiLo(pAig, pObjLi, pObjLo, i)
+            pObjLo->pData
+            = pObjLi->pData;
     }
     // create POs for each register output
-    if ( fAddRegOuts )
-    {
-        Saig_ManForEachLi( pAig, pObj, i )
-            Aig_ObjCreateCo( pFrames, Aig_ObjChild0Copy(pObj) );
+    if (fAddRegOuts) {
+        Saig_ManForEachLi(pAig, pObj, i)
+            Aig_ObjCreateCo(pFrames, Aig_ObjChild0Copy(pObj));
     }
     // create the only PO of the manager
-    else
-    {
-        pObj = Aig_ManCo( pAig, 0 );
+    else {
+        pObj = Aig_ManCo(pAig, 0);
         // add the last PO
-        if ( pLastPo == NULL || !fUseTwoFrames )
+        if (pLastPo == NULL || !fUseTwoFrames)
             pLastPo = Aig_ObjChild0Copy(pObj);
         else
-            pLastPo = Aig_Or( pFrames, pLastPo, Aig_ObjChild0Copy(pObj) );
-        Aig_ObjCreateCo( pFrames, pLastPo );
+            pLastPo = Aig_Or(pFrames, pLastPo, Aig_ObjChild0Copy(pObj));
+        Aig_ObjCreateCo(pFrames, pLastPo);
     }
-    Aig_ManCleanup( pFrames );
+    Aig_ManCleanup(pFrames);
     return pFrames;
 }
 
@@ -119,6 +116,4 @@ Aig_Man_t * Inter_ManFramesInter( Aig_Man_t * pAig, int nFrames, int fAddRegOuts
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

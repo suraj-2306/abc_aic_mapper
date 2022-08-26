@@ -41,8 +41,7 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Gia_Man_t * Gia_ManReshape2( Gia_Man_t * p, int fUseSimple, int fVerbose, int fVeryVerbose )
-{
+Gia_Man_t* Gia_ManReshape2(Gia_Man_t* p, int fUseSimple, int fVerbose, int fVeryVerbose) {
     return NULL;
 }
 
@@ -50,6 +49,4 @@ Gia_Man_t * Gia_ManReshape2( Gia_Man_t * p, int fUseSimple, int fVerbose, int fV
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -17,13 +17,11 @@
   Revision    [$Id: cutList.h,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
-#ifndef ABC__opt__cut__cutList_h
-#define ABC__opt__cut__cutList_h
 
+#ifndef ABC__opt__cut__cutList_h
+#    define ABC__opt__cut__cutList_h
 
 ABC_NAMESPACE_HEADER_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
@@ -37,11 +35,10 @@ ABC_NAMESPACE_HEADER_START
 ///                         BASIC TYPES                              ///
 ////////////////////////////////////////////////////////////////////////
 
-typedef struct Cut_ListStruct_t_         Cut_List_t;
-struct Cut_ListStruct_t_
-{
-    Cut_Cut_t *  pHead[CUT_SIZE_MAX+1];
-    Cut_Cut_t ** ppTail[CUT_SIZE_MAX+1];
+typedef struct Cut_ListStruct_t_ Cut_List_t;
+struct Cut_ListStruct_t_ {
+    Cut_Cut_t* pHead[CUT_SIZE_MAX + 1];
+    Cut_Cut_t** ppTail[CUT_SIZE_MAX + 1];
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -63,11 +60,9 @@ struct Cut_ListStruct_t_
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Cut_ListStart( Cut_List_t * p )
-{
+static inline void Cut_ListStart(Cut_List_t* p) {
     int i;
-    for ( i = 1; i <= CUT_SIZE_MAX; i++ )
-    {
+    for (i = 1; i <= CUT_SIZE_MAX; i++) {
         p->pHead[i] = 0;
         p->ppTail[i] = &p->pHead[i];
     }
@@ -84,9 +79,8 @@ static inline void Cut_ListStart( Cut_List_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Cut_ListAdd( Cut_List_t * p, Cut_Cut_t * pCut )
-{
-    assert( pCut->nLeaves > 0 && pCut->nLeaves <= CUT_SIZE_MAX );
+static inline void Cut_ListAdd(Cut_List_t* p, Cut_Cut_t* pCut) {
+    assert(pCut->nLeaves > 0 && pCut->nLeaves <= CUT_SIZE_MAX);
     *p->ppTail[pCut->nLeaves] = pCut;
     p->ppTail[pCut->nLeaves] = &pCut->pNext;
 }
@@ -102,23 +96,18 @@ static inline void Cut_ListAdd( Cut_List_t * p, Cut_Cut_t * pCut )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Cut_ListAdd2( Cut_List_t * p, Cut_Cut_t * pCut )
-{
-    extern int Cut_CutCompare( Cut_Cut_t * pCut1, Cut_Cut_t * pCut2 );
-    Cut_Cut_t * pTemp, ** ppSpot;
-    assert( pCut->nLeaves > 0 && pCut->nLeaves <= CUT_SIZE_MAX );
-    if ( p->pHead[pCut->nLeaves] != NULL )
-    {
+static inline void Cut_ListAdd2(Cut_List_t* p, Cut_Cut_t* pCut) {
+    extern int Cut_CutCompare(Cut_Cut_t * pCut1, Cut_Cut_t * pCut2);
+    Cut_Cut_t *pTemp, **ppSpot;
+    assert(pCut->nLeaves > 0 && pCut->nLeaves <= CUT_SIZE_MAX);
+    if (p->pHead[pCut->nLeaves] != NULL) {
         ppSpot = &p->pHead[pCut->nLeaves];
-        for ( pTemp = p->pHead[pCut->nLeaves]; pTemp; pTemp = pTemp->pNext )
-        {
-            if ( Cut_CutCompare(pCut, pTemp) < 0 )
-            {
+        for (pTemp = p->pHead[pCut->nLeaves]; pTemp; pTemp = pTemp->pNext) {
+            if (Cut_CutCompare(pCut, pTemp) < 0) {
                 *ppSpot = pCut;
                 pCut->pNext = pTemp;
                 return;
-            }
-            else
+            } else
                 ppSpot = &pTemp->pNext;
         }
     }
@@ -137,17 +126,15 @@ static inline void Cut_ListAdd2( Cut_List_t * p, Cut_Cut_t * pCut )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Cut_ListDerive( Cut_List_t * p, Cut_Cut_t * pList )
-{
-    Cut_Cut_t * pPrev;
+static inline void Cut_ListDerive(Cut_List_t* p, Cut_Cut_t* pList) {
+    Cut_Cut_t* pPrev;
     int nLeaves;
-    Cut_ListStart( p );
-    while ( pList != NULL )
-    {
+    Cut_ListStart(p);
+    while (pList != NULL) {
         nLeaves = pList->nLeaves;
         p->pHead[nLeaves] = pList;
-        for ( pPrev = pList, pList = pList->pNext; pList; pPrev = pList, pList = pList->pNext )
-            if ( nLeaves < (int)pList->nLeaves )
+        for (pPrev = pList, pList = pList->pNext; pList; pPrev = pList, pList = pList->pNext)
+            if (nLeaves < (int)pList->nLeaves)
                 break;
         p->ppTail[nLeaves] = &pPrev->pNext;
         pPrev->pNext = NULL;
@@ -165,12 +152,10 @@ static inline void Cut_ListDerive( Cut_List_t * p, Cut_Cut_t * pList )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Cut_ListAddList( Cut_List_t * pOld, Cut_List_t * pNew )
-{
+static inline void Cut_ListAddList(Cut_List_t* pOld, Cut_List_t* pNew) {
     int i;
-    for ( i = 1; i <= CUT_SIZE_MAX; i++ )
-    {
-        if ( pNew->pHead[i] == NULL )
+    for (i = 1; i <= CUT_SIZE_MAX; i++) {
+        if (pNew->pHead[i] == NULL)
             continue;
         *pOld->ppTail[i] = pNew->pHead[i];
         pOld->ppTail[i] = pNew->ppTail[i];
@@ -188,13 +173,11 @@ static inline void Cut_ListAddList( Cut_List_t * pOld, Cut_List_t * pNew )
   SeeAlso     []
 
 ***********************************************************************/
-static inline Cut_Cut_t * Cut_ListFinish( Cut_List_t * p )
-{
-    Cut_Cut_t * pHead = NULL, ** ppTail = &pHead;
+static inline Cut_Cut_t* Cut_ListFinish(Cut_List_t* p) {
+    Cut_Cut_t *pHead = NULL, **ppTail = &pHead;
     int i;
-    for ( i = 1; i <= CUT_SIZE_MAX; i++ )
-    {
-        if ( p->pHead[i] == NULL )
+    for (i = 1; i <= CUT_SIZE_MAX; i++) {
+        if (p->pHead[i] == NULL)
             continue;
         *ppTail = p->pHead[i];
         ppTail = p->ppTail[i];
@@ -203,8 +186,6 @@ static inline Cut_Cut_t * Cut_ListFinish( Cut_List_t * p )
     return pHead;
 }
 
-
-
 ABC_NAMESPACE_HEADER_END
 
 #endif
@@ -212,4 +193,3 @@ ABC_NAMESPACE_HEADER_END
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

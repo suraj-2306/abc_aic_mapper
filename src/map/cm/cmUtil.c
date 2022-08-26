@@ -1,4 +1,4 @@
- /**CFile****************************************************************
+/**CFile****************************************************************
 
   FileName    [cmUtil.c]
 
@@ -17,7 +17,6 @@
   Revision    [$Id: cmUtil.c,v 1.00 2021/02/15 00:00:00 thm Exp $]
 
 ***********************************************************************/
-
 
 #include "cm.h"
 
@@ -39,13 +38,11 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-float Cm_CutLatestLeafMoArrival(Cm_Cut_t * pCut)
-{
+float Cm_CutLatestLeafMoArrival(Cm_Cut_t* pCut) {
     float arrival = -CM_FLOAT_LARGE;
-    for(int i=0; i<pCut->nFanins; i++)
-    {
-        Cm_Obj_t * pL = Cm_ObjGetRepr(pCut->Leafs[i]);
-        if ( arrival < pL->BestCut.Arrival)
+    for (int i = 0; i < pCut->nFanins; i++) {
+        Cm_Obj_t* pL = Cm_ObjGetRepr(pCut->Leafs[i]);
+        if (arrival < pL->BestCut.Arrival)
             arrival = pL->BestCut.Arrival;
     }
     return arrival;
@@ -63,14 +60,12 @@ float Cm_CutLatestLeafMoArrival(Cm_Cut_t * pCut)
   SeeAlso     []
 
 ***********************************************************************/
-float Cm_CutLatestLeafArrival(Cm_Cut_t * pCut)
-{
+float Cm_CutLatestLeafArrival(Cm_Cut_t* pCut) {
     float arrival = -CM_FLOAT_LARGE;
-    for(int i=0; i<pCut->nFanins; i++)
-    {
-        Cm_Obj_t *pL = Cm_ObjGetRepr(pCut->Leafs[i]);
+    for (int i = 0; i < pCut->nFanins; i++) {
+        Cm_Obj_t* pL = Cm_ObjGetRepr(pCut->Leafs[i]);
         float ca = pL->BestCut.SoOfCutAt ? pL->BestCut.SoArrival : pL->BestCut.Arrival;
-        if ( ca > arrival )
+        if (ca > arrival)
             arrival = ca;
     }
     return arrival;
@@ -88,17 +83,18 @@ float Cm_CutLatestLeafArrival(Cm_Cut_t * pCut)
   SeeAlso     []
 
 ***********************************************************************/
-void Cm_ManSetCoRequired(Cm_Man_t *p, float required)
-{
+void Cm_ManSetCoRequired(Cm_Man_t* p, float required) {
     int i;
-    Cm_Obj_t * pObj;
-    float *pReq = p->pPars->pCoRequired;
-    if ( !pReq ){
+    Cm_Obj_t* pObj;
+    float* pReq = p->pPars->pCoRequired;
+    if (!pReq) {
         Cm_ManForEachCo(p, pObj, i)
-           pObj->Required = required;
+            pObj->Required
+            = required;
     } else {
-       Cm_ManForEachCo(p, pObj, i)
-           pObj->Required = CM_MIN(pReq[i], required);
+        Cm_ManForEachCo(p, pObj, i)
+            pObj->Required
+            = CM_MIN(pReq[i], required);
     }
 }
 
@@ -113,17 +109,18 @@ void Cm_ManSetCoRequired(Cm_Man_t *p, float required)
   SeeAlso     []
 
 ***********************************************************************/
-void Cm_ManSetCiArrival(Cm_Man_t *p)
-{
+void Cm_ManSetCiArrival(Cm_Man_t* p) {
     int i;
-    Cm_Obj_t * pObj;
-    float *pArr = p->pPars->pCiArrival;
-    if ( !pArr ){
+    Cm_Obj_t* pObj;
+    float* pArr = p->pPars->pCiArrival;
+    if (!pArr) {
         Cm_ManForEachCi(p, pObj, i)
-           pObj->BestCut.Arrival = 0;
+            pObj->BestCut.Arrival
+            = 0;
     } else {
-       Cm_ManForEachCi(p, pObj, i)
-           pObj->BestCut.Arrival = pArr[i];
+        Cm_ManForEachCi(p, pObj, i)
+            pObj->BestCut.Arrival
+            = pArr[i];
     }
     p->pConst1->BestCut.Arrival = 0;
 }
@@ -139,13 +136,13 @@ void Cm_ManSetCiArrival(Cm_Man_t *p)
   SeeAlso     []
 
 ***********************************************************************/
-float Cm_ManLatestCoArrival(Cm_Man_t *p)
-{
+float Cm_ManLatestCoArrival(Cm_Man_t* p) {
     int i;
-    Cm_Obj_t * pObj;
+    Cm_Obj_t* pObj;
     float circuitArrival = -CM_FLOAT_LARGE;
     Cm_ManForEachCo(p, pObj, i)
-        circuitArrival = CM_MAX(circuitArrival, pObj->pFanin0->BestCut.Arrival);
+        circuitArrival
+        = CM_MAX(circuitArrival, pObj->pFanin0->BestCut.Arrival);
     return circuitArrival;
 }
 
@@ -160,10 +157,9 @@ float Cm_ManLatestCoArrival(Cm_Man_t *p)
   SeeAlso     []
 
 ***********************************************************************/
-float Cm_CutLeafAreaFlowSum(Cm_Cut_t * pCut)
-{
+float Cm_CutLeafAreaFlowSum(Cm_Cut_t* pCut) {
     float af = 0;
-    for(int i=0; i<pCut->nFanins; i++)
+    for (int i = 0; i < pCut->nFanins; i++)
         af += pCut->Leafs[i]->BestCut.AreaFlow;
     return af;
 }
@@ -179,11 +175,10 @@ float Cm_CutLeafAreaFlowSum(Cm_Cut_t * pCut)
   SeeAlso     []
 
 ***********************************************************************/
-float Cm_ManCutAreaFlow(Cm_Man_t *p, Cm_Cut_t * pCut)
-{
-    float *AicArea = p->pPars->AicArea;
+float Cm_ManCutAreaFlow(Cm_Man_t* p, Cm_Cut_t* pCut) {
+    float* AicArea = p->pPars->AicArea;
     float af = 0;
-    for(int i=0; i<pCut->nFanins; i++)
+    for (int i = 0; i < pCut->nFanins; i++)
         af += pCut->Leafs[i]->BestCut.AreaFlow;
     return af + AicArea[pCut->Depth];
 }
@@ -199,13 +194,12 @@ float Cm_ManCutAreaFlow(Cm_Man_t *p, Cm_Cut_t * pCut)
   SeeAlso     []
 
 ***********************************************************************/
-void Cm_CutCopy(Cm_Cut_t *pFrom, Cm_Cut_t *pTo)
-{
+void Cm_CutCopy(Cm_Cut_t* pFrom, Cm_Cut_t* pTo) {
     pTo->Depth = pFrom->Depth;
     pTo->Arrival = pFrom->Arrival;
     pTo->AreaFlow = pFrom->AreaFlow;
     pTo->nFanins = pFrom->nFanins;
-    for(int i=0; i< pFrom->nFanins; i++)
+    for (int i = 0; i < pFrom->nFanins; i++)
         pTo->Leafs[i] = pFrom->Leafs[i];
 }
 
@@ -220,29 +214,24 @@ void Cm_CutCopy(Cm_Cut_t *pFrom, Cm_Cut_t *pTo)
   SeeAlso     []
 
 ***********************************************************************/
-int Cm_ObjLatestLeafArrival_rec(Cm_Obj_t *pObj)
-{
-    if ( (pObj->fMark & CM_MARK_LEAF) )
-    {
+int Cm_ObjLatestLeafArrival_rec(Cm_Obj_t* pObj) {
+    if ((pObj->fMark & CM_MARK_LEAF)) {
         return pObj->BestCut.SoOfCutAt ? pObj->BestCut.SoArrival : pObj->BestCut.Arrival;
     }
     return CM_MAX(Cm_ObjLatestLeafArrival_rec(pObj->pFanin0), Cm_ObjLatestLeafArrival_rec(pObj->pFanin1));
 }
-int Cm_ObjMaxLeafDepth_rec(Cm_Obj_t *pObj)
-{
-    if ( (pObj->fMark & CM_MARK_LEAF) )
+int Cm_ObjMaxLeafDepth_rec(Cm_Obj_t* pObj) {
+    if ((pObj->fMark & CM_MARK_LEAF))
         return 0;
     return 1 + CM_MAX(Cm_ObjMaxLeafDepth_rec(pObj->pFanin0), Cm_ObjMaxLeafDepth_rec(pObj->pFanin1));
 }
-float Cm_ObjSoArrival(Cm_Obj_t * pObj, float *coneDelay)
-{
-    Cm_Obj_t *pSoRoot = pObj->BestCut.SoOfCutAt;
+float Cm_ObjSoArrival(Cm_Obj_t* pObj, float* coneDelay) {
+    Cm_Obj_t* pSoRoot = pObj->BestCut.SoOfCutAt;
     Cm_CutMarkLeafs(&pSoRoot->BestCut, CM_MARK_LEAF);
     int maxDepth = Cm_ObjMaxLeafDepth_rec(pObj);
     float latestArrival = Cm_ObjLatestLeafArrival_rec(pObj);
     Cm_CutClearMarkLeafs(&pSoRoot->BestCut, CM_MARK_LEAF);
-    return latestArrival + coneDelay[maxDepth]; 
+    return latestArrival + coneDelay[maxDepth];
 }
-
 
 ABC_NAMESPACE_IMPL_END

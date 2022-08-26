@@ -23,7 +23,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -43,26 +42,24 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Obj_t * Kit_GraphToAigInternal( Aig_Man_t * pMan, Kit_Graph_t * pGraph )
-{
-    Kit_Node_t * pNode = NULL;
-    Aig_Obj_t * pAnd0, * pAnd1;
+Aig_Obj_t* Kit_GraphToAigInternal(Aig_Man_t* pMan, Kit_Graph_t* pGraph) {
+    Kit_Node_t* pNode = NULL;
+    Aig_Obj_t *pAnd0, *pAnd1;
     int i;
     // check for constant function
-    if ( Kit_GraphIsConst(pGraph) )
-        return Aig_NotCond( Aig_ManConst1(pMan), Kit_GraphIsComplement(pGraph) );
+    if (Kit_GraphIsConst(pGraph))
+        return Aig_NotCond(Aig_ManConst1(pMan), Kit_GraphIsComplement(pGraph));
     // check for a literal
-    if ( Kit_GraphIsVar(pGraph) )
-        return Aig_NotCond( (Aig_Obj_t *)Kit_GraphVar(pGraph)->pFunc, Kit_GraphIsComplement(pGraph) );
+    if (Kit_GraphIsVar(pGraph))
+        return Aig_NotCond((Aig_Obj_t*)Kit_GraphVar(pGraph)->pFunc, Kit_GraphIsComplement(pGraph));
     // build the AIG nodes corresponding to the AND gates of the graph
-    Kit_GraphForEachNode( pGraph, pNode, i )
-    {
-        pAnd0 = Aig_NotCond( (Aig_Obj_t *)Kit_GraphNode(pGraph, pNode->eEdge0.Node)->pFunc, pNode->eEdge0.fCompl ); 
-        pAnd1 = Aig_NotCond( (Aig_Obj_t *)Kit_GraphNode(pGraph, pNode->eEdge1.Node)->pFunc, pNode->eEdge1.fCompl ); 
-        pNode->pFunc = Aig_And( pMan, pAnd0, pAnd1 );
+    Kit_GraphForEachNode(pGraph, pNode, i) {
+        pAnd0 = Aig_NotCond((Aig_Obj_t*)Kit_GraphNode(pGraph, pNode->eEdge0.Node)->pFunc, pNode->eEdge0.fCompl);
+        pAnd1 = Aig_NotCond((Aig_Obj_t*)Kit_GraphNode(pGraph, pNode->eEdge1.Node)->pFunc, pNode->eEdge1.fCompl);
+        pNode->pFunc = Aig_And(pMan, pAnd0, pAnd1);
     }
     // complement the result if necessary
-    return Aig_NotCond( (Aig_Obj_t *)pNode->pFunc, Kit_GraphIsComplement(pGraph) );
+    return Aig_NotCond((Aig_Obj_t*)pNode->pFunc, Kit_GraphIsComplement(pGraph));
 }
 
 /**Function*************************************************************
@@ -76,15 +73,15 @@ Aig_Obj_t * Kit_GraphToAigInternal( Aig_Man_t * pMan, Kit_Graph_t * pGraph )
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Obj_t * Kit_GraphToAig( Aig_Man_t * pMan, Aig_Obj_t ** pFanins, Kit_Graph_t * pGraph )
-{
-    Kit_Node_t * pNode = NULL;
+Aig_Obj_t* Kit_GraphToAig(Aig_Man_t* pMan, Aig_Obj_t** pFanins, Kit_Graph_t* pGraph) {
+    Kit_Node_t* pNode = NULL;
     int i;
     // collect the fanins
-    Kit_GraphForEachLeaf( pGraph, pNode, i )
-        pNode->pFunc = pFanins[i];
+    Kit_GraphForEachLeaf(pGraph, pNode, i)
+        pNode->pFunc
+        = pFanins[i];
     // perform strashing
-    return Kit_GraphToAigInternal( pMan, pGraph );
+    return Kit_GraphToAigInternal(pMan, pGraph);
 }
 
 /**Function*************************************************************
@@ -98,22 +95,19 @@ Aig_Obj_t * Kit_GraphToAig( Aig_Man_t * pMan, Aig_Obj_t ** pFanins, Kit_Graph_t 
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Obj_t * Kit_TruthToAig( Aig_Man_t * pMan, Aig_Obj_t ** pFanins, unsigned * pTruth, int nVars, Vec_Int_t * vMemory )
-{
-    Aig_Obj_t * pObj;
-    Kit_Graph_t * pGraph;
+Aig_Obj_t* Kit_TruthToAig(Aig_Man_t* pMan, Aig_Obj_t** pFanins, unsigned* pTruth, int nVars, Vec_Int_t* vMemory) {
+    Aig_Obj_t* pObj;
+    Kit_Graph_t* pGraph;
     // transform truth table into the decomposition tree
-    if ( vMemory == NULL )
-    {
-        vMemory = Vec_IntAlloc( 0 );
-        pGraph = Kit_TruthToGraph( pTruth, nVars, vMemory );
-        Vec_IntFree( vMemory );
-    }
-    else
-        pGraph = Kit_TruthToGraph( pTruth, nVars, vMemory );
+    if (vMemory == NULL) {
+        vMemory = Vec_IntAlloc(0);
+        pGraph = Kit_TruthToGraph(pTruth, nVars, vMemory);
+        Vec_IntFree(vMemory);
+    } else
+        pGraph = Kit_TruthToGraph(pTruth, nVars, vMemory);
     // derive the AIG for the decomposition tree
-    pObj = Kit_GraphToAig( pMan, pFanins, pGraph );
-    Kit_GraphFree( pGraph );
+    pObj = Kit_GraphToAig(pMan, pFanins, pGraph);
+    Kit_GraphFree(pGraph);
     return pObj;
 }
 
@@ -121,6 +115,4 @@ Aig_Obj_t * Kit_TruthToAig( Aig_Man_t * pMan, Aig_Obj_t ** pFanins, unsigned * p
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

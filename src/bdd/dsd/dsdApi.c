@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
- 
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -50,13 +49,13 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Dsd_Type_t    Dsd_NodeReadType( Dsd_Node_t * p )         { return p->Type;     } 
-DdNode *      Dsd_NodeReadFunc( Dsd_Node_t * p )         { return p->G;        } 
-DdNode *      Dsd_NodeReadSupp( Dsd_Node_t * p )         { return p->S;        } 
-Dsd_Node_t ** Dsd_NodeReadDecs( Dsd_Node_t * p )         { return p->pDecs;    } 
-Dsd_Node_t *  Dsd_NodeReadDec ( Dsd_Node_t * p, int i )  { return p->pDecs[i]; } 
-int           Dsd_NodeReadDecsNum( Dsd_Node_t * p )      { return p->nDecs;    } 
-int           Dsd_NodeReadMark( Dsd_Node_t * p )         { return p->Mark;     } 
+Dsd_Type_t Dsd_NodeReadType(Dsd_Node_t* p) { return p->Type; }
+DdNode* Dsd_NodeReadFunc(Dsd_Node_t* p) { return p->G; }
+DdNode* Dsd_NodeReadSupp(Dsd_Node_t* p) { return p->S; }
+Dsd_Node_t** Dsd_NodeReadDecs(Dsd_Node_t* p) { return p->pDecs; }
+Dsd_Node_t* Dsd_NodeReadDec(Dsd_Node_t* p, int i) { return p->pDecs[i]; }
+int Dsd_NodeReadDecsNum(Dsd_Node_t* p) { return p->nDecs; }
+int Dsd_NodeReadMark(Dsd_Node_t* p) { return p->Mark; }
 
 /**Function*************************************************************
 
@@ -74,7 +73,7 @@ int           Dsd_NodeReadMark( Dsd_Node_t * p )         { return p->Mark;     }
   SeeAlso     []
 
 ***********************************************************************/
-void          Dsd_NodeSetMark( Dsd_Node_t * p, int Mark ){ p->Mark = Mark;     } 
+void Dsd_NodeSetMark(Dsd_Node_t* p, int Mark) { p->Mark = Mark; }
 
 /**Function*************************************************************
 
@@ -90,13 +89,12 @@ void          Dsd_NodeSetMark( Dsd_Node_t * p, int Mark ){ p->Mark = Mark;     }
   SeeAlso     []
 
 ***********************************************************************/
-Dsd_Node_t *  Dsd_ManagerReadRoot( Dsd_Manager_t * pMan, int i )  { return pMan->pRoots[i];  } 
-Dsd_Node_t *  Dsd_ManagerReadInput( Dsd_Manager_t * pMan, int i ) { return pMan->pInputs[i]; } 
-Dsd_Node_t *  Dsd_ManagerReadConst1( Dsd_Manager_t * pMan )       { return pMan->pConst1;    } 
-DdManager *   Dsd_ManagerReadDd( Dsd_Manager_t * pMan )           { return pMan->dd;         } 
+Dsd_Node_t* Dsd_ManagerReadRoot(Dsd_Manager_t* pMan, int i) { return pMan->pRoots[i]; }
+Dsd_Node_t* Dsd_ManagerReadInput(Dsd_Manager_t* pMan, int i) { return pMan->pInputs[i]; }
+Dsd_Node_t* Dsd_ManagerReadConst1(Dsd_Manager_t* pMan) { return pMan->pConst1; }
+DdManager* Dsd_ManagerReadDd(Dsd_Manager_t* pMan) { return pMan->dd; }
 
 ////////////////////////////////////////////////////////////////////////
 ///                           END OF FILE                            ///
 ////////////////////////////////////////////////////////////////////////
 ABC_NAMESPACE_IMPL_END
-

@@ -9,7 +9,7 @@
   Synopsis    []
 
   Author      [Alan Mishchenko]
-  
+
   Affiliation [UC Berkeley]
 
   Date        [Ver. 1.0. Started - June 20, 2005.]
@@ -21,7 +21,6 @@
 #include "__Int.h"
 
 ABC_NAMESPACE_IMPL_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
@@ -36,7 +35,7 @@ ABC_NAMESPACE_IMPL_START
   Synopsis    []
 
   Description []
-               
+
   SideEffects []
 
   SeeAlso     []
@@ -47,6 +46,4 @@ ABC_NAMESPACE_IMPL_START
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

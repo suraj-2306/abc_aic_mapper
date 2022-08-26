@@ -23,20 +23,18 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-typedef struct Aig_CuddMan_t_        Aig_CuddMan_t;
-struct Aig_CuddMan_t_
-{
-    Aig_Man_t *  pAig;   // internal AIG package
-    st__table *   pTable; // hash table mapping BDD nodes into AIG nodes
+typedef struct Aig_CuddMan_t_ Aig_CuddMan_t;
+struct Aig_CuddMan_t_ {
+    Aig_Man_t* pAig;   // internal AIG package
+    st__table* pTable; // hash table mapping BDD nodes into AIG nodes
 };
 
 // static Cudd AIG manager used in this experiment
-static Aig_CuddMan_t * s_pCuddMan = NULL;
+static Aig_CuddMan_t* s_pCuddMan = NULL;
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -53,17 +51,16 @@ static Aig_CuddMan_t * s_pCuddMan = NULL;
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_Init( unsigned int numVars, unsigned int numVarsZ, unsigned int numSlots, unsigned int cacheSize, unsigned long maxMemory, void * pCudd )
-{
+void Cudd2_Init(unsigned int numVars, unsigned int numVarsZ, unsigned int numSlots, unsigned int cacheSize, unsigned long maxMemory, void* pCudd) {
     int v;
     // start the BDD-to-AIG manager when the first BDD manager is allocated
-    if ( s_pCuddMan != NULL )
+    if (s_pCuddMan != NULL)
         return;
-    s_pCuddMan = ALLOC( Aig_CuddMan_t, 1 );
+    s_pCuddMan = ALLOC(Aig_CuddMan_t, 1);
     s_pCuddMan->pAig = Aig_ManStart();
-    s_pCuddMan->pTable = st__init_table( st__ptrcmp, st__ptrhash );
-    for ( v = 0; v < (int)numVars; v++ )
-        Aig_ObjCreatePi( s_pCuddMan->pAig );
+    s_pCuddMan->pTable = st__init_table(st__ptrcmp, st__ptrhash);
+    for (v = 0; v < (int)numVars; v++)
+        Aig_ObjCreatePi(s_pCuddMan->pAig);
 }
 
 /**Function*************************************************************
@@ -77,13 +74,12 @@ void Cudd2_Init( unsigned int numVars, unsigned int numVarsZ, unsigned int numSl
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_Quit( void * pCudd )
-{
-    assert( s_pCuddMan != NULL );
-    Aig_ManDumpBlif( s_pCuddMan->pAig, "aig_temp.blif", NULL, NULL );
-    Aig_ManStop( s_pCuddMan->pAig );
-    st__free_table( s_pCuddMan->pTable );
-    free( s_pCuddMan );
+void Cudd2_Quit(void* pCudd) {
+    assert(s_pCuddMan != NULL);
+    Aig_ManDumpBlif(s_pCuddMan->pAig, "aig_temp.blif", NULL, NULL);
+    Aig_ManStop(s_pCuddMan->pAig);
+    st__free_table(s_pCuddMan->pTable);
+    free(s_pCuddMan);
     s_pCuddMan = NULL;
 }
 
@@ -98,16 +94,14 @@ void Cudd2_Quit( void * pCudd )
   SeeAlso     []
 
 ***********************************************************************/
-static Aig_Obj_t * Cudd2_GetArg( void * pArg )
-{
-    Aig_Obj_t * pNode;
-    assert( s_pCuddMan != NULL );
-    if ( ! st__lookup( s_pCuddMan->pTable, (char *)Aig_Regular(pArg), (char **)&pNode ) )
-    {
-        printf( "Cudd2_GetArg(): An argument BDD is not in the hash table.\n" );
+static Aig_Obj_t* Cudd2_GetArg(void* pArg) {
+    Aig_Obj_t* pNode;
+    assert(s_pCuddMan != NULL);
+    if (!st__lookup(s_pCuddMan->pTable, (char*)Aig_Regular(pArg), (char**)&pNode)) {
+        printf("Cudd2_GetArg(): An argument BDD is not in the hash table.\n");
         return NULL;
     }
-    return Aig_NotCond( pNode, Aig_IsComplement(pArg) );
+    return Aig_NotCond(pNode, Aig_IsComplement(pArg));
 }
 
 /**Function*************************************************************
@@ -121,13 +115,12 @@ static Aig_Obj_t * Cudd2_GetArg( void * pArg )
   SeeAlso     []
 
 ***********************************************************************/
-static void Cudd2_SetArg( Aig_Obj_t * pNode, void * pResult )
-{
-    assert( s_pCuddMan != NULL );
-    if ( st__is_member( s_pCuddMan->pTable, (char *)Aig_Regular(pResult) ) )
+static void Cudd2_SetArg(Aig_Obj_t* pNode, void* pResult) {
+    assert(s_pCuddMan != NULL);
+    if (st__is_member(s_pCuddMan->pTable, (char*)Aig_Regular(pResult)))
         return;
-    pNode = Aig_NotCond( pNode,  Aig_IsComplement(pResult) );
-    st__insert( s_pCuddMan->pTable, (char *)Aig_Regular(pResult), (char *)pNode );
+    pNode = Aig_NotCond(pNode, Aig_IsComplement(pResult));
+    st__insert(s_pCuddMan->pTable, (char*)Aig_Regular(pResult), (char*)pNode);
 }
 
 /**Function*************************************************************
@@ -141,9 +134,8 @@ static void Cudd2_SetArg( Aig_Obj_t * pNode, void * pResult )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddOne( void * pCudd, void * pResult )
-{
-    Cudd2_SetArg( Aig_ManConst1(s_pCuddMan->pAig), pResult );
+void Cudd2_bddOne(void* pCudd, void* pResult) {
+    Cudd2_SetArg(Aig_ManConst1(s_pCuddMan->pAig), pResult);
 }
 
 /**Function*************************************************************
@@ -157,13 +149,12 @@ void Cudd2_bddOne( void * pCudd, void * pResult )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddIthVar( void * pCudd, int iVar, void * pResult )
-{
+void Cudd2_bddIthVar(void* pCudd, int iVar, void* pResult) {
     int v;
-    assert( s_pCuddMan != NULL );
-    for ( v = Aig_ManPiNum(s_pCuddMan->pAig); v <= iVar; v++ )
-        Aig_ObjCreatePi( s_pCuddMan->pAig );
-    Cudd2_SetArg( Aig_ManPi(s_pCuddMan->pAig, iVar), pResult );
+    assert(s_pCuddMan != NULL);
+    for (v = Aig_ManPiNum(s_pCuddMan->pAig); v <= iVar; v++)
+        Aig_ObjCreatePi(s_pCuddMan->pAig);
+    Cudd2_SetArg(Aig_ManPi(s_pCuddMan->pAig, iVar), pResult);
 }
 
 /**Function*************************************************************
@@ -177,13 +168,12 @@ void Cudd2_bddIthVar( void * pCudd, int iVar, void * pResult )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddAnd( void * pCudd, void * pArg0, void * pArg1, void * pResult )
-{
-    Aig_Obj_t * pNode0, * pNode1, * pNode;
-    pNode0 = Cudd2_GetArg( pArg0 );
-    pNode1 = Cudd2_GetArg( pArg1 );
-    pNode  = Aig_And( s_pCuddMan->pAig, pNode0, pNode1 );
-    Cudd2_SetArg( pNode, pResult );
+void Cudd2_bddAnd(void* pCudd, void* pArg0, void* pArg1, void* pResult) {
+    Aig_Obj_t *pNode0, *pNode1, *pNode;
+    pNode0 = Cudd2_GetArg(pArg0);
+    pNode1 = Cudd2_GetArg(pArg1);
+    pNode = Aig_And(s_pCuddMan->pAig, pNode0, pNode1);
+    Cudd2_SetArg(pNode, pResult);
 }
 
 /**Function*************************************************************
@@ -197,9 +187,8 @@ void Cudd2_bddAnd( void * pCudd, void * pArg0, void * pArg1, void * pResult )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddOr( void * pCudd, void * pArg0, void * pArg1, void * pResult )
-{
-    Cudd2_bddAnd( pCudd, Aig_Not(pArg0), Aig_Not(pArg1), Aig_Not(pResult) );
+void Cudd2_bddOr(void* pCudd, void* pArg0, void* pArg1, void* pResult) {
+    Cudd2_bddAnd(pCudd, Aig_Not(pArg0), Aig_Not(pArg1), Aig_Not(pResult));
 }
 
 /**Function*************************************************************
@@ -213,9 +202,8 @@ void Cudd2_bddOr( void * pCudd, void * pArg0, void * pArg1, void * pResult )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddNand( void * pCudd, void * pArg0, void * pArg1, void * pResult )
-{
-    Cudd2_bddAnd( pCudd, pArg0, pArg1, Aig_Not(pResult) );
+void Cudd2_bddNand(void* pCudd, void* pArg0, void* pArg1, void* pResult) {
+    Cudd2_bddAnd(pCudd, pArg0, pArg1, Aig_Not(pResult));
 }
 
 /**Function*************************************************************
@@ -229,9 +217,8 @@ void Cudd2_bddNand( void * pCudd, void * pArg0, void * pArg1, void * pResult )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddNor( void * pCudd, void * pArg0, void * pArg1, void * pResult )
-{
-    Cudd2_bddAnd( pCudd, Aig_Not(pArg0), Aig_Not(pArg1), pResult );
+void Cudd2_bddNor(void* pCudd, void* pArg0, void* pArg1, void* pResult) {
+    Cudd2_bddAnd(pCudd, Aig_Not(pArg0), Aig_Not(pArg1), pResult);
 }
 
 /**Function*************************************************************
@@ -245,13 +232,12 @@ void Cudd2_bddNor( void * pCudd, void * pArg0, void * pArg1, void * pResult )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddXor( void * pCudd, void * pArg0, void * pArg1, void * pResult )
-{
-    Aig_Obj_t * pNode0, * pNode1, * pNode;
-    pNode0 = Cudd2_GetArg( pArg0 );
-    pNode1 = Cudd2_GetArg( pArg1 );
-    pNode  = Aig_Exor( s_pCuddMan->pAig, pNode0, pNode1 );
-    Cudd2_SetArg( pNode, pResult );
+void Cudd2_bddXor(void* pCudd, void* pArg0, void* pArg1, void* pResult) {
+    Aig_Obj_t *pNode0, *pNode1, *pNode;
+    pNode0 = Cudd2_GetArg(pArg0);
+    pNode1 = Cudd2_GetArg(pArg1);
+    pNode = Aig_Exor(s_pCuddMan->pAig, pNode0, pNode1);
+    Cudd2_SetArg(pNode, pResult);
 }
 
 /**Function*************************************************************
@@ -265,9 +251,8 @@ void Cudd2_bddXor( void * pCudd, void * pArg0, void * pArg1, void * pResult )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddXnor( void * pCudd, void * pArg0, void * pArg1, void * pResult )
-{
-    Cudd2_bddXor( pCudd, pArg0, pArg1, Aig_Not(pResult) );
+void Cudd2_bddXnor(void* pCudd, void* pArg0, void* pArg1, void* pResult) {
+    Cudd2_bddXor(pCudd, pArg0, pArg1, Aig_Not(pResult));
 }
 
 /**Function*************************************************************
@@ -281,14 +266,13 @@ void Cudd2_bddXnor( void * pCudd, void * pArg0, void * pArg1, void * pResult )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddIte( void * pCudd, void * pArg0, void * pArg1, void * pArg2, void * pResult )
-{
-    Aig_Obj_t * pNode0, * pNode1, * pNode2, * pNode;
-    pNode0 = Cudd2_GetArg( pArg0 );
-    pNode1 = Cudd2_GetArg( pArg1 );
-    pNode2 = Cudd2_GetArg( pArg2 );
-    pNode  = Aig_Mux( s_pCuddMan->pAig, pNode0, pNode1, pNode2 );
-    Cudd2_SetArg( pNode, pResult );
+void Cudd2_bddIte(void* pCudd, void* pArg0, void* pArg1, void* pArg2, void* pResult) {
+    Aig_Obj_t *pNode0, *pNode1, *pNode2, *pNode;
+    pNode0 = Cudd2_GetArg(pArg0);
+    pNode1 = Cudd2_GetArg(pArg1);
+    pNode2 = Cudd2_GetArg(pArg2);
+    pNode = Aig_Mux(s_pCuddMan->pAig, pNode0, pNode1, pNode2);
+    Cudd2_SetArg(pNode, pResult);
 }
 
 /**Function*************************************************************
@@ -302,13 +286,12 @@ void Cudd2_bddIte( void * pCudd, void * pArg0, void * pArg1, void * pArg2, void 
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddCompose( void * pCudd, void * pArg0, void * pArg1, int v, void * pResult )
-{
-    Aig_Obj_t * pNode0, * pNode1, * pNode;
-    pNode0 = Cudd2_GetArg( pArg0 );
-    pNode1 = Cudd2_GetArg( pArg1 );
-    pNode  = Aig_Compose( s_pCuddMan->pAig, pNode0, pNode1, v );
-    Cudd2_SetArg( pNode, pResult );
+void Cudd2_bddCompose(void* pCudd, void* pArg0, void* pArg1, int v, void* pResult) {
+    Aig_Obj_t *pNode0, *pNode1, *pNode;
+    pNode0 = Cudd2_GetArg(pArg0);
+    pNode1 = Cudd2_GetArg(pArg1);
+    pNode = Aig_Compose(s_pCuddMan->pAig, pNode0, pNode1, v);
+    Cudd2_SetArg(pNode, pResult);
 }
 
 /**Function*************************************************************
@@ -322,13 +305,12 @@ void Cudd2_bddCompose( void * pCudd, void * pArg0, void * pArg1, int v, void * p
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddLeq( void * pCudd, void * pArg0, void * pArg1, int Result )
-{
-    Aig_Obj_t * pNode0, * pNode1, * pNode;
-    pNode0 = Cudd2_GetArg( pArg0 );
-    pNode1 = Cudd2_GetArg( pArg1 );
-    pNode  = Aig_And( s_pCuddMan->pAig, pNode0, Aig_Not(pNode1) );
-    Aig_ObjCreatePo( s_pCuddMan->pAig, pNode );
+void Cudd2_bddLeq(void* pCudd, void* pArg0, void* pArg1, int Result) {
+    Aig_Obj_t *pNode0, *pNode1, *pNode;
+    pNode0 = Cudd2_GetArg(pArg0);
+    pNode1 = Cudd2_GetArg(pArg1);
+    pNode = Aig_And(s_pCuddMan->pAig, pNode0, Aig_Not(pNode1));
+    Aig_ObjCreatePo(s_pCuddMan->pAig, pNode);
 }
 
 /**Function*************************************************************
@@ -342,19 +324,16 @@ void Cudd2_bddLeq( void * pCudd, void * pArg0, void * pArg1, int Result )
   SeeAlso     []
 
 ***********************************************************************/
-void Cudd2_bddEqual( void * pCudd, void * pArg0, void * pArg1, int Result )
-{
-    Aig_Obj_t * pNode0, * pNode1, * pNode;
-    pNode0 = Cudd2_GetArg( pArg0 );
-    pNode1 = Cudd2_GetArg( pArg1 );
-    pNode  = Aig_Exor( s_pCuddMan->pAig, pNode0, pNode1 );
-    Aig_ObjCreatePo( s_pCuddMan->pAig, pNode );
+void Cudd2_bddEqual(void* pCudd, void* pArg0, void* pArg1, int Result) {
+    Aig_Obj_t *pNode0, *pNode1, *pNode;
+    pNode0 = Cudd2_GetArg(pArg0);
+    pNode1 = Cudd2_GetArg(pArg1);
+    pNode = Aig_Exor(s_pCuddMan->pAig, pNode0, pNode1);
+    Aig_ObjCreatePo(s_pCuddMan->pAig, pNode);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

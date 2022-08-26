@@ -17,15 +17,15 @@
   Revision    [$Id: rpo.h,v 1.00 2013/05/08 00:00:00 mgamartins Exp $]
 
 ***********************************************************************/
- 
+
 #ifndef ABC__bool__rpo__rpo_h
-#define ABC__bool__rpo__rpo_h
+#    define ABC__bool__rpo__rpo_h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
 ////////////////////////////////////////////////////////////////////////
 
-#include "literal.h"
+#    include "literal.h"
 
 ABC_NAMESPACE_HEADER_START
 
@@ -52,10 +52,9 @@ Rpo_LCI_Edge_t* Rpo_CreateEdge(Operator_t op, int i, int j, int* vertexDegree);
 int Rpo_computeMinEdgeCost(Rpo_LCI_Edge_t** edges, int edgeCount, int* vertexDegree);
 
 ABC_NAMESPACE_HEADER_END
-        
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

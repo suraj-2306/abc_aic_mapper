@@ -20,12 +20,11 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static void reoUnitsAddToFreeUnitList( reo_man * p );
+static void reoUnitsAddToFreeUnitList(reo_man* p);
 
 ////////////////////////////////////////////////////////////////////////
 ///                    FUNCTION DEFINITIONS                          ///
@@ -42,14 +41,13 @@ static void reoUnitsAddToFreeUnitList( reo_man * p );
   SeeAlso     []
 
 ***********************************************************************/
-reo_unit * reoUnitsGetNextUnit(reo_man * p )
-{
-    reo_unit * pUnit;
+reo_unit* reoUnitsGetNextUnit(reo_man* p) {
+    reo_unit* pUnit;
     // check there are stil units to extract
-    if ( p->pUnitFreeList == NULL )
-        reoUnitsAddToFreeUnitList( p );
+    if (p->pUnitFreeList == NULL)
+        reoUnitsAddToFreeUnitList(p);
     // extract the next unit from the linked list
-    pUnit            = p->pUnitFreeList;
+    pUnit = p->pUnitFreeList;
     p->pUnitFreeList = pUnit->Next;
     p->nUnitsUsed++;
     return pUnit;
@@ -66,9 +64,8 @@ reo_unit * reoUnitsGetNextUnit(reo_man * p )
   SeeAlso     []
 
 ***********************************************************************/
-void reoUnitsRecycleUnit( reo_man * p, reo_unit * pUnit )
-{
-    pUnit->Next      = p->pUnitFreeList;
+void reoUnitsRecycleUnit(reo_man* p, reo_unit* pUnit) {
+    pUnit->Next = p->pUnitFreeList;
     p->pUnitFreeList = pUnit;
     p->nUnitsUsed--;
 }
@@ -84,21 +81,20 @@ void reoUnitsRecycleUnit( reo_man * p, reo_unit * pUnit )
   SeeAlso     []
 
 ***********************************************************************/
-void reoUnitsRecycleUnitList( reo_man * p, reo_plane * pPlane )
-{
-    reo_unit * pUnit;
-    reo_unit * pTail = NULL; // Suppress "might be used uninitialized"
+void reoUnitsRecycleUnitList(reo_man* p, reo_plane* pPlane) {
+    reo_unit* pUnit;
+    reo_unit* pTail = NULL; // Suppress "might be used uninitialized"
 
-    if ( pPlane->pHead == NULL )
+    if (pPlane->pHead == NULL)
         return;
 
     // find the tail
-    for ( pUnit = pPlane->pHead; pUnit; pUnit = pUnit->Next )
+    for (pUnit = pPlane->pHead; pUnit; pUnit = pUnit->Next)
         pTail = pUnit;
     pTail->Next = p->pUnitFreeList;
-    p->pUnitFreeList    = pPlane->pHead;
-    memset( pPlane, 0, sizeof(reo_plane) );
-//    pPlane->pHead = NULL;
+    p->pUnitFreeList = pPlane->pHead;
+    memset(pPlane, 0, sizeof(reo_plane));
+    //    pPlane->pHead = NULL;
 }
 
 /**Function*************************************************************
@@ -112,12 +108,11 @@ void reoUnitsRecycleUnitList( reo_man * p, reo_plane * pPlane )
   SeeAlso     []
 
 ***********************************************************************/
-void reoUnitsStopDispenser( reo_man * p )
-{
+void reoUnitsStopDispenser(reo_man* p) {
     int i;
-    for ( i = 0; i < p->nMemChunks; i++ )
-        ABC_FREE( p->pMemChunks[i] );
-//    printf("\nThe number of chunks used is %d, each of them %d units\n", p->nMemChunks, REO_CHUNK_SIZE );
+    for (i = 0; i < p->nMemChunks; i++)
+        ABC_FREE(p->pMemChunks[i]);
+    //    printf("\nThe number of chunks used is %d, each of them %d units\n", p->nMemChunks, REO_CHUNK_SIZE );
     p->nMemChunks = 0;
 }
 
@@ -132,21 +127,16 @@ void reoUnitsStopDispenser( reo_man * p )
   SeeAlso     []
 
 ***********************************************************************/
-void reoUnitsAddUnitToPlane( reo_plane * pPlane, reo_unit * pUnit )
-{
-    if ( pPlane->pHead == NULL )
-    {
+void reoUnitsAddUnitToPlane(reo_plane* pPlane, reo_unit* pUnit) {
+    if (pPlane->pHead == NULL) {
         pPlane->pHead = pUnit;
-        pUnit->Next   = NULL;
-    }
-    else
-    {
-        pUnit->Next   = pPlane->pHead;
+        pUnit->Next = NULL;
+    } else {
+        pUnit->Next = pPlane->pHead;
         pPlane->pHead = pUnit;
     }
     pPlane->statsNodes++;
 }
-
 
 /**Function*************************************************************
 
@@ -159,32 +149,28 @@ void reoUnitsAddUnitToPlane( reo_plane * pPlane, reo_unit * pUnit )
   SeeAlso     []
 
 ***********************************************************************/
-void reoUnitsAddToFreeUnitList( reo_man * p )
-{
+void reoUnitsAddToFreeUnitList(reo_man* p) {
     int c;
     // check that we still have chunks left
-    if ( p->nMemChunks == p->nMemChunksAlloc )
-    {
-        printf( "reoUnitsAddToFreeUnitList(): Memory manager ran out of memory!\n" );
-        fflush( stdout );
+    if (p->nMemChunks == p->nMemChunksAlloc) {
+        printf("reoUnitsAddToFreeUnitList(): Memory manager ran out of memory!\n");
+        fflush(stdout);
         return;
     }
     // allocate the next chunk
-    assert( p->pUnitFreeList == NULL );
-    p->pUnitFreeList = ABC_ALLOC( reo_unit, REO_CHUNK_SIZE );
+    assert(p->pUnitFreeList == NULL);
+    p->pUnitFreeList = ABC_ALLOC(reo_unit, REO_CHUNK_SIZE);
     // split chunks into list-connected units
-    for ( c = 0; c < REO_CHUNK_SIZE-1; c++ )
+    for (c = 0; c < REO_CHUNK_SIZE - 1; c++)
         (p->pUnitFreeList + c)->Next = p->pUnitFreeList + c + 1;
     // set the last pointer to NULL
-    (p->pUnitFreeList + REO_CHUNK_SIZE-1)->Next = NULL;
+    (p->pUnitFreeList + REO_CHUNK_SIZE - 1)->Next = NULL;
     // add the chunk to the array of chunks
     p->pMemChunks[p->nMemChunks++] = p->pUnitFreeList;
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                         END OF FILE                              ///
 ////////////////////////////////////////////////////////////////////////
 
 ABC_NAMESPACE_IMPL_END
-

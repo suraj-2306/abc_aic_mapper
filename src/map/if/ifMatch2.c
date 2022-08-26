@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,14 +41,11 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Bat_ManFuncSetupTable()
-{
+void Bat_ManFuncSetupTable() {
 }
-void Bat_ManFuncSetdownTable()
-{
+void Bat_ManFuncSetdownTable() {
 }
-int Bat_ManCellFuncLookup( void * pMan, unsigned * pTruth, int nVars, int nLeaves, char * pStr )
-{
+int Bat_ManCellFuncLookup(void* pMan, unsigned* pTruth, int nVars, int nLeaves, char* pStr) {
     return 1;
 }
 
@@ -57,6 +53,4 @@ int Bat_ManCellFuncLookup( void * pMan, unsigned * pTruth, int nVars, int nLeave
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

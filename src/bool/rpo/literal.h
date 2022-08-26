@@ -33,7 +33,6 @@
 
 ABC_NAMESPACE_HEADER_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
@@ -41,20 +40,18 @@ ABC_NAMESPACE_HEADER_START
 // associations
 typedef enum {
     LIT_NONE = 0, // 0: unknown
-    LIT_AND, // 1: AND association
-    LIT_OR, // 2: OR association
-    LIT_XOR // 3: XOR association (not used yet)
+    LIT_AND,      // 1: AND association
+    LIT_OR,       // 2: OR association
+    LIT_XOR       // 3: XOR association (not used yet)
 } Operator_t;
-
 
 typedef struct Literal_t_ Literal_t;
 
 struct Literal_t_ {
-    unsigned * transition;
-    unsigned * function;
-    Vec_Str_t * expression;
+    unsigned* transition;
+    unsigned* function;
+    Vec_Str_t* expression;
 };
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -72,21 +69,19 @@ struct Literal_t_ {
 //
 ***********************************************************************/
 
-static inline void Lit_TruthPositiveTransition( unsigned * pIn, unsigned * pOut, int nVars, int varIdx )
-{
-    unsigned * cof0 = ABC_ALLOC (unsigned, Kit_TruthWordNum(nVars) );
-    unsigned * cof1 = ABC_ALLOC (unsigned, Kit_TruthWordNum(nVars) );
-    unsigned * ncof0;
-    Kit_TruthCofactor0New(cof0, pIn,nVars,varIdx);
-    Kit_TruthCofactor1New(cof1, pIn,nVars,varIdx);
-    ncof0 = ABC_ALLOC (unsigned, Kit_TruthWordNum(nVars) );
-    Kit_TruthNot(ncof0,cof0,nVars);
-    Kit_TruthAnd(pOut,ncof0,cof1, nVars);
+static inline void Lit_TruthPositiveTransition(unsigned* pIn, unsigned* pOut, int nVars, int varIdx) {
+    unsigned* cof0 = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
+    unsigned* cof1 = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
+    unsigned* ncof0;
+    Kit_TruthCofactor0New(cof0, pIn, nVars, varIdx);
+    Kit_TruthCofactor1New(cof1, pIn, nVars, varIdx);
+    ncof0 = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
+    Kit_TruthNot(ncof0, cof0, nVars);
+    Kit_TruthAnd(pOut, ncof0, cof1, nVars);
     ABC_FREE(cof0);
     ABC_FREE(ncof0);
     ABC_FREE(cof1);
 }
-
 
 /**Function*************************************************************
 
@@ -100,21 +95,19 @@ static inline void Lit_TruthPositiveTransition( unsigned * pIn, unsigned * pOut,
 
 ***********************************************************************/
 
-static inline void Lit_TruthNegativeTransition( unsigned * pIn, unsigned * pOut, int nVars, int varIdx )
-{
-    unsigned * cof0 = ABC_ALLOC (unsigned, Kit_TruthWordNum(nVars) );
-    unsigned * cof1 = ABC_ALLOC (unsigned, Kit_TruthWordNum(nVars) );
-    unsigned * ncof1;
-    Kit_TruthCofactor0New(cof0, pIn,nVars,varIdx);
-    Kit_TruthCofactor1New(cof1, pIn,nVars,varIdx);
-    ncof1 = ABC_ALLOC (unsigned, Kit_TruthWordNum(nVars) );
-    Kit_TruthNot(ncof1,cof1,nVars);
-    Kit_TruthAnd(pOut,ncof1,cof0,nVars);
+static inline void Lit_TruthNegativeTransition(unsigned* pIn, unsigned* pOut, int nVars, int varIdx) {
+    unsigned* cof0 = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
+    unsigned* cof1 = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
+    unsigned* ncof1;
+    Kit_TruthCofactor0New(cof0, pIn, nVars, varIdx);
+    Kit_TruthCofactor1New(cof1, pIn, nVars, varIdx);
+    ncof1 = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
+    Kit_TruthNot(ncof1, cof1, nVars);
+    Kit_TruthAnd(pOut, ncof1, cof0, nVars);
     ABC_FREE(cof0);
     ABC_FREE(cof1);
     ABC_FREE(ncof1);
 }
-
 
 /**Function*************************************************************
 
@@ -129,9 +122,9 @@ static inline void Lit_TruthNegativeTransition( unsigned * pIn, unsigned * pOut,
  ***********************************************************************/
 
 static inline Literal_t* Lit_Alloc(unsigned* pTruth, int nVars, int varIdx, char pol) {
-    unsigned * transition;
-    unsigned * function;
-    Vec_Str_t * exp;
+    unsigned* transition;
+    unsigned* function;
+    Vec_Str_t* exp;
     Literal_t* lit;
     assert(pol == '+' || pol == '-');
     transition = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
@@ -140,7 +133,7 @@ static inline Literal_t* Lit_Alloc(unsigned* pTruth, int nVars, int varIdx, char
     } else {
         Lit_TruthNegativeTransition(pTruth, transition, nVars, varIdx);
     }
-    if (!Kit_TruthIsConst0(transition,nVars)) {
+    if (!Kit_TruthIsConst0(transition, nVars)) {
         function = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
         Kit_TruthIthVar(function, nVars, varIdx);
         //Abc_Print(-2, "Allocating function %X %d %c \n", *function, varIdx, pol);
@@ -162,7 +155,6 @@ static inline Literal_t* Lit_Alloc(unsigned* pTruth, int nVars, int varIdx, char
     }
 }
 
-
 /**Function*************************************************************
 
   Synopsis    [Group 2 literals using AND or OR]
@@ -176,28 +168,25 @@ static inline Literal_t* Lit_Alloc(unsigned* pTruth, int nVars, int varIdx, char
  ***********************************************************************/
 
 static inline Literal_t* Lit_GroupLiterals(Literal_t* lit1, Literal_t* lit2, Operator_t op, int nVars) {
-    unsigned * newFunction = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
-    unsigned * newTransition = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
-    Vec_Str_t * newExp = Vec_StrAlloc(lit1->expression->nSize + lit2->expression->nSize + 3);
+    unsigned* newFunction = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
+    unsigned* newTransition = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
+    Vec_Str_t* newExp = Vec_StrAlloc(lit1->expression->nSize + lit2->expression->nSize + 3);
     Literal_t* newLiteral;
     char opChar = '%';
     switch (op) {
-        case LIT_AND:
-        {
+        case LIT_AND: {
             //Abc_Print(-2, "Grouping AND %X %X \n", *lit1->function, *lit2->function);
             Kit_TruthAnd(newFunction, lit1->function, lit2->function, nVars);
             opChar = '*';
             break;
         }
-        case LIT_OR:
-        {
+        case LIT_OR: {
             //Abc_Print(-2, "Grouping OR %X %X \n", *lit1->function, *lit2->function);
             Kit_TruthOr(newFunction, lit1->function, lit2->function, nVars);
             opChar = '+';
             break;
         }
-        default:
-        {
+        default: {
             Abc_Print(-2, "Lit_GroupLiterals with op not defined.");
             //TODO Call ABC Abort
         }
@@ -221,7 +210,6 @@ static inline Literal_t* Lit_GroupLiterals(Literal_t* lit1, Literal_t* lit2, Ope
     return newLiteral;
 }
 
-
 /**Function*************************************************************
 
   Synopsis    [Create a const literal ]
@@ -235,7 +223,7 @@ static inline Literal_t* Lit_GroupLiterals(Literal_t* lit1, Literal_t* lit2, Ope
  ***********************************************************************/
 
 static inline Literal_t* Lit_CreateLiteralConst(unsigned* pTruth, int nVars, int constant) {
-    Vec_Str_t * exp = Vec_StrAlloc(3);
+    Vec_Str_t* exp = Vec_StrAlloc(3);
     Literal_t* lit;
     Vec_StrPutC(exp, (char)('0' + constant));
     Vec_StrPutC(exp, '\0');
@@ -247,20 +235,20 @@ static inline Literal_t* Lit_CreateLiteralConst(unsigned* pTruth, int nVars, int
 }
 
 static inline Literal_t* Lit_Copy(Literal_t* lit, int nVars) {
-    Literal_t* newLit = ABC_ALLOC(Literal_t,1);
+    Literal_t* newLit = ABC_ALLOC(Literal_t, 1);
     newLit->function = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
-    Kit_TruthCopy(newLit->function,lit->function,nVars);
+    Kit_TruthCopy(newLit->function, lit->function, nVars);
     newLit->transition = ABC_ALLOC(unsigned, Kit_TruthWordNum(nVars));
-    Kit_TruthCopy(newLit->transition,lit->transition,nVars);
+    Kit_TruthCopy(newLit->transition, lit->transition, nVars);
     newLit->expression = Vec_StrDup(lit->expression);
-//    Abc_Print(-2,"Copying: %s\n",newLit->expression->pArray); 
+    //    Abc_Print(-2,"Copying: %s\n",newLit->expression->pArray);
     return newLit;
 }
 
 static inline void Lit_PrintTT(unsigned* tt, int nVars) {
     int w;
-    for(w=nVars-1; w>=0; w--) {
-            Abc_Print(-2, "%08X", tt[w]);
+    for (w = nVars - 1; w >= 0; w--) {
+        Abc_Print(-2, "%08X", tt[w]);
     }
 }
 
@@ -280,11 +268,11 @@ static inline void Lit_PrintExp(Literal_t* lit) {
 
  ***********************************************************************/
 
-static inline void Lit_Free(Literal_t * lit) {
-    if(lit == NULL) {
+static inline void Lit_Free(Literal_t* lit) {
+    if (lit == NULL) {
         return;
     }
-//    Abc_Print(-2,"Freeing: %s\n",lit->expression->pArray); 
+    //    Abc_Print(-2,"Freeing: %s\n",lit->expression->pArray);
     ABC_FREE(lit->function);
     ABC_FREE(lit->transition);
     Vec_StrFree(lit->expression);
@@ -293,5 +281,4 @@ static inline void Lit_Free(Literal_t * lit) {
 
 ABC_NAMESPACE_HEADER_END
 
-#endif    /* LITERAL_H */
-
+#endif /* LITERAL_H */

@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -40,22 +39,17 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_ListAddCubeHead_( Mvc_List_t * pList, Mvc_Cube_t * pCube )
-{
-    if ( pList->pHead == NULL )
-    {
-        Mvc_CubeSetNext( pCube, NULL );
+void Mvc_ListAddCubeHead_(Mvc_List_t* pList, Mvc_Cube_t* pCube) {
+    if (pList->pHead == NULL) {
+        Mvc_CubeSetNext(pCube, NULL);
         pList->pHead = pCube;
         pList->pTail = pCube;
-    }
-    else
-    {
-        Mvc_CubeSetNext( pCube, pList->pHead );
+    } else {
+        Mvc_CubeSetNext(pCube, pList->pHead);
         pList->pHead = pCube;
     }
     pList->nItems++;
 }
-
 
 /**Function*************************************************************
 
@@ -68,17 +62,15 @@ void Mvc_ListAddCubeHead_( Mvc_List_t * pList, Mvc_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_ListAddCubeTail_( Mvc_List_t * pList, Mvc_Cube_t * pCube )
-{
-    if ( pList->pHead == NULL )
+void Mvc_ListAddCubeTail_(Mvc_List_t* pList, Mvc_Cube_t* pCube) {
+    if (pList->pHead == NULL)
         pList->pHead = pCube;
     else
-        Mvc_CubeSetNext( pList->pTail, pCube );
-    pList->pTail    = pCube;
-    Mvc_CubeSetNext( pCube, NULL );
+        Mvc_CubeSetNext(pList->pTail, pCube);
+    pList->pTail = pCube;
+    Mvc_CubeSetNext(pCube, NULL);
     pList->nItems++;
 }
-
 
 /**Function*************************************************************
 
@@ -91,22 +83,19 @@ void Mvc_ListAddCubeTail_( Mvc_List_t * pList, Mvc_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_ListDeleteCube_( Mvc_List_t * pList, Mvc_Cube_t * pPrev, Mvc_Cube_t * pCube )
-{
-    if ( pPrev == NULL ) // deleting the head cube
+void Mvc_ListDeleteCube_(Mvc_List_t* pList, Mvc_Cube_t* pPrev, Mvc_Cube_t* pCube) {
+    if (pPrev == NULL) // deleting the head cube
         pList->pHead = Mvc_CubeReadNext(pCube);
     else
         pPrev->pNext = pCube->pNext;
-    if ( pList->pTail == pCube ) // deleting the tail cube
+    if (pList->pTail == pCube) // deleting the tail cube
     {
-        assert( Mvc_CubeReadNext(pCube) == NULL );
+        assert(Mvc_CubeReadNext(pCube) == NULL);
         pList->pTail = pPrev;
     }
     pList->nItems--;
 }
 
-
-
 /**Function*************************************************************
 
   Synopsis    []
@@ -118,18 +107,14 @@ void Mvc_ListDeleteCube_( Mvc_List_t * pList, Mvc_Cube_t * pPrev, Mvc_Cube_t * p
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverAddCubeHead_( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
-{
-    Mvc_List_t * pList = &pCover->lCubes;
-    if ( pList->pHead == NULL )
-    {
-        Mvc_CubeSetNext( pCube, NULL );
+void Mvc_CoverAddCubeHead_(Mvc_Cover_t* pCover, Mvc_Cube_t* pCube) {
+    Mvc_List_t* pList = &pCover->lCubes;
+    if (pList->pHead == NULL) {
+        Mvc_CubeSetNext(pCube, NULL);
         pList->pHead = pCube;
         pList->pTail = pCube;
-    }
-    else
-    {
-        Mvc_CubeSetNext( pCube, pList->pHead );
+    } else {
+        Mvc_CubeSetNext(pCube, pList->pHead);
         pList->pHead = pCube;
     }
     pList->nItems++;
@@ -146,16 +131,15 @@ void Mvc_CoverAddCubeHead_( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverAddCubeTail_( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
-{
-    Mvc_List_t * pList = &pCover->lCubes;
+void Mvc_CoverAddCubeTail_(Mvc_Cover_t* pCover, Mvc_Cube_t* pCube) {
+    Mvc_List_t* pList = &pCover->lCubes;
 
-    if ( pList->pHead == NULL )
+    if (pList->pHead == NULL)
         pList->pHead = pCube;
     else
-        Mvc_CubeSetNext( pList->pTail, pCube );
-    pList->pTail    = pCube;
-    Mvc_CubeSetNext( pCube, NULL );
+        Mvc_CubeSetNext(pList->pTail, pCube);
+    pList->pTail = pCube;
+    Mvc_CubeSetNext(pCube, NULL);
     pList->nItems++;
 }
 
@@ -170,24 +154,21 @@ void Mvc_CoverAddCubeTail_( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverDeleteCube_( Mvc_Cover_t * pCover, Mvc_Cube_t * pPrev, Mvc_Cube_t * pCube )
-{
-    Mvc_List_t * pList = &pCover->lCubes;
- 
-    if ( pPrev == NULL ) // deleting the head cube
+void Mvc_CoverDeleteCube_(Mvc_Cover_t* pCover, Mvc_Cube_t* pPrev, Mvc_Cube_t* pCube) {
+    Mvc_List_t* pList = &pCover->lCubes;
+
+    if (pPrev == NULL) // deleting the head cube
         pList->pHead = Mvc_CubeReadNext(pCube);
     else
         pPrev->pNext = pCube->pNext;
-    if ( pList->pTail == pCube ) // deleting the tail cube
+    if (pList->pTail == pCube) // deleting the tail cube
     {
-        assert( Mvc_CubeReadNext(pCube) == NULL );
+        assert(Mvc_CubeReadNext(pCube) == NULL);
         pList->pTail = pPrev;
     }
     pList->nItems--;
 }
 
-
-
 /**Function*************************************************************
 
   Synopsis    []
@@ -199,12 +180,11 @@ void Mvc_CoverDeleteCube_( Mvc_Cover_t * pCover, Mvc_Cube_t * pPrev, Mvc_Cube_t 
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverAddDupCubeHead( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
-{
-    Mvc_Cube_t * pCubeNew;
-    pCubeNew = Mvc_CubeAlloc( pCover );
-    Mvc_CubeBitCopy( pCubeNew, pCube );
-    Mvc_CoverAddCubeHead( pCover, pCubeNew );
+void Mvc_CoverAddDupCubeHead(Mvc_Cover_t* pCover, Mvc_Cube_t* pCube) {
+    Mvc_Cube_t* pCubeNew;
+    pCubeNew = Mvc_CubeAlloc(pCover);
+    Mvc_CubeBitCopy(pCubeNew, pCube);
+    Mvc_CoverAddCubeHead(pCover, pCubeNew);
 }
 
 /**Function*************************************************************
@@ -218,37 +198,15 @@ void Mvc_CoverAddDupCubeHead( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverAddDupCubeTail( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
-{
-    Mvc_Cube_t * pCubeNew;
+void Mvc_CoverAddDupCubeTail(Mvc_Cover_t* pCover, Mvc_Cube_t* pCube) {
+    Mvc_Cube_t* pCubeNew;
     // copy the cube as part of this cover
-    pCubeNew = Mvc_CubeAlloc( pCover );
-    Mvc_CubeBitCopy( pCubeNew, pCube );
+    pCubeNew = Mvc_CubeAlloc(pCover);
+    Mvc_CubeBitCopy(pCubeNew, pCube);
     // clean the last bits of the new cube
-//    pCubeNew->pData[pCubeNew->iLast] &= (BITS_FULL >> pCubeNew->nUnused);
+    //    pCubeNew->pData[pCubeNew->iLast] &= (BITS_FULL >> pCubeNew->nUnused);
     // add the cube at the end
-    Mvc_CoverAddCubeTail( pCover, pCubeNew );
-}
-
-
-/**Function*************************************************************
-
-  Synopsis    []
-
-  Description []
-               
-  SideEffects []
-
-  SeeAlso     []
-
-***********************************************************************/
-void Mvc_CoverAddLiteralsOfCube( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
-{
-//    int iBit, Value;
-//    assert( pCover->pLits );
-//    Mvc_CubeForEachBit( pCover, pCube, iBit, Value )
-//        if ( Value )
-//            pCover->pLits[iBit] += Value;
+    Mvc_CoverAddCubeTail(pCover, pCubeNew);
 }
 
 /**Function*************************************************************
@@ -262,15 +220,32 @@ void Mvc_CoverAddLiteralsOfCube( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverDeleteLiteralsOfCube( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
-{
-//    int iBit, Value;
-//    assert( pCover->pLits );
-//    Mvc_CubeForEachBit( pCover, pCube, iBit, Value )
-//        if ( Value )
-//            pCover->pLits[iBit] -= Value;
+void Mvc_CoverAddLiteralsOfCube(Mvc_Cover_t* pCover, Mvc_Cube_t* pCube) {
+    //    int iBit, Value;
+    //    assert( pCover->pLits );
+    //    Mvc_CubeForEachBit( pCover, pCube, iBit, Value )
+    //        if ( Value )
+    //            pCover->pLits[iBit] += Value;
 }
 
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Mvc_CoverDeleteLiteralsOfCube(Mvc_Cover_t* pCover, Mvc_Cube_t* pCube) {
+    //    int iBit, Value;
+    //    assert( pCover->pLits );
+    //    Mvc_CubeForEachBit( pCover, pCube, iBit, Value )
+    //        if ( Value )
+    //            pCover->pLits[iBit] -= Value;
+}
 
 /**Function*************************************************************
 
@@ -283,17 +258,17 @@ void Mvc_CoverDeleteLiteralsOfCube( Mvc_Cover_t * pCover, Mvc_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverList2Array( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
+void Mvc_CoverList2Array(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
     int Counter;
     // resize storage if necessary
-    Mvc_CoverAllocateArrayCubes( pCover );
+    Mvc_CoverAllocateArrayCubes(pCover);
     // iterate through the cubes
     Counter = 0;
-    Mvc_CoverForEachCube( pCover, pCube )
-        pCover->pCubes[ Counter++ ] = pCube;
-    assert( Counter == Mvc_CoverReadCubeNum(pCover) );
+    Mvc_CoverForEachCube(pCover, pCube)
+        pCover->pCubes[Counter++]
+        = pCube;
+    assert(Counter == Mvc_CoverReadCubeNum(pCover));
 }
 
 /**Function*************************************************************
@@ -307,19 +282,17 @@ void Mvc_CoverList2Array( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverArray2List( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
+void Mvc_CoverArray2List(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
     int nCubes, i;
 
-    assert( pCover->pCubes );
+    assert(pCover->pCubes);
 
     nCubes = Mvc_CoverReadCubeNum(pCover);
-    if ( nCubes == 0 )
+    if (nCubes == 0)
         return;
-    if ( nCubes == 1 )
-    {
-        pCube    = pCover->pCubes[0];
+    if (nCubes == 1) {
+        pCube = pCover->pCubes[0];
         pCube->pNext = NULL;
         pCover->lCubes.pHead = pCover->lCubes.pTail = pCube;
         return;
@@ -328,13 +301,13 @@ void Mvc_CoverArray2List( Mvc_Cover_t * pCover )
     pCube = pCover->pCubes[0];
     pCover->lCubes.pHead = pCube;
     // set up the last cube
-    pCube = pCover->pCubes[nCubes-1];
+    pCube = pCover->pCubes[nCubes - 1];
     pCube->pNext = NULL;
     pCover->lCubes.pTail = pCube;
 
     // link all cubes starting from the first one
-    for ( i = 0; i < nCubes - 1; i++ )
-        pCover->pCubes[i]->pNext = pCover->pCubes[i+1];
+    for (i = 0; i < nCubes - 1; i++)
+        pCover->pCubes[i]->pNext = pCover->pCubes[i + 1];
 }
 
 /**Function*************************************************************
@@ -348,20 +321,17 @@ void Mvc_CoverArray2List( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cube_t * Mvc_ListGetTailFromHead( Mvc_Cube_t * pHead )
-{
-    Mvc_Cube_t * pCube, * pTail;
-    for ( pTail = pCube = pHead; 
-          pCube; 
-          pTail = pCube, pCube = Mvc_CubeReadNext(pCube) );
+Mvc_Cube_t* Mvc_ListGetTailFromHead(Mvc_Cube_t* pHead) {
+    Mvc_Cube_t *pCube, *pTail;
+    for (pTail = pCube = pHead;
+         pCube;
+         pTail = pCube, pCube = Mvc_CubeReadNext(pCube))
+        ;
     return pTail;
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -74,13 +74,11 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#define DD_BIGGY        1000000
+#define DD_BIGGY 1000000
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
@@ -103,13 +101,13 @@ typedef struct cuddPathPair {
 static char rcsid[] DD_UNUSED = "$Id: cuddSat.c,v 1.36 2009/03/08 02:49:02 fabio Exp $";
 #endif
 
-static  DdNode  *one, *zero;
+static DdNode *one, *zero;
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-#define WEIGHT(weight, col)     ((weight) == NULL ? 1 : weight[col])
+#define WEIGHT(weight, col) ((weight) == NULL ? 1 : weight[col])
 
 /**AutomaticStart*************************************************************/
 
@@ -117,18 +115,17 @@ static  DdNode  *one, *zero;
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static enum st__retval freePathPair (char *key, char *value, char *arg);
-static cuddPathPair getShortest (DdNode *root, int *cost, int *support, st__table *visited);
-static DdNode * getPath (DdManager *manager, st__table *visited, DdNode *f, int *weight, int cost);
-static cuddPathPair getLargest (DdNode *root, st__table *visited);
-static DdNode * getCube (DdManager *manager, st__table *visited, DdNode *f, int cost);
+static enum st__retval freePathPair(char* key, char* value, char* arg);
+static cuddPathPair getShortest(DdNode* root, int* cost, int* support, st__table* visited);
+static DdNode* getPath(DdManager* manager, st__table* visited, DdNode* f, int* weight, int cost);
+static cuddPathPair getLargest(DdNode* root, st__table* visited);
+static DdNode* getCube(DdManager* manager, st__table* visited, DdNode* f, int cost);
 
 /**AutomaticEnd***************************************************************/
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -145,14 +142,13 @@ static DdNode * getCube (DdManager *manager, st__table *visited, DdNode *f, int 
   SeeAlso     [Cudd_bddLeq Cudd_addEvalConst]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Eval(
-  DdManager * dd,
-  DdNode * f,
-  int * inputs)
-{
+    DdManager* dd,
+    DdNode* f,
+    int* inputs) {
     int comple;
-    DdNode *ptr;
+    DdNode* ptr;
 
     comple = Cudd_IsComplement(f);
     ptr = Cudd_Regular(f);
@@ -165,10 +161,9 @@ Cudd_Eval(
             ptr = Cudd_Regular(cuddE(ptr));
         }
     }
-    return(Cudd_NotCond(ptr,comple));
+    return (Cudd_NotCond(ptr, comple));
 
 } /* end of Cudd_Eval */
-
 
 /**Function********************************************************************
 
@@ -189,20 +184,19 @@ Cudd_Eval(
   SeeAlso     [Cudd_ShortestLength Cudd_LargestCube]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_ShortestPath(
-  DdManager * manager,
-  DdNode * f,
-  int * weight,
-  int * support,
-  int * length)
-{
-    DdNode      *F;
-    st__table    *visited;
-    DdNode      *sol;
-    cuddPathPair *rootPair;
-    int         complement, cost;
-    int         i;
+    DdManager* manager,
+    DdNode* f,
+    int* weight,
+    int* support,
+    int* length) {
+    DdNode* F;
+    st__table* visited;
+    DdNode* sol;
+    cuddPathPair* rootPair;
+    int complement, cost;
+    int i;
 
     one = DD_ONE(manager);
     zero = DD_ZERO(manager);
@@ -211,14 +205,14 @@ Cudd_ShortestPath(
     ** Hence, it does not need to be reinitialized if reordering occurs.
     */
     if (support) {
-      for (i = 0; i < manager->size; i++) {
-        support[i] = 0;
-      }
+        for (i = 0; i < manager->size; i++) {
+            support[i] = 0;
+        }
     }
 
     if (f == Cudd_Not(one) || f == zero) {
-      *length = DD_BIGGY;
-      return(Cudd_Not(one));
+        *length = DD_BIGGY;
+        return (Cudd_Not(one));
     }
     /* From this point on, a path exists. */
 
@@ -226,25 +220,25 @@ Cudd_ShortestPath(
         manager->reordered = 0;
 
         /* Initialize visited table. */
-        visited = st__init_table( st__ptrcmp, st__ptrhash);
+        visited = st__init_table(st__ptrcmp, st__ptrhash);
 
         /* Now get the length of the shortest path(s) from f to 1. */
-        (void) getShortest(f, weight, support, visited);
+        (void)getShortest(f, weight, support, visited);
 
         complement = Cudd_IsComplement(f);
 
         F = Cudd_Regular(f);
 
-        if (! st__lookup(visited, (const char *)F, (char **)&rootPair)) return(NULL);
+        if (!st__lookup(visited, (const char*)F, (char**)&rootPair)) return (NULL);
 
         if (complement) {
-          cost = rootPair->neg;
+            cost = rootPair->neg;
         } else {
-          cost = rootPair->pos;
+            cost = rootPair->pos;
         }
 
         /* Recover an actual shortest path. */
-        sol = getPath(manager,visited,f,weight,cost);
+        sol = getPath(manager, visited, f, weight, cost);
 
         st__foreach(visited, freePathPair, NULL);
         st__free_table(visited);
@@ -252,10 +246,9 @@ Cudd_ShortestPath(
     } while (manager->reordered == 1);
 
     *length = cost;
-    return(sol);
+    return (sol);
 
 } /* end of Cudd_ShortestPath */
-
 
 /**Function********************************************************************
 
@@ -273,24 +266,23 @@ Cudd_ShortestPath(
   SeeAlso     [Cudd_ShortestPath]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_LargestCube(
-  DdManager * manager,
-  DdNode * f,
-  int * length)
-{
-    register    DdNode  *F;
-    st__table    *visited;
-    DdNode      *sol;
-    cuddPathPair *rootPair;
-    int         complement, cost;
+    DdManager* manager,
+    DdNode* f,
+    int* length) {
+    register DdNode* F;
+    st__table* visited;
+    DdNode* sol;
+    cuddPathPair* rootPair;
+    int complement, cost;
 
     one = DD_ONE(manager);
     zero = DD_ZERO(manager);
 
     if (f == Cudd_Not(one) || f == zero) {
         *length = DD_BIGGY;
-        return(Cudd_Not(one));
+        return (Cudd_Not(one));
     }
     /* From this point on, a path exists. */
 
@@ -298,25 +290,25 @@ Cudd_LargestCube(
         manager->reordered = 0;
 
         /* Initialize visited table. */
-        visited = st__init_table( st__ptrcmp, st__ptrhash);
+        visited = st__init_table(st__ptrcmp, st__ptrhash);
 
         /* Now get the length of the shortest path(s) from f to 1. */
-        (void) getLargest(f, visited);
+        (void)getLargest(f, visited);
 
         complement = Cudd_IsComplement(f);
 
         F = Cudd_Regular(f);
 
-        if (! st__lookup(visited, (const char *)F, (char **)&rootPair)) return(NULL);
+        if (!st__lookup(visited, (const char*)F, (char**)&rootPair)) return (NULL);
 
         if (complement) {
-          cost = rootPair->neg;
+            cost = rootPair->neg;
         } else {
-          cost = rootPair->pos;
+            cost = rootPair->pos;
         }
 
         /* Recover an actual shortest path. */
-        sol = getCube(manager,visited,f,cost);
+        sol = getCube(manager, visited, f, cost);
 
         st__foreach(visited, freePathPair, NULL);
         st__free_table(visited);
@@ -324,10 +316,9 @@ Cudd_LargestCube(
     } while (manager->reordered == 1);
 
     *length = cost;
-    return(sol);
+    return (sol);
 
 } /* end of Cudd_LargestCube */
-
 
 /**Function********************************************************************
 
@@ -345,37 +336,35 @@ Cudd_LargestCube(
   SeeAlso     [Cudd_ShortestPath]
 
 ******************************************************************************/
-int
-Cudd_ShortestLength(
-  DdManager * manager,
-  DdNode * f,
-  int * weight)
-{
-    register    DdNode  *F;
-    st__table    *visited;
-    cuddPathPair *my_pair;
-    int         complement, cost;
+int Cudd_ShortestLength(
+    DdManager* manager,
+    DdNode* f,
+    int* weight) {
+    register DdNode* F;
+    st__table* visited;
+    cuddPathPair* my_pair;
+    int complement, cost;
 
     one = DD_ONE(manager);
     zero = DD_ZERO(manager);
 
     if (f == Cudd_Not(one) || f == zero) {
-        return(DD_BIGGY);
+        return (DD_BIGGY);
     }
 
     /* From this point on, a path exists. */
     /* Initialize visited table and support. */
-    visited = st__init_table( st__ptrcmp, st__ptrhash);
+    visited = st__init_table(st__ptrcmp, st__ptrhash);
 
     /* Now get the length of the shortest path(s) from f to 1. */
-    (void) getShortest(f, weight, NULL, visited);
+    (void)getShortest(f, weight, NULL, visited);
 
     complement = Cudd_IsComplement(f);
 
     F = Cudd_Regular(f);
 
-    if (! st__lookup(visited, (const char *)F, (char **)&my_pair)) return(CUDD_OUT_OF_MEM);
-    
+    if (!st__lookup(visited, (const char*)F, (char**)&my_pair)) return (CUDD_OUT_OF_MEM);
+
     if (complement) {
         cost = my_pair->neg;
     } else {
@@ -385,10 +374,9 @@ Cudd_ShortestLength(
     st__foreach(visited, freePathPair, NULL);
     st__free_table(visited);
 
-    return(cost);
+    return (cost);
 
 } /* end of Cudd_ShortestLength */
-
 
 #ifdef USE_CASH_DUMMY
 /**Function********************************************************************
@@ -397,14 +385,12 @@ Cudd_ShortestLength(
               be casted to DD_CTFP.
 
 ******************************************************************************/
-static DdNode *
-Cudd_Decreasing_dummy(DdManager * dd, DdNode * f, DdNode * g)
-{
-  assert(0);
-  return 0;
+static DdNode*
+Cudd_Decreasing_dummy(DdManager* dd, DdNode* f, DdNode* g) {
+    assert(0);
+    return 0;
 }
 #endif
-
 
 /**Function********************************************************************
 
@@ -421,12 +407,11 @@ Cudd_Decreasing_dummy(DdManager * dd, DdNode * f, DdNode * g)
   SeeAlso     [Cudd_Increasing]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Decreasing(
-  DdManager * dd,
-  DdNode * f,
-  int  i)
-{
+    DdManager* dd,
+    DdNode* f,
+    int i) {
     unsigned int topf, level;
     DdNode *F, *fv, *fvn, *res;
     DD_CTFP cacheOp;
@@ -437,58 +422,58 @@ Cudd_Decreasing(
 #endif
 
     F = Cudd_Regular(f);
-    topf = cuddI(dd,F->index);
+    topf = cuddI(dd, F->index);
 
     /* Check terminal case. If topf > i, f does not depend on var.
     ** Therefore, f is unate in i.
     */
-    level = (unsigned) dd->perm[i];
+    level = (unsigned)dd->perm[i];
     if (topf > level) {
-        return(DD_ONE(dd));
+        return (DD_ONE(dd));
     }
 
     /* From now on, f is not constant. */
 
     /* Check cache. */
 #ifdef USE_CASH_DUMMY
-    cacheOp = (DD_CTFP) Cudd_Decreasing_dummy;
+    cacheOp = (DD_CTFP)Cudd_Decreasing_dummy;
 #else
-    cacheOp = (DD_CTFP) Cudd_Decreasing;
+    cacheOp = (DD_CTFP)Cudd_Decreasing;
 #endif
-    res = cuddCacheLookup2(dd,cacheOp,f,dd->vars[i]);
+    res = cuddCacheLookup2(dd, cacheOp, f, dd->vars[i]);
     if (res != NULL) {
-        return(res);
+        return (res);
     }
 
     /* Compute cofactors. */
-    fv = cuddT(F); fvn = cuddE(F);
+    fv = cuddT(F);
+    fvn = cuddE(F);
     if (F != f) {
         fv = Cudd_Not(fv);
         fvn = Cudd_Not(fvn);
     }
 
-    if (topf == (unsigned) level) {
+    if (topf == (unsigned)level) {
         /* Special case: if fv is regular, fv(1,...,1) = 1;
         ** If in addition fvn is complemented, fvn(1,...,1) = 0.
         ** But then f(1,1,...,1) > f(0,1,...,1). Hence f is not
         ** monotonic decreasing in i.
         */
         if (!Cudd_IsComplement(fv) && Cudd_IsComplement(fvn)) {
-            return(Cudd_Not(DD_ONE(dd)));
+            return (Cudd_Not(DD_ONE(dd)));
         }
-        res = Cudd_bddLeq(dd,fv,fvn) ? DD_ONE(dd) : Cudd_Not(DD_ONE(dd));
+        res = Cudd_bddLeq(dd, fv, fvn) ? DD_ONE(dd) : Cudd_Not(DD_ONE(dd));
     } else {
-        res = Cudd_Decreasing(dd,fv,i);
+        res = Cudd_Decreasing(dd, fv, i);
         if (res == DD_ONE(dd)) {
-            res = Cudd_Decreasing(dd,fvn,i);
+            res = Cudd_Decreasing(dd, fvn, i);
         }
     }
 
-    cuddCacheInsert2(dd,cacheOp,f,dd->vars[i],res);
-    return(res);
+    cuddCacheInsert2(dd, cacheOp, f, dd->vars[i], res);
+    return (res);
 
 } /* end of Cudd_Decreasing */
-
 
 /**Function********************************************************************
 
@@ -505,16 +490,14 @@ Cudd_Decreasing(
   SeeAlso     [Cudd_Decreasing]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_Increasing(
-  DdManager * dd,
-  DdNode * f,
-  int  i)
-{
-    return(Cudd_Decreasing(dd,Cudd_Not(f),i));
+    DdManager* dd,
+    DdNode* f,
+    int i) {
+    return (Cudd_Decreasing(dd, Cudd_Not(f), i));
 
 } /* end of Cudd_Increasing */
-
 
 /**Function********************************************************************
 
@@ -530,13 +513,11 @@ Cudd_Increasing(
   SeeAlso     [Cudd_bddLeqUnless]
 
 ******************************************************************************/
-int
-Cudd_EquivDC(
-  DdManager * dd,
-  DdNode * F,
-  DdNode * G,
-  DdNode * D)
-{
+int Cudd_EquivDC(
+    DdManager* dd,
+    DdNode* F,
+    DdNode* G,
+    DdNode* D) {
     DdNode *tmp, *One, *Gr, *Dr;
     DdNode *Fv, *Fvn, *Gv, *Gvn, *Dv, *Dvn;
     int res;
@@ -546,8 +527,8 @@ Cudd_EquivDC(
 
     statLine(dd);
     /* Check terminal cases. */
-    if (D == One || F == G) return(1);
-    if (D == Cudd_Not(One) || D == DD_ZERO(dd) || F == Cudd_Not(G)) return(0);
+    if (D == One || F == G) return (1);
+    if (D == Cudd_Not(One) || D == DD_ZERO(dd) || F == Cudd_Not(G)) return (0);
 
     /* From now on, D is non-constant. */
 
@@ -565,17 +546,17 @@ Cudd_EquivDC(
     /* From now on, F is regular. */
 
     /* Check cache. */
-    tmp = cuddCacheLookup(dd,DD_EQUIV_DC_TAG,F,G,D);
-    if (tmp != NULL) return(tmp == One);
+    tmp = cuddCacheLookup(dd, DD_EQUIV_DC_TAG, F, G, D);
+    if (tmp != NULL) return (tmp == One);
 
     /* Find splitting variable. */
-    flevel = cuddI(dd,F->index);
+    flevel = cuddI(dd, F->index);
     Gr = Cudd_Regular(G);
-    glevel = cuddI(dd,Gr->index);
-    top = ddMin(flevel,glevel);
+    glevel = cuddI(dd, Gr->index);
+    top = ddMin(flevel, glevel);
     Dr = Cudd_Regular(D);
     dlevel = dd->perm[Dr->index];
-    top = ddMin(top,dlevel);
+    top = ddMin(top, dlevel);
 
     /* Compute cofactors. */
     if (top == flevel) {
@@ -606,16 +587,15 @@ Cudd_EquivDC(
     }
 
     /* Solve recursively. */
-    res = Cudd_EquivDC(dd,Fv,Gv,Dv);
+    res = Cudd_EquivDC(dd, Fv, Gv, Dv);
     if (res != 0) {
-        res = Cudd_EquivDC(dd,Fvn,Gvn,Dvn);
+        res = Cudd_EquivDC(dd, Fvn, Gvn, Dvn);
     }
-    cuddCacheInsert(dd,DD_EQUIV_DC_TAG,F,G,D,(res) ? One : Cudd_Not(One));
+    cuddCacheInsert(dd, DD_EQUIV_DC_TAG, F, G, D, (res) ? One : Cudd_Not(One));
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_EquivDC */
-
 
 /**Function********************************************************************
 
@@ -630,13 +610,11 @@ Cudd_EquivDC(
   SeeAlso     [Cudd_EquivDC Cudd_bddLeq Cudd_bddIteConstant]
 
 ******************************************************************************/
-int
-Cudd_bddLeqUnless(
-  DdManager *dd,
-  DdNode *f,
-  DdNode *g,
-  DdNode *D)
-{
+int Cudd_bddLeqUnless(
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g,
+    DdNode* D) {
     DdNode *tmp, *One, *F, *G;
     DdNode *Ft, *Fe, *Gt, *Ge, *Dt, *De;
     int res;
@@ -647,13 +625,12 @@ Cudd_bddLeqUnless(
     One = DD_ONE(dd);
 
     /* Check terminal cases. */
-    if (f == g || g == One || f == Cudd_Not(One) || D == One ||
-        D == f || D == Cudd_Not(g)) return(1);
+    if (f == g || g == One || f == Cudd_Not(One) || D == One || D == f || D == Cudd_Not(g)) return (1);
     /* Check for two-operand cases. */
     if (D == Cudd_Not(One) || D == g || D == Cudd_Not(f))
-        return(Cudd_bddLeq(dd,f,g));
-    if (g == Cudd_Not(One) || g == Cudd_Not(f)) return(Cudd_bddLeq(dd,f,D));
-    if (f == One) return(Cudd_bddLeq(dd,Cudd_Not(g),D));
+        return (Cudd_bddLeq(dd, f, g));
+    if (g == Cudd_Not(One) || g == Cudd_Not(f)) return (Cudd_bddLeq(dd, f, D));
+    if (f == One) return (Cudd_bddLeq(dd, Cudd_Not(g), D));
 
     /* From now on, f, g, and D are non-constant, distinct, and
     ** non-complementary. */
@@ -670,7 +647,7 @@ Cudd_bddLeqUnless(
             /* Special case: if f is regular and g is complemented,
             ** f(1,...,1) = 1 > 0 = g(1,...,1).  If D(1,...,1) = 0, return 0.
             */
-            if (!Cudd_IsComplement(f)) return(0);
+            if (!Cudd_IsComplement(f)) return (0);
             /* !g <= D unless !f  or  !D <= g unless !f */
             tmp = D;
             D = Cudd_Not(f);
@@ -736,17 +713,17 @@ Cudd_bddLeqUnless(
     /* From now on, D is regular. */
 
     /* Check cache. */
-    tmp = cuddCacheLookup(dd,DD_BDD_LEQ_UNLESS_TAG,f,g,D);
-    if (tmp != NULL) return(tmp == One);
+    tmp = cuddCacheLookup(dd, DD_BDD_LEQ_UNLESS_TAG, f, g, D);
+    if (tmp != NULL) return (tmp == One);
 
     /* Find splitting variable. */
     F = Cudd_Regular(f);
     flevel = dd->perm[F->index];
     G = Cudd_Regular(g);
     glevel = dd->perm[G->index];
-    top = ddMin(flevel,glevel);
+    top = ddMin(flevel, glevel);
     dlevel = dd->perm[D->index];
-    top = ddMin(top,dlevel);
+    top = ddMin(top, dlevel);
 
     /* Compute cofactors. */
     if (top == flevel) {
@@ -777,16 +754,15 @@ Cudd_bddLeqUnless(
     }
 
     /* Solve recursively. */
-    res = Cudd_bddLeqUnless(dd,Ft,Gt,Dt);
+    res = Cudd_bddLeqUnless(dd, Ft, Gt, Dt);
     if (res != 0) {
-        res = Cudd_bddLeqUnless(dd,Fe,Ge,De);
+        res = Cudd_bddLeqUnless(dd, Fe, Ge, De);
     }
-    cuddCacheInsert(dd,DD_BDD_LEQ_UNLESS_TAG,f,g,D,Cudd_NotCond(One,!res));
+    cuddCacheInsert(dd, DD_BDD_LEQ_UNLESS_TAG, f, g, D, Cudd_NotCond(One, !res));
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_bddLeqUnless */
-
 
 #ifdef USE_CASH_DUMMY
 /**Function********************************************************************
@@ -795,14 +771,12 @@ Cudd_bddLeqUnless(
               be casted to DD_CTFP.
 
 ******************************************************************************/
-static DdNode *
-Cudd_EqualSupNorm_dummy(DdManager * dd, DdNode * f, DdNode * g)
-{
-  assert(0);
-  return 0;
+static DdNode*
+Cudd_EqualSupNorm_dummy(DdManager* dd, DdNode* f, DdNode* g) {
+    assert(0);
+    return 0;
 }
 #endif
-
 
 /**Function********************************************************************
 
@@ -820,68 +794,75 @@ Cudd_EqualSupNorm_dummy(DdManager * dd, DdNode * f, DdNode * g)
   SeeAlso     []
 
 ******************************************************************************/
-int
-Cudd_EqualSupNorm(
-  DdManager * dd /* manager */,
-  DdNode * f /* first ADD */,
-  DdNode * g /* second ADD */,
-  CUDD_VALUE_TYPE  tolerance /* maximum allowed difference */,
-  int  pr /* verbosity level */)
-{
+int Cudd_EqualSupNorm(
+    DdManager* dd /* manager */,
+    DdNode* f /* first ADD */,
+    DdNode* g /* second ADD */,
+    CUDD_VALUE_TYPE tolerance /* maximum allowed difference */,
+    int pr /* verbosity level */) {
     DdNode *fv, *fvn, *gv, *gvn, *r;
     unsigned int topf, topg;
 
     statLine(dd);
     /* Check terminal cases. */
-    if (f == g) return(1);
+    if (f == g) return (1);
     if (Cudd_IsConstant(f) && Cudd_IsConstant(g)) {
-        if (ddEqualVal(cuddV(f),cuddV(g),tolerance)) {
-            return(1);
+        if (ddEqualVal(cuddV(f), cuddV(g), tolerance)) {
+            return (1);
         } else {
-            if (pr>0) {
-                (void) fprintf(dd->out,"Offending nodes:\n");
-                (void) fprintf(dd->out,
-                               "f: address = %p\t value = %40.30f\n",
-                               (void *) f, cuddV(f));
-                (void) fprintf(dd->out,
-                               "g: address = %p\t value = %40.30f\n",
-                               (void *) g, cuddV(g));
+            if (pr > 0) {
+                (void)fprintf(dd->out, "Offending nodes:\n");
+                (void)fprintf(dd->out,
+                              "f: address = %p\t value = %40.30f\n",
+                              (void*)f, cuddV(f));
+                (void)fprintf(dd->out,
+                              "g: address = %p\t value = %40.30f\n",
+                              (void*)g, cuddV(g));
             }
-            return(0);
+            return (0);
         }
     }
 
     /* We only insert the result in the cache if the comparison is
     ** successful. Therefore, if we hit we return 1. */
 #ifdef USE_CASH_DUMMY
-    r = cuddCacheLookup2(dd,(DD_CTFP)Cudd_EqualSupNorm_dummy,f,g);
+    r = cuddCacheLookup2(dd, (DD_CTFP)Cudd_EqualSupNorm_dummy, f, g);
 #else
-    r = cuddCacheLookup2(dd,(DD_CTFP)Cudd_EqualSupNorm,f,g);
+    r = cuddCacheLookup2(dd, (DD_CTFP)Cudd_EqualSupNorm, f, g);
 #endif
     if (r != NULL) {
-        return(1);
+        return (1);
     }
 
     /* Compute the cofactors and solve the recursive subproblems. */
-    topf = cuddI(dd,f->index);
-    topg = cuddI(dd,g->index);
+    topf = cuddI(dd, f->index);
+    topg = cuddI(dd, g->index);
 
-    if (topf <= topg) {fv = cuddT(f); fvn = cuddE(f);} else {fv = fvn = f;}
-    if (topg <= topf) {gv = cuddT(g); gvn = cuddE(g);} else {gv = gvn = g;}
+    if (topf <= topg) {
+        fv = cuddT(f);
+        fvn = cuddE(f);
+    } else {
+        fv = fvn = f;
+    }
+    if (topg <= topf) {
+        gv = cuddT(g);
+        gvn = cuddE(g);
+    } else {
+        gv = gvn = g;
+    }
 
-    if (!Cudd_EqualSupNorm(dd,fv,gv,tolerance,pr)) return(0);
-    if (!Cudd_EqualSupNorm(dd,fvn,gvn,tolerance,pr)) return(0);
+    if (!Cudd_EqualSupNorm(dd, fv, gv, tolerance, pr)) return (0);
+    if (!Cudd_EqualSupNorm(dd, fvn, gvn, tolerance, pr)) return (0);
 
 #ifdef USE_CASH_DUMMY
-    cuddCacheInsert2(dd,(DD_CTFP)Cudd_EqualSupNorm_dummy,f,g,DD_ONE(dd));
+    cuddCacheInsert2(dd, (DD_CTFP)Cudd_EqualSupNorm_dummy, f, g, DD_ONE(dd));
 #else
-    cuddCacheInsert2(dd,(DD_CTFP)Cudd_EqualSupNorm,f,g,DD_ONE(dd));
+    cuddCacheInsert2(dd, (DD_CTFP)Cudd_EqualSupNorm, f, g, DD_ONE(dd));
 #endif
 
-    return(1);
+    return (1);
 
 } /* end of Cudd_EqualSupNorm */
-
 
 /**Function********************************************************************
 
@@ -896,29 +877,26 @@ Cudd_EqualSupNorm(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_bddMakePrime(
-  DdManager *dd /* manager */,
-  DdNode *cube /* cube to be expanded */,
-  DdNode *f /* function of which the cube is to be made a prime */)
-{
-    DdNode *res;
+    DdManager* dd /* manager */,
+    DdNode* cube /* cube to be expanded */,
+    DdNode* f /* function of which the cube is to be made a prime */) {
+    DdNode* res;
 
-    if (!Cudd_bddLeq(dd,cube,f)) return(NULL);
+    if (!Cudd_bddLeq(dd, cube, f)) return (NULL);
 
     do {
         dd->reordered = 0;
-        res = cuddBddMakePrime(dd,cube,f);
+        res = cuddBddMakePrime(dd, cube, f);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_bddMakePrime */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -932,59 +910,56 @@ Cudd_bddMakePrime(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddBddMakePrime(
-  DdManager *dd /* manager */,
-  DdNode *cube /* cube to be expanded */,
-  DdNode *f /* function of which the cube is to be made a prime */)
-{
-    DdNode *scan;
+    DdManager* dd /* manager */,
+    DdNode* cube /* cube to be expanded */,
+    DdNode* f /* function of which the cube is to be made a prime */) {
+    DdNode* scan;
     DdNode *t, *e;
-    DdNode *res = cube;
-    DdNode *zero = Cudd_Not(DD_ONE(dd));
+    DdNode* res = cube;
+    DdNode* zero = Cudd_Not(DD_ONE(dd));
 
     Cudd_Ref(res);
     scan = cube;
     while (!Cudd_IsConstant(scan)) {
-        DdNode *reg = Cudd_Regular(scan);
-        DdNode *var = dd->vars[reg->index];
-        DdNode *expanded = Cudd_bddExistAbstract(dd,res,var);
+        DdNode* reg = Cudd_Regular(scan);
+        DdNode* var = dd->vars[reg->index];
+        DdNode* expanded = Cudd_bddExistAbstract(dd, res, var);
         if (expanded == NULL) {
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(expanded);
-        if (Cudd_bddLeq(dd,expanded,f)) {
-            Cudd_RecursiveDeref(dd,res);
+        if (Cudd_bddLeq(dd, expanded, f)) {
+            Cudd_RecursiveDeref(dd, res);
             res = expanded;
         } else {
-            Cudd_RecursiveDeref(dd,expanded);
+            Cudd_RecursiveDeref(dd, expanded);
         }
-        cuddGetBranches(scan,&t,&e);
+        cuddGetBranches(scan, &t, &e);
         if (t == zero) {
             scan = e;
         } else if (e == zero) {
             scan = t;
         } else {
-            Cudd_RecursiveDeref(dd,res);
-            return(NULL);       /* cube is not a cube */
+            Cudd_RecursiveDeref(dd, res);
+            return (NULL); /* cube is not a cube */
         }
     }
 
     if (scan == DD_ONE(dd)) {
         Cudd_Deref(res);
-        return(res);
+        return (res);
     } else {
-        Cudd_RecursiveDeref(dd,res);
-        return(NULL);
+        Cudd_RecursiveDeref(dd, res);
+        return (NULL);
     }
 
 } /* end of cuddBddMakePrime */
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -998,18 +973,16 @@ cuddBddMakePrime(
 ******************************************************************************/
 static enum st__retval
 freePathPair(
-  char * key,
-  char * value,
-  char * arg)
-{
-    cuddPathPair *pair;
+    char* key,
+    char* value,
+    char* arg) {
+    cuddPathPair* pair;
 
-    pair = (cuddPathPair *) value;
-        ABC_FREE(pair);
-    return( st__CONTINUE);
+    pair = (cuddPathPair*)value;
+    ABC_FREE(pair);
+    return (st__CONTINUE);
 
 } /* end of freePathPair */
-
 
 /**Function********************************************************************
 
@@ -1031,18 +1004,17 @@ freePathPair(
 ******************************************************************************/
 static cuddPathPair
 getShortest(
-  DdNode * root,
-  int * cost,
-  int * support,
-  st__table * visited)
-{
+    DdNode* root,
+    int* cost,
+    int* support,
+    st__table* visited) {
     cuddPathPair *my_pair, res_pair, pair_T, pair_E;
-    DdNode      *my_root, *T, *E;
-    int         weight;
+    DdNode *my_root, *T, *E;
+    int weight;
 
     my_root = Cudd_Regular(root);
 
-    if ( st__lookup(visited, (const char *)my_root, (char **)&my_pair)) {
+    if (st__lookup(visited, (const char*)my_root, (char**)&my_pair)) {
         if (Cudd_IsComplement(root)) {
             res_pair.pos = my_pair->neg;
             res_pair.neg = my_pair->pos;
@@ -1050,7 +1022,7 @@ getShortest(
             res_pair.pos = my_pair->pos;
             res_pair.neg = my_pair->neg;
         }
-        return(res_pair);
+        return (res_pair);
     }
 
     /* In the case of a BDD the following test is equivalent to
@@ -1073,8 +1045,8 @@ getShortest(
         pair_T = getShortest(T, cost, support, visited);
         pair_E = getShortest(E, cost, support, visited);
         weight = WEIGHT(cost, my_root->index);
-        res_pair.pos = ddMin(pair_T.pos+weight, pair_E.pos);
-        res_pair.neg = ddMin(pair_T.neg+weight, pair_E.neg);
+        res_pair.pos = ddMin(pair_T.pos + weight, pair_E.pos);
+        res_pair.neg = ddMin(pair_T.neg + weight, pair_E.neg);
 
         /* Update support. */
         if (support != NULL) {
@@ -1089,12 +1061,12 @@ getShortest(
             res_pair.pos = res_pair.neg;
             res_pair.neg = tmp;
         }
-        return(res_pair);
+        return (res_pair);
     }
     my_pair->pos = res_pair.pos;
     my_pair->neg = res_pair.neg;
 
-    st__insert(visited, (char *)my_root, (char *)my_pair);
+    st__insert(visited, (char*)my_root, (char*)my_pair);
     if (Cudd_IsComplement(root)) {
         res_pair.pos = my_pair->neg;
         res_pair.neg = my_pair->pos;
@@ -1102,10 +1074,9 @@ getShortest(
         res_pair.pos = my_pair->pos;
         res_pair.neg = my_pair->neg;
     }
-    return(res_pair);
+    return (res_pair);
 
 } /* end of getShortest */
-
 
 /**Function********************************************************************
 
@@ -1125,19 +1096,18 @@ getShortest(
   SeeAlso     []
 
 ******************************************************************************/
-static DdNode *
+static DdNode*
 getPath(
-  DdManager * manager,
-  st__table * visited,
-  DdNode * f,
-  int * weight,
-  int  cost)
-{
-    DdNode      *sol, *tmp;
-    DdNode      *my_dd, *T, *E;
+    DdManager* manager,
+    st__table* visited,
+    DdNode* f,
+    int* weight,
+    int cost) {
+    DdNode *sol, *tmp;
+    DdNode *my_dd, *T, *E;
     cuddPathPair *T_pair, *E_pair;
-    int         Tcost, Ecost;
-    int         complement;
+    int Tcost, Ecost;
+    int complement;
 
     my_dd = Cudd_Regular(f);
     complement = Cudd_IsComplement(f);
@@ -1152,51 +1122,51 @@ getPath(
         T = cuddT(my_dd);
         E = cuddE(my_dd);
 
-        if (complement) {T = Cudd_Not(T); E = Cudd_Not(E);}
+        if (complement) {
+            T = Cudd_Not(T);
+            E = Cudd_Not(E);
+        }
 
-        st__lookup(visited, (const char *)Cudd_Regular(T), (char **)&T_pair);
-        if ((Cudd_IsComplement(T) && T_pair->neg == Tcost) ||
-        (!Cudd_IsComplement(T) && T_pair->pos == Tcost)) {
-            tmp = cuddBddAndRecur(manager,manager->vars[my_dd->index],sol);
+        st__lookup(visited, (const char*)Cudd_Regular(T), (char**)&T_pair);
+        if ((Cudd_IsComplement(T) && T_pair->neg == Tcost) || (!Cudd_IsComplement(T) && T_pair->pos == Tcost)) {
+            tmp = cuddBddAndRecur(manager, manager->vars[my_dd->index], sol);
             if (tmp == NULL) {
-                Cudd_RecursiveDeref(manager,sol);
-                return(NULL);
+                Cudd_RecursiveDeref(manager, sol);
+                return (NULL);
             }
             cuddRef(tmp);
-            Cudd_RecursiveDeref(manager,sol);
+            Cudd_RecursiveDeref(manager, sol);
             sol = tmp;
 
-            complement =  Cudd_IsComplement(T);
+            complement = Cudd_IsComplement(T);
             my_dd = Cudd_Regular(T);
             cost = Tcost;
             continue;
         }
-        st__lookup(visited, (const char *)Cudd_Regular(E), (char **)&E_pair);
-        if ((Cudd_IsComplement(E) && E_pair->neg == Ecost) ||
-        (!Cudd_IsComplement(E) && E_pair->pos == Ecost)) {
-            tmp = cuddBddAndRecur(manager,Cudd_Not(manager->vars[my_dd->index]),sol);
+        st__lookup(visited, (const char*)Cudd_Regular(E), (char**)&E_pair);
+        if ((Cudd_IsComplement(E) && E_pair->neg == Ecost) || (!Cudd_IsComplement(E) && E_pair->pos == Ecost)) {
+            tmp = cuddBddAndRecur(manager, Cudd_Not(manager->vars[my_dd->index]), sol);
             if (tmp == NULL) {
-                Cudd_RecursiveDeref(manager,sol);
-                return(NULL);
+                Cudd_RecursiveDeref(manager, sol);
+                return (NULL);
             }
             cuddRef(tmp);
-            Cudd_RecursiveDeref(manager,sol);
+            Cudd_RecursiveDeref(manager, sol);
             sol = tmp;
             complement = Cudd_IsComplement(E);
             my_dd = Cudd_Regular(E);
             cost = Ecost;
             continue;
         }
-        (void) fprintf(manager->err,"We shouldn't be here!!\n");
+        (void)fprintf(manager->err, "We shouldn't be here!!\n");
         manager->errorCode = CUDD_INTERNAL_ERROR;
-        return(NULL);
+        return (NULL);
     }
 
     cuddDeref(sol);
-    return(sol);
+    return (sol);
 
 } /* end of getPath */
-
 
 /**Function********************************************************************
 
@@ -1220,15 +1190,14 @@ getPath(
 ******************************************************************************/
 static cuddPathPair
 getLargest(
-  DdNode * root,
-  st__table * visited)
-{
+    DdNode* root,
+    st__table* visited) {
     cuddPathPair *my_pair, res_pair, pair_T, pair_E;
-    DdNode      *my_root, *T, *E;
+    DdNode *my_root, *T, *E;
 
     my_root = Cudd_Regular(root);
 
-    if ( st__lookup(visited, (const char *)my_root, (char **)&my_pair)) {
+    if (st__lookup(visited, (const char*)my_root, (char**)&my_pair)) {
         if (Cudd_IsComplement(root)) {
             res_pair.pos = my_pair->neg;
             res_pair.neg = my_pair->pos;
@@ -1236,7 +1205,7 @@ getLargest(
             res_pair.pos = my_pair->pos;
             res_pair.neg = my_pair->neg;
         }
-        return(res_pair);
+        return (res_pair);
     }
 
     /* In the case of a BDD the following test is equivalent to
@@ -1263,19 +1232,19 @@ getLargest(
     }
 
     my_pair = ABC_ALLOC(cuddPathPair, 1);
-    if (my_pair == NULL) {      /* simply do not cache this result */
+    if (my_pair == NULL) { /* simply do not cache this result */
         if (Cudd_IsComplement(root)) {
             int tmp = res_pair.pos;
             res_pair.pos = res_pair.neg;
             res_pair.neg = tmp;
         }
-        return(res_pair);
+        return (res_pair);
     }
     my_pair->pos = res_pair.pos;
     my_pair->neg = res_pair.neg;
 
     /* Caching may fail without affecting correctness. */
-    st__insert(visited, (char *)my_root, (char *)my_pair);
+    st__insert(visited, (char*)my_root, (char*)my_pair);
     if (Cudd_IsComplement(root)) {
         res_pair.pos = my_pair->neg;
         res_pair.neg = my_pair->pos;
@@ -1283,10 +1252,9 @@ getLargest(
         res_pair.pos = my_pair->pos;
         res_pair.neg = my_pair->neg;
     }
-    return(res_pair);
+    return (res_pair);
 
 } /* end of getLargest */
-
 
 /**Function********************************************************************
 
@@ -1306,18 +1274,17 @@ getLargest(
   SeeAlso     []
 
 ******************************************************************************/
-static DdNode *
+static DdNode*
 getCube(
-  DdManager * manager,
-  st__table * visited,
-  DdNode * f,
-  int  cost)
-{
-    DdNode      *sol, *tmp;
-    DdNode      *my_dd, *T, *E;
+    DdManager* manager,
+    st__table* visited,
+    DdNode* f,
+    int cost) {
+    DdNode *sol, *tmp;
+    DdNode *my_dd, *T, *E;
     cuddPathPair *T_pair, *E_pair;
-    int         Tcost, Ecost;
-    int         complement;
+    int Tcost, Ecost;
+    int complement;
 
     my_dd = Cudd_Regular(f);
     complement = Cudd_IsComplement(f);
@@ -1332,51 +1299,50 @@ getCube(
         T = cuddT(my_dd);
         E = cuddE(my_dd);
 
-        if (complement) {T = Cudd_Not(T); E = Cudd_Not(E);}
+        if (complement) {
+            T = Cudd_Not(T);
+            E = Cudd_Not(E);
+        }
 
-        if (! st__lookup(visited, (const char *)Cudd_Regular(T), (char **)&T_pair)) return(NULL);
-        if ((Cudd_IsComplement(T) && T_pair->neg == Tcost) ||
-        (!Cudd_IsComplement(T) && T_pair->pos == Tcost)) {
-            tmp = cuddBddAndRecur(manager,manager->vars[my_dd->index],sol);
+        if (!st__lookup(visited, (const char*)Cudd_Regular(T), (char**)&T_pair)) return (NULL);
+        if ((Cudd_IsComplement(T) && T_pair->neg == Tcost) || (!Cudd_IsComplement(T) && T_pair->pos == Tcost)) {
+            tmp = cuddBddAndRecur(manager, manager->vars[my_dd->index], sol);
             if (tmp == NULL) {
-                Cudd_RecursiveDeref(manager,sol);
-                return(NULL);
+                Cudd_RecursiveDeref(manager, sol);
+                return (NULL);
             }
             cuddRef(tmp);
-            Cudd_RecursiveDeref(manager,sol);
+            Cudd_RecursiveDeref(manager, sol);
             sol = tmp;
 
-            complement =  Cudd_IsComplement(T);
+            complement = Cudd_IsComplement(T);
             my_dd = Cudd_Regular(T);
             cost = Tcost;
             continue;
         }
-        if (! st__lookup(visited, (const char *)Cudd_Regular(E), (char **)&E_pair)) return(NULL);
-        if ((Cudd_IsComplement(E) && E_pair->neg == Ecost) ||
-        (!Cudd_IsComplement(E) && E_pair->pos == Ecost)) {
-            tmp = cuddBddAndRecur(manager,Cudd_Not(manager->vars[my_dd->index]),sol);
+        if (!st__lookup(visited, (const char*)Cudd_Regular(E), (char**)&E_pair)) return (NULL);
+        if ((Cudd_IsComplement(E) && E_pair->neg == Ecost) || (!Cudd_IsComplement(E) && E_pair->pos == Ecost)) {
+            tmp = cuddBddAndRecur(manager, Cudd_Not(manager->vars[my_dd->index]), sol);
             if (tmp == NULL) {
-                Cudd_RecursiveDeref(manager,sol);
-                return(NULL);
+                Cudd_RecursiveDeref(manager, sol);
+                return (NULL);
             }
             cuddRef(tmp);
-            Cudd_RecursiveDeref(manager,sol);
+            Cudd_RecursiveDeref(manager, sol);
             sol = tmp;
             complement = Cudd_IsComplement(E);
             my_dd = Cudd_Regular(E);
             cost = Ecost;
             continue;
         }
-        (void) fprintf(manager->err,"We shouldn't be here!\n");
+        (void)fprintf(manager->err, "We shouldn't be here!\n");
         manager->errorCode = CUDD_INTERNAL_ERROR;
-        return(NULL);
+        return (NULL);
     }
 
     cuddDeref(sol);
-    return(sol);
+    return (sol);
 
 } /* end of getCube */
 
-
 ABC_NAMESPACE_IMPL_END
-

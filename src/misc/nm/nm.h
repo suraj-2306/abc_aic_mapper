@@ -17,10 +17,9 @@
   Revision    [$Id: nm.h,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
-#ifndef ABC__misc__nm__nm_h
-#define ABC__misc__nm__nm_h
 
+#ifndef ABC__misc__nm__nm_h
+#    define ABC__misc__nm__nm_h
 
 /*
     This manager is designed to store ID-to-name and name-to-ID mapping
@@ -51,10 +50,7 @@
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
 ABC_NAMESPACE_HEADER_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
@@ -71,26 +67,21 @@ typedef struct Nm_Man_t_ Nm_Man_t;
 ////////////////////////////////////////////////////////////////////////
 
 /*=== nmApi.c ==========================================================*/
-extern Nm_Man_t *   Nm_ManCreate( int nSize );
-extern void         Nm_ManFree( Nm_Man_t * p );
-extern int          Nm_ManNumEntries( Nm_Man_t * p );
-extern char *       Nm_ManStoreIdName( Nm_Man_t * p, int ObjId, int Type, char * pName, char * pSuffix );
-extern void         Nm_ManDeleteIdName( Nm_Man_t * p, int ObjId );
-extern char *       Nm_ManCreateUniqueName( Nm_Man_t * p, int ObjId );
-extern char *       Nm_ManFindNameById( Nm_Man_t * p, int ObjId );
-extern int          Nm_ManFindIdByName( Nm_Man_t * p, char * pName, int Type );
-extern int          Nm_ManFindIdByNameTwoTypes( Nm_Man_t * p, char * pName, int Type1, int Type2 );
-extern Vec_Int_t *  Nm_ManReturnNameIds( Nm_Man_t * p );
-
-
+extern Nm_Man_t* Nm_ManCreate(int nSize);
+extern void Nm_ManFree(Nm_Man_t* p);
+extern int Nm_ManNumEntries(Nm_Man_t* p);
+extern char* Nm_ManStoreIdName(Nm_Man_t* p, int ObjId, int Type, char* pName, char* pSuffix);
+extern void Nm_ManDeleteIdName(Nm_Man_t* p, int ObjId);
+extern char* Nm_ManCreateUniqueName(Nm_Man_t* p, int ObjId);
+extern char* Nm_ManFindNameById(Nm_Man_t* p, int ObjId);
+extern int Nm_ManFindIdByName(Nm_Man_t* p, char* pName, int Type);
+extern int Nm_ManFindIdByNameTwoTypes(Nm_Man_t* p, char* pName, int Type1, int Type2);
+extern Vec_Int_t* Nm_ManReturnNameIds(Nm_Man_t* p);
 
 ABC_NAMESPACE_HEADER_END
-
-
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

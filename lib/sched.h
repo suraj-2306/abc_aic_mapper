@@ -42,32 +42,31 @@
 #undef PTW32_LEVEL
 
 #if defined(_POSIX_SOURCE)
-#define PTW32_LEVEL 0
+#    define PTW32_LEVEL 0
 /* Early POSIX */
 #endif
 
 #if defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 199309
-#undef PTW32_LEVEL
-#define PTW32_LEVEL 1
+#    undef PTW32_LEVEL
+#    define PTW32_LEVEL 1
 /* Include 1b, 1c and 1d */
 #endif
 
 #if defined(INCLUDE_NP)
-#undef PTW32_LEVEL
-#define PTW32_LEVEL 2
+#    undef PTW32_LEVEL
+#    define PTW32_LEVEL 2
 /* Include Non-Portable extensions */
 #endif
 
 #define PTW32_LEVEL_MAX 3
 
 #if !defined(PTW32_LEVEL)
-#define PTW32_LEVEL PTW32_LEVEL_MAX
+#    define PTW32_LEVEL PTW32_LEVEL_MAX
 /* Include everything */
 #endif
 
-
-#if __GNUC__ && ! defined (__declspec)
-# error Please upgrade your GNU compiler to one that supports __declspec.
+#if __GNUC__ && !defined(__declspec)
+#    error Please upgrade your GNU compiler to one that supports __declspec.
 #endif
 
 /*
@@ -77,13 +76,13 @@
  * be imported correctly.
  */
 #ifndef PTW32_STATIC_LIB
-#  ifdef PTW32_BUILD
-#    define PTW32_DLLPORT __declspec (dllexport)
-#  else
-#    define PTW32_DLLPORT __declspec (dllimport)
-#  endif
+#    ifdef PTW32_BUILD
+#        define PTW32_DLLPORT __declspec(dllexport)
+#    else
+#        define PTW32_DLLPORT __declspec(dllimport)
+#    endif
 #else
-#  define PTW32_DLLPORT
+#    define PTW32_DLLPORT
 #endif
 
 /*
@@ -92,13 +91,13 @@
  */
 
 #ifndef PTW32_CONFIG_H
-#  if defined(WINCE)
-#    define NEED_ERRNO
-#    define NEED_SEM
-#  endif
-#  if defined(_UWIN) || defined(__MINGW32__)
-#    define HAVE_MODE_T
-#  endif
+#    if defined(WINCE)
+#        define NEED_ERRNO
+#        define NEED_SEM
+#    endif
+#    if defined(_UWIN) || defined(__MINGW32__)
+#        define HAVE_MODE_T
+#    endif
 #endif
 
 /*
@@ -106,20 +105,20 @@
  */
 
 #if PTW32_LEVEL >= PTW32_LEVEL_MAX
-#ifdef NEED_ERRNO
-#include "need_errno.h"
-#else
-#include <errno.h>
-#endif
+#    ifdef NEED_ERRNO
+#        include "need_errno.h"
+#    else
+#        include <errno.h>
+#    endif
 #endif /* PTW32_LEVEL >= PTW32_LEVEL_MAX */
 
 #if defined(__MINGW32__) || defined(_UWIN)
-#if PTW32_LEVEL >= PTW32_LEVEL_MAX
+#    if PTW32_LEVEL >= PTW32_LEVEL_MAX
 /* For pid_t */
-#  include <sys/types.h>
+#        include <sys/types.h>
 /* Required by Unix 98 */
-#  include <time.h>
-#endif /* PTW32_LEVEL >= PTW32_LEVEL_MAX */
+#        include <time.h>
+#    endif /* PTW32_LEVEL >= PTW32_LEVEL_MAX */
 #else
 typedef int pid_t;
 #endif
@@ -127,31 +126,30 @@ typedef int pid_t;
 /* Thread scheduling policies */
 
 enum {
-  SCHED_OTHER = 0,
-  SCHED_FIFO,
-  SCHED_RR,
-  SCHED_MIN   = SCHED_OTHER,
-  SCHED_MAX   = SCHED_RR
+    SCHED_OTHER = 0,
+    SCHED_FIFO,
+    SCHED_RR,
+    SCHED_MIN = SCHED_OTHER,
+    SCHED_MAX = SCHED_RR
 };
 
 struct sched_param {
-  int sched_priority;
+    int sched_priority;
 };
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif                          /* __cplusplus */
+extern "C" {
+#endif /* __cplusplus */
 
-PTW32_DLLPORT int __cdecl sched_yield (void);
+PTW32_DLLPORT int __cdecl sched_yield(void);
 
-PTW32_DLLPORT int __cdecl sched_get_priority_min (int policy);
+PTW32_DLLPORT int __cdecl sched_get_priority_min(int policy);
 
-PTW32_DLLPORT int __cdecl sched_get_priority_max (int policy);
+PTW32_DLLPORT int __cdecl sched_get_priority_max(int policy);
 
-PTW32_DLLPORT int __cdecl sched_setscheduler (pid_t pid, int policy);
+PTW32_DLLPORT int __cdecl sched_setscheduler(pid_t pid, int policy);
 
-PTW32_DLLPORT int __cdecl sched_getscheduler (pid_t pid);
+PTW32_DLLPORT int __cdecl sched_getscheduler(pid_t pid);
 
 /*
  * Note that this macro returns ENOTSUP rather than
@@ -164,15 +162,13 @@ PTW32_DLLPORT int __cdecl sched_getscheduler (pid_t pid);
  * SCHED_RR is passed to it.
  */
 #define sched_rr_get_interval(_pid, _interval) \
-  ( errno = ENOTSUP, (int) -1 )
-
+    (errno = ENOTSUP, (int)-1)
 
 #ifdef __cplusplus
-}                               /* End of extern "C" */
-#endif                          /* __cplusplus */
+} /* End of extern "C" */
+#endif /* __cplusplus */
 
 #undef PTW32_LEVEL
 #undef PTW32_LEVEL_MAX
 
-#endif                          /* !_SCHED_H */
-
+#endif /* !_SCHED_H */

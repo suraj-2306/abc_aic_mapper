@@ -17,10 +17,9 @@
   Revision    [$Id: vecInt.h,v 1.00 2005/06/20 00:00:00 ahurst Exp $]
 
 ***********************************************************************/
- 
+
 #ifndef ABC__misc__hash__hashInt_h
 #define ABC__misc__hash__hashInt_h
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
@@ -30,7 +29,6 @@
 #include "misc/extra/extra.h"
 
 ABC_NAMESPACE_HEADER_START
-
 
 extern int Hash_DefaultHashFunc(int key, int nBins);
 
@@ -42,33 +40,29 @@ extern int Hash_DefaultHashFunc(int key, int nBins);
 ///                         BASIC TYPES                              ///
 ////////////////////////////////////////////////////////////////////////
 
-typedef struct Hash_Int_t_       Hash_Int_t;
+typedef struct Hash_Int_t_ Hash_Int_t;
 typedef struct Hash_Int_Entry_t_ Hash_Int_Entry_t;
 
-struct Hash_Int_Entry_t_
-{
-  int                              key;
-  int                            data;
-  struct Hash_Int_Entry_t_ *       pNext;
+struct Hash_Int_Entry_t_ {
+    int key;
+    int data;
+    struct Hash_Int_Entry_t_* pNext;
 };
 
-struct Hash_Int_t_ 
-{
-  int                             nSize;
-  int                             nBins;
-  int (* fHash)(int key, int nBins);
-  Hash_Int_Entry_t **             pArray;
+struct Hash_Int_t_ {
+    int nSize;
+    int nBins;
+    int (*fHash)(int key, int nBins);
+    Hash_Int_Entry_t** pArray;
 };
-
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                      MACRO DEFINITIONS                           ///
 ////////////////////////////////////////////////////////////////////////
 
-#define Hash_IntForEachEntry( pHash, pEntry, bin)   \
-  for(bin=-1, pEntry=NULL; bin < pHash->nBins; (!pEntry)?(pEntry=pHash->pArray[++bin]):(pEntry=pEntry->pNext)) \
-    if (pEntry)
+#define Hash_IntForEachEntry(pHash, pEntry, bin)                                                                              \
+    for (bin = -1, pEntry = NULL; bin < pHash->nBins; (!pEntry) ? (pEntry = pHash->pArray[++bin]) : (pEntry = pEntry->pNext)) \
+        if (pEntry)
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -85,20 +79,19 @@ struct Hash_Int_t_
   SeeAlso     []
 
 ***********************************************************************/
-static inline Hash_Int_t * Hash_IntAlloc( int nBins )
-{
-  Hash_Int_t * p;
-  int i;
-  assert(nBins > 0);
-  p = ABC_ALLOC( Hash_Int_t, 1);
-  p->nBins = nBins;
-  p->fHash = Hash_DefaultHashFunc;
-  p->nSize  = 0;
-  p->pArray = ABC_ALLOC( Hash_Int_Entry_t *, nBins+1 );
-  for(i=0; i<nBins; i++)
-    p->pArray[i] = NULL;
+static inline Hash_Int_t* Hash_IntAlloc(int nBins) {
+    Hash_Int_t* p;
+    int i;
+    assert(nBins > 0);
+    p = ABC_ALLOC(Hash_Int_t, 1);
+    p->nBins = nBins;
+    p->fHash = Hash_DefaultHashFunc;
+    p->nSize = 0;
+    p->pArray = ABC_ALLOC(Hash_Int_Entry_t*, nBins + 1);
+    for (i = 0; i < nBins; i++)
+        p->pArray[i] = NULL;
 
-  return p;
+    return p;
 }
 
 /**Function*************************************************************
@@ -112,26 +105,25 @@ static inline Hash_Int_t * Hash_IntAlloc( int nBins )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Hash_IntExists( Hash_Int_t *p, int key)
-{
-  int bin;
-  Hash_Int_Entry_t *pEntry, **pLast;
+static inline int Hash_IntExists(Hash_Int_t* p, int key) {
+    int bin;
+    Hash_Int_Entry_t *pEntry, **pLast;
 
-  // find the bin where this key would live
-  bin = (*(p->fHash))(key, p->nBins);
+    // find the bin where this key would live
+    bin = (*(p->fHash))(key, p->nBins);
 
-  // search for key
-  pLast = &(p->pArray[bin]);
-  pEntry = p->pArray[bin];
-  while(pEntry) {
-    if (pEntry->key == key) {
-      return 1;
+    // search for key
+    pLast = &(p->pArray[bin]);
+    pEntry = p->pArray[bin];
+    while (pEntry) {
+        if (pEntry->key == key) {
+            return 1;
+        }
+        pLast = &(pEntry->pNext);
+        pEntry = pEntry->pNext;
     }
-    pLast = &(pEntry->pNext);
-    pEntry = pEntry->pNext;
-  }
 
-  return 0;
+    return 0;
 }
 
 /**Function*************************************************************
@@ -145,37 +137,35 @@ static inline int Hash_IntExists( Hash_Int_t *p, int key)
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Hash_IntWriteEntry( Hash_Int_t *p, int key, int data )
-{
-  int bin;
-  Hash_Int_Entry_t *pEntry, **pLast;
+static inline void Hash_IntWriteEntry(Hash_Int_t* p, int key, int data) {
+    int bin;
+    Hash_Int_Entry_t *pEntry, **pLast;
 
-  // find the bin where this key would live
-  bin = (*(p->fHash))(key, p->nBins);
+    // find the bin where this key would live
+    bin = (*(p->fHash))(key, p->nBins);
 
-  // search for key
-  pLast = &(p->pArray[bin]);
-  pEntry = p->pArray[bin];
-  while(pEntry) {
-    if (pEntry->key == key) {
-      pEntry->data = data;
-      return;
+    // search for key
+    pLast = &(p->pArray[bin]);
+    pEntry = p->pArray[bin];
+    while (pEntry) {
+        if (pEntry->key == key) {
+            pEntry->data = data;
+            return;
+        }
+        pLast = &(pEntry->pNext);
+        pEntry = pEntry->pNext;
     }
-    pLast = &(pEntry->pNext);
-    pEntry = pEntry->pNext;
-  }
 
-  // this key does not currently exist
-  // create a new entry and add to bin
-  p->nSize++;
-  (*pLast) = pEntry = ABC_ALLOC( Hash_Int_Entry_t, 1 );
-  pEntry->pNext = NULL;
-  pEntry->key = key;
-  pEntry->data = data;
+    // this key does not currently exist
+    // create a new entry and add to bin
+    p->nSize++;
+    (*pLast) = pEntry = ABC_ALLOC(Hash_Int_Entry_t, 1);
+    pEntry->pNext = NULL;
+    pEntry->key = key;
+    pEntry->data = data;
 
-  return;
+    return;
 }
-
 
 /**Function*************************************************************
 
@@ -188,38 +178,36 @@ static inline void Hash_IntWriteEntry( Hash_Int_t *p, int key, int data )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Hash_IntEntry( Hash_Int_t *p, int key, int fCreate )
-{
-  int bin;
-  Hash_Int_Entry_t *pEntry, **pLast;
+static inline int Hash_IntEntry(Hash_Int_t* p, int key, int fCreate) {
+    int bin;
+    Hash_Int_Entry_t *pEntry, **pLast;
 
-  // find the bin where this key would live
-  bin = (*(p->fHash))(key, p->nBins);
+    // find the bin where this key would live
+    bin = (*(p->fHash))(key, p->nBins);
 
-  // search for key
-  pLast = &(p->pArray[bin]);
-  pEntry = p->pArray[bin];
-  while(pEntry) {
-    if (pEntry->key == key)
-      return pEntry->data;
-    pLast = &(pEntry->pNext);
-    pEntry = pEntry->pNext;
-  }
+    // search for key
+    pLast = &(p->pArray[bin]);
+    pEntry = p->pArray[bin];
+    while (pEntry) {
+        if (pEntry->key == key)
+            return pEntry->data;
+        pLast = &(pEntry->pNext);
+        pEntry = pEntry->pNext;
+    }
 
-  // this key does not currently exist
-  if (fCreate) {
-    // create a new entry and add to bin
-    p->nSize++;
-    (*pLast) = pEntry = ABC_ALLOC( Hash_Int_Entry_t, 1 );
-    pEntry->pNext = NULL;
-    pEntry->key = key;
-    pEntry->data = 0;
-    return pEntry->data;
-  }
+    // this key does not currently exist
+    if (fCreate) {
+        // create a new entry and add to bin
+        p->nSize++;
+        (*pLast) = pEntry = ABC_ALLOC(Hash_Int_Entry_t, 1);
+        pEntry->pNext = NULL;
+        pEntry->key = key;
+        pEntry->data = 0;
+        return pEntry->data;
+    }
 
-  return 0;
+    return 0;
 }
-
 
 /**Function*************************************************************
 
@@ -232,33 +220,32 @@ static inline int Hash_IntEntry( Hash_Int_t *p, int key, int fCreate )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int* Hash_IntEntryPtr( Hash_Int_t *p, int key )
-{
-  int bin;
-  Hash_Int_Entry_t *pEntry, **pLast;
+static inline int* Hash_IntEntryPtr(Hash_Int_t* p, int key) {
+    int bin;
+    Hash_Int_Entry_t *pEntry, **pLast;
 
-  // find the bin where this key would live
-  bin = (*(p->fHash))(key, p->nBins);
+    // find the bin where this key would live
+    bin = (*(p->fHash))(key, p->nBins);
 
-  // search for key
-  pLast = &(p->pArray[bin]);
-  pEntry = p->pArray[bin];
-  while(pEntry) {
-    if (pEntry->key == key)
-      return &(pEntry->data);
-    pLast = &(pEntry->pNext);
-    pEntry = pEntry->pNext;
-  }
+    // search for key
+    pLast = &(p->pArray[bin]);
+    pEntry = p->pArray[bin];
+    while (pEntry) {
+        if (pEntry->key == key)
+            return &(pEntry->data);
+        pLast = &(pEntry->pNext);
+        pEntry = pEntry->pNext;
+    }
 
-  // this key does not currently exist
-  // create a new entry and add to bin
-  p->nSize++;
-  (*pLast) = pEntry = ABC_ALLOC( Hash_Int_Entry_t, 1 );
-  pEntry->pNext = NULL;
-  pEntry->key = key;
-  pEntry->data = 0;
+    // this key does not currently exist
+    // create a new entry and add to bin
+    p->nSize++;
+    (*pLast) = pEntry = ABC_ALLOC(Hash_Int_Entry_t, 1);
+    pEntry->pNext = NULL;
+    pEntry->key = key;
+    pEntry->data = 0;
 
-  return &(pEntry->data);
+    return &(pEntry->data);
 }
 
 /**Function*************************************************************
@@ -272,30 +259,28 @@ static inline int* Hash_IntEntryPtr( Hash_Int_t *p, int key )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Hash_IntFree( Hash_Int_t *p ) {
-  int bin;
-  Hash_Int_Entry_t *pEntry, *pTemp;
+static inline void Hash_IntFree(Hash_Int_t* p) {
+    int bin;
+    Hash_Int_Entry_t *pEntry, *pTemp;
 
-  // free bins
-  for(bin = 0; bin < p->nBins; bin++) {
-    pEntry = p->pArray[bin];
-    while(pEntry) {
-      pTemp = pEntry;
-      pEntry = pEntry->pNext;
-      ABC_FREE( pTemp );
+    // free bins
+    for (bin = 0; bin < p->nBins; bin++) {
+        pEntry = p->pArray[bin];
+        while (pEntry) {
+            pTemp = pEntry;
+            pEntry = pEntry->pNext;
+            ABC_FREE(pTemp);
+        }
     }
-  }
 
-  // free hash
-  ABC_FREE( p->pArray );
-  ABC_FREE( p );
+    // free hash
+    ABC_FREE(p->pArray);
+    ABC_FREE(p);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-
-
 
 ABC_NAMESPACE_HEADER_END
 

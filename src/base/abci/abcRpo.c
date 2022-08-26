@@ -25,7 +25,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 // data-structure to store a bunch of truth tables
 typedef struct Rpo_TtStore_t_ Rpo_TtStore_t;
 
@@ -33,36 +32,35 @@ struct Rpo_TtStore_t_ {
     int nVars;
     int nWords;
     int nFuncs;
-    word ** pFuncs;
+    word** pFuncs;
 };
-
 
 // read/write/flip i-th bit of a bit string table:
 
-static inline int Abc_TruthGetBit(word * p, int i) {
-    return (int) (p[i >> 6] >> (i & 63)) & 1;
+static inline int Abc_TruthGetBit(word* p, int i) {
+    return (int)(p[i >> 6] >> (i & 63)) & 1;
 }
 
-static inline void Abc_TruthSetBit(word * p, int i) {
-    p[i >> 6] |= (((word) 1) << (i & 63));
+static inline void Abc_TruthSetBit(word* p, int i) {
+    p[i >> 6] |= (((word)1) << (i & 63));
 }
 
-static inline void Abc_TruthXorBit(word * p, int i) {
-    p[i >> 6] ^= (((word) 1) << (i & 63));
+static inline void Abc_TruthXorBit(word* p, int i) {
+    p[i >> 6] ^= (((word)1) << (i & 63));
 }
 
 // read/write k-th digit d of a hexadecimal number:
 
-static inline int Abc_TruthGetHex(word * p, int k) {
-    return (int) (p[k >> 4] >> ((k << 2) & 63)) & 15;
+static inline int Abc_TruthGetHex(word* p, int k) {
+    return (int)(p[k >> 4] >> ((k << 2) & 63)) & 15;
 }
 
-static inline void Abc_TruthSetHex(word * p, int k, int d) {
-    p[k >> 4] |= (((word) d) << ((k << 2) & 63));
+static inline void Abc_TruthSetHex(word* p, int k, int d) {
+    p[k >> 4] |= (((word)d) << ((k << 2) & 63));
 }
 
-static inline void Abc_TruthXorHex(word * p, int k, int d) {
-    p[k >> 4] ^= (((word) d) << ((k << 2) & 63));
+static inline void Abc_TruthXorHex(word* p, int k, int d) {
+    p[k >> 4] ^= (((word)d) << ((k << 2) & 63));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -84,7 +82,7 @@ static inline int Abc_TruthReadHexDigit(char HexChar) {
 
 // write one hex character
 
-static inline void Abc_TruthWriteHexDigit(FILE * pFile, int HexDigit) {
+static inline void Abc_TruthWriteHexDigit(FILE* pFile, int HexDigit) {
     assert(HexDigit >= 0 && HexDigit < 16);
     if (HexDigit < 10)
         fprintf(pFile, "%d", HexDigit);
@@ -94,9 +92,9 @@ static inline void Abc_TruthWriteHexDigit(FILE * pFile, int HexDigit) {
 
 // read one truth table in hexadecimal
 
-static void Abc_TruthReadHex(word * pTruth, char * pString, int nVars) {
+static void Abc_TruthReadHex(word* pTruth, char* pString, int nVars) {
     int nWords = (nVars < 7) ? 1 : (1 << (nVars - 6));
-    int k, Digit, nDigits = (nVars < 7) ? (1 << (nVars-2)) : (nWords << 4);
+    int k, Digit, nDigits = (nVars < 7) ? (1 << (nVars - 2)) : (nWords << 4);
     char EndSymbol;
     // skip the first 2 symbols if they are "0x"
     if (pString[0] == '0' && pString[1] == 'x')
@@ -118,7 +116,7 @@ static void Abc_TruthReadHex(word * pTruth, char * pString, int nVars) {
 
 // write one truth table in hexadecimal (do not add end-of-line!)
 
-static void Abc_TruthWriteHex(FILE * pFile, word * pTruth, int nVars) {
+static void Abc_TruthWriteHex(FILE* pFile, word* pTruth, int nVars) {
     int nDigits, Digit, k;
     nDigits = (1 << (nVars - 2));
     for (k = 0; k < nDigits; k++) {
@@ -127,8 +125,6 @@ static void Abc_TruthWriteHex(FILE * pFile, word * pTruth, int nVars) {
         Abc_TruthWriteHexDigit(pFile, Digit);
     }
 }
-
-
 
 /**Function*************************************************************
 
@@ -141,33 +137,33 @@ static void Abc_TruthWriteHex(FILE * pFile, word * pTruth, int nVars) {
   SeeAlso     []
 
  ***********************************************************************/
-static Rpo_TtStore_t * Abc_TruthStoreAlloc(int nVars, int nFuncs) {
-    Rpo_TtStore_t * p;
+static Rpo_TtStore_t* Abc_TruthStoreAlloc(int nVars, int nFuncs) {
+    Rpo_TtStore_t* p;
     int i;
-    p = (Rpo_TtStore_t *) malloc(sizeof (Rpo_TtStore_t));
+    p = (Rpo_TtStore_t*)malloc(sizeof(Rpo_TtStore_t));
     p->nVars = nVars;
     p->nWords = (nVars < 7) ? 1 : (1 << (nVars - 6));
     p->nFuncs = nFuncs;
     // alloc storage for 'nFuncs' truth tables as one chunk of memory
-    p->pFuncs = (word **) malloc((sizeof (word *) + sizeof (word) * p->nWords) * p->nFuncs);
+    p->pFuncs = (word**)malloc((sizeof(word*) + sizeof(word) * p->nWords) * p->nFuncs);
     // assign and clean the truth table storage
-    p->pFuncs[0] = (word *) (p->pFuncs + p->nFuncs);
-    memset(p->pFuncs[0], 0, sizeof (word) * p->nWords * p->nFuncs);
+    p->pFuncs[0] = (word*)(p->pFuncs + p->nFuncs);
+    memset(p->pFuncs[0], 0, sizeof(word) * p->nWords * p->nFuncs);
     // split it up into individual truth tables
     for (i = 1; i < p->nFuncs; i++)
         p->pFuncs[i] = p->pFuncs[i - 1] + p->nWords;
     return p;
 }
 
-static Rpo_TtStore_t * Abc_TruthStoreAlloc2(int nVars, int nFuncs, word * pBuffer) {
-    Rpo_TtStore_t * p;
+static Rpo_TtStore_t* Abc_TruthStoreAlloc2(int nVars, int nFuncs, word* pBuffer) {
+    Rpo_TtStore_t* p;
     int i;
-    p = (Rpo_TtStore_t *) malloc(sizeof (Rpo_TtStore_t));
+    p = (Rpo_TtStore_t*)malloc(sizeof(Rpo_TtStore_t));
     p->nVars = nVars;
     p->nWords = (nVars < 7) ? 1 : (1 << (nVars - 6));
     p->nFuncs = nFuncs;
     // alloc storage for 'nFuncs' truth tables as one chunk of memory
-    p->pFuncs = (word **) malloc(sizeof (word *) * p->nFuncs);
+    p->pFuncs = (word**)malloc(sizeof(word*) * p->nFuncs);
     // assign and clean the truth table storage
     p->pFuncs[0] = pBuffer;
     // split it up into individual truth tables
@@ -176,7 +172,7 @@ static Rpo_TtStore_t * Abc_TruthStoreAlloc2(int nVars, int nFuncs, word * pBuffe
     return p;
 }
 
-static void Abc_TtStoreFree(Rpo_TtStore_t * p, int nVarNum) {
+static void Abc_TtStoreFree(Rpo_TtStore_t* p, int nVarNum) {
     if (nVarNum >= 0)
         ABC_FREE(p->pFuncs[0]);
     ABC_FREE(p->pFuncs);
@@ -194,7 +190,7 @@ static void Abc_TtStoreFree(Rpo_TtStore_t * p, int nVarNum) {
   SeeAlso     []
 
  ***********************************************************************/
-extern int Abc_FileSize(char * pFileName);
+extern int Abc_FileSize(char* pFileName);
 
 /**Function*************************************************************
 
@@ -207,7 +203,7 @@ extern int Abc_FileSize(char * pFileName);
   SeeAlso     []
 
  ***********************************************************************/
-extern char * Abc_FileRead(char * pFileName);
+extern char* Abc_FileRead(char* pFileName);
 
 /**Function*************************************************************
 
@@ -220,8 +216,7 @@ extern char * Abc_FileRead(char * pFileName);
   SeeAlso     []
 
  ***********************************************************************/
-extern void Abc_TruthGetParams(char * pFileName, int * pnVars, int * pnTruths);
-
+extern void Abc_TruthGetParams(char* pFileName, int* pnVars, int* pnTruths);
 
 /**Function*************************************************************
 
@@ -234,13 +229,13 @@ extern void Abc_TruthGetParams(char * pFileName, int * pnVars, int * pnTruths);
   SeeAlso     []
 
  ***********************************************************************/
-static void Abc_TruthStoreRead(char * pFileName, Rpo_TtStore_t * p) {
-    char * pContents;
+static void Abc_TruthStoreRead(char* pFileName, Rpo_TtStore_t* p) {
+    char* pContents;
     int i, nLines;
     pContents = Abc_FileRead(pFileName);
     if (pContents == NULL)
         return;
-    // here it is assumed (without checking!) that each line of the file 
+    // here it is assumed (without checking!) that each line of the file
     // begins with a string of hexadecimal chars followed by space
 
     // the file will be read till the first empty line (pContents[i] == '\n')
@@ -250,9 +245,10 @@ static void Abc_TruthStoreRead(char * pFileName, Rpo_TtStore_t * p) {
         Abc_TruthReadHex(p->pFuncs[nLines++], &pContents[i], p->nVars);
         // skip till after the end-of-line symbol
         // (note that end-of-line symbol is also skipped)
-        while (pContents[i++] != '\n');
+        while (pContents[i++] != '\n')
+            ;
     }
-    // adjust the number of functions read 
+    // adjust the number of functions read
     // (we may have allocated more storage because some lines in the file were empty)
     assert(p->nFuncs >= nLines);
     p->nFuncs = nLines;
@@ -270,8 +266,8 @@ static void Abc_TruthStoreRead(char * pFileName, Rpo_TtStore_t * p) {
   SeeAlso     []
 
  ***********************************************************************/
-static void Abc_TtStoreWrite(char * pFileName, Rpo_TtStore_t * p, int fBinary) {
-    FILE * pFile;
+static void Abc_TtStoreWrite(char* pFileName, Rpo_TtStore_t* p, int fBinary) {
+    FILE* pFile;
     int i, nBytes = 8 * Abc_Truth6WordNum(p->nVars);
     pFile = fopen(pFileName, "wb");
     if (pFile == NULL) {
@@ -298,8 +294,8 @@ static void Abc_TtStoreWrite(char * pFileName, Rpo_TtStore_t * p, int fBinary) {
   SeeAlso     []
 
  ***********************************************************************/
-static Rpo_TtStore_t * Abc_TtStoreLoad(char * pFileName, int nVarNum) {
-    Rpo_TtStore_t * p;
+static Rpo_TtStore_t* Abc_TtStoreLoad(char* pFileName, int nVarNum) {
+    Rpo_TtStore_t* p;
     if (nVarNum < 0) {
         int nVars, nTruths;
         // figure out how many truth table and how many variables
@@ -311,7 +307,7 @@ static Rpo_TtStore_t * Abc_TtStoreLoad(char * pFileName, int nVarNum) {
         // read info from file
         Abc_TruthStoreRead(pFileName, p);
     } else {
-        char * pBuffer;
+        char* pBuffer;
         int nFileSize = Abc_FileSize(pFileName);
         int nBytes = (1 << (nVarNum - 3)); // why mishchencko put -3? ###
         int nTruths = nFileSize / nBytes;
@@ -321,15 +317,14 @@ static Rpo_TtStore_t * Abc_TtStoreLoad(char * pFileName, int nVarNum) {
         assert(nVarNum >= 6);
         if (nFileSize % nBytes != 0)
             Abc_Print(0, "The file size (%d) is divided by the truth table size (%d) with remainder (%d).\n",
-                nFileSize, nBytes, nFileSize % nBytes);
+                      nFileSize, nBytes, nFileSize % nBytes);
         // read file contents
         pBuffer = Abc_FileRead(pFileName);
         // allocate data-structure
-        p = Abc_TruthStoreAlloc2(nVarNum, nTruths, (word *) pBuffer);
+        p = Abc_TruthStoreAlloc2(nVarNum, nTruths, (word*)pBuffer);
     }
     return p;
 }
-
 
 /**Function*************************************************************
 
@@ -342,41 +337,41 @@ static Rpo_TtStore_t * Abc_TtStoreLoad(char * pFileName, int nVarNum) {
   SeeAlso     []
 
  ***********************************************************************/
-void Abc_TruthRpoPerform(Rpo_TtStore_t * p, int nThreshold, int fVerbose) {
+void Abc_TruthRpoPerform(Rpo_TtStore_t* p, int nThreshold, int fVerbose) {
     clock_t clk = clock();
     int i;
     int rpoCount = 0;
     Literal_t* lit;
     float percent;
     for (i = 0; i < p->nFuncs; i++) {
-//        if(i>1000) {
-//            continue;
-//        }
-////        
-//        if(i!= 2196 ) { //5886
-//            continue;
-//        }
-        if(fVerbose) {
-            Abc_Print(-2,"%d: ", i+1);
+        //        if(i>1000) {
+        //            continue;
+        //        }
+        ////
+        //        if(i!= 2196 ) { //5886
+        //            continue;
+        //        }
+        if (fVerbose) {
+            Abc_Print(-2, "%d: ", i + 1);
         }
-            
-        lit = Rpo_Factorize((unsigned *) p->pFuncs[i], p->nVars, nThreshold, fVerbose);
+
+        lit = Rpo_Factorize((unsigned*)p->pFuncs[i], p->nVars, nThreshold, fVerbose);
         if (lit != NULL) {
-            if(fVerbose) {
+            if (fVerbose) {
                 Abc_Print(-2, "Solution : %s\n", lit->expression->pArray);
                 Abc_Print(-2, "\n\n");
             }
             Lit_Free(lit);
             rpoCount++;
         } else {
-            if(fVerbose) {
+            if (fVerbose) {
                 Abc_Print(-2, "null\n");
                 Abc_Print(-2, "\n\n");
             }
         }
     }
     percent = (rpoCount * 100.0) / p->nFuncs;
-    Abc_Print(-2,"%d of %d (%.2f %%) functions are RPO.\n", rpoCount,p->nFuncs,percent);
+    Abc_Print(-2, "%d of %d (%.2f %%) functions are RPO.\n", rpoCount, p->nFuncs, percent);
     Abc_PrintTime(1, "Time", clock() - clk);
 }
 
@@ -391,13 +386,13 @@ void Abc_TruthRpoPerform(Rpo_TtStore_t * p, int nThreshold, int fVerbose) {
   SeeAlso     []
 
  ***********************************************************************/
-void Abc_TruthRpoTest(char * pFileName, int nVarNum, int nThreshold, int fVerbose) {
-    Rpo_TtStore_t * p;
+void Abc_TruthRpoTest(char* pFileName, int nVarNum, int nThreshold, int fVerbose) {
+    Rpo_TtStore_t* p;
 
     // allocate data-structure
-//    if (fVerbose) {
-//        Abc_Print(-2, "Number of variables = %d\n", nVarNum);
-//    }
+    //    if (fVerbose) {
+    //        Abc_Print(-2, "Number of variables = %d\n", nVarNum);
+    //    }
     p = Abc_TtStoreLoad(pFileName, nVarNum);
 
     if (fVerbose) {
@@ -422,7 +417,7 @@ void Abc_TruthRpoTest(char * pFileName, int nVarNum, int nThreshold, int fVerbos
   SeeAlso     []
 
  ***********************************************************************/
-int Abc_RpoTest(char * pFileName, int nVarNum,int nThreshold, int fVerbose) {
+int Abc_RpoTest(char* pFileName, int nVarNum, int nThreshold, int fVerbose) {
     if (fVerbose) {
         printf("Using truth tables from file \"%s\"...\n", pFileName);
     }
@@ -431,12 +426,8 @@ int Abc_RpoTest(char * pFileName, int nVarNum,int nThreshold, int fVerbose) {
     return 0;
 }
 
-
 /////////////////////ert truth table to ///////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-
-

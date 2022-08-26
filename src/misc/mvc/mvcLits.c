@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -40,50 +39,40 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverAnyLiteral( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask )
-{
-    Mvc_Cube_t * pCube;
+int Mvc_CoverAnyLiteral(Mvc_Cover_t* pCover, Mvc_Cube_t* pMask) {
+    Mvc_Cube_t* pCube;
     int nWord, nBit, i;
     int nLitsCur;
     int fUseFirst = 0;
 
     // go through each literal
-    if ( fUseFirst )
-    {
-        for ( i = 0; i < pCover->nBits; i++ )
-            if ( !pMask || Mvc_CubeBitValue(pMask,i) )
-            {
+    if (fUseFirst) {
+        for (i = 0; i < pCover->nBits; i++)
+            if (!pMask || Mvc_CubeBitValue(pMask, i)) {
                 // get the word and bit of this literal
                 nWord = Mvc_CubeWhichWord(i);
-                nBit  = Mvc_CubeWhichBit(i);
+                nBit = Mvc_CubeWhichBit(i);
                 // go through all the cubes
                 nLitsCur = 0;
-                Mvc_CoverForEachCube( pCover, pCube )
-                    if ( pCube->pData[nWord] & (1<<nBit) )
-                    {
-                        nLitsCur++;
-                        if ( nLitsCur > 1 )
-                            return i;
-                    }
+                Mvc_CoverForEachCube(pCover, pCube) if (pCube->pData[nWord] & (1 << nBit)) {
+                    nLitsCur++;
+                    if (nLitsCur > 1)
+                        return i;
+                }
             }
-    }
-    else
-    {
-        for ( i = pCover->nBits - 1; i >=0; i-- )
-            if ( !pMask || Mvc_CubeBitValue(pMask,i) )
-            {
+    } else {
+        for (i = pCover->nBits - 1; i >= 0; i--)
+            if (!pMask || Mvc_CubeBitValue(pMask, i)) {
                 // get the word and bit of this literal
                 nWord = Mvc_CubeWhichWord(i);
-                nBit  = Mvc_CubeWhichBit(i);
+                nBit = Mvc_CubeWhichBit(i);
                 // go through all the cubes
                 nLitsCur = 0;
-                Mvc_CoverForEachCube( pCover, pCube )
-                    if ( pCube->pData[nWord] & (1<<nBit) )
-                    {
-                        nLitsCur++;
-                        if ( nLitsCur > 1 )
-                            return i;
-                    }
+                Mvc_CoverForEachCube(pCover, pCube) if (pCube->pData[nWord] & (1 << nBit)) {
+                    nLitsCur++;
+                    if (nLitsCur > 1)
+                        return i;
+                }
             }
     }
     return -1;
@@ -101,9 +90,8 @@ int Mvc_CoverAnyLiteral( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverBestLiteral( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask )
-{
-    Mvc_Cube_t * pCube;
+int Mvc_CoverBestLiteral(Mvc_Cover_t* pCover, Mvc_Cube_t* pMask) {
+    Mvc_Cube_t* pCube;
     int nWord, nBit;
     int i, iMax, nLitsMax, nLitsCur;
     int fUseFirst = 1;
@@ -111,38 +99,31 @@ int Mvc_CoverBestLiteral( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask )
     // go through each literal
     iMax = -1;
     nLitsMax = -1;
-    for ( i = 0; i < pCover->nBits; i++ )
-        if ( !pMask || Mvc_CubeBitValue(pMask,i) )
-        {
+    for (i = 0; i < pCover->nBits; i++)
+        if (!pMask || Mvc_CubeBitValue(pMask, i)) {
             // get the word and bit of this literal
             nWord = Mvc_CubeWhichWord(i);
-            nBit  = Mvc_CubeWhichBit(i);
+            nBit = Mvc_CubeWhichBit(i);
             // go through all the cubes
             nLitsCur = 0;
-            Mvc_CoverForEachCube( pCover, pCube )
-                if ( pCube->pData[nWord] & (1<<nBit) )
-                    nLitsCur++;
+            Mvc_CoverForEachCube(pCover, pCube) if (pCube->pData[nWord] & (1 << nBit))
+                nLitsCur++;
 
             // check if this is the best literal
-            if ( fUseFirst )
-            {
-                if ( nLitsMax < nLitsCur )
-                {
+            if (fUseFirst) {
+                if (nLitsMax < nLitsCur) {
                     nLitsMax = nLitsCur;
                     iMax = i;
                 }
-            }
-            else
-            {
-                if ( nLitsMax <= nLitsCur )
-                {
+            } else {
+                if (nLitsMax <= nLitsCur) {
                     nLitsMax = nLitsCur;
                     iMax = i;
                 }
             }
         }
 
-    if ( nLitsMax > 1 )
+    if (nLitsMax > 1)
         return iMax;
     return -1;
 }
@@ -159,9 +140,8 @@ int Mvc_CoverBestLiteral( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverWorstLiteral( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask )
-{
-    Mvc_Cube_t * pCube;
+int Mvc_CoverWorstLiteral(Mvc_Cover_t* pCover, Mvc_Cube_t* pMask) {
+    Mvc_Cube_t* pCube;
     int nWord, nBit;
     int i, iMin, nLitsMin, nLitsCur;
     int fUseFirst = 1;
@@ -169,42 +149,35 @@ int Mvc_CoverWorstLiteral( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask )
     // go through each literal
     iMin = -1;
     nLitsMin = 1000000;
-    for ( i = 0; i < pCover->nBits; i++ )
-        if ( !pMask || Mvc_CubeBitValue(pMask,i) )
-        {
+    for (i = 0; i < pCover->nBits; i++)
+        if (!pMask || Mvc_CubeBitValue(pMask, i)) {
             // get the word and bit of this literal
             nWord = Mvc_CubeWhichWord(i);
-            nBit  = Mvc_CubeWhichBit(i);
+            nBit = Mvc_CubeWhichBit(i);
             // go through all the cubes
             nLitsCur = 0;
-            Mvc_CoverForEachCube( pCover, pCube )
-                if ( pCube->pData[nWord] & (1<<nBit) )
-                    nLitsCur++;
+            Mvc_CoverForEachCube(pCover, pCube) if (pCube->pData[nWord] & (1 << nBit))
+                nLitsCur++;
 
             // skip the literal that does not occur or occurs once
-            if ( nLitsCur < 2 )
+            if (nLitsCur < 2)
                 continue;
 
             // check if this is the best literal
-            if ( fUseFirst )
-            {
-                if ( nLitsMin > nLitsCur )
-                {
+            if (fUseFirst) {
+                if (nLitsMin > nLitsCur) {
                     nLitsMin = nLitsCur;
                     iMin = i;
                 }
-            }
-            else
-            {
-                if ( nLitsMin >= nLitsCur )
-                {
+            } else {
+                if (nLitsMin >= nLitsCur) {
                     nLitsMin = nLitsCur;
                     iMin = i;
                 }
             }
         }
 
-    if ( nLitsMin < 1000000 )
+    if (nLitsMin < 1000000)
         return iMin;
     return -1;
 }
@@ -220,30 +193,29 @@ int Mvc_CoverWorstLiteral( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask )
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cover_t * Mvc_CoverBestLiteralCover( Mvc_Cover_t * pCover, Mvc_Cover_t * pSimple )
-{
-    Mvc_Cover_t * pCoverNew;
-    Mvc_Cube_t * pCubeNew;
-    Mvc_Cube_t * pCubeS;
+Mvc_Cover_t* Mvc_CoverBestLiteralCover(Mvc_Cover_t* pCover, Mvc_Cover_t* pSimple) {
+    Mvc_Cover_t* pCoverNew;
+    Mvc_Cube_t* pCubeNew;
+    Mvc_Cube_t* pCubeS;
     int iLitBest;
 
     // create the new cover
-    pCoverNew = Mvc_CoverClone( pCover );
+    pCoverNew = Mvc_CoverClone(pCover);
     // get the new cube
-    pCubeNew = Mvc_CubeAlloc( pCoverNew );
+    pCubeNew = Mvc_CubeAlloc(pCoverNew);
     // clean the cube
-    Mvc_CubeBitClean( pCubeNew );
+    Mvc_CubeBitClean(pCubeNew);
 
     // get the first cube of pSimple
-    assert( Mvc_CoverReadCubeNum(pSimple) == 1 );
-    pCubeS = Mvc_CoverReadCubeHead( pSimple );
+    assert(Mvc_CoverReadCubeNum(pSimple) == 1);
+    pCubeS = Mvc_CoverReadCubeHead(pSimple);
     // find the best literal among those of pCubeS
-    iLitBest = Mvc_CoverBestLiteral( pCover, pCubeS );
+    iLitBest = Mvc_CoverBestLiteral(pCover, pCubeS);
 
     // insert this literal into the cube
-    Mvc_CubeBitInsert( pCubeNew, iLitBest );
+    Mvc_CubeBitInsert(pCubeNew, iLitBest);
     // add the cube to the cover
-    Mvc_CoverAddCubeTail( pCoverNew, pCubeNew );
+    Mvc_CoverAddCubeTail(pCoverNew, pCubeNew);
     return pCoverNew;
 }
 
@@ -258,17 +230,14 @@ Mvc_Cover_t * Mvc_CoverBestLiteralCover( Mvc_Cover_t * pCover, Mvc_Cover_t * pSi
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverFirstCubeFirstLit( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
+int Mvc_CoverFirstCubeFirstLit(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
     int iBit, Value;
 
     // get the first cube
-    pCube = Mvc_CoverReadCubeHead( pCover );
+    pCube = Mvc_CoverReadCubeHead(pCover);
     // get the first literal
-    Mvc_CubeForEachBit( pCover, pCube, iBit, Value )
-        if ( Value )
-            return iBit;
+    Mvc_CubeForEachBit(pCover, pCube, iBit, Value) if (Value) return iBit;
     return -1;
 }
 
@@ -284,27 +253,24 @@ int Mvc_CoverFirstCubeFirstLit( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverCountLiterals( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
+int Mvc_CoverCountLiterals(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
     int nWord, nBit;
     int i, CounterTot, CounterCur;
 
     // allocate/clean the storage for literals
-//    Mvc_CoverAllocateArrayLits( pCover );
-//    memset( pCover->pLits, 0, pCover->nBits * sizeof(int) );
+    //    Mvc_CoverAllocateArrayLits( pCover );
+    //    memset( pCover->pLits, 0, pCover->nBits * sizeof(int) );
     // go through each literal
     CounterTot = 0;
-    for ( i = 0; i < pCover->nBits; i++ )
-    {
+    for (i = 0; i < pCover->nBits; i++) {
         // get the word and bit of this literal
         nWord = Mvc_CubeWhichWord(i);
-        nBit  = Mvc_CubeWhichBit(i);
+        nBit = Mvc_CubeWhichBit(i);
         // go through all the cubes
         CounterCur = 0;
-        Mvc_CoverForEachCube( pCover, pCube )
-            if ( pCube->pData[nWord] & (1<<nBit) )
-                CounterCur++;
+        Mvc_CoverForEachCube(pCover, pCube) if (pCube->pData[nWord] & (1 << nBit))
+            CounterCur++;
         CounterTot += CounterCur;
     }
     return CounterTot;
@@ -321,20 +287,17 @@ int Mvc_CoverCountLiterals( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverIsOneLiteral( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
+int Mvc_CoverIsOneLiteral(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
     int iBit, Counter, Value;
-    if ( Mvc_CoverReadCubeNum(pCover) != 1 )
+    if (Mvc_CoverReadCubeNum(pCover) != 1)
         return 0;
     pCube = Mvc_CoverReadCubeHead(pCover);
     // count literals
     Counter = 0;
-    Mvc_CubeForEachBit( pCover, pCube, iBit, Value )
-    {
-        if ( Value )
-        {
-            if ( Counter++ )
+    Mvc_CubeForEachBit(pCover, pCube, iBit, Value) {
+        if (Value) {
+            if (Counter++)
                 return 0;
         }
     }
@@ -345,6 +308,4 @@ int Mvc_CoverIsOneLiteral( Mvc_Cover_t * pCover )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

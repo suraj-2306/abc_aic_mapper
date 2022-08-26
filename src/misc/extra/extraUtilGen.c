@@ -34,7 +34,6 @@ ABC_NAMESPACE_IMPL_START
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
@@ -50,8 +49,7 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Gia_Man_t * Extra_CommandGen( int Algo, int LutSize, int nLuts, int nLevels, int Limit, int nBestTries, int Multi, int fXor, int fVerbose )
-{
+Gia_Man_t* Extra_CommandGen(int Algo, int LutSize, int nLuts, int nLevels, int Limit, int nBestTries, int Multi, int fXor, int fVerbose) {
     return NULL;
 }
 
@@ -59,6 +57,4 @@ Gia_Man_t * Extra_CommandGen( int Algo, int LutSize, int nLuts, int nLevels, int
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

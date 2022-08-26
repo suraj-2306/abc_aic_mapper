@@ -66,22 +66,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -101,17 +96,16 @@ static char rcsid[] DD_UNUSED = "$Id: cuddZddCount.c,v 1.14 2004/08/13 18:04:53 
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static int cuddZddCountStep (DdNode *P, st__table *table, DdNode *base, DdNode *empty);
-static double cuddZddCountDoubleStep (DdNode *P, st__table *table, DdNode *base, DdNode *empty);
-static enum st__retval st__zdd_countfree (char *key, char *value, char *arg);
-static enum st__retval st__zdd_count_dbl_free (char *key, char *value, char *arg);
+static int cuddZddCountStep(DdNode* P, st__table* table, DdNode* base, DdNode* empty);
+static double cuddZddCountDoubleStep(DdNode* P, st__table* table, DdNode* base, DdNode* empty);
+static enum st__retval st__zdd_countfree(char* key, char* value, char* arg);
+static enum st__retval st__zdd_count_dbl_free(char* key, char* value, char* arg);
 
 /**AutomaticEnd***************************************************************/
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -125,19 +119,17 @@ static enum st__retval st__zdd_count_dbl_free (char *key, char *value, char *arg
   SeeAlso     [Cudd_zddCountDouble]
 
 ******************************************************************************/
-int
-Cudd_zddCount(
-  DdManager * zdd,
-  DdNode * P)
-{
-    st__table    *table;
-    int         res;
-    DdNode      *base, *empty;
+int Cudd_zddCount(
+    DdManager* zdd,
+    DdNode* P) {
+    st__table* table;
+    int res;
+    DdNode *base, *empty;
 
-    base  = DD_ONE(zdd);
+    base = DD_ONE(zdd);
     empty = DD_ZERO(zdd);
-    table = st__init_table( st__ptrcmp, st__ptrhash);
-    if (table == NULL) return(CUDD_OUT_OF_MEM);
+    table = st__init_table(st__ptrcmp, st__ptrhash);
+    if (table == NULL) return (CUDD_OUT_OF_MEM);
     res = cuddZddCountStep(P, table, base, empty);
     if (res == CUDD_OUT_OF_MEM) {
         zdd->errorCode = CUDD_MEMORY_OUT;
@@ -145,10 +137,9 @@ Cudd_zddCount(
     st__foreach(table, st__zdd_countfree, NIL(char));
     st__free_table(table);
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_zddCount */
-
 
 /**Function********************************************************************
 
@@ -166,17 +157,16 @@ Cudd_zddCount(
 ******************************************************************************/
 double
 Cudd_zddCountDouble(
-  DdManager * zdd,
-  DdNode * P)
-{
-    st__table    *table;
-    double      res;
-    DdNode      *base, *empty;
+    DdManager* zdd,
+    DdNode* P) {
+    st__table* table;
+    double res;
+    DdNode *base, *empty;
 
-    base  = DD_ONE(zdd);
+    base = DD_ONE(zdd);
     empty = DD_ZERO(zdd);
-    table = st__init_table( st__ptrcmp, st__ptrhash);
-    if (table == NULL) return((double)CUDD_OUT_OF_MEM);
+    table = st__init_table(st__ptrcmp, st__ptrhash);
+    if (table == NULL) return ((double)CUDD_OUT_OF_MEM);
     res = cuddZddCountDoubleStep(P, table, base, empty);
     if (res == (double)CUDD_OUT_OF_MEM) {
         zdd->errorCode = CUDD_MEMORY_OUT;
@@ -184,20 +174,17 @@ Cudd_zddCountDouble(
     st__foreach(table, st__zdd_count_dbl_free, NIL(char));
     st__free_table(table);
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_zddCountDouble */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -212,42 +199,39 @@ Cudd_zddCountDouble(
 ******************************************************************************/
 static int
 cuddZddCountStep(
-  DdNode * P,
-  st__table * table,
-  DdNode * base,
-  DdNode * empty)
-{
-    int         res;
-    int         *dummy;
+    DdNode* P,
+    st__table* table,
+    DdNode* base,
+    DdNode* empty) {
+    int res;
+    int* dummy;
 
     if (P == empty)
-        return(0);
+        return (0);
     if (P == base)
-        return(1);
+        return (1);
 
     /* Check cache. */
-    if ( st__lookup(table, (const char *)P, (char **)&dummy)) {
+    if (st__lookup(table, (const char*)P, (char**)&dummy)) {
         res = *dummy;
-        return(res);
+        return (res);
     }
 
-    res = cuddZddCountStep(cuddE(P), table, base, empty) +
-        cuddZddCountStep(cuddT(P), table, base, empty);
+    res = cuddZddCountStep(cuddE(P), table, base, empty) + cuddZddCountStep(cuddT(P), table, base, empty);
 
     dummy = ABC_ALLOC(int, 1);
     if (dummy == NULL) {
-        return(CUDD_OUT_OF_MEM);
+        return (CUDD_OUT_OF_MEM);
     }
     *dummy = res;
-    if ( st__insert(table, (char *)P, (char *)dummy) == st__OUT_OF_MEM) {
+    if (st__insert(table, (char*)P, (char*)dummy) == st__OUT_OF_MEM) {
         ABC_FREE(dummy);
-        return(CUDD_OUT_OF_MEM);
+        return (CUDD_OUT_OF_MEM);
     }
 
-    return(res);
+    return (res);
 
 } /* end of cuddZddCountStep */
-
 
 /**Function********************************************************************
 
@@ -262,42 +246,39 @@ cuddZddCountStep(
 ******************************************************************************/
 static double
 cuddZddCountDoubleStep(
-  DdNode * P,
-  st__table * table,
-  DdNode * base,
-  DdNode * empty)
-{
-    double      res;
-    double      *dummy;
+    DdNode* P,
+    st__table* table,
+    DdNode* base,
+    DdNode* empty) {
+    double res;
+    double* dummy;
 
     if (P == empty)
-        return((double)0.0);
+        return ((double)0.0);
     if (P == base)
-        return((double)1.0);
+        return ((double)1.0);
 
     /* Check cache */
-    if ( st__lookup(table, (const char *)P, (char **)&dummy)) {
+    if (st__lookup(table, (const char*)P, (char**)&dummy)) {
         res = *dummy;
-        return(res);
+        return (res);
     }
 
-    res = cuddZddCountDoubleStep(cuddE(P), table, base, empty) +
-        cuddZddCountDoubleStep(cuddT(P), table, base, empty);
+    res = cuddZddCountDoubleStep(cuddE(P), table, base, empty) + cuddZddCountDoubleStep(cuddT(P), table, base, empty);
 
     dummy = ABC_ALLOC(double, 1);
     if (dummy == NULL) {
-        return((double)CUDD_OUT_OF_MEM);
+        return ((double)CUDD_OUT_OF_MEM);
     }
     *dummy = res;
-    if ( st__insert(table, (char *)P, (char *)dummy) == st__OUT_OF_MEM) {
+    if (st__insert(table, (char*)P, (char*)dummy) == st__OUT_OF_MEM) {
         ABC_FREE(dummy);
-        return((double)CUDD_OUT_OF_MEM);
+        return ((double)CUDD_OUT_OF_MEM);
     }
 
-    return(res);
+    return (res);
 
 } /* end of cuddZddCountDoubleStep */
-
 
 /**Function********************************************************************
 
@@ -312,19 +293,17 @@ cuddZddCountDoubleStep(
 
 ******************************************************************************/
 static enum st__retval
- st__zdd_countfree(
-  char * key,
-  char * value,
-  char * arg)
-{
-    int *d;
+st__zdd_countfree(
+    char* key,
+    char* value,
+    char* arg) {
+    int* d;
 
-    d = (int *)value;
+    d = (int*)value;
     ABC_FREE(d);
-    return( st__CONTINUE);
+    return (st__CONTINUE);
 
 } /* end of st__zdd_countfree */
-
 
 /**Function********************************************************************
 
@@ -339,19 +318,16 @@ static enum st__retval
 
 ******************************************************************************/
 static enum st__retval
- st__zdd_count_dbl_free(
-  char * key,
-  char * value,
-  char * arg)
-{
-    double      *d;
+st__zdd_count_dbl_free(
+    char* key,
+    char* value,
+    char* arg) {
+    double* d;
 
-    d = (double *)value;
+    d = (double*)value;
     ABC_FREE(d);
-    return( st__CONTINUE);
+    return (st__CONTINUE);
 
 } /* end of st__zdd_count_dbl_free */
 
-
 ABC_NAMESPACE_IMPL_END
-

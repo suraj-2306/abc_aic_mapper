@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -43,47 +42,44 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Saig_ManWindowOutline_rec( Aig_Man_t * p, Aig_Obj_t * pObj, int nDist, Vec_Ptr_t * vNodes, int * pDists )
-{
-    Aig_Obj_t * pMatch, * pFanout;
+void Saig_ManWindowOutline_rec(Aig_Man_t* p, Aig_Obj_t* pObj, int nDist, Vec_Ptr_t* vNodes, int* pDists) {
+    Aig_Obj_t *pMatch, *pFanout;
     int fCollected, iFanout = -1, i;
-    if ( nDist == 0 )
+    if (nDist == 0)
         return;
-    if ( pDists[pObj->Id] >= nDist )
+    if (pDists[pObj->Id] >= nDist)
         return;
     pDists[pObj->Id] = nDist;
-    fCollected = Aig_ObjIsTravIdCurrent( p, pObj );
-    Aig_ObjSetTravIdCurrent( p, pObj );    
-    if ( Aig_ObjIsConst1(pObj) )
+    fCollected = Aig_ObjIsTravIdCurrent(p, pObj);
+    Aig_ObjSetTravIdCurrent(p, pObj);
+    if (Aig_ObjIsConst1(pObj))
         return;
-    if ( Saig_ObjIsPo(p, pObj) )
+    if (Saig_ObjIsPo(p, pObj))
         return;
-    if ( Saig_ObjIsLi(p, pObj) )
-    {
-        pMatch = Saig_ObjLiToLo( p, pObj );
-        if ( !Aig_ObjIsTravIdCurrent( p, pMatch ) )
-            Saig_ManWindowOutline_rec( p, pMatch, nDist, vNodes, pDists );
-        Saig_ManWindowOutline_rec( p, Aig_ObjFanin0(pObj), nDist-1, vNodes, pDists );
-        return;
-    }
-    if ( !fCollected )
-        Vec_PtrPush( vNodes, pObj );
-    if ( Saig_ObjIsPi(p, pObj) )
-        return;
-    if ( Saig_ObjIsLo(p, pObj) )
-    {
-        pMatch = Saig_ObjLoToLi( p, pObj );
-        if ( !Aig_ObjIsTravIdCurrent( p, pMatch ) )
-            Saig_ManWindowOutline_rec( p, pMatch, nDist, vNodes, pDists );
-        Aig_ObjForEachFanout( p, pObj, pFanout, iFanout, i )
-            Saig_ManWindowOutline_rec( p, pFanout, nDist-1, vNodes, pDists );
+    if (Saig_ObjIsLi(p, pObj)) {
+        pMatch = Saig_ObjLiToLo(p, pObj);
+        if (!Aig_ObjIsTravIdCurrent(p, pMatch))
+            Saig_ManWindowOutline_rec(p, pMatch, nDist, vNodes, pDists);
+        Saig_ManWindowOutline_rec(p, Aig_ObjFanin0(pObj), nDist - 1, vNodes, pDists);
         return;
     }
-    assert( Aig_ObjIsNode(pObj) );
-    Saig_ManWindowOutline_rec( p, Aig_ObjFanin0(pObj), nDist-1, vNodes, pDists );
-    Saig_ManWindowOutline_rec( p, Aig_ObjFanin1(pObj), nDist-1, vNodes, pDists );
-    Aig_ObjForEachFanout( p, pObj, pFanout, iFanout, i )
-        Saig_ManWindowOutline_rec( p, pFanout, nDist-1, vNodes, pDists );
+    if (!fCollected)
+        Vec_PtrPush(vNodes, pObj);
+    if (Saig_ObjIsPi(p, pObj))
+        return;
+    if (Saig_ObjIsLo(p, pObj)) {
+        pMatch = Saig_ObjLoToLi(p, pObj);
+        if (!Aig_ObjIsTravIdCurrent(p, pMatch))
+            Saig_ManWindowOutline_rec(p, pMatch, nDist, vNodes, pDists);
+        Aig_ObjForEachFanout(p, pObj, pFanout, iFanout, i)
+            Saig_ManWindowOutline_rec(p, pFanout, nDist - 1, vNodes, pDists);
+        return;
+    }
+    assert(Aig_ObjIsNode(pObj));
+    Saig_ManWindowOutline_rec(p, Aig_ObjFanin0(pObj), nDist - 1, vNodes, pDists);
+    Saig_ManWindowOutline_rec(p, Aig_ObjFanin1(pObj), nDist - 1, vNodes, pDists);
+    Aig_ObjForEachFanout(p, pObj, pFanout, iFanout, i)
+        Saig_ManWindowOutline_rec(p, pFanout, nDist - 1, vNodes, pDists);
 }
 
 /**Function*************************************************************
@@ -97,21 +93,19 @@ void Saig_ManWindowOutline_rec( Aig_Man_t * p, Aig_Obj_t * pObj, int nDist, Vec_
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Ptr_t * Saig_ManWindowOutline( Aig_Man_t * p, Aig_Obj_t * pObj, int nDist )
-{
-    Vec_Ptr_t * vNodes;
-    Aig_Obj_t * pObjLi, * pObjLo;
-    int * pDists, i;
-    pDists = ABC_CALLOC( int, Aig_ManObjNumMax(p) );
-    vNodes = Vec_PtrAlloc( 1000 );
-    Aig_ManIncrementTravId( p );
-    Saig_ManWindowOutline_rec( p, pObj, nDist, vNodes, pDists );
-    Vec_PtrSort( vNodes, (int (*)(const void *, const void *))Aig_ObjCompareIdIncrease );
+Vec_Ptr_t* Saig_ManWindowOutline(Aig_Man_t* p, Aig_Obj_t* pObj, int nDist) {
+    Vec_Ptr_t* vNodes;
+    Aig_Obj_t *pObjLi, *pObjLo;
+    int *pDists, i;
+    pDists = ABC_CALLOC(int, Aig_ManObjNumMax(p));
+    vNodes = Vec_PtrAlloc(1000);
+    Aig_ManIncrementTravId(p);
+    Saig_ManWindowOutline_rec(p, pObj, nDist, vNodes, pDists);
+    Vec_PtrSort(vNodes, (int (*)(const void*, const void*))Aig_ObjCompareIdIncrease);
     // make sure LI/LO are labeled/unlabeled mutually
-    Saig_ManForEachLiLo( p, pObjLi, pObjLo, i )
-        assert( Aig_ObjIsTravIdCurrent(p, pObjLi) == 
-                Aig_ObjIsTravIdCurrent(p, pObjLo) );
-    ABC_FREE( pDists );
+    Saig_ManForEachLiLo(p, pObjLi, pObjLo, i)
+        assert(Aig_ObjIsTravIdCurrent(p, pObjLi) == Aig_ObjIsTravIdCurrent(p, pObjLo));
+    ABC_FREE(pDists);
     return vNodes;
 }
 
@@ -126,13 +120,10 @@ Vec_Ptr_t * Saig_ManWindowOutline( Aig_Man_t * p, Aig_Obj_t * pObj, int nDist )
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Obj_t * Saig_ObjHasUnlabeledFanout( Aig_Man_t * p, Aig_Obj_t * pObj )
-{
-    Aig_Obj_t * pFanout;
+Aig_Obj_t* Saig_ObjHasUnlabeledFanout(Aig_Man_t* p, Aig_Obj_t* pObj) {
+    Aig_Obj_t* pFanout;
     int iFanout = -1, i;
-    Aig_ObjForEachFanout( p, pObj, pFanout, iFanout, i )
-        if ( Saig_ObjIsPo(p, pFanout) || !Aig_ObjIsTravIdCurrent(p, pFanout) )
-            return pFanout;
+    Aig_ObjForEachFanout(p, pObj, pFanout, iFanout, i) if (Saig_ObjIsPo(p, pFanout) || !Aig_ObjIsTravIdCurrent(p, pFanout)) return pFanout;
     return NULL;
 }
 
@@ -147,35 +138,28 @@ Aig_Obj_t * Saig_ObjHasUnlabeledFanout( Aig_Man_t * p, Aig_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Ptr_t * Saig_ManWindowCollectPis( Aig_Man_t * p, Vec_Ptr_t * vNodes )
-{
-    Vec_Ptr_t * vNodesPi;
-    Aig_Obj_t * pObj, * pMatch, * pFanin;
+Vec_Ptr_t* Saig_ManWindowCollectPis(Aig_Man_t* p, Vec_Ptr_t* vNodes) {
+    Vec_Ptr_t* vNodesPi;
+    Aig_Obj_t *pObj, *pMatch, *pFanin;
     int i;
-    vNodesPi = Vec_PtrAlloc( 1000 );
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes, pObj, i )
-    {
-        if ( Saig_ObjIsPi(p, pObj) )
-        {
-            assert( pObj->pData == NULL );
-            Vec_PtrPush( vNodesPi, pObj );
-        }
-        else if ( Saig_ObjIsLo(p, pObj) )
-        {
-            pMatch = Saig_ObjLoToLi( p, pObj );
+    vNodesPi = Vec_PtrAlloc(1000);
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes, pObj, i) {
+        if (Saig_ObjIsPi(p, pObj)) {
+            assert(pObj->pData == NULL);
+            Vec_PtrPush(vNodesPi, pObj);
+        } else if (Saig_ObjIsLo(p, pObj)) {
+            pMatch = Saig_ObjLoToLi(p, pObj);
             pFanin = Aig_ObjFanin0(pMatch);
-            if ( !Aig_ObjIsTravIdCurrent(p, pFanin) && pFanin->pData == NULL )
-                Vec_PtrPush( vNodesPi, pFanin );
-        }
-        else
-        {
-            assert( Aig_ObjIsNode(pObj) );
+            if (!Aig_ObjIsTravIdCurrent(p, pFanin) && pFanin->pData == NULL)
+                Vec_PtrPush(vNodesPi, pFanin);
+        } else {
+            assert(Aig_ObjIsNode(pObj));
             pFanin = Aig_ObjFanin0(pObj);
-            if ( !Aig_ObjIsTravIdCurrent(p, pFanin) && pFanin->pData == NULL )
-                Vec_PtrPush( vNodesPi, pFanin );
+            if (!Aig_ObjIsTravIdCurrent(p, pFanin) && pFanin->pData == NULL)
+                Vec_PtrPush(vNodesPi, pFanin);
             pFanin = Aig_ObjFanin1(pObj);
-            if ( !Aig_ObjIsTravIdCurrent(p, pFanin) && pFanin->pData == NULL )
-                Vec_PtrPush( vNodesPi, pFanin );
+            if (!Aig_ObjIsTravIdCurrent(p, pFanin) && pFanin->pData == NULL)
+                Vec_PtrPush(vNodesPi, pFanin);
         }
     }
     return vNodesPi;
@@ -192,21 +176,18 @@ Vec_Ptr_t * Saig_ManWindowCollectPis( Aig_Man_t * p, Vec_Ptr_t * vNodes )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Ptr_t * Saig_ManWindowCollectPos( Aig_Man_t * p, Vec_Ptr_t * vNodes, Vec_Ptr_t ** pvPointers )
-{
-    Vec_Ptr_t * vNodesPo;
-    Aig_Obj_t * pObj, * pPointer;
+Vec_Ptr_t* Saig_ManWindowCollectPos(Aig_Man_t* p, Vec_Ptr_t* vNodes, Vec_Ptr_t** pvPointers) {
+    Vec_Ptr_t* vNodesPo;
+    Aig_Obj_t *pObj, *pPointer;
     int i;
-    vNodesPo = Vec_PtrAlloc( 1000 );
-    if ( pvPointers )
-        *pvPointers = Vec_PtrAlloc( 1000 );
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes, pObj, i )
-    {
-        if ( (pPointer = Saig_ObjHasUnlabeledFanout(p, pObj)) )
-        {
-            Vec_PtrPush( vNodesPo, pObj );
-            if ( pvPointers )
-                Vec_PtrPush( *pvPointers, pPointer );
+    vNodesPo = Vec_PtrAlloc(1000);
+    if (pvPointers)
+        *pvPointers = Vec_PtrAlloc(1000);
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes, pObj, i) {
+        if ((pPointer = Saig_ObjHasUnlabeledFanout(p, pObj))) {
+            Vec_PtrPush(vNodesPo, pObj);
+            if (pvPointers)
+                Vec_PtrPush(*pvPointers, pPointer);
         }
     }
     return vNodesPo;
@@ -223,60 +204,55 @@ Vec_Ptr_t * Saig_ManWindowCollectPos( Aig_Man_t * p, Vec_Ptr_t * vNodes, Vec_Ptr
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Saig_ManWindowExtractNodes( Aig_Man_t * p, Vec_Ptr_t * vNodes )
-{
-    Aig_Man_t * pNew;
-    Aig_Obj_t * pObj, * pMatch;
-    Vec_Ptr_t * vNodesPi, * vNodesPo;
+Aig_Man_t* Saig_ManWindowExtractNodes(Aig_Man_t* p, Vec_Ptr_t* vNodes) {
+    Aig_Man_t* pNew;
+    Aig_Obj_t *pObj, *pMatch;
+    Vec_Ptr_t *vNodesPi, *vNodesPo;
     int i, nRegCount;
-    Aig_ManCleanData( p ); 
+    Aig_ManCleanData(p);
     // create the new manager
-    pNew = Aig_ManStart( Vec_PtrSize(vNodes) );
-    pNew->pName = Abc_UtilStrsav( "wnd" );
+    pNew = Aig_ManStart(Vec_PtrSize(vNodes));
+    pNew->pName = Abc_UtilStrsav("wnd");
     pNew->pSpec = NULL;
     // map constant nodes
-    pObj = Aig_ManConst1( p );
-    pObj->pData = Aig_ManConst1( pNew );
+    pObj = Aig_ManConst1(p);
+    pObj->pData = Aig_ManConst1(pNew);
     // create real PIs
-    vNodesPi = Saig_ManWindowCollectPis( p, vNodes );
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodesPi, pObj, i )
-        pObj->pData = Aig_ObjCreateCi(pNew);
-    Vec_PtrFree( vNodesPi );
+    vNodesPi = Saig_ManWindowCollectPis(p, vNodes);
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodesPi, pObj, i)
+        pObj->pData
+        = Aig_ObjCreateCi(pNew);
+    Vec_PtrFree(vNodesPi);
     // create register outputs
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes, pObj, i )
-    {
-        if ( Saig_ObjIsLo(p, pObj) )
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes, pObj, i) {
+        if (Saig_ObjIsLo(p, pObj))
             pObj->pData = Aig_ObjCreateCi(pNew);
     }
     // create internal nodes
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes, pObj, i )
-    {
-        if ( Aig_ObjIsNode(pObj) )
-            pObj->pData = Aig_And( pNew, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj) );
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes, pObj, i) {
+        if (Aig_ObjIsNode(pObj))
+            pObj->pData = Aig_And(pNew, Aig_ObjChild0Copy(pObj), Aig_ObjChild1Copy(pObj));
     }
     // create POs
-    vNodesPo = Saig_ManWindowCollectPos( p, vNodes, NULL );
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodesPo, pObj, i )
-        Aig_ObjCreateCo( pNew, (Aig_Obj_t *)pObj->pData );
-    Vec_PtrFree( vNodesPo );
+    vNodesPo = Saig_ManWindowCollectPos(p, vNodes, NULL);
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodesPo, pObj, i)
+        Aig_ObjCreateCo(pNew, (Aig_Obj_t*)pObj->pData);
+    Vec_PtrFree(vNodesPo);
     // create register inputs
     nRegCount = 0;
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes, pObj, i )
-    {
-        if ( Saig_ObjIsLo(p, pObj) )
-        {
-            pMatch = Saig_ObjLoToLi( p, pObj );
-            Aig_ObjCreateCo( pNew, Aig_ObjChild0Copy(pMatch) );
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes, pObj, i) {
+        if (Saig_ObjIsLo(p, pObj)) {
+            pMatch = Saig_ObjLoToLi(p, pObj);
+            Aig_ObjCreateCo(pNew, Aig_ObjChild0Copy(pMatch));
             nRegCount++;
         }
     }
-    Aig_ManSetRegNum( pNew, nRegCount );
-    Aig_ManCleanup( pNew );
+    Aig_ManSetRegNum(pNew, nRegCount);
+    Aig_ManCleanup(pNew);
     return pNew;
 }
 
-static void Saig_ManWindowInsertSmall_rec( Aig_Man_t * pNew, Aig_Obj_t * pObjSmall, 
-     Vec_Ptr_t * vBigNode2SmallPo, Vec_Ptr_t * vSmallPi2BigNode );
+static void Saig_ManWindowInsertSmall_rec(Aig_Man_t* pNew, Aig_Obj_t* pObjSmall, Vec_Ptr_t* vBigNode2SmallPo, Vec_Ptr_t* vSmallPi2BigNode);
 
 /**Function*************************************************************
 
@@ -289,22 +265,19 @@ static void Saig_ManWindowInsertSmall_rec( Aig_Man_t * pNew, Aig_Obj_t * pObjSma
   SeeAlso     []
 
 ***********************************************************************/
-void Saig_ManWindowInsertBig_rec( Aig_Man_t * pNew, Aig_Obj_t * pObjBig, 
-         Vec_Ptr_t * vBigNode2SmallPo, Vec_Ptr_t * vSmallPi2BigNode )
-{
-    Aig_Obj_t * pMatch;
-    if ( pObjBig->pData )
+void Saig_ManWindowInsertBig_rec(Aig_Man_t* pNew, Aig_Obj_t* pObjBig, Vec_Ptr_t* vBigNode2SmallPo, Vec_Ptr_t* vSmallPi2BigNode) {
+    Aig_Obj_t* pMatch;
+    if (pObjBig->pData)
         return;
-    if ( (pMatch = (Aig_Obj_t *)Vec_PtrEntry( vBigNode2SmallPo, pObjBig->Id )) )
-    {
-        Saig_ManWindowInsertSmall_rec( pNew, Aig_ObjFanin0(pMatch), vBigNode2SmallPo, vSmallPi2BigNode );
+    if ((pMatch = (Aig_Obj_t*)Vec_PtrEntry(vBigNode2SmallPo, pObjBig->Id))) {
+        Saig_ManWindowInsertSmall_rec(pNew, Aig_ObjFanin0(pMatch), vBigNode2SmallPo, vSmallPi2BigNode);
         pObjBig->pData = Aig_ObjChild0Copy(pMatch);
-        return;        
+        return;
     }
-    assert( Aig_ObjIsNode(pObjBig) );
-    Saig_ManWindowInsertBig_rec( pNew, Aig_ObjFanin0(pObjBig), vBigNode2SmallPo, vSmallPi2BigNode );
-    Saig_ManWindowInsertBig_rec( pNew, Aig_ObjFanin1(pObjBig), vBigNode2SmallPo, vSmallPi2BigNode );
-    pObjBig->pData = Aig_And( pNew, Aig_ObjChild0Copy(pObjBig), Aig_ObjChild1Copy(pObjBig) );
+    assert(Aig_ObjIsNode(pObjBig));
+    Saig_ManWindowInsertBig_rec(pNew, Aig_ObjFanin0(pObjBig), vBigNode2SmallPo, vSmallPi2BigNode);
+    Saig_ManWindowInsertBig_rec(pNew, Aig_ObjFanin1(pObjBig), vBigNode2SmallPo, vSmallPi2BigNode);
+    pObjBig->pData = Aig_And(pNew, Aig_ObjChild0Copy(pObjBig), Aig_ObjChild1Copy(pObjBig));
 }
 
 /**Function*************************************************************
@@ -318,22 +291,19 @@ void Saig_ManWindowInsertBig_rec( Aig_Man_t * pNew, Aig_Obj_t * pObjBig,
   SeeAlso     []
 
 ***********************************************************************/
-void Saig_ManWindowInsertSmall_rec( Aig_Man_t * pNew, Aig_Obj_t * pObjSmall, 
-         Vec_Ptr_t * vBigNode2SmallPo, Vec_Ptr_t * vSmallPi2BigNode )
-{
-    Aig_Obj_t * pMatch;
-    if ( pObjSmall->pData )
+void Saig_ManWindowInsertSmall_rec(Aig_Man_t* pNew, Aig_Obj_t* pObjSmall, Vec_Ptr_t* vBigNode2SmallPo, Vec_Ptr_t* vSmallPi2BigNode) {
+    Aig_Obj_t* pMatch;
+    if (pObjSmall->pData)
         return;
-    if ( (pMatch = (Aig_Obj_t *)Vec_PtrEntry( vSmallPi2BigNode, pObjSmall->Id )) )
-    {
-        Saig_ManWindowInsertBig_rec( pNew, pMatch, vBigNode2SmallPo, vSmallPi2BigNode );
+    if ((pMatch = (Aig_Obj_t*)Vec_PtrEntry(vSmallPi2BigNode, pObjSmall->Id))) {
+        Saig_ManWindowInsertBig_rec(pNew, pMatch, vBigNode2SmallPo, vSmallPi2BigNode);
         pObjSmall->pData = pMatch->pData;
-        return;        
+        return;
     }
-    assert( Aig_ObjIsNode(pObjSmall) );
-    Saig_ManWindowInsertSmall_rec( pNew, Aig_ObjFanin0(pObjSmall), vBigNode2SmallPo, vSmallPi2BigNode );
-    Saig_ManWindowInsertSmall_rec( pNew, Aig_ObjFanin1(pObjSmall), vBigNode2SmallPo, vSmallPi2BigNode );
-    pObjSmall->pData = Aig_And( pNew, Aig_ObjChild0Copy(pObjSmall), Aig_ObjChild1Copy(pObjSmall) );
+    assert(Aig_ObjIsNode(pObjSmall));
+    Saig_ManWindowInsertSmall_rec(pNew, Aig_ObjFanin0(pObjSmall), vBigNode2SmallPo, vSmallPi2BigNode);
+    Saig_ManWindowInsertSmall_rec(pNew, Aig_ObjFanin1(pObjSmall), vBigNode2SmallPo, vSmallPi2BigNode);
+    pObjSmall->pData = Aig_And(pNew, Aig_ObjChild0Copy(pObjSmall), Aig_ObjChild1Copy(pObjSmall));
 }
 
 /**Function*************************************************************
@@ -347,69 +317,66 @@ void Saig_ManWindowInsertSmall_rec( Aig_Man_t * pNew, Aig_Obj_t * pObjSmall,
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Saig_ManWindowInsertNodes( Aig_Man_t * p, Vec_Ptr_t * vNodes, Aig_Man_t * pWnd )
-{
-    Aig_Man_t * pNew;
-    Vec_Ptr_t * vBigNode2SmallPo, * vSmallPi2BigNode;
-    Vec_Ptr_t * vNodesPi, * vNodesPo;
-    Aig_Obj_t * pObj;
+Aig_Man_t* Saig_ManWindowInsertNodes(Aig_Man_t* p, Vec_Ptr_t* vNodes, Aig_Man_t* pWnd) {
+    Aig_Man_t* pNew;
+    Vec_Ptr_t *vBigNode2SmallPo, *vSmallPi2BigNode;
+    Vec_Ptr_t *vNodesPi, *vNodesPo;
+    Aig_Obj_t* pObj;
     int i;
 
     // set mapping of small PIs into big nodes
-    vSmallPi2BigNode = Vec_PtrStart( Aig_ManObjNumMax(pWnd) ); 
-    vNodesPi = Saig_ManWindowCollectPis( p, vNodes );
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodesPi, pObj, i )
-        Vec_PtrWriteEntry( vSmallPi2BigNode, Aig_ManCi(pWnd, i)->Id, pObj );
-    assert( i == Saig_ManPiNum(pWnd) );
-    Vec_PtrFree( vNodesPi );
+    vSmallPi2BigNode = Vec_PtrStart(Aig_ManObjNumMax(pWnd));
+    vNodesPi = Saig_ManWindowCollectPis(p, vNodes);
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodesPi, pObj, i)
+        Vec_PtrWriteEntry(vSmallPi2BigNode, Aig_ManCi(pWnd, i)->Id, pObj);
+    assert(i == Saig_ManPiNum(pWnd));
+    Vec_PtrFree(vNodesPi);
 
     // set mapping of big nodes into small POs
-    vBigNode2SmallPo = Vec_PtrStart( Aig_ManObjNumMax(p) ); 
-    vNodesPo = Saig_ManWindowCollectPos( p, vNodes, NULL );
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodesPo, pObj, i )
-        Vec_PtrWriteEntry( vBigNode2SmallPo, pObj->Id, Aig_ManCo(pWnd, i) );
-    assert( i == Saig_ManPoNum(pWnd) );
-    Vec_PtrFree( vNodesPo );
+    vBigNode2SmallPo = Vec_PtrStart(Aig_ManObjNumMax(p));
+    vNodesPo = Saig_ManWindowCollectPos(p, vNodes, NULL);
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodesPo, pObj, i)
+        Vec_PtrWriteEntry(vBigNode2SmallPo, pObj->Id, Aig_ManCo(pWnd, i));
+    assert(i == Saig_ManPoNum(pWnd));
+    Vec_PtrFree(vNodesPo);
 
     // create the new manager
-    Aig_ManCleanData( p ); 
-    Aig_ManCleanData( pWnd ); 
-    pNew = Aig_ManStart( Aig_ManObjNumMax(p) );
-    pNew->pName = Abc_UtilStrsav( p->pName );
-    pNew->pSpec = Abc_UtilStrsav( p->pSpec );
+    Aig_ManCleanData(p);
+    Aig_ManCleanData(pWnd);
+    pNew = Aig_ManStart(Aig_ManObjNumMax(p));
+    pNew->pName = Abc_UtilStrsav(p->pName);
+    pNew->pSpec = Abc_UtilStrsav(p->pSpec);
     // map constant nodes
-    pObj = Aig_ManConst1( p );
-    pObj->pData = Aig_ManConst1( pNew );
-    pObj = Aig_ManConst1( pWnd );
-    pObj->pData = Aig_ManConst1( pNew );
+    pObj = Aig_ManConst1(p);
+    pObj->pData = Aig_ManConst1(pNew);
+    pObj = Aig_ManConst1(pWnd);
+    pObj->pData = Aig_ManConst1(pNew);
 
     // create real PIs
-    Aig_ManForEachCi( p, pObj, i )
-        if ( Saig_ObjIsPi(p, pObj) || !Aig_ObjIsTravIdCurrent(p, pObj) )
-            pObj->pData = Aig_ObjCreateCi(pNew);
+    Aig_ManForEachCi(p, pObj, i) if (Saig_ObjIsPi(p, pObj) || !Aig_ObjIsTravIdCurrent(p, pObj))
+        pObj->pData
+        = Aig_ObjCreateCi(pNew);
     // create additional latch outputs
-    Saig_ManForEachLo( pWnd, pObj, i )
-        pObj->pData = Aig_ObjCreateCi(pNew);
+    Saig_ManForEachLo(pWnd, pObj, i)
+        pObj->pData
+        = Aig_ObjCreateCi(pNew);
 
     // create internal nodes starting from the big
-    Aig_ManForEachCo( p, pObj, i )
-        if ( Saig_ObjIsPo(p, pObj) || !Aig_ObjIsTravIdCurrent(p, pObj) )
-        {
-            Saig_ManWindowInsertBig_rec( pNew, Aig_ObjFanin0(pObj), vBigNode2SmallPo, vSmallPi2BigNode );
-            pObj->pData = Aig_ObjCreateCo( pNew, Aig_ObjChild0Copy(pObj) );
-        }
-    // create internal nodes starting from the small
-    Saig_ManForEachLi( pWnd, pObj, i )
-    {
-        Saig_ManWindowInsertSmall_rec( pNew, Aig_ObjFanin0(pObj), vBigNode2SmallPo, vSmallPi2BigNode );
-        pObj->pData = Aig_ObjCreateCo( pNew, Aig_ObjChild0Copy(pObj) );
+    Aig_ManForEachCo(p, pObj, i) if (Saig_ObjIsPo(p, pObj) || !Aig_ObjIsTravIdCurrent(p, pObj)) {
+        Saig_ManWindowInsertBig_rec(pNew, Aig_ObjFanin0(pObj), vBigNode2SmallPo, vSmallPi2BigNode);
+        pObj->pData = Aig_ObjCreateCo(pNew, Aig_ObjChild0Copy(pObj));
     }
-    Vec_PtrFree( vBigNode2SmallPo );
-    Vec_PtrFree( vSmallPi2BigNode );
+    // create internal nodes starting from the small
+    Saig_ManForEachLi(pWnd, pObj, i) {
+        Saig_ManWindowInsertSmall_rec(pNew, Aig_ObjFanin0(pObj), vBigNode2SmallPo, vSmallPi2BigNode);
+        pObj->pData = Aig_ObjCreateCo(pNew, Aig_ObjChild0Copy(pObj));
+    }
+    Vec_PtrFree(vBigNode2SmallPo);
+    Vec_PtrFree(vSmallPi2BigNode);
     // set the new number of registers
-    assert( Aig_ManCiNum(pNew) - Aig_ManCiNum(p) == Aig_ManCoNum(pNew) - Aig_ManCoNum(p) );
-    Aig_ManSetRegNum( pNew, Aig_ManRegNum(p) + (Aig_ManCiNum(pNew) - Aig_ManCiNum(p)) );
-    Aig_ManCleanup( pNew );
+    assert(Aig_ManCiNum(pNew) - Aig_ManCiNum(p) == Aig_ManCoNum(pNew) - Aig_ManCoNum(p));
+    Aig_ManSetRegNum(pNew, Aig_ManRegNum(p) + (Aig_ManCiNum(pNew) - Aig_ManCiNum(p)));
+    Aig_ManCleanup(pNew);
     return pNew;
 }
 
@@ -424,27 +391,21 @@ Aig_Man_t * Saig_ManWindowInsertNodes( Aig_Man_t * p, Vec_Ptr_t * vNodes, Aig_Ma
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Obj_t * Saig_ManFindPivot( Aig_Man_t * p )
-{
-    Aig_Obj_t * pObj;
+Aig_Obj_t* Saig_ManFindPivot(Aig_Man_t* p) {
+    Aig_Obj_t* pObj;
     int i, Counter;
-    if ( Aig_ManRegNum(p) > 0 )
-    {
-        if ( Aig_ManRegNum(p) == 1 )
-            return Saig_ManLo( p, 0 );
-        Saig_ManForEachLo( p, pObj, i )
-        {
-            if ( i == Aig_ManRegNum(p)/2 )
+    if (Aig_ManRegNum(p) > 0) {
+        if (Aig_ManRegNum(p) == 1)
+            return Saig_ManLo(p, 0);
+        Saig_ManForEachLo(p, pObj, i) {
+            if (i == Aig_ManRegNum(p) / 2)
                 return pObj;
         }
-    }
-    else
-    {
+    } else {
         Counter = 0;
-        assert( Aig_ManNodeNum(p) > 1 );
-        Aig_ManForEachNode( p, pObj, i )
-        {
-            if ( Counter++ == Aig_ManNodeNum(p)/2 )
+        assert(Aig_ManNodeNum(p) > 1);
+        Aig_ManForEachNode(p, pObj, i) {
+            if (Counter++ == Aig_ManNodeNum(p) / 2)
                 return pObj;
         }
     }
@@ -462,15 +423,14 @@ Aig_Obj_t * Saig_ManFindPivot( Aig_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Saig_ManWindowExtract( Aig_Man_t * p, Aig_Obj_t * pObj, int nDist )
-{
-    Aig_Man_t * pWnd;
-    Vec_Ptr_t * vNodes;
-    Aig_ManFanoutStart( p );
-    vNodes = Saig_ManWindowOutline( p, pObj, nDist );
-    pWnd = Saig_ManWindowExtractNodes( p, vNodes );
-    Vec_PtrFree( vNodes );
-    Aig_ManFanoutStop( p );
+Aig_Man_t* Saig_ManWindowExtract(Aig_Man_t* p, Aig_Obj_t* pObj, int nDist) {
+    Aig_Man_t* pWnd;
+    Vec_Ptr_t* vNodes;
+    Aig_ManFanoutStart(p);
+    vNodes = Saig_ManWindowOutline(p, pObj, nDist);
+    pWnd = Saig_ManWindowExtractNodes(p, vNodes);
+    Vec_PtrFree(vNodes);
+    Aig_ManFanoutStop(p);
     return pWnd;
 }
 
@@ -485,32 +445,29 @@ Aig_Man_t * Saig_ManWindowExtract( Aig_Man_t * p, Aig_Obj_t * pObj, int nDist )
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Saig_ManWindowInsert( Aig_Man_t * p, Aig_Obj_t * pObj, int nDist, Aig_Man_t * pWnd )
-{
-    Aig_Man_t * pNew, * pWndTest;
-    Vec_Ptr_t * vNodes;
-    Aig_ManFanoutStart( p );
+Aig_Man_t* Saig_ManWindowInsert(Aig_Man_t* p, Aig_Obj_t* pObj, int nDist, Aig_Man_t* pWnd) {
+    Aig_Man_t *pNew, *pWndTest;
+    Vec_Ptr_t* vNodes;
+    Aig_ManFanoutStart(p);
 
-    vNodes = Saig_ManWindowOutline( p, pObj, nDist );
-    pWndTest = Saig_ManWindowExtractNodes( p, vNodes );
-    if ( Saig_ManPiNum(pWndTest) != Saig_ManPiNum(pWnd) ||
-         Saig_ManPoNum(pWndTest) != Saig_ManPoNum(pWnd) )
-    {
-        printf( "The window cannot be reinserted because PI/PO counts do not match.\n" );
-        Aig_ManStop( pWndTest );
-        Vec_PtrFree( vNodes );
-        Aig_ManFanoutStop( p );
+    vNodes = Saig_ManWindowOutline(p, pObj, nDist);
+    pWndTest = Saig_ManWindowExtractNodes(p, vNodes);
+    if (Saig_ManPiNum(pWndTest) != Saig_ManPiNum(pWnd) || Saig_ManPoNum(pWndTest) != Saig_ManPoNum(pWnd)) {
+        printf("The window cannot be reinserted because PI/PO counts do not match.\n");
+        Aig_ManStop(pWndTest);
+        Vec_PtrFree(vNodes);
+        Aig_ManFanoutStop(p);
         return NULL;
     }
-    Aig_ManStop( pWndTest );
-    Vec_PtrFree( vNodes );
+    Aig_ManStop(pWndTest);
+    Vec_PtrFree(vNodes);
 
     // insert the nodes
-    Aig_ManCleanData( p ); 
-    vNodes = Saig_ManWindowOutline( p, pObj, nDist );
-    pNew = Saig_ManWindowInsertNodes( p, vNodes, pWnd );
-    Vec_PtrFree( vNodes );
-    Aig_ManFanoutStop( p );
+    Aig_ManCleanData(p);
+    vNodes = Saig_ManWindowOutline(p, pObj, nDist);
+    pNew = Saig_ManWindowInsertNodes(p, vNodes, pWnd);
+    Vec_PtrFree(vNodes);
+    Aig_ManFanoutStop(p);
     return pNew;
 }
 
@@ -525,16 +482,15 @@ Aig_Man_t * Saig_ManWindowInsert( Aig_Man_t * p, Aig_Obj_t * pObj, int nDist, Ai
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Saig_ManWindowTest( Aig_Man_t * p )
-{
+Aig_Man_t* Saig_ManWindowTest(Aig_Man_t* p) {
     int nDist = 3;
-    Aig_Man_t * pWnd, * pNew;
-    Aig_Obj_t * pPivot;
-    pPivot = Saig_ManFindPivot( p );
-    assert( pPivot != NULL );
-    pWnd = Saig_ManWindowExtract( p, pPivot, nDist );
-    pNew = Saig_ManWindowInsert( p, pPivot, nDist, pWnd );
-    Aig_ManStop( pWnd );
+    Aig_Man_t *pWnd, *pNew;
+    Aig_Obj_t* pPivot;
+    pPivot = Saig_ManFindPivot(p);
+    assert(pPivot != NULL);
+    pWnd = Saig_ManWindowExtract(p, pPivot, nDist);
+    pNew = Saig_ManWindowInsert(p, pPivot, nDist, pWnd);
+    Aig_ManStop(pWnd);
     return pNew;
 }
 
@@ -549,34 +505,30 @@ Aig_Man_t * Saig_ManWindowTest( Aig_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Ptr_t * Saig_ManCollectedDiffNodes( Aig_Man_t * p0, Aig_Man_t * p1 )
-{
-    Vec_Ptr_t * vNodes;
-    Aig_Obj_t * pObj0, * pObj1;
+Vec_Ptr_t* Saig_ManCollectedDiffNodes(Aig_Man_t* p0, Aig_Man_t* p1) {
+    Vec_Ptr_t* vNodes;
+    Aig_Obj_t *pObj0, *pObj1;
     int i;
     // collect nodes that are not linked
-    Aig_ManIncrementTravId( p0 );
-    vNodes = Vec_PtrAlloc( 1000 );
-    Aig_ManForEachObj( p0, pObj0, i )
-    {
-        pObj1 = Aig_ObjRepr( p0, pObj0 );
-        if ( pObj1 != NULL )
-        {
-            assert( pObj0 == Aig_ObjRepr( p1, pObj1 ) );   
+    Aig_ManIncrementTravId(p0);
+    vNodes = Vec_PtrAlloc(1000);
+    Aig_ManForEachObj(p0, pObj0, i) {
+        pObj1 = Aig_ObjRepr(p0, pObj0);
+        if (pObj1 != NULL) {
+            assert(pObj0 == Aig_ObjRepr(p1, pObj1));
             continue;
         }
         // mark and collect unmatched objects
-        Aig_ObjSetTravIdCurrent( p0, pObj0 ); 
-        if ( Aig_ObjIsNode(pObj0) || Aig_ObjIsCi(pObj0) )
-            Vec_PtrPush( vNodes, pObj0 );
+        Aig_ObjSetTravIdCurrent(p0, pObj0);
+        if (Aig_ObjIsNode(pObj0) || Aig_ObjIsCi(pObj0))
+            Vec_PtrPush(vNodes, pObj0);
     }
     // make sure LI/LO are labeled/unlabeled mutually
-    Saig_ManForEachLiLo( p0, pObj0, pObj1, i )
-        assert( Aig_ObjIsTravIdCurrent(p0, pObj0) == 
-                Aig_ObjIsTravIdCurrent(p0, pObj1) );
+    Saig_ManForEachLiLo(p0, pObj0, pObj1, i)
+        assert(Aig_ObjIsTravIdCurrent(p0, pObj0) == Aig_ObjIsTravIdCurrent(p0, pObj1));
     return vNodes;
 }
-         
+
 /**Function*************************************************************
 
   Synopsis    [Creates PIs of the miter.]
@@ -588,54 +540,46 @@ Vec_Ptr_t * Saig_ManCollectedDiffNodes( Aig_Man_t * p0, Aig_Man_t * p1 )
   SeeAlso     []
 
 ***********************************************************************/
-void Saig_ManWindowCreatePis( Aig_Man_t * pNew, Aig_Man_t * p0, Aig_Man_t * p1, Vec_Ptr_t * vNodes0 )
-{
-    Aig_Obj_t * pObj, * pMatch, * pFanin;
+void Saig_ManWindowCreatePis(Aig_Man_t* pNew, Aig_Man_t* p0, Aig_Man_t* p1, Vec_Ptr_t* vNodes0) {
+    Aig_Obj_t *pObj, *pMatch, *pFanin;
     int i, Counter = 0;
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes0, pObj, i )
-    {
-        if ( Saig_ObjIsLo(p0, pObj) )
-        {
-            pMatch = Saig_ObjLoToLi( p0, pObj );
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes0, pObj, i) {
+        if (Saig_ObjIsLo(p0, pObj)) {
+            pMatch = Saig_ObjLoToLi(p0, pObj);
             pFanin = Aig_ObjFanin0(pMatch);
-            if ( !Aig_ObjIsTravIdCurrent(p0, pFanin) && pFanin->pData == NULL )
-            {
+            if (!Aig_ObjIsTravIdCurrent(p0, pFanin) && pFanin->pData == NULL) {
                 pFanin->pData = Aig_ObjCreateCi(pNew);
-                pMatch = Aig_ObjRepr( p0, pFanin );
-                assert( pFanin == Aig_ObjRepr( p1, pMatch ) );
-                assert( pMatch != NULL );
+                pMatch = Aig_ObjRepr(p0, pFanin);
+                assert(pFanin == Aig_ObjRepr(p1, pMatch));
+                assert(pMatch != NULL);
                 pMatch->pData = pFanin->pData;
                 Counter++;
             }
-        }
-        else
-        {
-            assert( Aig_ObjIsNode(pObj) );
+        } else {
+            assert(Aig_ObjIsNode(pObj));
             pFanin = Aig_ObjFanin0(pObj);
-            if ( !Aig_ObjIsTravIdCurrent(p0, pFanin) && pFanin->pData == NULL )
-            {
+            if (!Aig_ObjIsTravIdCurrent(p0, pFanin) && pFanin->pData == NULL) {
                 pFanin->pData = Aig_ObjCreateCi(pNew);
-                pMatch = Aig_ObjRepr( p0, pFanin );
-                assert( pFanin == Aig_ObjRepr( p1, pMatch ) );
-                assert( pMatch != NULL );
+                pMatch = Aig_ObjRepr(p0, pFanin);
+                assert(pFanin == Aig_ObjRepr(p1, pMatch));
+                assert(pMatch != NULL);
                 pMatch->pData = pFanin->pData;
                 Counter++;
             }
             pFanin = Aig_ObjFanin1(pObj);
-            if ( !Aig_ObjIsTravIdCurrent(p0, pFanin) && pFanin->pData == NULL )
-            {
+            if (!Aig_ObjIsTravIdCurrent(p0, pFanin) && pFanin->pData == NULL) {
                 pFanin->pData = Aig_ObjCreateCi(pNew);
-                pMatch = Aig_ObjRepr( p0, pFanin );
-                assert( pFanin == Aig_ObjRepr( p1, pMatch ) );
-                assert( pMatch != NULL );
+                pMatch = Aig_ObjRepr(p0, pFanin);
+                assert(pFanin == Aig_ObjRepr(p1, pMatch));
+                assert(pMatch != NULL);
                 pMatch->pData = pFanin->pData;
                 Counter++;
             }
         }
     }
-//    printf( "Added %d primary inputs.\n", Counter );
+    //    printf( "Added %d primary inputs.\n", Counter );
 }
-        
+
 /**Function*************************************************************
 
   Synopsis    [Creates POs of the miter.]
@@ -647,60 +591,48 @@ void Saig_ManWindowCreatePis( Aig_Man_t * pNew, Aig_Man_t * p0, Aig_Man_t * p1, 
   SeeAlso     []
 
 ***********************************************************************/
-void Saig_ManWindowCreatePos( Aig_Man_t * pNew, Aig_Man_t * p0, Aig_Man_t * p1 )
-{
-    Aig_Obj_t * pObj0, * pObj1, * pMiter;
-    Aig_Obj_t * pFanin0, * pFanin1;
+void Saig_ManWindowCreatePos(Aig_Man_t* pNew, Aig_Man_t* p0, Aig_Man_t* p1) {
+    Aig_Obj_t *pObj0, *pObj1, *pMiter;
+    Aig_Obj_t *pFanin0, *pFanin1;
     int i;
-    Aig_ManForEachObj( p0, pObj0, i )
-    {
-        if ( Aig_ObjIsTravIdCurrent(p0, pObj0) )
+    Aig_ManForEachObj(p0, pObj0, i) {
+        if (Aig_ObjIsTravIdCurrent(p0, pObj0))
             continue;
-        if ( Aig_ObjIsConst1(pObj0) )
+        if (Aig_ObjIsConst1(pObj0))
             continue;
-        if ( Aig_ObjIsCi(pObj0) )
+        if (Aig_ObjIsCi(pObj0))
             continue;
-        pObj1 = Aig_ObjRepr( p0, pObj0 );
-        assert( pObj0 == Aig_ObjRepr( p1, pObj1 ) );
-        if ( Aig_ObjIsCo(pObj0) )
-        {
+        pObj1 = Aig_ObjRepr(p0, pObj0);
+        assert(pObj0 == Aig_ObjRepr(p1, pObj1));
+        if (Aig_ObjIsCo(pObj0)) {
             pFanin0 = Aig_ObjFanin0(pObj0);
             pFanin1 = Aig_ObjFanin0(pObj1);
-            assert( Aig_ObjIsTravIdCurrent(p0, pFanin0) ==
-                    Aig_ObjIsTravIdCurrent(p1, pFanin1) );
-            if ( Aig_ObjIsTravIdCurrent(p0, pFanin0) )
-            {
-                pMiter = Aig_Exor( pNew, (Aig_Obj_t *)pFanin0->pData, (Aig_Obj_t *)pFanin1->pData );
-                Aig_ObjCreateCo( pNew, pMiter );
+            assert(Aig_ObjIsTravIdCurrent(p0, pFanin0) == Aig_ObjIsTravIdCurrent(p1, pFanin1));
+            if (Aig_ObjIsTravIdCurrent(p0, pFanin0)) {
+                pMiter = Aig_Exor(pNew, (Aig_Obj_t*)pFanin0->pData, (Aig_Obj_t*)pFanin1->pData);
+                Aig_ObjCreateCo(pNew, pMiter);
             }
-        }
-        else
-        {
-            assert( Aig_ObjIsNode(pObj0) );
+        } else {
+            assert(Aig_ObjIsNode(pObj0));
 
             pFanin0 = Aig_ObjFanin0(pObj0);
             pFanin1 = Aig_ObjFanin0(pObj1);
-            assert( Aig_ObjIsTravIdCurrent(p0, pFanin0) ==
-                    Aig_ObjIsTravIdCurrent(p1, pFanin1) );
-            if ( Aig_ObjIsTravIdCurrent(p0, pFanin0) )
-            {
-                pMiter = Aig_Exor( pNew, (Aig_Obj_t *)pFanin0->pData, (Aig_Obj_t *)pFanin1->pData );
-                Aig_ObjCreateCo( pNew, pMiter );
+            assert(Aig_ObjIsTravIdCurrent(p0, pFanin0) == Aig_ObjIsTravIdCurrent(p1, pFanin1));
+            if (Aig_ObjIsTravIdCurrent(p0, pFanin0)) {
+                pMiter = Aig_Exor(pNew, (Aig_Obj_t*)pFanin0->pData, (Aig_Obj_t*)pFanin1->pData);
+                Aig_ObjCreateCo(pNew, pMiter);
             }
 
             pFanin0 = Aig_ObjFanin1(pObj0);
             pFanin1 = Aig_ObjFanin1(pObj1);
-            assert( Aig_ObjIsTravIdCurrent(p0, pFanin0) ==
-                    Aig_ObjIsTravIdCurrent(p1, pFanin1) );
-            if ( Aig_ObjIsTravIdCurrent(p0, pFanin0) )
-            {
-                pMiter = Aig_Exor( pNew, (Aig_Obj_t *)pFanin0->pData, (Aig_Obj_t *)pFanin1->pData );
-                Aig_ObjCreateCo( pNew, pMiter );
+            assert(Aig_ObjIsTravIdCurrent(p0, pFanin0) == Aig_ObjIsTravIdCurrent(p1, pFanin1));
+            if (Aig_ObjIsTravIdCurrent(p0, pFanin0)) {
+                pMiter = Aig_Exor(pNew, (Aig_Obj_t*)pFanin0->pData, (Aig_Obj_t*)pFanin1->pData);
+                Aig_ObjCreateCo(pNew, pMiter);
             }
         }
     }
 }
-
 
 /**Function*************************************************************
 
@@ -713,97 +645,86 @@ void Saig_ManWindowCreatePos( Aig_Man_t * pNew, Aig_Man_t * p0, Aig_Man_t * p1 )
   SeeAlso     []
 
 ***********************************************************************/
-Aig_Man_t * Saig_ManWindowExtractMiter( Aig_Man_t * p0, Aig_Man_t * p1 )
-{
-    Aig_Man_t * pNew;
-    Aig_Obj_t * pObj0, * pObj1, * pMatch0, * pMatch1;
-    Vec_Ptr_t * vNodes0, * vNodes1;
+Aig_Man_t* Saig_ManWindowExtractMiter(Aig_Man_t* p0, Aig_Man_t* p1) {
+    Aig_Man_t* pNew;
+    Aig_Obj_t *pObj0, *pObj1, *pMatch0, *pMatch1;
+    Vec_Ptr_t *vNodes0, *vNodes1;
     int i, nRegCount;
     // add matching of POs and LIs
-    Saig_ManForEachPo( p0, pObj0, i )
-    {
-        pObj1 = Aig_ManCo( p1, i );
-        Aig_ObjSetRepr( p0, pObj0, pObj1 );
-        Aig_ObjSetRepr( p1, pObj1, pObj0 );
+    Saig_ManForEachPo(p0, pObj0, i) {
+        pObj1 = Aig_ManCo(p1, i);
+        Aig_ObjSetRepr(p0, pObj0, pObj1);
+        Aig_ObjSetRepr(p1, pObj1, pObj0);
     }
-    Saig_ManForEachLi( p0, pObj0, i )
-    {
-        pMatch0 = Saig_ObjLiToLo( p0, pObj0 );
-        pMatch1 = Aig_ObjRepr( p0, pMatch0 );
-        if ( pMatch1 == NULL )
+    Saig_ManForEachLi(p0, pObj0, i) {
+        pMatch0 = Saig_ObjLiToLo(p0, pObj0);
+        pMatch1 = Aig_ObjRepr(p0, pMatch0);
+        if (pMatch1 == NULL)
             continue;
-        assert( pMatch0 == Aig_ObjRepr( p1, pMatch1 ) );
-        pObj1 = Saig_ObjLoToLi( p1, pMatch1 );
-        Aig_ObjSetRepr( p0, pObj0, pObj1 );
-        Aig_ObjSetRepr( p1, pObj1, pObj0 );
+        assert(pMatch0 == Aig_ObjRepr(p1, pMatch1));
+        pObj1 = Saig_ObjLoToLi(p1, pMatch1);
+        Aig_ObjSetRepr(p0, pObj0, pObj1);
+        Aig_ObjSetRepr(p1, pObj1, pObj0);
     }
     // clean the markings
-    Aig_ManCleanData( p0 ); 
-    Aig_ManCleanData( p1 ); 
+    Aig_ManCleanData(p0);
+    Aig_ManCleanData(p1);
     // collect nodes that are not linked
-    vNodes0 = Saig_ManCollectedDiffNodes( p0, p1 );
-    vNodes1 = Saig_ManCollectedDiffNodes( p1, p0 );
+    vNodes0 = Saig_ManCollectedDiffNodes(p0, p1);
+    vNodes1 = Saig_ManCollectedDiffNodes(p1, p0);
     // create the new manager
-    pNew = Aig_ManStart( Vec_PtrSize(vNodes0) + Vec_PtrSize(vNodes1) );
-    pNew->pName = Abc_UtilStrsav( "wnd" );
+    pNew = Aig_ManStart(Vec_PtrSize(vNodes0) + Vec_PtrSize(vNodes1));
+    pNew->pName = Abc_UtilStrsav("wnd");
     pNew->pSpec = NULL;
     // map constant nodes
-    pObj0 = Aig_ManConst1( p0 );
-    pObj0->pData = Aig_ManConst1( pNew );
-    pObj1 = Aig_ManConst1( p1 );
-    pObj1->pData = Aig_ManConst1( pNew );
+    pObj0 = Aig_ManConst1(p0);
+    pObj0->pData = Aig_ManConst1(pNew);
+    pObj1 = Aig_ManConst1(p1);
+    pObj1->pData = Aig_ManConst1(pNew);
     // create real PIs
-    Saig_ManWindowCreatePis( pNew, p0, p1, vNodes0 );
-    Saig_ManWindowCreatePis( pNew, p1, p0, vNodes1 );
+    Saig_ManWindowCreatePis(pNew, p0, p1, vNodes0);
+    Saig_ManWindowCreatePis(pNew, p1, p0, vNodes1);
     // create register outputs
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes0, pObj0, i )
-    {
-        if ( Saig_ObjIsLo(p0, pObj0) )
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes0, pObj0, i) {
+        if (Saig_ObjIsLo(p0, pObj0))
             pObj0->pData = Aig_ObjCreateCi(pNew);
     }
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes1, pObj1, i )
-    {
-        if ( Saig_ObjIsLo(p1, pObj1) )
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes1, pObj1, i) {
+        if (Saig_ObjIsLo(p1, pObj1))
             pObj1->pData = Aig_ObjCreateCi(pNew);
     }
     // create internal nodes
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes0, pObj0, i )
-    {
-        if ( Aig_ObjIsNode(pObj0) )
-            pObj0->pData = Aig_And( pNew, Aig_ObjChild0Copy(pObj0), Aig_ObjChild1Copy(pObj0) );
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes0, pObj0, i) {
+        if (Aig_ObjIsNode(pObj0))
+            pObj0->pData = Aig_And(pNew, Aig_ObjChild0Copy(pObj0), Aig_ObjChild1Copy(pObj0));
     }
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes1, pObj1, i )
-    {
-        if ( Aig_ObjIsNode(pObj1) )
-            pObj1->pData = Aig_And( pNew, Aig_ObjChild0Copy(pObj1), Aig_ObjChild1Copy(pObj1) );
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes1, pObj1, i) {
+        if (Aig_ObjIsNode(pObj1))
+            pObj1->pData = Aig_And(pNew, Aig_ObjChild0Copy(pObj1), Aig_ObjChild1Copy(pObj1));
     }
     // create POs
-    Saig_ManWindowCreatePos( pNew, p0, p1 );
-//    Saig_ManWindowCreatePos( pNew, p1, p0 );
+    Saig_ManWindowCreatePos(pNew, p0, p1);
+    //    Saig_ManWindowCreatePos( pNew, p1, p0 );
     // create register inputs
     nRegCount = 0;
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes0, pObj0, i )
-    {
-        if ( Saig_ObjIsLo(p0, pObj0) )
-        {
-            pMatch0 = Saig_ObjLoToLi( p0, pObj0 );
-            Aig_ObjCreateCo( pNew, Aig_ObjChild0Copy(pMatch0) );
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes0, pObj0, i) {
+        if (Saig_ObjIsLo(p0, pObj0)) {
+            pMatch0 = Saig_ObjLoToLi(p0, pObj0);
+            Aig_ObjCreateCo(pNew, Aig_ObjChild0Copy(pMatch0));
             nRegCount++;
         }
     }
-    Vec_PtrForEachEntry( Aig_Obj_t *, vNodes1, pObj1, i )
-    {
-        if ( Saig_ObjIsLo(p1, pObj1) )
-        {
-            pMatch1 = Saig_ObjLoToLi( p1, pObj1 );
-            Aig_ObjCreateCo( pNew, Aig_ObjChild0Copy(pMatch1) );
+    Vec_PtrForEachEntry(Aig_Obj_t*, vNodes1, pObj1, i) {
+        if (Saig_ObjIsLo(p1, pObj1)) {
+            pMatch1 = Saig_ObjLoToLi(p1, pObj1);
+            Aig_ObjCreateCo(pNew, Aig_ObjChild0Copy(pMatch1));
             nRegCount++;
         }
     }
-    Aig_ManSetRegNum( pNew, nRegCount );
-    Aig_ManCleanup( pNew );
-    Vec_PtrFree( vNodes0 );
-    Vec_PtrFree( vNodes1 );
+    Aig_ManSetRegNum(pNew, nRegCount);
+    Aig_ManCleanup(pNew);
+    Vec_PtrFree(vNodes0);
+    Vec_PtrFree(vNodes1);
     return pNew;
 }
 
@@ -811,6 +732,4 @@ Aig_Man_t * Saig_ManWindowExtractMiter( Aig_Man_t * p0, Aig_Man_t * p1 )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

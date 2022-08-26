@@ -22,17 +22,15 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
 // the variable package data structure
-struct Msat_Order_t_
-{
-    Msat_Solver_t *      pSat;         // the SAT solver 
-    Msat_IntVec_t *      vIndex;       // the heap
-    Msat_IntVec_t *      vHeap;        // the mapping of var num into its heap num
+struct Msat_Order_t_ {
+    Msat_Solver_t* pSat;   // the SAT solver
+    Msat_IntVec_t* vIndex; // the heap
+    Msat_IntVec_t* vHeap;  // the mapping of var num into its heap num
 };
 
 //The solver can communicate to the variable order the following parts:
@@ -41,22 +39,22 @@ struct Msat_Order_t_
 //- the array of variables currently in the cone (pSat->vConeVars)
 //- the array of arrays of variables adjucent to each(pSat->vAdjacents)
 
-#define HLEFT(i)               ((i)<<1)
-#define HRIGHT(i)             (((i)<<1)+1)
-#define HPARENT(i)             ((i)>>1)
-#define HCOMPARE(p, i, j)      ((p)->pSat->pdActivity[i] > (p)->pSat->pdActivity[j])
-#define HHEAP(p, i)            ((p)->vHeap->pArray[i])
-#define HSIZE(p)               ((p)->vHeap->nSize)
-#define HOKAY(p, i)            ((i) >= 0 && (i) < (p)->vIndex->nSize)
-#define HINHEAP(p, i)          (HOKAY(p, i) && (p)->vIndex->pArray[i] != 0)
-#define HEMPTY(p)              (HSIZE(p) == 1)
+#define HLEFT(i) ((i) << 1)
+#define HRIGHT(i) (((i) << 1) + 1)
+#define HPARENT(i) ((i) >> 1)
+#define HCOMPARE(p, i, j) ((p)->pSat->pdActivity[i] > (p)->pSat->pdActivity[j])
+#define HHEAP(p, i) ((p)->vHeap->pArray[i])
+#define HSIZE(p) ((p)->vHeap->nSize)
+#define HOKAY(p, i) ((i) >= 0 && (i) < (p)->vIndex->nSize)
+#define HINHEAP(p, i) (HOKAY(p, i) && (p)->vIndex->pArray[i] != 0)
+#define HEMPTY(p) (HSIZE(p) == 1)
 
-static int Msat_HeapCheck_rec( Msat_Order_t * p, int i );
-static int Msat_HeapGetTop( Msat_Order_t * p );
-static void Msat_HeapInsert( Msat_Order_t * p, int n );
-static void Msat_HeapIncrease( Msat_Order_t * p, int n );
-static void Msat_HeapPercolateUp( Msat_Order_t * p, int i );
-static void Msat_HeapPercolateDown( Msat_Order_t * p, int i );
+static int Msat_HeapCheck_rec(Msat_Order_t* p, int i);
+static int Msat_HeapGetTop(Msat_Order_t* p);
+static void Msat_HeapInsert(Msat_Order_t* p, int n);
+static void Msat_HeapIncrease(Msat_Order_t* p, int n);
+static void Msat_HeapPercolateUp(Msat_Order_t* p, int i);
+static void Msat_HeapPercolateDown(Msat_Order_t* p, int i);
 
 extern abctime timeSelect;
 
@@ -75,15 +73,14 @@ extern abctime timeSelect;
   SeeAlso     []
 
 ***********************************************************************/
-Msat_Order_t * Msat_OrderAlloc( Msat_Solver_t * pSat )
-{
-    Msat_Order_t * p;
-    p = ABC_ALLOC( Msat_Order_t, 1 );
-    memset( p, 0, sizeof(Msat_Order_t) );
-    p->pSat   = pSat;
-    p->vIndex = Msat_IntVecAlloc( 0 );
-    p->vHeap  = Msat_IntVecAlloc( 0 );
-    Msat_OrderSetBounds( p, pSat->nVarsAlloc );
+Msat_Order_t* Msat_OrderAlloc(Msat_Solver_t* pSat) {
+    Msat_Order_t* p;
+    p = ABC_ALLOC(Msat_Order_t, 1);
+    memset(p, 0, sizeof(Msat_Order_t));
+    p->pSat = pSat;
+    p->vIndex = Msat_IntVecAlloc(0);
+    p->vHeap = Msat_IntVecAlloc(0);
+    Msat_OrderSetBounds(p, pSat->nVarsAlloc);
     return p;
 }
 
@@ -98,10 +95,9 @@ Msat_Order_t * Msat_OrderAlloc( Msat_Solver_t * pSat )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_OrderSetBounds( Msat_Order_t * p, int nVarsMax )
-{
-    Msat_IntVecGrow( p->vIndex, nVarsMax );
-    Msat_IntVecGrow( p->vHeap, nVarsMax + 1 );
+void Msat_OrderSetBounds(Msat_Order_t* p, int nVarsMax) {
+    Msat_IntVecGrow(p->vIndex, nVarsMax);
+    Msat_IntVecGrow(p->vHeap, nVarsMax + 1);
     p->vIndex->nSize = nVarsMax;
     p->vHeap->nSize = 0;
 }
@@ -117,18 +113,16 @@ void Msat_OrderSetBounds( Msat_Order_t * p, int nVarsMax )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_OrderClean( Msat_Order_t * p, Msat_IntVec_t * vCone )
-{
+void Msat_OrderClean(Msat_Order_t* p, Msat_IntVec_t* vCone) {
     int i;
-    for ( i = 0; i < p->vIndex->nSize; i++ )
+    for (i = 0; i < p->vIndex->nSize; i++)
         p->vIndex->pArray[i] = 0;
-    for ( i = 0; i < vCone->nSize; i++ )
-    {
-        assert( i+1 < p->vHeap->nCap );
-        p->vHeap->pArray[i+1] = vCone->pArray[i];
+    for (i = 0; i < vCone->nSize; i++) {
+        assert(i + 1 < p->vHeap->nCap);
+        p->vHeap->pArray[i + 1] = vCone->pArray[i];
 
-        assert( vCone->pArray[i] < p->vIndex->nSize );
-        p->vIndex->pArray[vCone->pArray[i]] = i+1;
+        assert(vCone->pArray[i] < p->vIndex->nSize);
+        p->vIndex->pArray[vCone->pArray[i]] = i + 1;
     }
     p->vHeap->nSize = vCone->nSize + 1;
 }
@@ -144,9 +138,8 @@ void Msat_OrderClean( Msat_Order_t * p, Msat_IntVec_t * vCone )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_OrderCheck( Msat_Order_t * p )
-{
-    return Msat_HeapCheck_rec( p, 1 );
+int Msat_OrderCheck(Msat_Order_t* p) {
+    return Msat_HeapCheck_rec(p, 1);
 }
 
 /**Function*************************************************************
@@ -160,14 +153,11 @@ int Msat_OrderCheck( Msat_Order_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_OrderFree( Msat_Order_t * p )
-{
-    Msat_IntVecFree( p->vHeap );
-    Msat_IntVecFree( p->vIndex );
-    ABC_FREE( p );
+void Msat_OrderFree(Msat_Order_t* p) {
+    Msat_IntVecFree(p->vHeap);
+    Msat_IntVecFree(p->vIndex);
+    ABC_FREE(p);
 }
-
-
 
 /**Function*************************************************************
 
@@ -180,26 +170,23 @@ void Msat_OrderFree( Msat_Order_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_OrderVarSelect( Msat_Order_t * p )
-{
+int Msat_OrderVarSelect(Msat_Order_t* p) {
     // Activity based decision:
-//    while (!heap.empty()){
-//        Var next = heap.getmin();
-//        if (toLbool(assigns[next]) == l_Undef)
-//            return next;
-//    }
-//    return var_Undef;
+    //    while (!heap.empty()){
+    //        Var next = heap.getmin();
+    //        if (toLbool(assigns[next]) == l_Undef)
+    //            return next;
+    //    }
+    //    return var_Undef;
 
     int Var;
     abctime clk = Abc_Clock();
 
-    while ( !HEMPTY(p) )
-    {
+    while (!HEMPTY(p)) {
         Var = Msat_HeapGetTop(p);
-        if ( (p)->pSat->pAssigns[Var] == MSAT_VAR_UNASSIGNED )
-        {
-//assert( Msat_OrderCheck(p) );
-timeSelect += Abc_Clock() - clk;
+        if ((p)->pSat->pAssigns[Var] == MSAT_VAR_UNASSIGNED) {
+            //assert( Msat_OrderCheck(p) );
+            timeSelect += Abc_Clock() - clk;
             return Var;
         }
     }
@@ -217,8 +204,7 @@ timeSelect += Abc_Clock() - clk;
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_OrderVarAssigned( Msat_Order_t * p, int Var )
-{
+void Msat_OrderVarAssigned(Msat_Order_t* p, int Var) {
 }
 
 /**Function*************************************************************
@@ -232,15 +218,14 @@ void Msat_OrderVarAssigned( Msat_Order_t * p, int Var )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_OrderVarUnassigned( Msat_Order_t * p, int Var )
-{
-//    if (!heap.inHeap(x))
-//        heap.insert(x);
+void Msat_OrderVarUnassigned(Msat_Order_t* p, int Var) {
+    //    if (!heap.inHeap(x))
+    //        heap.insert(x);
 
     abctime clk = Abc_Clock();
-    if ( !HINHEAP(p,Var) )
-        Msat_HeapInsert( p, Var );
-timeSelect += Abc_Clock() - clk;
+    if (!HINHEAP(p, Var))
+        Msat_HeapInsert(p, Var);
+    timeSelect += Abc_Clock() - clk;
 }
 
 /**Function*************************************************************
@@ -254,19 +239,15 @@ timeSelect += Abc_Clock() - clk;
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_OrderUpdate( Msat_Order_t * p, int Var )
-{
-//    if (heap.inHeap(x))
-//        heap.increase(x);
+void Msat_OrderUpdate(Msat_Order_t* p, int Var) {
+    //    if (heap.inHeap(x))
+    //        heap.increase(x);
 
     abctime clk = Abc_Clock();
-    if ( HINHEAP(p,Var) )
-        Msat_HeapIncrease( p, Var );
-timeSelect += Abc_Clock() - clk;
+    if (HINHEAP(p, Var))
+        Msat_HeapIncrease(p, Var);
+    timeSelect += Abc_Clock() - clk;
 }
-
-
-
 
 /**Function*************************************************************
 
@@ -279,16 +260,12 @@ timeSelect += Abc_Clock() - clk;
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_HeapCheck_rec( Msat_Order_t * p, int i )
-{
-    return i >= HSIZE(p) ||
-        (
-            ( HPARENT(i) == 0 || !HCOMPARE(p, HHEAP(p, i), HHEAP(p, HPARENT(i))) ) &&
+int Msat_HeapCheck_rec(Msat_Order_t* p, int i) {
+    return i >= HSIZE(p) || ((HPARENT(i) == 0 || !HCOMPARE(p, HHEAP(p, i), HHEAP(p, HPARENT(i)))) &&
 
-            Msat_HeapCheck_rec( p, HLEFT(i) ) && 
-            
-            Msat_HeapCheck_rec( p, HRIGHT(i) )
-        );
+                             Msat_HeapCheck_rec(p, HLEFT(i)) &&
+
+                             Msat_HeapCheck_rec(p, HRIGHT(i)));
 }
 
 /**Function*************************************************************
@@ -302,16 +279,15 @@ int Msat_HeapCheck_rec( Msat_Order_t * p, int i )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_HeapGetTop( Msat_Order_t * p )
-{
+int Msat_HeapGetTop(Msat_Order_t* p) {
     int Result, NewTop;
-    Result                    = HHEAP(p, 1);
-    NewTop                    = Msat_IntVecPop( p->vHeap );
-    p->vHeap->pArray[1]       = NewTop;
+    Result = HHEAP(p, 1);
+    NewTop = Msat_IntVecPop(p->vHeap);
+    p->vHeap->pArray[1] = NewTop;
     p->vIndex->pArray[NewTop] = 1;
     p->vIndex->pArray[Result] = 0;
-    if ( p->vHeap->nSize > 1 )
-        Msat_HeapPercolateDown( p, 1 );
+    if (p->vHeap->nSize > 1)
+        Msat_HeapPercolateDown(p, 1);
     return Result;
 }
 
@@ -326,12 +302,11 @@ int Msat_HeapGetTop( Msat_Order_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_HeapInsert( Msat_Order_t * p, int n )
-{
-    assert( HOKAY(p, n) );
+void Msat_HeapInsert(Msat_Order_t* p, int n) {
+    assert(HOKAY(p, n));
     p->vIndex->pArray[n] = HSIZE(p);
-    Msat_IntVecPush( p->vHeap, n );
-    Msat_HeapPercolateUp( p, p->vIndex->pArray[n] );
+    Msat_IntVecPush(p->vHeap, n);
+    Msat_HeapPercolateUp(p, p->vIndex->pArray[n]);
 }
 
 /**Function*************************************************************
@@ -345,9 +320,8 @@ void Msat_HeapInsert( Msat_Order_t * p, int n )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_HeapIncrease( Msat_Order_t * p, int n )
-{
-    Msat_HeapPercolateUp( p, p->vIndex->pArray[n] );
+void Msat_HeapIncrease(Msat_Order_t* p, int n) {
+    Msat_HeapPercolateUp(p, p->vIndex->pArray[n]);
 }
 
 /**Function*************************************************************
@@ -361,16 +335,14 @@ void Msat_HeapIncrease( Msat_Order_t * p, int n )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_HeapPercolateUp( Msat_Order_t * p, int i )
-{
+void Msat_HeapPercolateUp(Msat_Order_t* p, int i) {
     int x = HHEAP(p, i);
-    while ( HPARENT(i) != 0 && HCOMPARE(p, x, HHEAP(p, HPARENT(i))) )
-    {
-        p->vHeap->pArray[i]            = HHEAP(p, HPARENT(i));
+    while (HPARENT(i) != 0 && HCOMPARE(p, x, HHEAP(p, HPARENT(i)))) {
+        p->vHeap->pArray[i] = HHEAP(p, HPARENT(i));
         p->vIndex->pArray[HHEAP(p, i)] = i;
-        i                              = HPARENT(i);
+        i = HPARENT(i);
     }
-    p->vHeap->pArray[i]  = x;
+    p->vHeap->pArray[i] = x;
     p->vIndex->pArray[x] = i;
 }
 
@@ -385,31 +357,26 @@ void Msat_HeapPercolateUp( Msat_Order_t * p, int i )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_HeapPercolateDown( Msat_Order_t * p, int i )
-{
+void Msat_HeapPercolateDown(Msat_Order_t* p, int i) {
     int x = HHEAP(p, i);
     int Child;
-    while ( HLEFT(i) < HSIZE(p) )
-    {
-        if ( HRIGHT(i) < HSIZE(p) && HCOMPARE(p, HHEAP(p, HRIGHT(i)), HHEAP(p, HLEFT(i))) )
+    while (HLEFT(i) < HSIZE(p)) {
+        if (HRIGHT(i) < HSIZE(p) && HCOMPARE(p, HHEAP(p, HRIGHT(i)), HHEAP(p, HLEFT(i))))
             Child = HRIGHT(i);
         else
             Child = HLEFT(i);
-        if ( !HCOMPARE(p, HHEAP(p, Child), x) )
+        if (!HCOMPARE(p, HHEAP(p, Child), x))
             break;
-        p->vHeap->pArray[i]            = HHEAP(p, Child);
+        p->vHeap->pArray[i] = HHEAP(p, Child);
         p->vIndex->pArray[HHEAP(p, i)] = i;
-        i                              = Child;
+        i = Child;
     }
-    p->vHeap->pArray[i]  = x;
+    p->vHeap->pArray[i] = x;
     p->vIndex->pArray[x] = i;
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

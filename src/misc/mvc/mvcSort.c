@@ -20,14 +20,12 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-
-Mvc_Cube_t * Mvc_CoverSort_rec( Mvc_Cube_t * pList, int nItems, Mvc_Cube_t * pMask, int (* pCompareFunc)(Mvc_Cube_t *, Mvc_Cube_t *, Mvc_Cube_t *) );
-Mvc_Cube_t * Mvc_CoverSortMerge( Mvc_Cube_t * pList1, Mvc_Cube_t * pList2, Mvc_Cube_t * pMask, int (* pCompareFunc)(Mvc_Cube_t *, Mvc_Cube_t *, Mvc_Cube_t *) );
+Mvc_Cube_t* Mvc_CoverSort_rec(Mvc_Cube_t* pList, int nItems, Mvc_Cube_t* pMask, int (*pCompareFunc)(Mvc_Cube_t*, Mvc_Cube_t*, Mvc_Cube_t*));
+Mvc_Cube_t* Mvc_CoverSortMerge(Mvc_Cube_t* pList1, Mvc_Cube_t* pList2, Mvc_Cube_t* pMask, int (*pCompareFunc)(Mvc_Cube_t*, Mvc_Cube_t*, Mvc_Cube_t*));
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FuNCTION DEFINITIONS                         ///
@@ -44,21 +42,20 @@ Mvc_Cube_t * Mvc_CoverSortMerge( Mvc_Cube_t * pList1, Mvc_Cube_t * pList2, Mvc_C
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverSort( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask, int (* pCompareFunc)(Mvc_Cube_t *, Mvc_Cube_t *, Mvc_Cube_t *) )
-{
-    Mvc_Cube_t * pHead;
+void Mvc_CoverSort(Mvc_Cover_t* pCover, Mvc_Cube_t* pMask, int (*pCompareFunc)(Mvc_Cube_t*, Mvc_Cube_t*, Mvc_Cube_t*)) {
+    Mvc_Cube_t* pHead;
     int nCubes;
     // one cube does not need sorting
     nCubes = Mvc_CoverReadCubeNum(pCover);
-    if ( nCubes <= 1 )
+    if (nCubes <= 1)
         return;
-    // sort the cubes 
-    pHead = Mvc_CoverSort_rec( Mvc_CoverReadCubeHead(pCover), nCubes, pMask, pCompareFunc ); 
+    // sort the cubes
+    pHead = Mvc_CoverSort_rec(Mvc_CoverReadCubeHead(pCover), nCubes, pMask, pCompareFunc);
     // insert the sorted list into the cover
-    Mvc_CoverSetCubeHead( pCover, pHead );
-    Mvc_CoverSetCubeTail( pCover, Mvc_ListGetTailFromHead(pHead) );
+    Mvc_CoverSetCubeHead(pCover, pHead);
+    Mvc_CoverSetCubeTail(pCover, Mvc_ListGetTailFromHead(pHead));
     // make sure that the list is sorted in the increasing order
-    assert( pCompareFunc( Mvc_CoverReadCubeHead(pCover), Mvc_CoverReadCubeTail(pCover), pMask ) <= 0 );
+    assert(pCompareFunc(Mvc_CoverReadCubeHead(pCover), Mvc_CoverReadCubeTail(pCover), pMask) <= 0);
 }
 
 /**Function*************************************************************
@@ -72,35 +69,32 @@ void Mvc_CoverSort( Mvc_Cover_t * pCover, Mvc_Cube_t * pMask, int (* pCompareFun
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cube_t * Mvc_CoverSort_rec( Mvc_Cube_t * pList, int nItems, Mvc_Cube_t * pMask, int (* pCompareFunc)(Mvc_Cube_t *, Mvc_Cube_t *, Mvc_Cube_t *) )
-{
-    Mvc_Cube_t * pList1, * pList2;
+Mvc_Cube_t* Mvc_CoverSort_rec(Mvc_Cube_t* pList, int nItems, Mvc_Cube_t* pMask, int (*pCompareFunc)(Mvc_Cube_t*, Mvc_Cube_t*, Mvc_Cube_t*)) {
+    Mvc_Cube_t *pList1, *pList2;
     int nItems1, nItems2, i;
 
     // trivial case
-    if ( nItems == 1 )
-    {
-        Mvc_CubeSetNext( pList, NULL );
+    if (nItems == 1) {
+        Mvc_CubeSetNext(pList, NULL);
         return pList;
     }
 
     // select the new sizes
-    nItems1 = nItems/2;
+    nItems1 = nItems / 2;
     nItems2 = nItems - nItems1;
 
     // set the new beginnings
     pList1 = pList2 = pList;
-    for ( i = 0; i < nItems1; i++ )
-        pList2 = Mvc_CubeReadNext( pList2 );
+    for (i = 0; i < nItems1; i++)
+        pList2 = Mvc_CubeReadNext(pList2);
 
     // solve recursively
-    pList1 = Mvc_CoverSort_rec( pList1, nItems1, pMask, pCompareFunc );
-    pList2 = Mvc_CoverSort_rec( pList2, nItems2, pMask, pCompareFunc );
+    pList1 = Mvc_CoverSort_rec(pList1, nItems1, pMask, pCompareFunc);
+    pList2 = Mvc_CoverSort_rec(pList2, nItems2, pMask, pCompareFunc);
 
     // merge
-    return Mvc_CoverSortMerge( pList1, pList2, pMask, pCompareFunc );
+    return Mvc_CoverSortMerge(pList1, pList2, pMask, pCompareFunc);
 }
-
 
 /**Function*************************************************************
 
@@ -113,34 +107,26 @@ Mvc_Cube_t * Mvc_CoverSort_rec( Mvc_Cube_t * pList, int nItems, Mvc_Cube_t * pMa
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cube_t * Mvc_CoverSortMerge( Mvc_Cube_t * pList1, Mvc_Cube_t * pList2, Mvc_Cube_t * pMask, int (* pCompareFunc)(Mvc_Cube_t *, Mvc_Cube_t *, Mvc_Cube_t *) )
-{
-    Mvc_Cube_t * pList = NULL, ** ppTail = &pList;
-    Mvc_Cube_t * pCube;
-    while ( pList1 && pList2 )
-    {
-        if ( pCompareFunc( pList1, pList2, pMask ) < 0 )
-        {
+Mvc_Cube_t* Mvc_CoverSortMerge(Mvc_Cube_t* pList1, Mvc_Cube_t* pList2, Mvc_Cube_t* pMask, int (*pCompareFunc)(Mvc_Cube_t*, Mvc_Cube_t*, Mvc_Cube_t*)) {
+    Mvc_Cube_t *pList = NULL, **ppTail = &pList;
+    Mvc_Cube_t* pCube;
+    while (pList1 && pList2) {
+        if (pCompareFunc(pList1, pList2, pMask) < 0) {
             pCube = pList1;
             pList1 = Mvc_CubeReadNext(pList1);
-        }
-        else
-        {
+        } else {
             pCube = pList2;
             pList2 = Mvc_CubeReadNext(pList2);
         }
         *ppTail = pCube;
         ppTail = Mvc_CubeReadNextP(pCube);
     }
-    *ppTail = pList1? pList1: pList2;
+    *ppTail = pList1 ? pList1 : pList2;
     return pList;
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

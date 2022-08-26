@@ -26,10 +26,9 @@ ABC_NAMESPACE_IMPL_START
  * with '\0'.
  *
  */
-static char * file_open(const char *fname)
-{
-    FILE *file = fopen(fname, "rb");
-    char *buffer;
+static char* file_open(const char* fname) {
+    FILE* file = fopen(fname, "rb");
+    char* buffer;
     int sz_file;
     int ret;
 
@@ -47,23 +46,22 @@ static char * file_open(const char *fname)
     return buffer;
 }
 
-static void skip_spaces(char **pos)
-{
+static void skip_spaces(char** pos) {
     assert(pos != NULL);
-    for (; isspace(**pos); (*pos)++);
+    for (; isspace(**pos); (*pos)++)
+        ;
 }
 
-static void skip_line(char **pos)
-{
+static void skip_line(char** pos) {
     assert(pos != NULL);
-    for(; **pos != '\n' && **pos != '\r' && **pos != EOF; (*pos)++);
+    for (; **pos != '\n' && **pos != '\r' && **pos != EOF; (*pos)++)
+        ;
     if (**pos != EOF)
         (*pos)++;
     return;
 }
 
-static int read_int(char **token)
-{
+static int read_int(char** token) {
     int value = 0;
     int neg = 0;
 
@@ -85,8 +83,7 @@ static int read_int(char **token)
     return neg ? -value : value;
 }
 
-static void read_clause(char **token, vec_uint_t *lits)
-{
+static void read_clause(char** token, vec_uint_t* lits) {
     int var;
     unsigned sign;
 
@@ -97,7 +94,7 @@ static void read_clause(char **token, vec_uint_t *lits)
             break;
         sign = (var > 0);
         var = abs(var) - 1;
-        vec_uint_push_back(lits, var2lit((unsigned) var, (char)!sign));
+        vec_uint_push_back(lits, var2lit((unsigned)var, (char)!sign));
     }
 }
 
@@ -105,14 +102,13 @@ static void read_clause(char **token, vec_uint_t *lits)
  *
  * Returns false upon immediate conflict.
  */
-int satoko_parse_dimacs(char *fname, satoko_t **solver)
-{
-    satoko_t *p = NULL;
-    vec_uint_t *lits = NULL;
+int satoko_parse_dimacs(char* fname, satoko_t** solver) {
+    satoko_t* p = NULL;
+    vec_uint_t* lits = NULL;
     int n_var;
     int n_clause;
-    char *buffer = file_open(fname);
-    char *token;
+    char* buffer = file_open(fname);
+    char* token;
 
     if (buffer == NULL)
         return -1;
@@ -127,12 +123,13 @@ int satoko_parse_dimacs(char *fname, satoko_t **solver)
         else if (*token == 'p') {
             token++;
             skip_spaces(&token);
-            for(; !isspace(*token); token++); /* skip 'cnf' */
+            for (; !isspace(*token); token++)
+                ; /* skip 'cnf' */
 
             n_var = read_int(&token);
             n_clause = read_int(&token);
             skip_line(&token);
-            lits = vec_uint_alloc((unsigned) n_var);
+            lits = vec_uint_alloc((unsigned)n_var);
             p = satoko_create();
         } else {
             if (lits == NULL) {
@@ -146,7 +143,7 @@ int satoko_parse_dimacs(char *fname, satoko_t **solver)
                 vec_uint_print(lits);
                 return SATOKO_ERR;
             }
-            }
+        }
     }
     vec_uint_free(lits);
     satoko_free(buffer);

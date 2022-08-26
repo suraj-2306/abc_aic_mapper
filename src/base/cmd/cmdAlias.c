@@ -23,7 +23,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -43,19 +42,18 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void CmdCommandAliasAdd( Abc_Frame_t * pAbc, char * sName, int argc, char ** argv )
-{
-    Abc_Alias * pAlias;
+void CmdCommandAliasAdd(Abc_Frame_t* pAbc, char* sName, int argc, char** argv) {
+    Abc_Alias* pAlias;
     int fStatus, i;
 
     pAlias = ABC_ALLOC(Abc_Alias, 1);
     pAlias->sName = Extra_UtilStrsav(sName);
     pAlias->argc = argc;
-    pAlias->argv = ABC_ALLOC(char *, pAlias->argc);
-    for(i = 0; i < argc; i++) 
+    pAlias->argv = ABC_ALLOC(char*, pAlias->argc);
+    for (i = 0; i < argc; i++)
         pAlias->argv[i] = Extra_UtilStrsav(argv[i]);
-    fStatus = st__insert( pAbc->tAliases, pAlias->sName, (char *) pAlias );
-    assert(!fStatus);  
+    fStatus = st__insert(pAbc->tAliases, pAlias->sName, (char*)pAlias);
+    assert(!fStatus);
 }
 
 /**Function********************************************************************
@@ -69,13 +67,12 @@ void CmdCommandAliasAdd( Abc_Frame_t * pAbc, char * sName, int argc, char ** arg
   SeeAlso     [optional]
 
 ******************************************************************************/
-void CmdCommandAliasPrint( Abc_Frame_t * pAbc, Abc_Alias * pAlias )
-{
+void CmdCommandAliasPrint(Abc_Frame_t* pAbc, Abc_Alias* pAlias) {
     int i;
     fprintf(pAbc->Out, "%-15s", pAlias->sName);
-    for(i = 0; i < pAlias->argc; i++) 
-        fprintf( pAbc->Out, " %s", pAlias->argv[i] );
-    fprintf( pAbc->Out, "\n" );
+    for (i = 0; i < pAlias->argc; i++)
+        fprintf(pAbc->Out, " %s", pAlias->argv[i]);
+    fprintf(pAbc->Out, "\n");
 }
 
 /**Function********************************************************************
@@ -89,14 +86,13 @@ void CmdCommandAliasPrint( Abc_Frame_t * pAbc, Abc_Alias * pAlias )
   SeeAlso     [optional]
 
 ******************************************************************************/
-char * CmdCommandAliasLookup( Abc_Frame_t * pAbc, char * sCommand )
-{
-  Abc_Alias * pAlias;
-  char * value;
-  if (! st__lookup( pAbc->tAliases, sCommand, &value)) 
-    return sCommand;
-  pAlias = (Abc_Alias *) value;
-  return pAlias->argv[0];
+char* CmdCommandAliasLookup(Abc_Frame_t* pAbc, char* sCommand) {
+    Abc_Alias* pAlias;
+    char* value;
+    if (!st__lookup(pAbc->tAliases, sCommand, &value))
+        return sCommand;
+    pAlias = (Abc_Alias*)value;
+    return pAlias->argv[0];
 }
 
 /**Function*************************************************************
@@ -110,10 +106,9 @@ char * CmdCommandAliasLookup( Abc_Frame_t * pAbc, char * sCommand )
   SeeAlso     []
 
 ***********************************************************************/
-void CmdCommandAliasFree( Abc_Alias * pAlias )
-{
-    CmdFreeArgv( pAlias->argc, pAlias->argv );
-    ABC_FREE(pAlias->sName);    
+void CmdCommandAliasFree(Abc_Alias* pAlias) {
+    CmdFreeArgv(pAlias->argc, pAlias->argv);
+    ABC_FREE(pAlias->sName);
     ABC_FREE(pAlias);
 }
 
@@ -121,6 +116,4 @@ void CmdCommandAliasFree( Abc_Alias * pAlias )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

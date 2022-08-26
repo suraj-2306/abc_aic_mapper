@@ -57,9 +57,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
@@ -90,14 +87,11 @@ static char rcsid[] DD_UNUSED = "$Id: cuddLiteral.c,v 1.8 2004/08/13 18:04:50 fa
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -114,27 +108,24 @@ static char rcsid[] DD_UNUSED = "$Id: cuddLiteral.c,v 1.8 2004/08/13 18:04:50 fa
   SideEffects [None]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_bddLiteralSetIntersection(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
-    DdNode *res;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
-        res = cuddBddLiteralSetIntersectionRecur(dd,f,g);
+        res = cuddBddLiteralSetIntersectionRecur(dd, f, g);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_bddLiteralSetIntersection */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -149,22 +140,21 @@ Cudd_bddLiteralSetIntersection(
   SideEffects [None]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddBddLiteralSetIntersectionRecur(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
-{
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g) {
     DdNode *res, *tmp;
     DdNode *F, *G;
     DdNode *fc, *gc;
-    DdNode *one;
-    DdNode *zero;
+    DdNode* one;
+    DdNode* zero;
     unsigned int topf, topg, comple;
     int phasef, phaseg;
 
     statLine(dd);
-    if (f == g) return(f);
+    if (f == g) return (f);
 
     F = Cudd_Regular(f);
     G = Cudd_Regular(g);
@@ -174,16 +164,16 @@ cuddBddLiteralSetIntersectionRecur(
     ** Since they are two cubes, this case only occurs when f == v,
     ** g == v', and v is a variable or its complement.
     */
-    if (F == G) return(one);
+    if (F == G) return (one);
 
     zero = Cudd_Not(one);
-    topf = cuddI(dd,F->index);
-    topg = cuddI(dd,G->index);
+    topf = cuddI(dd, F->index);
+    topg = cuddI(dd, G->index);
     /* Look for a variable common to both cubes. If there are none, this
     ** loop will stop when the constant node is reached in both cubes.
     */
     while (topf != topg) {
-        if (topf < topg) {      /* move down on f */
+        if (topf < topg) { /* move down on f */
             comple = f != F;
             f = cuddT(F);
             if (comple) f = Cudd_Not(f);
@@ -192,7 +182,7 @@ cuddBddLiteralSetIntersectionRecur(
                 if (comple) f = Cudd_Not(f);
             }
             F = Cudd_Regular(f);
-            topf = cuddI(dd,F->index);
+            topf = cuddI(dd, F->index);
         } else if (topg < topf) {
             comple = g != G;
             g = cuddT(G);
@@ -202,16 +192,16 @@ cuddBddLiteralSetIntersectionRecur(
                 if (comple) g = Cudd_Not(g);
             }
             G = Cudd_Regular(g);
-            topg = cuddI(dd,G->index);
+            topg = cuddI(dd, G->index);
         }
     }
 
     /* At this point, f == one <=> g == 1. It suffices to test one of them. */
-    if (f == one) return(one);
+    if (f == one) return (one);
 
-    res = cuddCacheLookup2(dd,Cudd_bddLiteralSetIntersection,f,g);
+    res = cuddCacheLookup2(dd, Cudd_bddLiteralSetIntersection, f, g);
     if (res != NULL) {
-        return(res);
+        return (res);
     }
 
     /* Here f and g are both non constant and have the same top variable. */
@@ -234,9 +224,9 @@ cuddBddLiteralSetIntersectionRecur(
         if (comple) gc = Cudd_Not(gc);
     }
 
-    tmp = cuddBddLiteralSetIntersectionRecur(dd,fc,gc);
+    tmp = cuddBddLiteralSetIntersectionRecur(dd, fc, gc);
     if (tmp == NULL) {
-        return(NULL);
+        return (NULL);
     }
 
     if (phasef != phaseg) {
@@ -244,29 +234,25 @@ cuddBddLiteralSetIntersectionRecur(
     } else {
         cuddRef(tmp);
         if (phasef == 0) {
-            res = cuddBddAndRecur(dd,Cudd_Not(dd->vars[F->index]),tmp);
+            res = cuddBddAndRecur(dd, Cudd_Not(dd->vars[F->index]), tmp);
         } else {
-            res = cuddBddAndRecur(dd,dd->vars[F->index],tmp);
+            res = cuddBddAndRecur(dd, dd->vars[F->index], tmp);
         }
         if (res == NULL) {
-            Cudd_RecursiveDeref(dd,tmp);
-            return(NULL);
+            Cudd_RecursiveDeref(dd, tmp);
+            return (NULL);
         }
         cuddDeref(tmp); /* Just cuddDeref, because it is included in result */
     }
 
-    cuddCacheInsert2(dd,Cudd_bddLiteralSetIntersection,f,g,res);
+    cuddCacheInsert2(dd, Cudd_bddLiteralSetIntersection, f, g, res);
 
-    return(res);
+    return (res);
 
 } /* end of cuddBddLiteralSetIntersectionRecur */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-
 ABC_NAMESPACE_IMPL_END
-
-

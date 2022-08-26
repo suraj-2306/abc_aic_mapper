@@ -57,23 +57,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -83,11 +77,9 @@ ABC_NAMESPACE_IMPL_START
 static char rcsid[] DD_UNUSED = "$Id: cuddAndAbs.c,v 1.19 2004/08/13 18:04:46 fabio Exp $";
 #endif
 
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
-
 
 /**AutomaticStart*************************************************************/
 
@@ -95,14 +87,11 @@ static char rcsid[] DD_UNUSED = "$Id: cuddAndAbs.c,v 1.19 2004/08/13 18:04:46 fa
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -120,23 +109,21 @@ static char rcsid[] DD_UNUSED = "$Id: cuddAndAbs.c,v 1.19 2004/08/13 18:04:46 fa
   SeeAlso     [Cudd_addMatrixMultiply Cudd_addTriangle Cudd_bddAnd]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_bddAndAbstract(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * g,
-  DdNode * cube)
-{
-    DdNode *res;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* g,
+    DdNode* cube) {
+    DdNode* res;
 
     do {
         manager->reordered = 0;
         res = cuddBddAndAbstractRecur(manager, f, g, cube);
     } while (manager->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_bddAndAbstract */
-
 
 /**Function********************************************************************
 
@@ -154,33 +141,29 @@ Cudd_bddAndAbstract(
   SeeAlso     [Cudd_bddAndAbstract]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_bddAndAbstractLimit(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * g,
-  DdNode * cube,
-  unsigned int limit)
-{
-    DdNode *res;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* g,
+    DdNode* cube,
+    unsigned int limit) {
+    DdNode* res;
     unsigned int saveLimit = manager->maxLive;
 
-    manager->maxLive = (manager->keys - manager->dead) +
-      (manager->keysZ - manager->deadZ) + limit;
+    manager->maxLive = (manager->keys - manager->dead) + (manager->keysZ - manager->deadZ) + limit;
     do {
         manager->reordered = 0;
         res = cuddBddAndAbstractRecur(manager, f, g, cube);
     } while (manager->reordered == 1);
     manager->maxLive = saveLimit;
-    return(res);
+    return (res);
 
 } /* end of Cudd_bddAndAbstractLimit */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -196,13 +179,12 @@ Cudd_bddAndAbstractLimit(
   SeeAlso     [Cudd_bddAndAbstract]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddBddAndAbstractRecur(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * g,
-  DdNode * cube)
-{
+    DdManager* manager,
+    DdNode* f,
+    DdNode* g,
+    DdNode* cube) {
     DdNode *F, *ft, *fe, *G, *gt, *ge;
     DdNode *one, *zero, *r, *t, *e;
     unsigned int topf, topg, topcube, top, index;
@@ -212,22 +194,22 @@ cuddBddAndAbstractRecur(
     zero = Cudd_Not(one);
 
     /* Terminal cases. */
-    if (f == zero || g == zero || f == Cudd_Not(g)) return(zero);
-    if (f == one && g == one)   return(one);
+    if (f == zero || g == zero || f == Cudd_Not(g)) return (zero);
+    if (f == one && g == one) return (one);
 
     if (cube == one) {
-        return(cuddBddAndRecur(manager, f, g));
+        return (cuddBddAndRecur(manager, f, g));
     }
     if (f == one || f == g) {
-        return(cuddBddExistAbstractRecur(manager, g, cube));
+        return (cuddBddExistAbstractRecur(manager, g, cube));
     }
     if (g == one) {
-        return(cuddBddExistAbstractRecur(manager, f, cube));
+        return (cuddBddExistAbstractRecur(manager, f, cube));
     }
     /* At this point f, g, and cube are not constant. */
 
     if (f > g) { /* Try to increase cache efficiency. */
-        DdNode *tmp = f;
+        DdNode* tmp = f;
         f = g;
         g = tmp;
     }
@@ -245,7 +227,7 @@ cuddBddAndAbstractRecur(
     while (topcube < top) {
         cube = cuddT(cube);
         if (cube == one) {
-            return(cuddBddAndRecur(manager, f, g));
+            return (cuddBddAndRecur(manager, f, g));
         }
         topcube = manager->perm[cube->index];
     }
@@ -255,11 +237,11 @@ cuddBddAndAbstractRecur(
     if (F->ref != 1 || G->ref != 1) {
         r = cuddCacheLookup(manager, DD_BDD_AND_ABSTRACT_TAG, f, g, cube);
         if (r != NULL) {
-            return(r);
+            return (r);
         }
     }
 
-    if ( manager->TimeStop && Abc_Clock() > manager->TimeStop )
+    if (manager->TimeStop && Abc_Clock() > manager->TimeStop)
         return NULL;
 
     if (topf == top) {
@@ -286,10 +268,10 @@ cuddBddAndAbstractRecur(
         gt = ge = g;
     }
 
-    if (topcube == top) {       /* quantify */
-        DdNode *Cube = cuddT(cube);
+    if (topcube == top) { /* quantify */
+        DdNode* Cube = cuddT(cube);
         t = cuddBddAndAbstractRecur(manager, ft, gt, Cube);
-        if (t == NULL) return(NULL);
+        if (t == NULL) return (NULL);
         /* Special case: 1 OR anything = 1. Hence, no need to compute
         ** the else branch if t is 1. Likewise t + t * anything == t.
         ** Notice that t == fe implies that fe does not depend on the
@@ -299,7 +281,7 @@ cuddBddAndAbstractRecur(
             if (F->ref != 1 || G->ref != 1)
                 cuddCacheInsert(manager, DD_BDD_AND_ABSTRACT_TAG,
                                 f, g, cube, t);
-            return(t);
+            return (t);
         }
         cuddRef(t);
         /* Special case: t + !t * anything == t + anything. */
@@ -312,7 +294,7 @@ cuddBddAndAbstractRecur(
         }
         if (e == NULL) {
             Cudd_IterDerefBdd(manager, t);
-            return(NULL);
+            return (NULL);
         }
         if (t == e) {
             r = t;
@@ -323,7 +305,7 @@ cuddBddAndAbstractRecur(
             if (r == NULL) {
                 Cudd_IterDerefBdd(manager, t);
                 Cudd_IterDerefBdd(manager, e);
-                return(NULL);
+                return (NULL);
             }
             r = Cudd_Not(r);
             cuddRef(r);
@@ -333,12 +315,12 @@ cuddBddAndAbstractRecur(
         }
     } else {
         t = cuddBddAndAbstractRecur(manager, ft, gt, cube);
-        if (t == NULL) return(NULL);
+        if (t == NULL) return (NULL);
         cuddRef(t);
         e = cuddBddAndAbstractRecur(manager, fe, ge, cube);
         if (e == NULL) {
             Cudd_IterDerefBdd(manager, t);
-            return(NULL);
+            return (NULL);
         }
         if (t == e) {
             r = t;
@@ -346,20 +328,20 @@ cuddBddAndAbstractRecur(
         } else {
             cuddRef(e);
             if (Cudd_IsComplement(t)) {
-                r = cuddUniqueInter(manager, (int) index,
+                r = cuddUniqueInter(manager, (int)index,
                                     Cudd_Not(t), Cudd_Not(e));
                 if (r == NULL) {
                     Cudd_IterDerefBdd(manager, t);
                     Cudd_IterDerefBdd(manager, e);
-                    return(NULL);
+                    return (NULL);
                 }
                 r = Cudd_Not(r);
             } else {
-                r = cuddUniqueInter(manager,(int)index,t,e);
+                r = cuddUniqueInter(manager, (int)index, t, e);
                 if (r == NULL) {
                     Cudd_IterDerefBdd(manager, t);
                     Cudd_IterDerefBdd(manager, e);
-                    return(NULL);
+                    return (NULL);
                 }
             }
             cuddDeref(e);
@@ -373,12 +355,8 @@ cuddBddAndAbstractRecur(
 
 } /* end of cuddBddAndAbstractRecur */
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-
 ABC_NAMESPACE_IMPL_END
-
-

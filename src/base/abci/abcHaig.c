@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -30,7 +29,6 @@ ABC_NAMESPACE_IMPL_START
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
-
 
 /**Function*************************************************************
 
@@ -43,18 +41,16 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Ptr_t * Abc_NtkHaigCollectMembers( Hop_Man_t * p )
-{
-    Vec_Ptr_t * vObjs;
-    Hop_Obj_t * pObj;
+Vec_Ptr_t* Abc_NtkHaigCollectMembers(Hop_Man_t* p) {
+    Vec_Ptr_t* vObjs;
+    Hop_Obj_t* pObj;
     int i;
-    vObjs = Vec_PtrAlloc( 4098 );
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-    {
-        if ( pObj->pData == NULL )
+    vObjs = Vec_PtrAlloc(4098);
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i) {
+        if (pObj->pData == NULL)
             continue;
-        pObj->pData = Hop_ObjRepr( pObj );
-        Vec_PtrPush( vObjs, pObj );
+        pObj->pData = Hop_ObjRepr(pObj);
+        Vec_PtrPush(vObjs, pObj);
     }
     return vObjs;
 }
@@ -70,63 +66,57 @@ Vec_Ptr_t * Abc_NtkHaigCollectMembers( Hop_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Ptr_t * Abc_NtkHaigCreateClasses( Vec_Ptr_t * vMembers )
-{
-    Vec_Ptr_t * vClasses;
-    Hop_Obj_t * pObj, * pRepr;
+Vec_Ptr_t* Abc_NtkHaigCreateClasses(Vec_Ptr_t* vMembers) {
+    Vec_Ptr_t* vClasses;
+    Hop_Obj_t *pObj, *pRepr;
     int i;
 
     // count classes
-    vClasses = Vec_PtrAlloc( 4098 );
-    Vec_PtrForEachEntry( Hop_Obj_t *, vMembers, pObj, i )
-    {
-        pRepr = (Hop_Obj_t *)pObj->pData;
-        assert( pRepr->pData == NULL );
-        if ( pRepr->fMarkA == 0 ) // new
+    vClasses = Vec_PtrAlloc(4098);
+    Vec_PtrForEachEntry(Hop_Obj_t*, vMembers, pObj, i) {
+        pRepr = (Hop_Obj_t*)pObj->pData;
+        assert(pRepr->pData == NULL);
+        if (pRepr->fMarkA == 0) // new
         {
             pRepr->fMarkA = 1;
-            Vec_PtrPush( vClasses, pRepr );
+            Vec_PtrPush(vClasses, pRepr);
         }
     }
 
     // set representatives as representatives
-    Vec_PtrForEachEntry( Hop_Obj_t *, vClasses, pObj, i )
-    {
+    Vec_PtrForEachEntry(Hop_Obj_t*, vClasses, pObj, i) {
         pObj->fMarkA = 0;
         pObj->pData = pObj;
     }
 
     // go through the members and update
-    Vec_PtrForEachEntry( Hop_Obj_t *, vMembers, pObj, i )
-    {
-        pRepr = (Hop_Obj_t *)pObj->pData;
-        if ( ((Hop_Obj_t *)pRepr->pData)->Id > pObj->Id )
+    Vec_PtrForEachEntry(Hop_Obj_t*, vMembers, pObj, i) {
+        pRepr = (Hop_Obj_t*)pObj->pData;
+        if (((Hop_Obj_t*)pRepr->pData)->Id > pObj->Id)
             pRepr->pData = pObj;
     }
 
     // change representatives of the class
-    Vec_PtrForEachEntry( Hop_Obj_t *, vMembers, pObj, i )
-    {
-        pRepr = (Hop_Obj_t *)pObj->pData;
+    Vec_PtrForEachEntry(Hop_Obj_t*, vMembers, pObj, i) {
+        pRepr = (Hop_Obj_t*)pObj->pData;
         pObj->pData = pRepr->pData;
-        assert( ((Hop_Obj_t *)pObj->pData)->Id <= pObj->Id );
+        assert(((Hop_Obj_t*)pObj->pData)->Id <= pObj->Id);
     }
 
     // update classes
-    Vec_PtrForEachEntry( Hop_Obj_t *, vClasses, pObj, i )
-    {
-        pRepr = (Hop_Obj_t *)pObj->pData;
-        assert( pRepr->pData == pRepr );
-//        pRepr->pData = NULL;
-        Vec_PtrWriteEntry( vClasses, i, pRepr );
-        Vec_PtrPush( vMembers, pObj );
+    Vec_PtrForEachEntry(Hop_Obj_t*, vClasses, pObj, i) {
+        pRepr = (Hop_Obj_t*)pObj->pData;
+        assert(pRepr->pData == pRepr);
+        //        pRepr->pData = NULL;
+        Vec_PtrWriteEntry(vClasses, i, pRepr);
+        Vec_PtrPush(vMembers, pObj);
     }
 
-    Vec_PtrForEachEntry( Hop_Obj_t *, vMembers, pObj, i )
-        if ( pObj->pData == pObj )
-            pObj->pData = NULL;
+    Vec_PtrForEachEntry(Hop_Obj_t*, vMembers, pObj, i) if (pObj->pData == pObj)
+        pObj->pData
+        = NULL;
 
-/*
+    /*
     Vec_PtrForEachEntry( Hop_Obj_t *, vMembers, pObj, i )
     {
         printf( "ObjId = %4d : ", pObj->Id );
@@ -156,22 +146,19 @@ Vec_Ptr_t * Abc_NtkHaigCreateClasses( Vec_Ptr_t * vMembers )
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_NtkHaigCountFans( Hop_Man_t * p )
-{
-    Hop_Obj_t * pObj;
+int Abc_NtkHaigCountFans(Hop_Man_t* p) {
+    Hop_Obj_t* pObj;
     int i, Counter = 0;
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-    {
-        if ( pObj->pData == NULL )
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i) {
+        if (pObj->pData == NULL)
             continue;
-        if ( Hop_ObjRefs(pObj) > 0 )
+        if (Hop_ObjRefs(pObj) > 0)
             Counter++;
     }
-    printf( "The number of class members with fanouts = %5d.\n", Counter );
+    printf("The number of class members with fanouts = %5d.\n", Counter);
     return Counter;
 }
 
-
 /**Function*************************************************************
 
   Synopsis    []
@@ -183,15 +170,14 @@ int Abc_NtkHaigCountFans( Hop_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline Hop_Obj_t * Hop_ObjReprHop( Hop_Obj_t * pObj )
-{
-    Hop_Obj_t * pRepr;
-    assert( pObj->pNext != NULL );
-    if ( pObj->pData == NULL )
+static inline Hop_Obj_t* Hop_ObjReprHop(Hop_Obj_t* pObj) {
+    Hop_Obj_t* pRepr;
+    assert(pObj->pNext != NULL);
+    if (pObj->pData == NULL)
         return pObj->pNext;
-    pRepr = (Hop_Obj_t *)pObj->pData;
-    assert( pRepr->pData == pRepr );
-    return Hop_NotCond( pRepr->pNext, pObj->fPhase ^ pRepr->fPhase );
+    pRepr = (Hop_Obj_t*)pObj->pData;
+    assert(pRepr->pData == pRepr);
+    return Hop_NotCond(pRepr->pNext, pObj->fPhase ^ pRepr->fPhase);
 }
 
 /**Function*************************************************************
@@ -205,8 +191,8 @@ static inline Hop_Obj_t * Hop_ObjReprHop( Hop_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-static inline Hop_Obj_t * Hop_ObjChild0Hop( Hop_Obj_t * pObj ) { return Hop_NotCond( Hop_ObjReprHop(Hop_ObjFanin0(pObj)), Hop_ObjFaninC0(pObj) ); }
-static inline Hop_Obj_t * Hop_ObjChild1Hop( Hop_Obj_t * pObj ) { return Hop_NotCond( Hop_ObjReprHop(Hop_ObjFanin1(pObj)), Hop_ObjFaninC1(pObj) ); }
+static inline Hop_Obj_t* Hop_ObjChild0Hop(Hop_Obj_t* pObj) { return Hop_NotCond(Hop_ObjReprHop(Hop_ObjFanin0(pObj)), Hop_ObjFaninC0(pObj)); }
+static inline Hop_Obj_t* Hop_ObjChild1Hop(Hop_Obj_t* pObj) { return Hop_NotCond(Hop_ObjReprHop(Hop_ObjFanin1(pObj)), Hop_ObjFaninC1(pObj)); }
 
 /**Function*************************************************************
 
@@ -219,49 +205,47 @@ static inline Hop_Obj_t * Hop_ObjChild1Hop( Hop_Obj_t * pObj ) { return Hop_NotC
   SeeAlso     []
 
 ***********************************************************************/
-Hop_Man_t * Abc_NtkHaigReconstruct( Hop_Man_t * p )
-{ 
-    Hop_Man_t * pNew;
-    Hop_Obj_t * pObj;
+Hop_Man_t* Abc_NtkHaigReconstruct(Hop_Man_t* p) {
+    Hop_Man_t* pNew;
+    Hop_Obj_t* pObj;
     int i, Counter = 0;
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-        pObj->pNext = NULL;
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i)
+        pObj->pNext
+        = NULL;
     // start the HOP package
     pNew = Hop_ManStart();
-    pNew->vObjs = Vec_PtrAlloc( p->nCreated );
-    Vec_PtrPush( pNew->vObjs, Hop_ManConst1(pNew) );
+    pNew->vObjs = Vec_PtrAlloc(p->nCreated);
+    Vec_PtrPush(pNew->vObjs, Hop_ManConst1(pNew));
     // map the constant node
     Hop_ManConst1(p)->pNext = Hop_ManConst1(pNew);
     // map the CIs
-    Hop_ManForEachPi( p, pObj, i )
-        pObj->pNext = Hop_ObjCreatePi(pNew);
+    Hop_ManForEachPi(p, pObj, i)
+        pObj->pNext
+        = Hop_ObjCreatePi(pNew);
     // map the internal nodes
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-    {
-        if ( !Hop_ObjIsNode(pObj) )
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i) {
+        if (!Hop_ObjIsNode(pObj))
             continue;
-        pObj->pNext = Hop_And( pNew, Hop_ObjChild0Hop(pObj), Hop_ObjChild1Hop(pObj) );
-//        assert( !Hop_IsComplement(pObj->pNext) );
-        if ( Hop_ManConst1(pNew) == Hop_Regular(pObj->pNext) )
+        pObj->pNext = Hop_And(pNew, Hop_ObjChild0Hop(pObj), Hop_ObjChild1Hop(pObj));
+        //        assert( !Hop_IsComplement(pObj->pNext) );
+        if (Hop_ManConst1(pNew) == Hop_Regular(pObj->pNext))
             Counter++;
-        if ( pObj->pData ) // member of the class
-            Hop_Regular(pObj->pNext)->pData = Hop_Regular(((Hop_Obj_t *)pObj->pData)->pNext);
+        if (pObj->pData) // member of the class
+            Hop_Regular(pObj->pNext)->pData = Hop_Regular(((Hop_Obj_t*)pObj->pData)->pNext);
     }
-//    printf( " Counter = %d.\n", Counter );
+    //    printf( " Counter = %d.\n", Counter );
     // transfer the POs
-    Hop_ManForEachPo( p, pObj, i )
-        Hop_ObjCreatePo( pNew, Hop_ObjChild0Hop(pObj) );
+    Hop_ManForEachPo(p, pObj, i)
+        Hop_ObjCreatePo(pNew, Hop_ObjChild0Hop(pObj));
     // check the new manager
-    if ( !Hop_ManCheck(pNew) )
-    {
-        printf( "Abc_NtkHaigReconstruct: Check for History AIG has failed.\n" );
+    if (!Hop_ManCheck(pNew)) {
+        printf("Abc_NtkHaigReconstruct: Check for History AIG has failed.\n");
         Hop_ManStop(pNew);
         return NULL;
     }
     return pNew;
 }
 
-
 /**Function*************************************************************
 
   Synopsis    [Returns 1 if pOld is in the TFI of pNew.]
@@ -273,28 +257,27 @@ Hop_Man_t * Abc_NtkHaigReconstruct( Hop_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_NtkHaigCheckTfi_rec( Abc_Obj_t * pNode, Abc_Obj_t * pOld )
-{
-    if ( pNode == NULL )
+int Abc_NtkHaigCheckTfi_rec(Abc_Obj_t* pNode, Abc_Obj_t* pOld) {
+    if (pNode == NULL)
         return 0;
-    if ( pNode == pOld )
+    if (pNode == pOld)
         return 1;
     // check the trivial cases
-    if ( Abc_ObjIsCi(pNode) )
+    if (Abc_ObjIsCi(pNode))
         return 0;
-    assert( Abc_ObjIsNode(pNode) );
+    assert(Abc_ObjIsNode(pNode));
     // if this node is already visited, skip
-    if ( Abc_NodeIsTravIdCurrent( pNode ) )
+    if (Abc_NodeIsTravIdCurrent(pNode))
         return 0;
     // mark the node as visited
-    Abc_NodeSetTravIdCurrent( pNode );
+    Abc_NodeSetTravIdCurrent(pNode);
     // check the children
-    if ( Abc_NtkHaigCheckTfi_rec( Abc_ObjFanin0(pNode), pOld ) )
+    if (Abc_NtkHaigCheckTfi_rec(Abc_ObjFanin0(pNode), pOld))
         return 1;
-    if ( Abc_NtkHaigCheckTfi_rec( Abc_ObjFanin1(pNode), pOld ) )
+    if (Abc_NtkHaigCheckTfi_rec(Abc_ObjFanin1(pNode), pOld))
         return 1;
     // check equivalent nodes
-    return Abc_NtkHaigCheckTfi_rec( (Abc_Obj_t *)pNode->pData, pOld );
+    return Abc_NtkHaigCheckTfi_rec((Abc_Obj_t*)pNode->pData, pOld);
 }
 
 /**Function*************************************************************
@@ -308,12 +291,11 @@ int Abc_NtkHaigCheckTfi_rec( Abc_Obj_t * pNode, Abc_Obj_t * pOld )
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_NtkHaigCheckTfi( Abc_Ntk_t * pNtk, Abc_Obj_t * pOld, Abc_Obj_t * pNew )
-{
-    assert( !Abc_ObjIsComplement(pOld) );
-    assert( !Abc_ObjIsComplement(pNew) );
+int Abc_NtkHaigCheckTfi(Abc_Ntk_t* pNtk, Abc_Obj_t* pOld, Abc_Obj_t* pNew) {
+    assert(!Abc_ObjIsComplement(pOld));
+    assert(!Abc_ObjIsComplement(pNew));
     Abc_NtkIncrementTravId(pNtk);
-    return Abc_NtkHaigCheckTfi_rec( pNew, pOld );
+    return Abc_NtkHaigCheckTfi_rec(pNew, pOld);
 }
 
 /**Function*************************************************************
@@ -327,8 +309,8 @@ int Abc_NtkHaigCheckTfi( Abc_Ntk_t * pNtk, Abc_Obj_t * pOld, Abc_Obj_t * pNew )
   SeeAlso     []
 
 ***********************************************************************/
-static inline Abc_Obj_t * Hop_ObjChild0Next( Hop_Obj_t * pObj ) { return Abc_ObjNotCond( (Abc_Obj_t *)Hop_ObjFanin0(pObj)->pNext, Hop_ObjFaninC0(pObj) );  }
-static inline Abc_Obj_t * Hop_ObjChild1Next( Hop_Obj_t * pObj ) { return Abc_ObjNotCond( (Abc_Obj_t *)Hop_ObjFanin1(pObj)->pNext, Hop_ObjFaninC1(pObj) );  }
+static inline Abc_Obj_t* Hop_ObjChild0Next(Hop_Obj_t* pObj) { return Abc_ObjNotCond((Abc_Obj_t*)Hop_ObjFanin0(pObj)->pNext, Hop_ObjFaninC0(pObj)); }
+static inline Abc_Obj_t* Hop_ObjChild1Next(Hop_Obj_t* pObj) { return Abc_ObjNotCond((Abc_Obj_t*)Hop_ObjFanin1(pObj)->pNext, Hop_ObjFaninC1(pObj)); }
 
 /**Function*************************************************************
 
@@ -341,75 +323,71 @@ static inline Abc_Obj_t * Hop_ObjChild1Next( Hop_Obj_t * pObj ) { return Abc_Obj
   SeeAlso     []
 
 ***********************************************************************/
-Abc_Ntk_t * Abc_NtkHaigRecreateAig( Abc_Ntk_t * pNtk, Hop_Man_t * p )
-{
-    Abc_Ntk_t * pNtkAig;
-    Abc_Obj_t * pObjOld, * pObjAbcThis, * pObjAbcRepr;
-    Hop_Obj_t * pObj;
+Abc_Ntk_t* Abc_NtkHaigRecreateAig(Abc_Ntk_t* pNtk, Hop_Man_t* p) {
+    Abc_Ntk_t* pNtkAig;
+    Abc_Obj_t *pObjOld, *pObjAbcThis, *pObjAbcRepr;
+    Hop_Obj_t* pObj;
     int i;
-    assert( p->nCreated == Vec_PtrSize(p->vObjs) );
+    assert(p->nCreated == Vec_PtrSize(p->vObjs));
 
     // start the new network
-    pNtkAig = Abc_NtkStartFrom( pNtk, ABC_NTK_STRASH, ABC_FUNC_AIG );
+    pNtkAig = Abc_NtkStartFrom(pNtk, ABC_NTK_STRASH, ABC_FUNC_AIG);
 
     // transfer new nodes to the PIs of HOP
-    Hop_ManConst1(p)->pNext = (Hop_Obj_t *)Abc_AigConst1( pNtkAig );
-    Hop_ManForEachPi( p, pObj, i )
-        pObj->pNext = (Hop_Obj_t *)Abc_NtkCi( pNtkAig, i );
+    Hop_ManConst1(p)->pNext = (Hop_Obj_t*)Abc_AigConst1(pNtkAig);
+    Hop_ManForEachPi(p, pObj, i)
+        pObj->pNext
+        = (Hop_Obj_t*)Abc_NtkCi(pNtkAig, i);
 
     // construct new nodes
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-    {
-        if ( !Hop_ObjIsNode(pObj) )
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i) {
+        if (!Hop_ObjIsNode(pObj))
             continue;
-        pObj->pNext = (Hop_Obj_t *)Abc_AigAnd( (Abc_Aig_t *)pNtkAig->pManFunc, Hop_ObjChild0Next(pObj), Hop_ObjChild1Next(pObj) );
-        assert( !Hop_IsComplement(pObj->pNext) );
+        pObj->pNext = (Hop_Obj_t*)Abc_AigAnd((Abc_Aig_t*)pNtkAig->pManFunc, Hop_ObjChild0Next(pObj), Hop_ObjChild1Next(pObj));
+        assert(!Hop_IsComplement(pObj->pNext));
     }
 
     // set the COs
-    Abc_NtkForEachCo( pNtk, pObjOld, i )
-        Abc_ObjAddFanin( pObjOld->pCopy, Hop_ObjChild0Next(Hop_ManPo(p,i)) );
+    Abc_NtkForEachCo(pNtk, pObjOld, i)
+        Abc_ObjAddFanin(pObjOld->pCopy, Hop_ObjChild0Next(Hop_ManPo(p, i)));
 
     // construct choice nodes
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-    {
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i) {
         // skip the node without choices
-        if ( pObj->pData == NULL )
+        if (pObj->pData == NULL)
             continue;
         // skip the representative of the class
-        if ( pObj->pData == pObj )
+        if (pObj->pData == pObj)
             continue;
         // do not create choices for constant 1 and PIs
-        if ( !Hop_ObjIsNode((Hop_Obj_t *)pObj->pData) )
+        if (!Hop_ObjIsNode((Hop_Obj_t*)pObj->pData))
             continue;
         // get the corresponding new nodes
-        pObjAbcThis = (Abc_Obj_t *)pObj->pNext;
-        pObjAbcRepr = (Abc_Obj_t *)((Hop_Obj_t *)pObj->pData)->pNext;
+        pObjAbcThis = (Abc_Obj_t*)pObj->pNext;
+        pObjAbcRepr = (Abc_Obj_t*)((Hop_Obj_t*)pObj->pData)->pNext;
         // the new node cannot be already in the class
-        assert( pObjAbcThis->pData == NULL );
+        assert(pObjAbcThis->pData == NULL);
         // the new node cannot have fanouts
-        assert( Abc_ObjFanoutNum(pObjAbcThis) == 0 );
+        assert(Abc_ObjFanoutNum(pObjAbcThis) == 0);
         // these should be different nodes
-        assert( pObjAbcRepr != pObjAbcThis );
+        assert(pObjAbcRepr != pObjAbcThis);
         // do not create choices if there is a path from pObjAbcThis to pObjAbcRepr
-        if ( !Abc_NtkHaigCheckTfi( pNtkAig, pObjAbcRepr, pObjAbcThis ) )
-        {
+        if (!Abc_NtkHaigCheckTfi(pNtkAig, pObjAbcRepr, pObjAbcThis)) {
             // find the last node in the class
-            while ( pObjAbcRepr->pData )
-                pObjAbcRepr = (Abc_Obj_t *)pObjAbcRepr->pData;
+            while (pObjAbcRepr->pData)
+                pObjAbcRepr = (Abc_Obj_t*)pObjAbcRepr->pData;
             // add the new node at the end of the list
             pObjAbcRepr->pData = pObjAbcThis;
         }
     }
 
     // finish the new network
-//    Abc_NtkFinalize( pNtk, pNtkAig );
-//    Abc_AigCleanup( pNtkAig->pManFunc );
+    //    Abc_NtkFinalize( pNtk, pNtkAig );
+    //    Abc_AigCleanup( pNtkAig->pManFunc );
     // check correctness of the network
-    if ( !Abc_NtkCheck( pNtkAig ) )
-    {
-        printf( "Abc_NtkHaigUse: The network check has failed.\n" );
-        Abc_NtkDelete( pNtkAig );
+    if (!Abc_NtkCheck(pNtkAig)) {
+        printf("Abc_NtkHaigUse: The network check has failed.\n");
+        Abc_NtkDelete(pNtkAig);
         return NULL;
     }
     return pNtkAig;
@@ -426,21 +404,20 @@ Abc_Ntk_t * Abc_NtkHaigRecreateAig( Abc_Ntk_t * pNtk, Hop_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_NtkHaigResetReprsOld( Hop_Man_t * pMan )
-{
-    Vec_Ptr_t * vMembers, * vClasses;
+void Abc_NtkHaigResetReprsOld(Hop_Man_t* pMan) {
+    Vec_Ptr_t *vMembers, *vClasses;
 
     // collect members of the classes and make them point to reprs
-    vMembers = Abc_NtkHaigCollectMembers( pMan );
-    printf( "Collected %6d class members.\n", Vec_PtrSize(vMembers) );
+    vMembers = Abc_NtkHaigCollectMembers(pMan);
+    printf("Collected %6d class members.\n", Vec_PtrSize(vMembers));
 
     // create classes
-    vClasses = Abc_NtkHaigCreateClasses( vMembers );
-    printf( "Collected %6d classes. (Ave = %5.2f)\n", Vec_PtrSize(vClasses), 
-        (float)(Vec_PtrSize(vMembers))/Vec_PtrSize(vClasses) );
+    vClasses = Abc_NtkHaigCreateClasses(vMembers);
+    printf("Collected %6d classes. (Ave = %5.2f)\n", Vec_PtrSize(vClasses),
+           (float)(Vec_PtrSize(vMembers)) / Vec_PtrSize(vClasses));
 
-    Vec_PtrFree( vMembers );
-    Vec_PtrFree( vClasses );
+    Vec_PtrFree(vMembers);
+    Vec_PtrFree(vClasses);
 }
 
 /**Function*************************************************************
@@ -454,68 +431,61 @@ void Abc_NtkHaigResetReprsOld( Hop_Man_t * pMan )
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_NtkHaigResetReprs( Hop_Man_t * p )
-{
-    Hop_Obj_t * pObj, * pRepr;
+int Abc_NtkHaigResetReprs(Hop_Man_t* p) {
+    Hop_Obj_t *pObj, *pRepr;
     int i, nClasses, nMembers, nFanouts, nNormals;
     // clear self-classes
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-    {
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i) {
         // fix the strange situation of double-loop
-        pRepr = (Hop_Obj_t *)pObj->pData;
-        if ( pRepr && pRepr->pData == pObj )
+        pRepr = (Hop_Obj_t*)pObj->pData;
+        if (pRepr && pRepr->pData == pObj)
             pRepr->pData = pRepr;
         // remove self-loops
-        if ( pObj->pData == pObj )
+        if (pObj->pData == pObj)
             pObj->pData = NULL;
     }
     // set representatives
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-    {
-        if ( pObj->pData == NULL )
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i) {
+        if (pObj->pData == NULL)
             continue;
         // get representative of the node
-        pRepr = Hop_ObjRepr( pObj );
+        pRepr = Hop_ObjRepr(pObj);
         pRepr->pData = pRepr;
         // set the representative
         pObj->pData = pRepr;
     }
     // make each class point to the smallest topological order
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-    {
-        if ( pObj->pData == NULL )
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i) {
+        if (pObj->pData == NULL)
             continue;
-        pRepr = Hop_ObjRepr( pObj );
-        if ( pRepr->Id > pObj->Id )
-        {
+        pRepr = Hop_ObjRepr(pObj);
+        if (pRepr->Id > pObj->Id) {
             pRepr->pData = pObj;
             pObj->pData = pObj;
-        }
-        else
+        } else
             pObj->pData = pRepr;
     }
     // count classes, members, and fanouts - and verify
     nMembers = nClasses = nFanouts = nNormals = 0;
-    Vec_PtrForEachEntry( Hop_Obj_t *, p->vObjs, pObj, i )
-    {
-        if ( pObj->pData == NULL )
+    Vec_PtrForEachEntry(Hop_Obj_t*, p->vObjs, pObj, i) {
+        if (pObj->pData == NULL)
             continue;
         // count members
         nMembers++;
         // count the classes and fanouts
-        if ( pObj->pData == pObj )
+        if (pObj->pData == pObj)
             nClasses++;
-        else if ( Hop_ObjRefs(pObj) > 0 )
+        else if (Hop_ObjRefs(pObj) > 0)
             nFanouts++;
         else
             nNormals++;
         // compare representatives
-        pRepr = Hop_ObjRepr( pObj );
-        assert( pObj->pData == pRepr );
-        assert( pRepr->Id <= pObj->Id );
+        pRepr = Hop_ObjRepr(pObj);
+        assert(pObj->pData == pRepr);
+        assert(pRepr->Id <= pObj->Id);
     }
-//    printf( "Nodes = %7d.  Member = %7d.  Classes = %6d.  Fanouts = %6d.  Normals = %6d.\n", 
-//        Hop_ManNodeNum(p), nMembers, nClasses, nFanouts, nNormals );
+    //    printf( "Nodes = %7d.  Member = %7d.  Classes = %6d.  Fanouts = %6d.  Normals = %6d.\n",
+    //        Hop_ManNodeNum(p), nMembers, nClasses, nFanouts, nNormals );
     return nFanouts;
 }
 
@@ -530,21 +500,19 @@ int Abc_NtkHaigResetReprs( Hop_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Abc_Ntk_t * Abc_NtkHopRemoveLoops( Abc_Ntk_t * pNtk, Hop_Man_t * pMan )
-{
-    Abc_Ntk_t * pNtkAig;
-    Hop_Man_t * pManTemp;
+Abc_Ntk_t* Abc_NtkHopRemoveLoops(Abc_Ntk_t* pNtk, Hop_Man_t* pMan) {
+    Abc_Ntk_t* pNtkAig;
+    Hop_Man_t* pManTemp;
 
     // iteratively reconstruct the HOP manager to create choice nodes
-    while ( Abc_NtkHaigResetReprs( pMan ) )
-    {
-        pMan = Abc_NtkHaigReconstruct( pManTemp = pMan );
-        Hop_ManStop( pManTemp );
+    while (Abc_NtkHaigResetReprs(pMan)) {
+        pMan = Abc_NtkHaigReconstruct(pManTemp = pMan);
+        Hop_ManStop(pManTemp);
     }
 
     // traverse in the topological order and create new AIG
-    pNtkAig = Abc_NtkHaigRecreateAig( pNtk, pMan );
-    Hop_ManStop( pMan );
+    pNtkAig = Abc_NtkHaigRecreateAig(pNtk, pMan);
+    Hop_ManStop(pMan);
     return pNtkAig;
 }
 
@@ -552,6 +520,4 @@ Abc_Ntk_t * Abc_NtkHopRemoveLoops( Abc_Ntk_t * pNtk, Hop_Man_t * pMan )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

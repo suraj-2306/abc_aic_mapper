@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 /*
     The trace of SAT solving contains the original clause of the problem
     along with the learned clauses derived during SAT solving.
@@ -33,7 +32,6 @@ ABC_NAMESPACE_IMPL_START
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -50,14 +48,13 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Sat_SolverTraceStart( sat_solver * pSat, char * pName )
-{
-    assert( pSat->pFile == NULL );
-    pSat->pFile = fopen( pName, "w" );
-    fprintf( pSat->pFile, "                                        \n" );
+void Sat_SolverTraceStart(sat_solver* pSat, char* pName) {
+    assert(pSat->pFile == NULL);
+    pSat->pFile = fopen(pName, "w");
+    fprintf(pSat->pFile, "                                        \n");
     pSat->nClauses = 0;
     pSat->nRoots = 0;
-}   
+}
 
 /**Function*************************************************************
 
@@ -70,16 +67,14 @@ void Sat_SolverTraceStart( sat_solver * pSat, char * pName )
   SeeAlso     []
 
 ***********************************************************************/
-void Sat_SolverTraceStop( sat_solver * pSat )
-{
-    if ( pSat->pFile == NULL )
+void Sat_SolverTraceStop(sat_solver* pSat) {
+    if (pSat->pFile == NULL)
         return;
-    rewind( pSat->pFile );
-    fprintf( pSat->pFile, "p %d %d %d", sat_solver_nvars(pSat), pSat->nClauses, pSat->nRoots );
-    fclose( pSat->pFile );
+    rewind(pSat->pFile);
+    fprintf(pSat->pFile, "p %d %d %d", sat_solver_nvars(pSat), pSat->nClauses, pSat->nRoots);
+    fclose(pSat->pFile);
     pSat->pFile = NULL;
 }
-
 
 /**Function*************************************************************
 
@@ -92,21 +87,18 @@ void Sat_SolverTraceStop( sat_solver * pSat )
   SeeAlso     []
 
 ***********************************************************************/
-void Sat_SolverTraceWrite( sat_solver * pSat, int * pBeg, int * pEnd, int fRoot )
-{
-    if ( pSat->pFile == NULL )
+void Sat_SolverTraceWrite(sat_solver* pSat, int* pBeg, int* pEnd, int fRoot) {
+    if (pSat->pFile == NULL)
         return;
     pSat->nClauses++;
     pSat->nRoots += fRoot;
-    for ( ; pBeg < pEnd ; pBeg++ )
-        fprintf( pSat->pFile, " %d", lit_print(*pBeg) );
-    fprintf( pSat->pFile, " 0\n" );
+    for (; pBeg < pEnd; pBeg++)
+        fprintf(pSat->pFile, " %d", lit_print(*pBeg));
+    fprintf(pSat->pFile, " 0\n");
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -42,14 +42,11 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Acb_NtkRunGen( char * pFileNames[2], int fVerbose )
-{
+void Acb_NtkRunGen(char* pFileNames[2], int fVerbose) {
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

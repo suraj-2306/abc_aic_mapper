@@ -20,16 +20,14 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static int  Fpga_MappingPostProcess( Fpga_Man_t * p );
+static int Fpga_MappingPostProcess(Fpga_Man_t* p);
 
 extern clock_t s_MappingTime;
 extern int s_MappingMem;
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -50,43 +48,41 @@ extern int s_MappingMem;
   SeeAlso     []
 
 ***********************************************************************/
-int Fpga_Mapping( Fpga_Man_t * p )
-{
+int Fpga_Mapping(Fpga_Man_t* p) {
     clock_t clk, clkTotal = clock();
- 
+
     // collect the nodes reachable from POs in the DFS order (including the choices)
-    p->vAnds = Fpga_MappingDfs( p, 1 );
-    Fpga_ManReportChoices( p ); // recomputes levels
-    Fpga_MappingSetChoiceLevels( p );
+    p->vAnds = Fpga_MappingDfs(p, 1);
+    Fpga_ManReportChoices(p); // recomputes levels
+    Fpga_MappingSetChoiceLevels(p);
 
     // compute the cuts of nodes in the DFS order
     clk = clock();
-    Fpga_MappingCuts( p );
+    Fpga_MappingCuts(p);
     p->timeCuts = clock() - clk;
 
     // match the truth tables to the supergates
     clk = clock();
-    if ( !Fpga_MappingMatches( p, 1 ) )
+    if (!Fpga_MappingMatches(p, 1))
         return 0;
     p->timeMatch = clock() - clk;
 
     // perform area recovery
     clk = clock();
-    if ( !Fpga_MappingPostProcess( p ) )
+    if (!Fpga_MappingPostProcess(p))
         return 0;
     p->timeRecover = clock() - clk;
-//ABC_PRT( "Total mapping time", clock() - clkTotal );
+    //ABC_PRT( "Total mapping time", clock() - clkTotal );
 
     s_MappingTime = clock() - clkTotal;
     s_MappingMem = Fpga_CutCountAll(p) * (sizeof(Fpga_Cut_t) - sizeof(int) * (FPGA_MAX_LEAVES - p->nVarsMax));
 
     // print the AI-graph used for mapping
     //Fpga_ManShow( p, "test" );
-//    if ( p->fVerbose )
-//        Fpga_MappingPrintOutputArrivals( p );
-    if ( p->fVerbose )
-    {
-        ABC_PRT( "Total time", clock() - clkTotal );
+    //    if ( p->fVerbose )
+    //        Fpga_MappingPrintOutputArrivals( p );
+    if (p->fVerbose) {
+        ABC_PRT("Total time", clock() - clkTotal);
     }
     return 1;
 }
@@ -106,89 +102,81 @@ int Fpga_Mapping( Fpga_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Fpga_MappingPostProcess( Fpga_Man_t * p )
-{
-    int fShowSwitching    = 0;
-    int fRecoverAreaFlow  = 1;
-    int fRecoverArea      = 1;
+int Fpga_MappingPostProcess(Fpga_Man_t* p) {
+    int fShowSwitching = 0;
+    int fRecoverAreaFlow = 1;
+    int fRecoverArea = 1;
     float aAreaTotalCur, aAreaTotalCur2;
     int Iter;
     clock_t clk;
 
-//if ( p->fVerbose )
-//    printf( "Best clock period = %5.2f\n", Fpga_TimeComputeArrivalMax(p) );
+    //if ( p->fVerbose )
+    //    printf( "Best clock period = %5.2f\n", Fpga_TimeComputeArrivalMax(p) );
 
     // compute area, set references, and collect nodes used in the mapping
     Iter = 1;
-    aAreaTotalCur = Fpga_MappingSetRefsAndArea( p );
-if ( p->fVerbose )
-{
-printf( "Iteration %dD :  Area = %8.1f  ", Iter++, aAreaTotalCur );
-if ( fShowSwitching )
-printf( "Switch = %8.1f  ", Fpga_MappingGetSwitching(p,p->vMapping) );
-else
-printf( "Delay = %5.2f  ", Fpga_TimeComputeArrivalMax(p) );
+    aAreaTotalCur = Fpga_MappingSetRefsAndArea(p);
+    if (p->fVerbose) {
+        printf("Iteration %dD :  Area = %8.1f  ", Iter++, aAreaTotalCur);
+        if (fShowSwitching)
+            printf("Switch = %8.1f  ", Fpga_MappingGetSwitching(p, p->vMapping));
+        else
+            printf("Delay = %5.2f  ", Fpga_TimeComputeArrivalMax(p));
 
-ABC_PRT( "Time", p->timeMatch );
-}
+        ABC_PRT("Time", p->timeMatch);
+    }
 
-    if ( !p->fAreaRecovery )
+    if (!p->fAreaRecovery)
         return 1;
 
-    if ( fRecoverAreaFlow )
-    {
-clk = clock();
+    if (fRecoverAreaFlow) {
+        clk = clock();
         // compute the required times and the fanouts
-        Fpga_TimeComputeRequiredGlobal( p, 1 );
+        Fpga_TimeComputeRequiredGlobal(p, 1);
         // remap topologically
-        Fpga_MappingMatches( p, 0 );
+        Fpga_MappingMatches(p, 0);
         // get the resulting area
-//        aAreaTotalCur = Fpga_MappingSetRefsAndArea( p );
-        aAreaTotalCur = Fpga_MappingAreaTrav( p );
+        //        aAreaTotalCur = Fpga_MappingSetRefsAndArea( p );
+        aAreaTotalCur = Fpga_MappingAreaTrav(p);
         // note that here we do not update the reference counter
         // for some reason, this works better on benchmarks
-if ( p->fVerbose )
-{
-printf( "Iteration %dF :  Area = %8.1f  ", Iter++, aAreaTotalCur );
-if ( fShowSwitching )
-printf( "Switch = %8.1f  ", Fpga_MappingGetSwitching(p,p->vMapping) );
-else
-printf( "Delay = %5.2f  ", Fpga_TimeComputeArrivalMax(p) );
-ABC_PRT( "Time", clock() - clk );
-}
+        if (p->fVerbose) {
+            printf("Iteration %dF :  Area = %8.1f  ", Iter++, aAreaTotalCur);
+            if (fShowSwitching)
+                printf("Switch = %8.1f  ", Fpga_MappingGetSwitching(p, p->vMapping));
+            else
+                printf("Delay = %5.2f  ", Fpga_TimeComputeArrivalMax(p));
+            ABC_PRT("Time", clock() - clk);
+        }
     }
 
     // update reference counters
-    aAreaTotalCur2 = Fpga_MappingSetRefsAndArea( p );
-    assert( aAreaTotalCur == aAreaTotalCur2 );
+    aAreaTotalCur2 = Fpga_MappingSetRefsAndArea(p);
+    assert(aAreaTotalCur == aAreaTotalCur2);
 
-    if ( fRecoverArea )
-    {
-clk = clock();
+    if (fRecoverArea) {
+        clk = clock();
         // compute the required times and the fanouts
-        Fpga_TimeComputeRequiredGlobal( p, 0 );
+        Fpga_TimeComputeRequiredGlobal(p, 0);
         // remap topologically
-        if ( p->fSwitching )
-            Fpga_MappingMatchesSwitch( p );
+        if (p->fSwitching)
+            Fpga_MappingMatchesSwitch(p);
         else
-            Fpga_MappingMatchesArea( p );
+            Fpga_MappingMatchesArea(p);
         // get the resulting area
-        aAreaTotalCur = Fpga_MappingSetRefsAndArea( p );
-if ( p->fVerbose )
-{
-printf( "Iteration %d%s :  Area = %8.1f  ", Iter++, (p->fSwitching?"S":"A"), aAreaTotalCur );
-if ( fShowSwitching )
-printf( "Switch = %8.1f  ", Fpga_MappingGetSwitching(p,p->vMapping) );
-else
-printf( "Delay = %5.2f  ", Fpga_TimeComputeArrivalMax(p) );
-ABC_PRT( "Time", clock() - clk );
-}
+        aAreaTotalCur = Fpga_MappingSetRefsAndArea(p);
+        if (p->fVerbose) {
+            printf("Iteration %d%s :  Area = %8.1f  ", Iter++, (p->fSwitching ? "S" : "A"), aAreaTotalCur);
+            if (fShowSwitching)
+                printf("Switch = %8.1f  ", Fpga_MappingGetSwitching(p, p->vMapping));
+            else
+                printf("Delay = %5.2f  ", Fpga_TimeComputeArrivalMax(p));
+            ABC_PRT("Time", clock() - clk);
+        }
     }
 
     p->fAreaGlo = aAreaTotalCur;
     return 1;
 }
 
-
 ABC_NAMESPACE_IMPL_END
-

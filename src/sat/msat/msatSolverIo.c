@@ -22,12 +22,11 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static char * Msat_TimeStamp();
+static char* Msat_TimeStamp();
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -44,25 +43,23 @@ static char * Msat_TimeStamp();
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_SolverPrintAssignment( Msat_Solver_t * p )
-{
+void Msat_SolverPrintAssignment(Msat_Solver_t* p) {
     int i;
-    printf( "Current assignments are: \n" );
-    for ( i = 0; i < p->nVars; i++ )
-        printf( "%d", i % 10 );
-    printf( "\n" );
-    for ( i = 0; i < p->nVars; i++ )
-        if ( p->pAssigns[i] == MSAT_VAR_UNASSIGNED )
-            printf( "." );
-        else
-        {
-            assert( i == MSAT_LIT2VAR(p->pAssigns[i]) );
-            if ( MSAT_LITSIGN(p->pAssigns[i]) )
-                printf( "0" );
-            else 
-                printf( "1" );
+    printf("Current assignments are: \n");
+    for (i = 0; i < p->nVars; i++)
+        printf("%d", i % 10);
+    printf("\n");
+    for (i = 0; i < p->nVars; i++)
+        if (p->pAssigns[i] == MSAT_VAR_UNASSIGNED)
+            printf(".");
+        else {
+            assert(i == MSAT_LIT2VAR(p->pAssigns[i]));
+            if (MSAT_LITSIGN(p->pAssigns[i]))
+                printf("0");
+            else
+                printf("1");
         }
-    printf( "\n" );
+    printf("\n");
 }
 
 /**Function*************************************************************
@@ -76,32 +73,29 @@ void Msat_SolverPrintAssignment( Msat_Solver_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_SolverPrintClauses( Msat_Solver_t * p )
-{
-    Msat_Clause_t ** pClauses;
+void Msat_SolverPrintClauses(Msat_Solver_t* p) {
+    Msat_Clause_t** pClauses;
     int nClauses, i;
 
-    printf( "Original clauses: \n" );
-    nClauses = Msat_ClauseVecReadSize( p->vClauses );
-    pClauses = Msat_ClauseVecReadArray( p->vClauses );
-    for ( i = 0; i < nClauses; i++ )
-    {
-        printf( "%3d: ", i );
-        Msat_ClausePrint( pClauses[i] );
+    printf("Original clauses: \n");
+    nClauses = Msat_ClauseVecReadSize(p->vClauses);
+    pClauses = Msat_ClauseVecReadArray(p->vClauses);
+    for (i = 0; i < nClauses; i++) {
+        printf("%3d: ", i);
+        Msat_ClausePrint(pClauses[i]);
     }
 
-    printf( "Learned clauses: \n" );
-    nClauses = Msat_ClauseVecReadSize( p->vLearned );
-    pClauses = Msat_ClauseVecReadArray( p->vLearned );
-    for ( i = 0; i < nClauses; i++ )
-    {
-        printf( "%3d: ", i );
-        Msat_ClausePrint( pClauses[i] );
+    printf("Learned clauses: \n");
+    nClauses = Msat_ClauseVecReadSize(p->vLearned);
+    pClauses = Msat_ClauseVecReadArray(p->vLearned);
+    for (i = 0; i < nClauses; i++) {
+        printf("%3d: ", i);
+        Msat_ClausePrint(pClauses[i]);
     }
 
-    printf( "Variable activity: \n" );
-    for ( i = 0; i < p->nVars; i++ )
-        printf( "%3d : %.4f\n", i, p->pdActivity[i] );
+    printf("Variable activity: \n");
+    for (i = 0; i < p->nVars; i++)
+        printf("%3d : %.4f\n", i, p->pdActivity[i]);
 }
 
 /**Function*************************************************************
@@ -115,39 +109,37 @@ void Msat_SolverPrintClauses( Msat_Solver_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_SolverWriteDimacs( Msat_Solver_t * p, char * pFileName )
-{
-    FILE * pFile;
-    Msat_Clause_t ** pClauses;
+void Msat_SolverWriteDimacs(Msat_Solver_t* p, char* pFileName) {
+    FILE* pFile;
+    Msat_Clause_t** pClauses;
     int nClauses, i;
 
     nClauses = Msat_ClauseVecReadSize(p->vClauses) + Msat_ClauseVecReadSize(p->vLearned);
-    for ( i = 0; i < p->nVars; i++ )
-        nClauses += ( p->pLevel[i] == 0 );
+    for (i = 0; i < p->nVars; i++)
+        nClauses += (p->pLevel[i] == 0);
 
-    pFile = fopen( pFileName, "wb" );
-    fprintf( pFile, "c Produced by Msat_SolverWriteDimacs() on %s\n", Msat_TimeStamp() );
-    fprintf( pFile, "p cnf %d %d\n", p->nVars, nClauses );
+    pFile = fopen(pFileName, "wb");
+    fprintf(pFile, "c Produced by Msat_SolverWriteDimacs() on %s\n", Msat_TimeStamp());
+    fprintf(pFile, "p cnf %d %d\n", p->nVars, nClauses);
 
-    nClauses = Msat_ClauseVecReadSize( p->vClauses );
-    pClauses = Msat_ClauseVecReadArray( p->vClauses );
-    for ( i = 0; i < nClauses; i++ )
-        Msat_ClauseWriteDimacs( pFile, pClauses[i], 1 );
+    nClauses = Msat_ClauseVecReadSize(p->vClauses);
+    pClauses = Msat_ClauseVecReadArray(p->vClauses);
+    for (i = 0; i < nClauses; i++)
+        Msat_ClauseWriteDimacs(pFile, pClauses[i], 1);
 
-    nClauses = Msat_ClauseVecReadSize( p->vLearned );
-    pClauses = Msat_ClauseVecReadArray( p->vLearned );
-    for ( i = 0; i < nClauses; i++ )
-        Msat_ClauseWriteDimacs( pFile, pClauses[i], 1 );
+    nClauses = Msat_ClauseVecReadSize(p->vLearned);
+    pClauses = Msat_ClauseVecReadArray(p->vLearned);
+    for (i = 0; i < nClauses; i++)
+        Msat_ClauseWriteDimacs(pFile, pClauses[i], 1);
 
     // write zero-level assertions
-    for ( i = 0; i < p->nVars; i++ )
-        if ( p->pLevel[i] == 0 )
-            fprintf( pFile, "%s%d 0\n", ((p->pAssigns[i]&1)? "-": ""), i + 1 );
+    for (i = 0; i < p->nVars; i++)
+        if (p->pLevel[i] == 0)
+            fprintf(pFile, "%s%d 0\n", ((p->pAssigns[i] & 1) ? "-" : ""), i + 1);
 
-    fprintf( pFile, "\n" );
-    fclose( pFile );
+    fprintf(pFile, "\n");
+    fclose(pFile);
 }
-
 
 /**Function*************************************************************
 
@@ -160,16 +152,15 @@ void Msat_SolverWriteDimacs( Msat_Solver_t * p, char * pFileName )
   SeeAlso     []
 
 ***********************************************************************/
-char * Msat_TimeStamp()
-{
+char* Msat_TimeStamp() {
     static char Buffer[100];
     time_t ltime;
-    char * TimeStamp;
+    char* TimeStamp;
     // get the current time
-    time( &ltime );
-    TimeStamp = asctime( localtime( &ltime ) );
-    TimeStamp[ strlen(TimeStamp) - 1 ] = 0;
-    strcpy( Buffer, TimeStamp );
+    time(&ltime);
+    TimeStamp = asctime(localtime(&ltime));
+    TimeStamp[strlen(TimeStamp) - 1] = 0;
+    strcpy(Buffer, TimeStamp);
     return Buffer;
 }
 
@@ -177,6 +168,4 @@ char * Msat_TimeStamp()
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

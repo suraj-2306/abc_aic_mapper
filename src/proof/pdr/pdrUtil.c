@@ -22,11 +22,9 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -43,11 +41,10 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Set_t * Pdr_SetAlloc( int nSize )
-{
-    Pdr_Set_t * p;
-    assert( nSize >= 0 && nSize < (1<<30) );
-    p = (Pdr_Set_t *)ABC_CALLOC( char, sizeof(Pdr_Set_t) + nSize * sizeof(int) );
+Pdr_Set_t* Pdr_SetAlloc(int nSize) {
+    Pdr_Set_t* p;
+    assert(nSize >= 0 && nSize < (1 << 30));
+    p = (Pdr_Set_t*)ABC_CALLOC(char, sizeof(Pdr_Set_t) + nSize * sizeof(int));
     return p;
 }
 
@@ -62,25 +59,23 @@ Pdr_Set_t * Pdr_SetAlloc( int nSize )
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Set_t * Pdr_SetCreate( Vec_Int_t * vLits, Vec_Int_t * vPiLits )
-{
-    Pdr_Set_t * p;
+Pdr_Set_t* Pdr_SetCreate(Vec_Int_t* vLits, Vec_Int_t* vPiLits) {
+    Pdr_Set_t* p;
     int i;
-    assert( Vec_IntSize(vLits) + Vec_IntSize(vPiLits) < (1<<30) );
-    p = (Pdr_Set_t *)ABC_ALLOC( char, sizeof(Pdr_Set_t) + (Vec_IntSize(vLits) + Vec_IntSize(vPiLits)) * sizeof(int) );
-    p->nLits  = Vec_IntSize(vLits);
+    assert(Vec_IntSize(vLits) + Vec_IntSize(vPiLits) < (1 << 30));
+    p = (Pdr_Set_t*)ABC_ALLOC(char, sizeof(Pdr_Set_t) + (Vec_IntSize(vLits) + Vec_IntSize(vPiLits)) * sizeof(int));
+    p->nLits = Vec_IntSize(vLits);
     p->nTotal = Vec_IntSize(vLits) + Vec_IntSize(vPiLits);
-    p->nRefs  = 1;
-    p->Sign   = 0;
-    for ( i = 0; i < p->nLits; i++ )
-    {
+    p->nRefs = 1;
+    p->Sign = 0;
+    for (i = 0; i < p->nLits; i++) {
         p->Lits[i] = Vec_IntEntry(vLits, i);
-        p->Sign   |= ((word)1 << (p->Lits[i] % 63));
+        p->Sign |= ((word)1 << (p->Lits[i] % 63));
     }
-    Vec_IntSelectSort( p->Lits, p->nLits );
-    // remember PI literals 
-    for ( i = p->nLits; i < p->nTotal; i++ )
-        p->Lits[i] = Vec_IntEntry(vPiLits, i-p->nLits);
+    Vec_IntSelectSort(p->Lits, p->nLits);
+    // remember PI literals
+    for (i = p->nLits; i < p->nTotal; i++)
+        p->Lits[i] = Vec_IntEntry(vPiLits, i - p->nLits);
     return p;
 }
 
@@ -95,26 +90,24 @@ Pdr_Set_t * Pdr_SetCreate( Vec_Int_t * vLits, Vec_Int_t * vPiLits )
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Set_t * Pdr_SetCreateFrom( Pdr_Set_t * pSet, int iRemove )
-{
-    Pdr_Set_t * p;
+Pdr_Set_t* Pdr_SetCreateFrom(Pdr_Set_t* pSet, int iRemove) {
+    Pdr_Set_t* p;
     int i, k = 0;
-    assert( iRemove >= 0 && iRemove < pSet->nLits );
-    p = (Pdr_Set_t *)ABC_ALLOC( char, sizeof(Pdr_Set_t) + (pSet->nTotal - 1) * sizeof(int) );
-    p->nLits  = pSet->nLits - 1;
+    assert(iRemove >= 0 && iRemove < pSet->nLits);
+    p = (Pdr_Set_t*)ABC_ALLOC(char, sizeof(Pdr_Set_t) + (pSet->nTotal - 1) * sizeof(int));
+    p->nLits = pSet->nLits - 1;
     p->nTotal = pSet->nTotal - 1;
-    p->nRefs  = 1;
-    p->Sign   = 0;
-    for ( i = 0; i < pSet->nTotal; i++ )
-    {
-        if ( i == iRemove )
+    p->nRefs = 1;
+    p->Sign = 0;
+    for (i = 0; i < pSet->nTotal; i++) {
+        if (i == iRemove)
             continue;
         p->Lits[k++] = pSet->Lits[i];
-        if ( i >= pSet->nLits )
+        if (i >= pSet->nLits)
             continue;
-        p->Sign   |= ((word)1 << (pSet->Lits[i] % 63));
+        p->Sign |= ((word)1 << (pSet->Lits[i] % 63));
     }
-    assert( k == p->nTotal );
+    assert(k == p->nTotal);
     return p;
 }
 
@@ -129,26 +122,24 @@ Pdr_Set_t * Pdr_SetCreateFrom( Pdr_Set_t * pSet, int iRemove )
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Set_t * Pdr_SetCreateSubset( Pdr_Set_t * pSet, int * pLits, int nLits )
-{
-    Pdr_Set_t * p;
+Pdr_Set_t* Pdr_SetCreateSubset(Pdr_Set_t* pSet, int* pLits, int nLits) {
+    Pdr_Set_t* p;
     int i, k = 0;
-    assert( nLits >= 0 && nLits <= pSet->nLits );
-    p = (Pdr_Set_t *)ABC_ALLOC( char, sizeof(Pdr_Set_t) + (nLits + pSet->nTotal - pSet->nLits) * sizeof(int) );
-    p->nLits  = nLits;
+    assert(nLits >= 0 && nLits <= pSet->nLits);
+    p = (Pdr_Set_t*)ABC_ALLOC(char, sizeof(Pdr_Set_t) + (nLits + pSet->nTotal - pSet->nLits) * sizeof(int));
+    p->nLits = nLits;
     p->nTotal = nLits + pSet->nTotal - pSet->nLits;
-    p->nRefs  = 1;
-    p->Sign   = 0;
-    for ( i = 0; i < nLits; i++ )
-    {
-        assert( pLits[i] >= 0 );
+    p->nRefs = 1;
+    p->Sign = 0;
+    for (i = 0; i < nLits; i++) {
+        assert(pLits[i] >= 0);
         p->Lits[k++] = pLits[i];
-        p->Sign   |= ((word)1 << (pLits[i] % 63));
+        p->Sign |= ((word)1 << (pLits[i] % 63));
     }
-    Vec_IntSelectSort( p->Lits, p->nLits );
-    for ( i = pSet->nLits; i < pSet->nTotal; i++ )
+    Vec_IntSelectSort(p->Lits, p->nLits);
+    for (i = pSet->nLits; i < pSet->nTotal; i++)
         p->Lits[k++] = pSet->Lits[i];
-    assert( k == p->nTotal );
+    assert(k == p->nTotal);
     return p;
 }
 
@@ -163,16 +154,15 @@ Pdr_Set_t * Pdr_SetCreateSubset( Pdr_Set_t * pSet, int * pLits, int nLits )
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Set_t * Pdr_SetDup( Pdr_Set_t * pSet )
-{
-    Pdr_Set_t * p;
+Pdr_Set_t* Pdr_SetDup(Pdr_Set_t* pSet) {
+    Pdr_Set_t* p;
     int i;
-    p = (Pdr_Set_t *)ABC_ALLOC( char, sizeof(Pdr_Set_t) + pSet->nTotal * sizeof(int) );
-    p->nLits  = pSet->nLits;
+    p = (Pdr_Set_t*)ABC_ALLOC(char, sizeof(Pdr_Set_t) + pSet->nTotal * sizeof(int));
+    p->nLits = pSet->nLits;
     p->nTotal = pSet->nTotal;
-    p->nRefs  = 1;
-    p->Sign   = pSet->Sign;
-    for ( i = 0; i < pSet->nTotal; i++ )
+    p->nRefs = 1;
+    p->Sign = pSet->Sign;
+    for (i = 0; i < pSet->nTotal; i++)
         p->Lits[i] = pSet->Lits[i];
     return p;
 }
@@ -188,8 +178,7 @@ Pdr_Set_t * Pdr_SetDup( Pdr_Set_t * pSet )
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Set_t * Pdr_SetRef( Pdr_Set_t * p )
-{
+Pdr_Set_t* Pdr_SetRef(Pdr_Set_t* p) {
     p->nRefs++;
     return p;
 }
@@ -205,10 +194,9 @@ Pdr_Set_t * Pdr_SetRef( Pdr_Set_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_SetDeref( Pdr_Set_t * p )
-{
-    if ( --p->nRefs == 0 )
-        ABC_FREE( p );
+void Pdr_SetDeref(Pdr_Set_t* p) {
+    if (--p->nRefs == 0)
+        ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -222,31 +210,28 @@ void Pdr_SetDeref( Pdr_Set_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_SetPrint( FILE * pFile, Pdr_Set_t * p, int nRegs, Vec_Int_t * vFlopCounts )
-{
-    char * pBuff;
+void Pdr_SetPrint(FILE* pFile, Pdr_Set_t* p, int nRegs, Vec_Int_t* vFlopCounts) {
+    char* pBuff;
     int i, k, Entry;
-    pBuff = ABC_ALLOC( char, nRegs + 1 );
-    for ( i = 0; i < nRegs; i++ )
+    pBuff = ABC_ALLOC(char, nRegs + 1);
+    for (i = 0; i < nRegs; i++)
         pBuff[i] = '-';
     pBuff[i] = 0;
-    for ( i = 0; i < p->nLits; i++ )
-    {
-        if ( p->Lits[i] == -1 )
+    for (i = 0; i < p->nLits; i++) {
+        if (p->Lits[i] == -1)
             continue;
-        pBuff[Abc_Lit2Var(p->Lits[i])] = (Abc_LitIsCompl(p->Lits[i])? '0':'1');
+        pBuff[Abc_Lit2Var(p->Lits[i])] = (Abc_LitIsCompl(p->Lits[i]) ? '0' : '1');
     }
-    if ( vFlopCounts )
-    {
+    if (vFlopCounts) {
         // skip some literals
         k = 0;
-        Vec_IntForEachEntry( vFlopCounts, Entry, i )
-            if ( Entry ) 
-                pBuff[k++] = pBuff[i];
+        Vec_IntForEachEntry(vFlopCounts, Entry, i) if (Entry)
+            pBuff[k++]
+            = pBuff[i];
         pBuff[k] = 0;
     }
-    fprintf( pFile, "%s", pBuff );
-    ABC_FREE( pBuff );
+    fprintf(pFile, "%s", pBuff);
+    ABC_FREE(pBuff);
 }
 
 /**Function*************************************************************
@@ -260,13 +245,11 @@ void Pdr_SetPrint( FILE * pFile, Pdr_Set_t * p, int nRegs, Vec_Int_t * vFlopCoun
   SeeAlso     []
 
 ***********************************************************************/
-void ZPdr_SetPrint( Pdr_Set_t * p )
-{
+void ZPdr_SetPrint(Pdr_Set_t* p) {
     int i;
-    for ( i = 0; i < p->nLits; i++)
-        printf ("%d ", p->Lits[i]);
-    printf ("\n");
-
+    for (i = 0; i < p->nLits; i++)
+        printf("%d ", p->Lits[i]);
+    printf("\n");
 }
 
 /**Function*************************************************************
@@ -280,53 +263,43 @@ void ZPdr_SetPrint( Pdr_Set_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Set_t * ZPdr_SetIntersection( Pdr_Set_t * p1, Pdr_Set_t * p2, Hash_Int_t * keep )
-{
-    Pdr_Set_t * pIntersection;
-    Vec_Int_t * vCommonLits, * vPiLits;
+Pdr_Set_t* ZPdr_SetIntersection(Pdr_Set_t* p1, Pdr_Set_t* p2, Hash_Int_t* keep) {
+    Pdr_Set_t* pIntersection;
+    Vec_Int_t *vCommonLits, *vPiLits;
     int i, j, nLits;
     nLits = p1->nLits;
-    if ( p2->nLits < nLits )
+    if (p2->nLits < nLits)
         nLits = p2->nLits;
-    vCommonLits = Vec_IntAlloc( nLits );
-    vPiLits = Vec_IntAlloc( 1 );
-    for ( i = 0, j = 0; i < p1->nLits && j < p2->nLits; )
-    {
-        if ( p1->Lits[i] > p2->Lits[j] )
-        {
-            if ( Hash_IntExists( keep, p2->Lits[j] ) )
-            {
+    vCommonLits = Vec_IntAlloc(nLits);
+    vPiLits = Vec_IntAlloc(1);
+    for (i = 0, j = 0; i < p1->nLits && j < p2->nLits;) {
+        if (p1->Lits[i] > p2->Lits[j]) {
+            if (Hash_IntExists(keep, p2->Lits[j])) {
                 //about to drop a literal that should not be dropped
-                Vec_IntFree( vCommonLits );
-                Vec_IntFree( vPiLits );
+                Vec_IntFree(vCommonLits);
+                Vec_IntFree(vPiLits);
                 return NULL;
             }
             j++;
-        }
-        else if ( p1->Lits[i] < p2->Lits[j] )
-        {
-            if ( Hash_IntExists( keep, p1->Lits[i] ) )
-            {
+        } else if (p1->Lits[i] < p2->Lits[j]) {
+            if (Hash_IntExists(keep, p1->Lits[i])) {
                 //about to drop a literal that should not be dropped
-                Vec_IntFree( vCommonLits );
-                Vec_IntFree( vPiLits );
+                Vec_IntFree(vCommonLits);
+                Vec_IntFree(vPiLits);
                 return NULL;
             }
             i++;
-        }
-        else
-        {
-          Vec_IntPush( vCommonLits, p1->Lits[i] );
-          i++;
-          j++;
+        } else {
+            Vec_IntPush(vCommonLits, p1->Lits[i]);
+            i++;
+            j++;
         }
     }
-    pIntersection = Pdr_SetCreate( vCommonLits, vPiLits );
-    Vec_IntFree( vCommonLits );
-    Vec_IntFree( vPiLits );
+    pIntersection = Pdr_SetCreate(vCommonLits, vPiLits);
+    Vec_IntFree(vCommonLits);
+    Vec_IntFree(vPiLits);
     return pIntersection;
 }
-
 
 /**Function*************************************************************
 
@@ -339,33 +312,30 @@ Pdr_Set_t * ZPdr_SetIntersection( Pdr_Set_t * p1, Pdr_Set_t * p2, Hash_Int_t * k
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_SetPrintStr( Vec_Str_t * vStr, Pdr_Set_t * p, int nRegs, Vec_Int_t * vFlopCounts )
-{
-    char * pBuff;
+void Pdr_SetPrintStr(Vec_Str_t* vStr, Pdr_Set_t* p, int nRegs, Vec_Int_t* vFlopCounts) {
+    char* pBuff;
     int i, k = 0, Entry;
-    pBuff = ABC_ALLOC( char, nRegs + 1 );
-    for ( i = 0; i < nRegs; i++ )
+    pBuff = ABC_ALLOC(char, nRegs + 1);
+    for (i = 0; i < nRegs; i++)
         pBuff[i] = '-';
     pBuff[i] = 0;
-    for ( i = 0; i < p->nLits; i++ )
-    {
-        if ( p->Lits[i] == -1 )
+    for (i = 0; i < p->nLits; i++) {
+        if (p->Lits[i] == -1)
             continue;
-        pBuff[Abc_Lit2Var(p->Lits[i])] = (Abc_LitIsCompl(p->Lits[i])? '0':'1');
+        pBuff[Abc_Lit2Var(p->Lits[i])] = (Abc_LitIsCompl(p->Lits[i]) ? '0' : '1');
     }
-    if ( vFlopCounts )
-    {
+    if (vFlopCounts) {
         // skip some literals
-        Vec_IntForEachEntry( vFlopCounts, Entry, i )
-            if ( Entry ) 
-                pBuff[k++] = pBuff[i];
+        Vec_IntForEachEntry(vFlopCounts, Entry, i) if (Entry)
+            pBuff[k++]
+            = pBuff[i];
         pBuff[k] = 0;
     }
-    Vec_StrPushBuffer( vStr, pBuff, k );
-    Vec_StrPush( vStr, ' ' );
-    Vec_StrPush( vStr, '1' );
-    Vec_StrPush( vStr, '\n' );
-    ABC_FREE( pBuff );
+    Vec_StrPushBuffer(vStr, pBuff, k);
+    Vec_StrPush(vStr, ' ');
+    Vec_StrPush(vStr, '1');
+    Vec_StrPush(vStr, '\n');
+    ABC_FREE(pBuff);
 }
 
 /**Function*************************************************************
@@ -379,26 +349,24 @@ void Pdr_SetPrintStr( Vec_Str_t * vStr, Pdr_Set_t * p, int nRegs, Vec_Int_t * vF
   SeeAlso     []
 
 ***********************************************************************/
-int Pdr_SetContains( Pdr_Set_t * pOld, Pdr_Set_t * pNew )
-{
-    int * pOldInt, * pNewInt;
-    assert( pOld->nLits > 0 );
-    assert( pNew->nLits > 0 );
-    if ( pOld->nLits < pNew->nLits )
+int Pdr_SetContains(Pdr_Set_t* pOld, Pdr_Set_t* pNew) {
+    int *pOldInt, *pNewInt;
+    assert(pOld->nLits > 0);
+    assert(pNew->nLits > 0);
+    if (pOld->nLits < pNew->nLits)
         return 0;
-    if ( (pOld->Sign & pNew->Sign) != pNew->Sign )
+    if ((pOld->Sign & pNew->Sign) != pNew->Sign)
         return 0;
     pOldInt = pOld->Lits + pOld->nLits - 1;
     pNewInt = pNew->Lits + pNew->nLits - 1;
-    while ( pNew->Lits <= pNewInt )
-    {
-        if ( pOld->Lits > pOldInt )
+    while (pNew->Lits <= pNewInt) {
+        if (pOld->Lits > pOldInt)
             return 0;
-        assert( *pNewInt != -1 );
-        assert( *pOldInt != -1 );
-        if ( *pNewInt == *pOldInt )
+        assert(*pNewInt != -1);
+        assert(*pOldInt != -1);
+        if (*pNewInt == *pOldInt)
             pNewInt--, pOldInt--;
-        else if ( *pNewInt < *pOldInt )
+        else if (*pNewInt < *pOldInt)
             pOldInt--;
         else
             return 0;
@@ -417,28 +385,25 @@ int Pdr_SetContains( Pdr_Set_t * pOld, Pdr_Set_t * pNew )
   SeeAlso     []
 
 ***********************************************************************/
-int Pdr_SetContainsSimple( Pdr_Set_t * pOld, Pdr_Set_t * pNew )
-{
-    int * pOldInt, * pNewInt;
-    assert( pOld->nLits > 0 );
-    assert( pNew->nLits > 0 );
+int Pdr_SetContainsSimple(Pdr_Set_t* pOld, Pdr_Set_t* pNew) {
+    int *pOldInt, *pNewInt;
+    assert(pOld->nLits > 0);
+    assert(pNew->nLits > 0);
     pOldInt = pOld->Lits + pOld->nLits - 1;
     pNewInt = pNew->Lits + pNew->nLits - 1;
-    while ( pNew->Lits <= pNewInt )
-    {
-        assert( *pOldInt != -1 );
-        if ( *pNewInt == -1 )
-        {
+    while (pNew->Lits <= pNewInt) {
+        assert(*pOldInt != -1);
+        if (*pNewInt == -1) {
             pNewInt--;
             continue;
         }
-        if ( pOld->Lits > pOldInt )
+        if (pOld->Lits > pOldInt)
             return 0;
-        assert( *pNewInt != -1 );
-        assert( *pOldInt != -1 );
-        if ( *pNewInt == *pOldInt )
+        assert(*pNewInt != -1);
+        assert(*pOldInt != -1);
+        if (*pNewInt == *pOldInt)
             pNewInt--, pOldInt--;
-        else if ( *pNewInt < *pOldInt )
+        else if (*pNewInt < *pOldInt)
             pOldInt--;
         else
             return 0;
@@ -457,15 +422,13 @@ int Pdr_SetContainsSimple( Pdr_Set_t * pOld, Pdr_Set_t * pNew )
   SeeAlso     []
 
 ***********************************************************************/
-int Pdr_SetIsInit( Pdr_Set_t * pCube, int iRemove )
-{
+int Pdr_SetIsInit(Pdr_Set_t* pCube, int iRemove) {
     int i;
-    for ( i = 0; i < pCube->nLits; i++ )
-    {
-        assert( pCube->Lits[i] != -1 );
-        if ( i == iRemove )
+    for (i = 0; i < pCube->nLits; i++) {
+        assert(pCube->Lits[i] != -1);
+        if (i == iRemove)
             continue;
-        if ( Abc_LitIsCompl( pCube->Lits[i] ) == 0 )
+        if (Abc_LitIsCompl(pCube->Lits[i]) == 0)
             return 0;
     }
     return 1;
@@ -482,21 +445,19 @@ int Pdr_SetIsInit( Pdr_Set_t * pCube, int iRemove )
   SeeAlso     []
 
 ***********************************************************************/
-int Pdr_SetCompare( Pdr_Set_t ** pp1, Pdr_Set_t ** pp2 )
-{
-    Pdr_Set_t * p1 = *pp1;
-    Pdr_Set_t * p2 = *pp2;
+int Pdr_SetCompare(Pdr_Set_t** pp1, Pdr_Set_t** pp2) {
+    Pdr_Set_t* p1 = *pp1;
+    Pdr_Set_t* p2 = *pp2;
     int i;
-    for ( i = 0; i < p1->nLits && i < p2->nLits; i++ )
-    {
-        if ( p1->Lits[i] > p2->Lits[i] )
+    for (i = 0; i < p1->nLits && i < p2->nLits; i++) {
+        if (p1->Lits[i] > p2->Lits[i])
             return -1;
-        if ( p1->Lits[i] < p2->Lits[i] )
+        if (p1->Lits[i] < p2->Lits[i])
             return 1;
     }
-    if ( i == p1->nLits && i < p2->nLits )
+    if (i == p1->nLits && i < p2->nLits)
         return -1;
-    if ( i < p1->nLits && i == p2->nLits )
+    if (i < p1->nLits && i == p2->nLits)
         return 1;
     return 0;
 }
@@ -512,17 +473,16 @@ int Pdr_SetCompare( Pdr_Set_t ** pp1, Pdr_Set_t ** pp2 )
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Obl_t * Pdr_OblStart( int k, int prio, Pdr_Set_t * pState, Pdr_Obl_t * pNext )
-{
-    Pdr_Obl_t * p;
-    p = ABC_ALLOC( Pdr_Obl_t, 1 );
+Pdr_Obl_t* Pdr_OblStart(int k, int prio, Pdr_Set_t* pState, Pdr_Obl_t* pNext) {
+    Pdr_Obl_t* p;
+    p = ABC_ALLOC(Pdr_Obl_t, 1);
     p->iFrame = k;
-    p->prio   = prio;
-    p->nRefs  = 1;
+    p->prio = prio;
+    p->nRefs = 1;
     p->pState = pState;
-    p->pNext  = pNext;
-    p->pLink  = NULL;
-    return p;    
+    p->pNext = pNext;
+    p->pLink = NULL;
+    return p;
 }
 
 /**Function*************************************************************
@@ -536,8 +496,7 @@ Pdr_Obl_t * Pdr_OblStart( int k, int prio, Pdr_Set_t * pState, Pdr_Obl_t * pNext
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Obl_t * Pdr_OblRef( Pdr_Obl_t * p )
-{
+Pdr_Obl_t* Pdr_OblRef(Pdr_Obl_t* p) {
     p->nRefs++;
     return p;
 }
@@ -553,14 +512,12 @@ Pdr_Obl_t * Pdr_OblRef( Pdr_Obl_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_OblDeref( Pdr_Obl_t * p )
-{
-    if ( --p->nRefs == 0 )
-    {
-        if ( p->pNext )
-            Pdr_OblDeref( p->pNext );
-        Pdr_SetDeref( p->pState );
-        ABC_FREE( p );
+void Pdr_OblDeref(Pdr_Obl_t* p) {
+    if (--p->nRefs == 0) {
+        if (p->pNext)
+            Pdr_OblDeref(p->pNext);
+        Pdr_SetDeref(p->pState);
+        ABC_FREE(p);
     }
 }
 
@@ -575,8 +532,7 @@ void Pdr_OblDeref( Pdr_Obl_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Pdr_QueueIsEmpty( Pdr_Man_t * p )
-{
+int Pdr_QueueIsEmpty(Pdr_Man_t* p) {
     return p->pQueue == NULL;
 }
 
@@ -591,8 +547,7 @@ int Pdr_QueueIsEmpty( Pdr_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Obl_t * Pdr_QueueHead( Pdr_Man_t * p )
-{
+Pdr_Obl_t* Pdr_QueueHead(Pdr_Man_t* p) {
     return p->pQueue;
 }
 
@@ -607,13 +562,12 @@ Pdr_Obl_t * Pdr_QueueHead( Pdr_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Pdr_Obl_t * Pdr_QueuePop( Pdr_Man_t * p )
-{
-    Pdr_Obl_t * pRes = p->pQueue;
-    if ( p->pQueue == NULL )
+Pdr_Obl_t* Pdr_QueuePop(Pdr_Man_t* p) {
+    Pdr_Obl_t* pRes = p->pQueue;
+    if (p->pQueue == NULL)
         return NULL;
     p->pQueue = p->pQueue->pLink;
-    Pdr_OblDeref( pRes );
+    Pdr_OblDeref(pRes);
     p->nQueCur--;
     return pRes;
 }
@@ -629,11 +583,10 @@ Pdr_Obl_t * Pdr_QueuePop( Pdr_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_QueueClean( Pdr_Man_t * p )
-{
-    Pdr_Obl_t * pThis;
-    while ( (pThis = Pdr_QueuePop(p)) )
-        Pdr_OblDeref( pThis );
+void Pdr_QueueClean(Pdr_Man_t* p) {
+    Pdr_Obl_t* pThis;
+    while ((pThis = Pdr_QueuePop(p)))
+        Pdr_OblDeref(pThis);
     pThis = NULL;
 }
 
@@ -648,20 +601,18 @@ void Pdr_QueueClean( Pdr_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_QueuePush( Pdr_Man_t * p, Pdr_Obl_t * pObl )
-{
-    Pdr_Obl_t * pTemp, ** ppPrev;
+void Pdr_QueuePush(Pdr_Man_t* p, Pdr_Obl_t* pObl) {
+    Pdr_Obl_t *pTemp, **ppPrev;
     p->nObligs++;
     p->nQueCur++;
-    p->nQueMax = Abc_MaxInt( p->nQueMax, p->nQueCur );
-    Pdr_OblRef( pObl );
-    if ( p->pQueue == NULL )
-    {
+    p->nQueMax = Abc_MaxInt(p->nQueMax, p->nQueCur);
+    Pdr_OblRef(pObl);
+    if (p->pQueue == NULL) {
         p->pQueue = pObl;
         return;
     }
-    for ( ppPrev = &p->pQueue, pTemp = p->pQueue; pTemp; ppPrev = &pTemp->pLink, pTemp = pTemp->pLink )
-        if ( pTemp->iFrame > pObl->iFrame || (pTemp->iFrame == pObl->iFrame && pTemp->prio > pObl->prio) )
+    for (ppPrev = &p->pQueue, pTemp = p->pQueue; pTemp; ppPrev = &pTemp->pLink, pTemp = pTemp->pLink)
+        if (pTemp->iFrame > pObl->iFrame || (pTemp->iFrame == pObl->iFrame && pTemp->prio > pObl->prio))
             break;
     *ppPrev = pObl;
     pObl->pLink = pTemp;
@@ -678,11 +629,10 @@ void Pdr_QueuePush( Pdr_Man_t * p, Pdr_Obl_t * pObl )
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_QueuePrint( Pdr_Man_t * p )
-{
-    Pdr_Obl_t * pObl;
-    for ( pObl = p->pQueue; pObl; pObl = pObl->pLink )
-        Abc_Print( 1, "Frame = %2d.  Prio = %8d.\n", pObl->iFrame, pObl->prio );
+void Pdr_QueuePrint(Pdr_Man_t* p) {
+    Pdr_Obl_t* pObl;
+    for (pObl = p->pQueue; pObl; pObl = pObl->pLink)
+        Abc_Print(1, "Frame = %2d.  Prio = %8d.\n", pObl->iFrame, pObl->prio);
 }
 
 /**Function*************************************************************
@@ -696,22 +646,19 @@ void Pdr_QueuePrint( Pdr_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Pdr_QueueStop( Pdr_Man_t * p )
-{
-    Pdr_Obl_t * pObl;
-    while ( !Pdr_QueueIsEmpty(p) )
-    {
+void Pdr_QueueStop(Pdr_Man_t* p) {
+    Pdr_Obl_t* pObl;
+    while (!Pdr_QueueIsEmpty(p)) {
         pObl = Pdr_QueuePop(p);
-        Pdr_OblDeref( pObl );
+        Pdr_OblDeref(pObl);
     }
     p->pQueue = NULL;
     p->nQueCur = 0;
 }
 
-
-#define PDR_VAL0  1
-#define PDR_VAL1  2
-#define PDR_VALX  3
+#define PDR_VAL0 1
+#define PDR_VAL1 2
+#define PDR_VALX 3
 
 /**Function*************************************************************
 
@@ -724,9 +671,8 @@ void Pdr_QueueStop( Pdr_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Pdr_ObjSatValue( Aig_Man_t * pAig, Aig_Obj_t * pNode, int fCompl )
-{
-    if ( Aig_ObjIsTravIdCurrent(pAig, pNode) )
+static inline int Pdr_ObjSatValue(Aig_Man_t* pAig, Aig_Obj_t* pNode, int fCompl) {
+    if (Aig_ObjIsTravIdCurrent(pAig, pNode))
         return (pNode->fMarkA ^ fCompl) ? PDR_VAL1 : PDR_VAL0;
     return PDR_VALX;
 }
@@ -742,50 +688,46 @@ static inline int Pdr_ObjSatValue( Aig_Man_t * pAig, Aig_Obj_t * pNode, int fCom
   SeeAlso     []
 
 ***********************************************************************/
-int Pdr_NtkFindSatAssign_rec( Aig_Man_t * pAig, Aig_Obj_t * pNode, int Value, Pdr_Set_t * pCube, int Heur )
-{
+int Pdr_NtkFindSatAssign_rec(Aig_Man_t* pAig, Aig_Obj_t* pNode, int Value, Pdr_Set_t* pCube, int Heur) {
     int Value0, Value1;
-    if ( Aig_ObjIsConst1(pNode) )
+    if (Aig_ObjIsConst1(pNode))
         return 1;
-    if ( Aig_ObjIsTravIdCurrent(pAig, pNode) )
+    if (Aig_ObjIsTravIdCurrent(pAig, pNode))
         return ((int)pNode->fMarkA == Value);
     Aig_ObjSetTravIdCurrent(pAig, pNode);
     pNode->fMarkA = Value;
-    if ( Aig_ObjIsCi(pNode) )
-    {
-        if ( Saig_ObjIsLo(pAig, pNode) )
-        {
-//            pCube->Lits[pCube->nLits++] = Abc_Var2Lit( Aig_ObjCioId(pNode) - Saig_ManPiNum(pAig), !Value );
-            pCube->Lits[pCube->nLits++] = Abc_Var2Lit( Aig_ObjCioId(pNode) - Saig_ManPiNum(pAig), Value );
-            pCube->Sign |= ((word)1 << (pCube->Lits[pCube->nLits-1] % 63));
+    if (Aig_ObjIsCi(pNode)) {
+        if (Saig_ObjIsLo(pAig, pNode)) {
+            //            pCube->Lits[pCube->nLits++] = Abc_Var2Lit( Aig_ObjCioId(pNode) - Saig_ManPiNum(pAig), !Value );
+            pCube->Lits[pCube->nLits++] = Abc_Var2Lit(Aig_ObjCioId(pNode) - Saig_ManPiNum(pAig), Value);
+            pCube->Sign |= ((word)1 << (pCube->Lits[pCube->nLits - 1] % 63));
         }
         return 1;
     }
-    assert( Aig_ObjIsNode(pNode) );
+    assert(Aig_ObjIsNode(pNode));
     // propagation
-    if ( Value ) 
-    {
-        if ( !Pdr_NtkFindSatAssign_rec(pAig, Aig_ObjFanin0(pNode), !Aig_ObjFaninC0(pNode), pCube, Heur) )
+    if (Value) {
+        if (!Pdr_NtkFindSatAssign_rec(pAig, Aig_ObjFanin0(pNode), !Aig_ObjFaninC0(pNode), pCube, Heur))
             return 0;
         return Pdr_NtkFindSatAssign_rec(pAig, Aig_ObjFanin1(pNode), !Aig_ObjFaninC1(pNode), pCube, Heur);
     }
     // justification
-    Value0 = Pdr_ObjSatValue( pAig, Aig_ObjFanin0(pNode), Aig_ObjFaninC0(pNode) );
-    if ( Value0 == PDR_VAL0 )
+    Value0 = Pdr_ObjSatValue(pAig, Aig_ObjFanin0(pNode), Aig_ObjFaninC0(pNode));
+    if (Value0 == PDR_VAL0)
         return 1;
-    Value1 = Pdr_ObjSatValue( pAig, Aig_ObjFanin1(pNode), Aig_ObjFaninC1(pNode) );
-    if ( Value1 == PDR_VAL0 )
+    Value1 = Pdr_ObjSatValue(pAig, Aig_ObjFanin1(pNode), Aig_ObjFaninC1(pNode));
+    if (Value1 == PDR_VAL0)
         return 1;
-    if ( Value0 == PDR_VAL1 && Value1 == PDR_VAL1 )
+    if (Value0 == PDR_VAL1 && Value1 == PDR_VAL1)
         return 0;
-    if ( Value0 == PDR_VAL1 )
+    if (Value0 == PDR_VAL1)
         return Pdr_NtkFindSatAssign_rec(pAig, Aig_ObjFanin1(pNode), Aig_ObjFaninC1(pNode), pCube, Heur);
-    if ( Value1 == PDR_VAL1 )
+    if (Value1 == PDR_VAL1)
         return Pdr_NtkFindSatAssign_rec(pAig, Aig_ObjFanin0(pNode), Aig_ObjFaninC0(pNode), pCube, Heur);
-    assert( Value0 == PDR_VALX && Value1 == PDR_VALX );
+    assert(Value0 == PDR_VALX && Value1 == PDR_VALX);
     // decision making
-//    if ( rand() % 10 == Heur )
-    if ( Aig_ObjId(pNode) % 4 == Heur )
+    //    if ( rand() % 10 == Heur )
+    if (Aig_ObjId(pNode) % 4 == Heur)
         return Pdr_NtkFindSatAssign_rec(pAig, Aig_ObjFanin1(pNode), Aig_ObjFaninC1(pNode), pCube, Heur);
     else
         return Pdr_NtkFindSatAssign_rec(pAig, Aig_ObjFanin0(pNode), Aig_ObjFaninC0(pNode), pCube, Heur);
@@ -795,6 +737,4 @@ int Pdr_NtkFindSatAssign_rec( Aig_Man_t * pAig, Aig_Obj_t * pNode, int Value, Pd
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

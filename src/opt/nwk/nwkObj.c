@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,19 +41,17 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Nwk_Obj_t * Nwk_ManCreateObj( Nwk_Man_t * p, int nFanins, int nFanouts )
-{
-    Nwk_Obj_t * pObj;
-    pObj = (Nwk_Obj_t *)Aig_MmFlexEntryFetch( p->pMemObjs, sizeof(Nwk_Obj_t) + (nFanins + nFanouts + p->nFanioPlus) * sizeof(Nwk_Obj_t *) );
-    memset( pObj, 0, sizeof(Nwk_Obj_t) );
-    pObj->pFanio = (Nwk_Obj_t **)((char *)pObj + sizeof(Nwk_Obj_t));
-    pObj->Id = Vec_PtrSize( p->vObjs );
-    Vec_PtrPush( p->vObjs, pObj );
-    pObj->pMan        = p;
+Nwk_Obj_t* Nwk_ManCreateObj(Nwk_Man_t* p, int nFanins, int nFanouts) {
+    Nwk_Obj_t* pObj;
+    pObj = (Nwk_Obj_t*)Aig_MmFlexEntryFetch(p->pMemObjs, sizeof(Nwk_Obj_t) + (nFanins + nFanouts + p->nFanioPlus) * sizeof(Nwk_Obj_t*));
+    memset(pObj, 0, sizeof(Nwk_Obj_t));
+    pObj->pFanio = (Nwk_Obj_t**)((char*)pObj + sizeof(Nwk_Obj_t));
+    pObj->Id = Vec_PtrSize(p->vObjs);
+    Vec_PtrPush(p->vObjs, pObj);
+    pObj->pMan = p;
     pObj->nFanioAlloc = nFanins + nFanouts + p->nFanioPlus;
     return pObj;
 }
-
 
 /**Function*************************************************************
 
@@ -67,12 +64,11 @@ Nwk_Obj_t * Nwk_ManCreateObj( Nwk_Man_t * p, int nFanins, int nFanouts )
   SeeAlso     []
 
 ***********************************************************************/
-Nwk_Obj_t * Nwk_ManCreateCi( Nwk_Man_t * p, int nFanouts )
-{
-    Nwk_Obj_t * pObj;
-    pObj = Nwk_ManCreateObj( p, 1, nFanouts );
-    pObj->PioId = Vec_PtrSize( p->vCis );
-    Vec_PtrPush( p->vCis, pObj );
+Nwk_Obj_t* Nwk_ManCreateCi(Nwk_Man_t* p, int nFanouts) {
+    Nwk_Obj_t* pObj;
+    pObj = Nwk_ManCreateObj(p, 1, nFanouts);
+    pObj->PioId = Vec_PtrSize(p->vCis);
+    Vec_PtrPush(p->vCis, pObj);
     pObj->Type = NWK_OBJ_CI;
     p->nObjs[NWK_OBJ_CI]++;
     return pObj;
@@ -89,12 +85,11 @@ Nwk_Obj_t * Nwk_ManCreateCi( Nwk_Man_t * p, int nFanouts )
   SeeAlso     []
 
 ***********************************************************************/
-Nwk_Obj_t * Nwk_ManCreateCo( Nwk_Man_t * p )
-{
-    Nwk_Obj_t * pObj;
-    pObj = Nwk_ManCreateObj( p, 1, 1 );
-    pObj->PioId = Vec_PtrSize( p->vCos );
-    Vec_PtrPush( p->vCos, pObj );
+Nwk_Obj_t* Nwk_ManCreateCo(Nwk_Man_t* p) {
+    Nwk_Obj_t* pObj;
+    pObj = Nwk_ManCreateObj(p, 1, 1);
+    pObj->PioId = Vec_PtrSize(p->vCos);
+    Vec_PtrPush(p->vCos, pObj);
     pObj->Type = NWK_OBJ_CO;
     p->nObjs[NWK_OBJ_CO]++;
     return pObj;
@@ -111,10 +106,9 @@ Nwk_Obj_t * Nwk_ManCreateCo( Nwk_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Nwk_Obj_t * Nwk_ManCreateLatch( Nwk_Man_t * p )
-{
-    Nwk_Obj_t * pObj;
-    pObj = Nwk_ManCreateObj( p, 1, 1 );
+Nwk_Obj_t* Nwk_ManCreateLatch(Nwk_Man_t* p) {
+    Nwk_Obj_t* pObj;
+    pObj = Nwk_ManCreateObj(p, 1, 1);
     pObj->Type = NWK_OBJ_LATCH;
     p->nObjs[NWK_OBJ_LATCH]++;
     return pObj;
@@ -131,15 +125,13 @@ Nwk_Obj_t * Nwk_ManCreateLatch( Nwk_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Nwk_Obj_t * Nwk_ManCreateNode( Nwk_Man_t * p, int nFanins, int nFanouts )
-{
-    Nwk_Obj_t * pObj;
-    pObj = Nwk_ManCreateObj( p, nFanins, nFanouts );
+Nwk_Obj_t* Nwk_ManCreateNode(Nwk_Man_t* p, int nFanins, int nFanouts) {
+    Nwk_Obj_t* pObj;
+    pObj = Nwk_ManCreateObj(p, nFanins, nFanouts);
     pObj->Type = NWK_OBJ_NODE;
     p->nObjs[NWK_OBJ_NODE]++;
     return pObj;
 }
-
 
 /**Function*************************************************************
 
@@ -152,20 +144,19 @@ Nwk_Obj_t * Nwk_ManCreateNode( Nwk_Man_t * p, int nFanins, int nFanouts )
   SeeAlso     []
 
 ***********************************************************************/
-void Nwk_ManDeleteNode( Nwk_Obj_t * pObj )
-{
-    Vec_Ptr_t * vNodes = pObj->pMan->vTemp;
-    Nwk_Obj_t * pTemp;
+void Nwk_ManDeleteNode(Nwk_Obj_t* pObj) {
+    Vec_Ptr_t* vNodes = pObj->pMan->vTemp;
+    Nwk_Obj_t* pTemp;
     int i;
-    assert( Nwk_ObjFanoutNum(pObj) == 0 );
+    assert(Nwk_ObjFanoutNum(pObj) == 0);
     // delete fanins
-    Nwk_ObjCollectFanins( pObj, vNodes );
-    Vec_PtrForEachEntry( Nwk_Obj_t *, vNodes, pTemp, i )
-        Nwk_ObjDeleteFanin( pObj, pTemp );
+    Nwk_ObjCollectFanins(pObj, vNodes);
+    Vec_PtrForEachEntry(Nwk_Obj_t*, vNodes, pTemp, i)
+        Nwk_ObjDeleteFanin(pObj, pTemp);
     // remove from the list of objects
-    Vec_PtrWriteEntry( pObj->pMan->vObjs, pObj->Id, NULL );
+    Vec_PtrWriteEntry(pObj->pMan->vObjs, pObj->Id, NULL);
     pObj->pMan->nObjs[pObj->Type]--;
-    memset( pObj, 0, sizeof(Nwk_Obj_t) );
+    memset(pObj, 0, sizeof(Nwk_Obj_t));
     pObj->Id = -1;
 }
 
@@ -180,25 +171,21 @@ void Nwk_ManDeleteNode( Nwk_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-void Nwk_ManDeleteNode_rec( Nwk_Obj_t * pObj )
-{
-    Vec_Ptr_t * vNodes;
+void Nwk_ManDeleteNode_rec(Nwk_Obj_t* pObj) {
+    Vec_Ptr_t* vNodes;
     int i;
-    assert( !Nwk_ObjIsCi(pObj) );
-    assert( Nwk_ObjFanoutNum(pObj) == 0 );
-    vNodes = Vec_PtrAlloc( 100 );
-    Nwk_ObjCollectFanins( pObj, vNodes );
-    Nwk_ManDeleteNode( pObj );
-    Vec_PtrForEachEntry( Nwk_Obj_t *, vNodes, pObj, i )
-        if ( Nwk_ObjIsNode(pObj) && Nwk_ObjFanoutNum(pObj) == 0 )
-            Nwk_ManDeleteNode_rec( pObj );
-    Vec_PtrFree( vNodes );
+    assert(!Nwk_ObjIsCi(pObj));
+    assert(Nwk_ObjFanoutNum(pObj) == 0);
+    vNodes = Vec_PtrAlloc(100);
+    Nwk_ObjCollectFanins(pObj, vNodes);
+    Nwk_ManDeleteNode(pObj);
+    Vec_PtrForEachEntry(Nwk_Obj_t*, vNodes, pObj, i) if (Nwk_ObjIsNode(pObj) && Nwk_ObjFanoutNum(pObj) == 0)
+        Nwk_ManDeleteNode_rec(pObj);
+    Vec_PtrFree(vNodes);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

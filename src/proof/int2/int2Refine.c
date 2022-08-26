@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,52 +41,42 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Int2_ManJustify_rec( Gia_Man_t * p, Gia_Obj_t * pObj, Vec_Int_t * vSelect )
-{ 
-    if ( pObj->fMark1 )
+void Int2_ManJustify_rec(Gia_Man_t* p, Gia_Obj_t* pObj, Vec_Int_t* vSelect) {
+    if (pObj->fMark1)
         return;
     pObj->fMark1 = 1;
-    if ( Gia_ObjIsPi(p, pObj) )
+    if (Gia_ObjIsPi(p, pObj))
         return;
-    if ( Gia_ObjIsCo(pObj) )
-    {
-        Vec_IntPush( vSelect, Gia_ObjCioId(pObj) );
-        return;
-    }
-    assert( Gia_ObjIsAnd(pObj) );
-    if ( pObj->Value == 1 )
-    {
-        if ( Gia_ObjFanin0(pObj)->Value < ABC_INFINITY )
-            Int2_ManJustify_rec( p, Gia_ObjFanin0(pObj), vSelect );
-        if ( Gia_ObjFanin1(pObj)->Value < ABC_INFINITY )
-            Int2_ManJustify_rec( p, Gia_ObjFanin1(pObj), vSelect );
+    if (Gia_ObjIsCo(pObj)) {
+        Vec_IntPush(vSelect, Gia_ObjCioId(pObj));
         return;
     }
-    if ( (Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj)) == 0 && (Gia_ObjFanin1(pObj)->fMark0 ^ Gia_ObjFaninC1(pObj)) == 0 )
-    {
-        if ( Gia_ObjFanin0(pObj)->fMark0 <= Gia_ObjFanin1(pObj)->fMark0 ) // choice
+    assert(Gia_ObjIsAnd(pObj));
+    if (pObj->Value == 1) {
+        if (Gia_ObjFanin0(pObj)->Value < ABC_INFINITY)
+            Int2_ManJustify_rec(p, Gia_ObjFanin0(pObj), vSelect);
+        if (Gia_ObjFanin1(pObj)->Value < ABC_INFINITY)
+            Int2_ManJustify_rec(p, Gia_ObjFanin1(pObj), vSelect);
+        return;
+    }
+    if ((Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj)) == 0 && (Gia_ObjFanin1(pObj)->fMark0 ^ Gia_ObjFaninC1(pObj)) == 0) {
+        if (Gia_ObjFanin0(pObj)->fMark0 <= Gia_ObjFanin1(pObj)->fMark0) // choice
         {
-            if ( Gia_ObjFanin0(pObj)->Value < ABC_INFINITY )
-                Int2_ManJustify_rec( p, Gia_ObjFanin0(pObj), vSelect );
+            if (Gia_ObjFanin0(pObj)->Value < ABC_INFINITY)
+                Int2_ManJustify_rec(p, Gia_ObjFanin0(pObj), vSelect);
+        } else {
+            if (Gia_ObjFanin1(pObj)->Value < ABC_INFINITY)
+                Int2_ManJustify_rec(p, Gia_ObjFanin1(pObj), vSelect);
         }
-        else
-        {
-            if ( Gia_ObjFanin1(pObj)->Value < ABC_INFINITY )
-                Int2_ManJustify_rec( p, Gia_ObjFanin1(pObj), vSelect );
-        }
-    }
-    else if ( (Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj)) == 0 )
-    {
-        if ( Gia_ObjFanin0(pObj)->Value < ABC_INFINITY )
-            Int2_ManJustify_rec( p, Gia_ObjFanin0(pObj), vSelect );
-    }
-    else if ( (Gia_ObjFanin1(pObj)->fMark0 ^ Gia_ObjFaninC1(pObj)) == 0 )
-    {
-        if ( Gia_ObjFanin1(pObj)->Value < ABC_INFINITY )
-            Int2_ManJustify_rec( p, Gia_ObjFanin1(pObj), vSelect );
-    }
-    else assert( 0 );
- }
+    } else if ((Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj)) == 0) {
+        if (Gia_ObjFanin0(pObj)->Value < ABC_INFINITY)
+            Int2_ManJustify_rec(p, Gia_ObjFanin0(pObj), vSelect);
+    } else if ((Gia_ObjFanin1(pObj)->fMark0 ^ Gia_ObjFaninC1(pObj)) == 0) {
+        if (Gia_ObjFanin1(pObj)->Value < ABC_INFINITY)
+            Int2_ManJustify_rec(p, Gia_ObjFanin1(pObj), vSelect);
+    } else
+        assert(0);
+}
 
 /**Function*************************************************************
 
@@ -101,54 +90,47 @@ void Int2_ManJustify_rec( Gia_Man_t * p, Gia_Obj_t * pObj, Vec_Int_t * vSelect )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Int_t * Int2_ManRefineCube( Gia_Man_t * p, Vec_Int_t * vAssign, Vec_Int_t * vPrio )
-{
-    Vec_Int_t * vSubset;
-    Gia_Obj_t * pObj;
+Vec_Int_t* Int2_ManRefineCube(Gia_Man_t* p, Vec_Int_t* vAssign, Vec_Int_t* vPrio) {
+    Vec_Int_t* vSubset;
+    Gia_Obj_t* pObj;
     int i;
     // set values and prios
-    assert( Gia_ManRegNum(p) > 0 );
-    assert( Vec_IntSize(vAssign) == Vec_IntSize(vPrio) );
+    assert(Gia_ManRegNum(p) > 0);
+    assert(Vec_IntSize(vAssign) == Vec_IntSize(vPrio));
     Gia_ManConst0(p)->fMark0 = 0;
     Gia_ManConst0(p)->fMark1 = 0;
     Gia_ManConst0(p)->Value = ABC_INFINITY;
-    Gia_ManForEachCi( p, pObj, i )
-    {
+    Gia_ManForEachCi(p, pObj, i) {
         pObj->fMark0 = Vec_IntEntry(vAssign, i);
         pObj->fMark1 = 0;
-        pObj->Value  = Vec_IntEntry(vPrio, i);        
+        pObj->Value = Vec_IntEntry(vPrio, i);
     }
-    Gia_ManForEachAnd( p, pObj, i )
-    {
+    Gia_ManForEachAnd(p, pObj, i) {
         pObj->fMark0 = (Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj)) & (Gia_ObjFanin1(pObj)->fMark0 ^ Gia_ObjFaninC1(pObj));
         pObj->fMark1 = 0;
-        if ( pObj->fMark0 == 1 )
-            pObj->Value = Abc_MaxInt( Gia_ObjFanin0(pObj)->Value, Gia_ObjFanin1(pObj)->Value );
-        else if ( (Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj)) == 0 && (Gia_ObjFanin1(pObj)->fMark0 ^ Gia_ObjFaninC1(pObj)) == 0 )
-            pObj->Value = Abc_MinInt( Gia_ObjFanin0(pObj)->Value, Gia_ObjFanin1(pObj)->Value ); // choice
-        else if ( (Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj)) == 0 )
+        if (pObj->fMark0 == 1)
+            pObj->Value = Abc_MaxInt(Gia_ObjFanin0(pObj)->Value, Gia_ObjFanin1(pObj)->Value);
+        else if ((Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj)) == 0 && (Gia_ObjFanin1(pObj)->fMark0 ^ Gia_ObjFaninC1(pObj)) == 0)
+            pObj->Value = Abc_MinInt(Gia_ObjFanin0(pObj)->Value, Gia_ObjFanin1(pObj)->Value); // choice
+        else if ((Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj)) == 0)
             pObj->Value = Gia_ObjFanin0(pObj)->Value;
-        else 
+        else
             pObj->Value = Gia_ObjFanin1(pObj)->Value;
     }
-    pObj = Gia_ManPo( p, 0 );
+    pObj = Gia_ManPo(p, 0);
     pObj->fMark0 = (Gia_ObjFanin0(pObj)->fMark0 ^ Gia_ObjFaninC0(pObj));
     pObj->fMark1 = 0;
-    pObj->Value  = Gia_ObjFanin0(pObj)->Value;
-    assert( pObj->fMark0 == 1 );
-    assert( pObj->Value < ABC_INFINITY );
+    pObj->Value = Gia_ObjFanin0(pObj)->Value;
+    assert(pObj->fMark0 == 1);
+    assert(pObj->Value < ABC_INFINITY);
     // select subset
-    vSubset = Vec_IntAlloc( 100 );
-    Int2_ManJustify_rec( p, Gia_ObjFanin0(pObj), vSubset );
+    vSubset = Vec_IntAlloc(100);
+    Int2_ManJustify_rec(p, Gia_ObjFanin0(pObj), vSubset);
     return vSubset;
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

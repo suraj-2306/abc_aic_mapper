@@ -23,12 +23,11 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static void Sim_SimulateSeqFrame( Vec_Ptr_t * vInfo, Abc_Ntk_t * pNtk, int iFrames, int nWords, int fTransfer );
+static void Sim_SimulateSeqFrame(Vec_Ptr_t* vInfo, Abc_Ntk_t* pNtk, int iFrames, int nWords, int fTransfer);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -48,30 +47,27 @@ static void Sim_SimulateSeqFrame( Vec_Ptr_t * vInfo, Abc_Ntk_t * pNtk, int iFram
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Ptr_t * Sim_SimulateSeqRandom( Abc_Ntk_t * pNtk, int nFrames, int nWords )
-{
-    Vec_Ptr_t * vInfo;
-    Abc_Obj_t * pNode;
+Vec_Ptr_t* Sim_SimulateSeqRandom(Abc_Ntk_t* pNtk, int nFrames, int nWords) {
+    Vec_Ptr_t* vInfo;
+    Abc_Obj_t* pNode;
     int i;
-    assert( Abc_NtkIsStrash(pNtk) );
-    vInfo = Sim_UtilInfoAlloc( Abc_NtkObjNumMax(pNtk), nWords * nFrames, 0 );
+    assert(Abc_NtkIsStrash(pNtk));
+    vInfo = Sim_UtilInfoAlloc(Abc_NtkObjNumMax(pNtk), nWords * nFrames, 0);
     // set the constant data
     pNode = Abc_AigConst1(pNtk);
-    Sim_UtilSetConst( Sim_SimInfoGet(vInfo,pNode), nWords * nFrames, 1 );
+    Sim_UtilSetConst(Sim_SimInfoGet(vInfo, pNode), nWords * nFrames, 1);
     // set the random PI data
-    Abc_NtkForEachPi( pNtk, pNode, i )
-        Sim_UtilSetRandom( Sim_SimInfoGet(vInfo,pNode), nWords * nFrames );
+    Abc_NtkForEachPi(pNtk, pNode, i)
+        Sim_UtilSetRandom(Sim_SimInfoGet(vInfo, pNode), nWords * nFrames);
     // set the initial state data
-    Abc_NtkForEachLatch( pNtk, pNode, i )
-        if ( Abc_LatchIsInit0(pNode) )
-            Sim_UtilSetConst( Sim_SimInfoGet(vInfo,pNode), nWords, 0 );
-        else if ( Abc_LatchIsInit1(pNode) )
-            Sim_UtilSetConst( Sim_SimInfoGet(vInfo,pNode), nWords, 1 );
-        else 
-            Sim_UtilSetRandom( Sim_SimInfoGet(vInfo,pNode), nWords );
+    Abc_NtkForEachLatch(pNtk, pNode, i) if (Abc_LatchIsInit0(pNode))
+        Sim_UtilSetConst(Sim_SimInfoGet(vInfo, pNode), nWords, 0);
+    else if (Abc_LatchIsInit1(pNode))
+        Sim_UtilSetConst(Sim_SimInfoGet(vInfo, pNode), nWords, 1);
+    else Sim_UtilSetRandom(Sim_SimInfoGet(vInfo, pNode), nWords);
     // simulate the nodes for the given number of timeframes
-    for ( i = 0; i < nFrames; i++ )
-        Sim_SimulateSeqFrame( vInfo, pNtk, i, nWords, (int)(i < nFrames-1) );
+    for (i = 0; i < nFrames; i++)
+        Sim_SimulateSeqFrame(vInfo, pNtk, i, nWords, (int)(i < nFrames - 1));
     return vInfo;
 }
 
@@ -89,38 +85,35 @@ Vec_Ptr_t * Sim_SimulateSeqRandom( Abc_Ntk_t * pNtk, int nFrames, int nWords )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Ptr_t * Sim_SimulateSeqModel( Abc_Ntk_t * pNtk, int nFrames, int * pModel )
-{
-    Vec_Ptr_t * vInfo;
-    Abc_Obj_t * pNode;
-    unsigned * pUnsigned;
+Vec_Ptr_t* Sim_SimulateSeqModel(Abc_Ntk_t* pNtk, int nFrames, int* pModel) {
+    Vec_Ptr_t* vInfo;
+    Abc_Obj_t* pNode;
+    unsigned* pUnsigned;
     int i, k;
-    vInfo = Sim_UtilInfoAlloc( Abc_NtkObjNumMax(pNtk), nFrames, 0 );
+    vInfo = Sim_UtilInfoAlloc(Abc_NtkObjNumMax(pNtk), nFrames, 0);
     // set the constant data
     pNode = Abc_AigConst1(pNtk);
-    Sim_UtilSetConst( Sim_SimInfoGet(vInfo,pNode), nFrames, 1 );
+    Sim_UtilSetConst(Sim_SimInfoGet(vInfo, pNode), nFrames, 1);
     // set the random PI data
-    Abc_NtkForEachPi( pNtk, pNode, i )
-    {
-        pUnsigned = Sim_SimInfoGet(vInfo,pNode);
-        for ( k = 0; k < nFrames; k++ )
+    Abc_NtkForEachPi(pNtk, pNode, i) {
+        pUnsigned = Sim_SimInfoGet(vInfo, pNode);
+        for (k = 0; k < nFrames; k++)
             pUnsigned[k] = pModel[k * Abc_NtkPiNum(pNtk) + i] ? ~((unsigned)0) : 0;
     }
     // set the initial state data
-    Abc_NtkForEachLatch( pNtk, pNode, i )
-    {
-        pUnsigned = Sim_SimInfoGet(vInfo,pNode);
-        if ( Abc_LatchIsInit0(pNode) )
+    Abc_NtkForEachLatch(pNtk, pNode, i) {
+        pUnsigned = Sim_SimInfoGet(vInfo, pNode);
+        if (Abc_LatchIsInit0(pNode))
             pUnsigned[0] = 0;
-        else if ( Abc_LatchIsInit1(pNode) )
+        else if (Abc_LatchIsInit1(pNode))
             pUnsigned[0] = ~((unsigned)0);
-        else 
+        else
             pUnsigned[0] = SIM_RANDOM_UNSIGNED;
     }
     // simulate the nodes for the given number of timeframes
-    for ( i = 0; i < nFrames; i++ )
-        Sim_SimulateSeqFrame( vInfo, pNtk, i, 1, (int)(i < nFrames-1) );
-/*
+    for (i = 0; i < nFrames; i++)
+        Sim_SimulateSeqFrame(vInfo, pNtk, i, 1, (int)(i < nFrames - 1));
+    /*
     // print the simulated values
     for ( i = 0; i < nFrames; i++ )
     {
@@ -152,25 +145,21 @@ Vec_Ptr_t * Sim_SimulateSeqModel( Abc_Ntk_t * pNtk, int nFrames, int * pModel )
   SeeAlso     []
 
 ***********************************************************************/
-void Sim_SimulateSeqFrame( Vec_Ptr_t * vInfo, Abc_Ntk_t * pNtk, int iFrames, int nWords, int fTransfer )
-{
-    Abc_Obj_t * pNode;
+void Sim_SimulateSeqFrame(Vec_Ptr_t* vInfo, Abc_Ntk_t* pNtk, int iFrames, int nWords, int fTransfer) {
+    Abc_Obj_t* pNode;
     int i;
-    Abc_NtkForEachNode( pNtk, pNode, i )
-        Sim_UtilSimulateNodeOne( pNode, vInfo, nWords, iFrames * nWords );
-    Abc_NtkForEachPo( pNtk, pNode, i )
-        Sim_UtilTransferNodeOne( pNode, vInfo, nWords, iFrames * nWords, 0 );
-    if ( !fTransfer )
+    Abc_NtkForEachNode(pNtk, pNode, i)
+        Sim_UtilSimulateNodeOne(pNode, vInfo, nWords, iFrames * nWords);
+    Abc_NtkForEachPo(pNtk, pNode, i)
+        Sim_UtilTransferNodeOne(pNode, vInfo, nWords, iFrames * nWords, 0);
+    if (!fTransfer)
         return;
-    Abc_NtkForEachLatch( pNtk, pNode, i )
-        Sim_UtilTransferNodeOne( pNode, vInfo, nWords, iFrames * nWords, 1 );
+    Abc_NtkForEachLatch(pNtk, pNode, i)
+        Sim_UtilTransferNodeOne(pNode, vInfo, nWords, iFrames * nWords, 1);
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

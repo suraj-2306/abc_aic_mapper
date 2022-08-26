@@ -64,22 +64,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -89,12 +84,11 @@ ABC_NAMESPACE_IMPL_START
 static char rcsid[] DD_UNUSED = "$Id: cuddAddAbs.c,v 1.15 2004/08/13 18:04:45 fabio Exp $";
 #endif
 
-static  DdNode  *two;
+static DdNode* two;
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
-
 
 /**AutomaticStart*************************************************************/
 
@@ -102,10 +96,9 @@ static  DdNode  *two;
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static int addCheckPositiveCube (DdManager *manager, DdNode *cube);
+static int addCheckPositiveCube(DdManager* manager, DdNode* cube);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
@@ -125,21 +118,20 @@ static int addCheckPositiveCube (DdManager *manager, DdNode *cube);
   Cudd_addOrAbstract]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_addExistAbstract(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * cube)
-{
-    DdNode *res;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* cube) {
+    DdNode* res;
 
-    two = cuddUniqueConst(manager,(CUDD_VALUE_TYPE) 2);
-    if (two == NULL) return(NULL);
+    two = cuddUniqueConst(manager, (CUDD_VALUE_TYPE)2);
+    if (two == NULL) return (NULL);
     cuddRef(two);
 
     if (addCheckPositiveCube(manager, cube) == 0) {
-        (void) fprintf(manager->err,"Error: Can only abstract cubes");
-        return(NULL);
+        (void)fprintf(manager->err, "Error: Can only abstract cubes");
+        return (NULL);
     }
 
     do {
@@ -148,17 +140,16 @@ Cudd_addExistAbstract(
     } while (manager->reordered == 1);
 
     if (res == NULL) {
-        Cudd_RecursiveDeref(manager,two);
-        return(NULL);
+        Cudd_RecursiveDeref(manager, two);
+        return (NULL);
     }
     cuddRef(res);
-    Cudd_RecursiveDeref(manager,two);
+    Cudd_RecursiveDeref(manager, two);
     cuddDeref(res);
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_addExistAbstract */
-
 
 /**Function********************************************************************
 
@@ -174,17 +165,16 @@ Cudd_addExistAbstract(
   Cudd_addOrAbstract]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_addUnivAbstract(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * cube)
-{
-    DdNode              *res;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* cube) {
+    DdNode* res;
 
     if (addCheckPositiveCube(manager, cube) == 0) {
-        (void) fprintf(manager->err,"Error:  Can only abstract cubes");
-        return(NULL);
+        (void)fprintf(manager->err, "Error:  Can only abstract cubes");
+        return (NULL);
     }
 
     do {
@@ -192,10 +182,9 @@ Cudd_addUnivAbstract(
         res = cuddAddUnivAbstractRecur(manager, f, cube);
     } while (manager->reordered == 1);
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_addUnivAbstract */
-
 
 /**Function********************************************************************
 
@@ -212,32 +201,29 @@ Cudd_addUnivAbstract(
   SeeAlso     [Cudd_addUnivAbstract Cudd_addExistAbstract]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_addOrAbstract(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * cube)
-{
-    DdNode *res;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* cube) {
+    DdNode* res;
 
     if (addCheckPositiveCube(manager, cube) == 0) {
-        (void) fprintf(manager->err,"Error: Can only abstract cubes");
-        return(NULL);
+        (void)fprintf(manager->err, "Error: Can only abstract cubes");
+        return (NULL);
     }
 
     do {
         manager->reordered = 0;
         res = cuddAddOrAbstractRecur(manager, f, cube);
     } while (manager->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_addOrAbstract */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -252,44 +238,43 @@ Cudd_addOrAbstract(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddAddExistAbstractRecur(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * cube)
-{
-    DdNode      *T, *E, *res, *res1, *res2, *zero;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* cube) {
+    DdNode *T, *E, *res, *res1, *res2, *zero;
 
     statLine(manager);
     zero = DD_ZERO(manager);
 
-    /* Cube is guaranteed to be a cube at this point. */        
-    if (f == zero || cuddIsConstant(cube)) {  
-        return(f);
+    /* Cube is guaranteed to be a cube at this point. */
+    if (f == zero || cuddIsConstant(cube)) {
+        return (f);
     }
 
     /* Abstract a variable that does not appear in f => multiply by 2. */
-    if (cuddI(manager,f->index) > cuddI(manager,cube->index)) {
+    if (cuddI(manager, f->index) > cuddI(manager, cube->index)) {
         res1 = cuddAddExistAbstractRecur(manager, f, cuddT(cube));
-        if (res1 == NULL) return(NULL);
+        if (res1 == NULL) return (NULL);
         cuddRef(res1);
         /* Use the "internal" procedure to be alerted in case of
         ** dynamic reordering. If dynamic reordering occurs, we
         ** have to abort the entire abstraction.
         */
-        res = cuddAddApplyRecur(manager,Cudd_addTimes,res1,two);
+        res = cuddAddApplyRecur(manager, Cudd_addTimes, res1, two);
         if (res == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            return (NULL);
         }
         cuddRef(res);
-        Cudd_RecursiveDeref(manager,res1);
+        Cudd_RecursiveDeref(manager, res1);
         cuddDeref(res);
-        return(res);
+        return (res);
     }
 
     if ((res = cuddCacheLookup2(manager, Cudd_addExistAbstract, f, cube)) != NULL) {
-        return(res);
+        return (res);
     }
 
     T = cuddT(f);
@@ -298,51 +283,49 @@ cuddAddExistAbstractRecur(
     /* If the two indices are the same, so are their levels. */
     if (f->index == cube->index) {
         res1 = cuddAddExistAbstractRecur(manager, T, cuddT(cube));
-        if (res1 == NULL) return(NULL);
+        if (res1 == NULL) return (NULL);
         cuddRef(res1);
         res2 = cuddAddExistAbstractRecur(manager, E, cuddT(cube));
         if (res2 == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            return (NULL);
         }
         cuddRef(res2);
         res = cuddAddApplyRecur(manager, Cudd_addPlus, res1, res2);
         if (res == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            Cudd_RecursiveDeref(manager,res2);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            Cudd_RecursiveDeref(manager, res2);
+            return (NULL);
         }
         cuddRef(res);
-        Cudd_RecursiveDeref(manager,res1);
-        Cudd_RecursiveDeref(manager,res2);
+        Cudd_RecursiveDeref(manager, res1);
+        Cudd_RecursiveDeref(manager, res2);
         cuddCacheInsert2(manager, Cudd_addExistAbstract, f, cube, res);
         cuddDeref(res);
-        return(res);
+        return (res);
     } else { /* if (cuddI(manager,f->index) < cuddI(manager,cube->index)) */
         res1 = cuddAddExistAbstractRecur(manager, T, cube);
-        if (res1 == NULL) return(NULL);
+        if (res1 == NULL) return (NULL);
         cuddRef(res1);
         res2 = cuddAddExistAbstractRecur(manager, E, cube);
         if (res2 == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            return (NULL);
         }
         cuddRef(res2);
-        res = (res1 == res2) ? res1 :
-            cuddUniqueInter(manager, (int) f->index, res1, res2);
+        res = (res1 == res2) ? res1 : cuddUniqueInter(manager, (int)f->index, res1, res2);
         if (res == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            Cudd_RecursiveDeref(manager,res2);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            Cudd_RecursiveDeref(manager, res2);
+            return (NULL);
         }
         cuddDeref(res1);
         cuddDeref(res2);
         cuddCacheInsert2(manager, Cudd_addExistAbstract, f, cube, res);
-        return(res);
-    }       
+        return (res);
+    }
 
 } /* end of cuddAddExistAbstractRecur */
-
 
 /**Function********************************************************************
 
@@ -357,13 +340,12 @@ cuddAddExistAbstractRecur(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddAddUnivAbstractRecur(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * cube)
-{
-    DdNode      *T, *E, *res, *res1, *res2, *one, *zero;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* cube) {
+    DdNode *T, *E, *res, *res1, *res2, *one, *zero;
 
     statLine(manager);
     one = DD_ONE(manager);
@@ -372,14 +354,14 @@ cuddAddUnivAbstractRecur(
     /* Cube is guaranteed to be a cube at this point.
     ** zero and one are the only constatnts c such that c*c=c.
     */
-    if (f == zero || f == one || cube == one) {  
-        return(f);
+    if (f == zero || f == one || cube == one) {
+        return (f);
     }
 
     /* Abstract a variable that does not appear in f. */
-    if (cuddI(manager,f->index) > cuddI(manager,cube->index)) {
+    if (cuddI(manager, f->index) > cuddI(manager, cube->index)) {
         res1 = cuddAddUnivAbstractRecur(manager, f, cuddT(cube));
-        if (res1 == NULL) return(NULL);
+        if (res1 == NULL) return (NULL);
         cuddRef(res1);
         /* Use the "internal" procedure to be alerted in case of
         ** dynamic reordering. If dynamic reordering occurs, we
@@ -387,17 +369,17 @@ cuddAddUnivAbstractRecur(
         */
         res = cuddAddApplyRecur(manager, Cudd_addTimes, res1, res1);
         if (res == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            return (NULL);
         }
         cuddRef(res);
-        Cudd_RecursiveDeref(manager,res1);
+        Cudd_RecursiveDeref(manager, res1);
         cuddDeref(res);
-        return(res);
+        return (res);
     }
 
     if ((res = cuddCacheLookup2(manager, Cudd_addUnivAbstract, f, cube)) != NULL) {
-        return(res);
+        return (res);
     }
 
     T = cuddT(f);
@@ -406,51 +388,49 @@ cuddAddUnivAbstractRecur(
     /* If the two indices are the same, so are their levels. */
     if (f->index == cube->index) {
         res1 = cuddAddUnivAbstractRecur(manager, T, cuddT(cube));
-        if (res1 == NULL) return(NULL);
+        if (res1 == NULL) return (NULL);
         cuddRef(res1);
         res2 = cuddAddUnivAbstractRecur(manager, E, cuddT(cube));
         if (res2 == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            return (NULL);
         }
         cuddRef(res2);
         res = cuddAddApplyRecur(manager, Cudd_addTimes, res1, res2);
         if (res == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            Cudd_RecursiveDeref(manager,res2);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            Cudd_RecursiveDeref(manager, res2);
+            return (NULL);
         }
         cuddRef(res);
-        Cudd_RecursiveDeref(manager,res1);
-        Cudd_RecursiveDeref(manager,res2);
+        Cudd_RecursiveDeref(manager, res1);
+        Cudd_RecursiveDeref(manager, res2);
         cuddCacheInsert2(manager, Cudd_addUnivAbstract, f, cube, res);
         cuddDeref(res);
-        return(res);
+        return (res);
     } else { /* if (cuddI(manager,f->index) < cuddI(manager,cube->index)) */
         res1 = cuddAddUnivAbstractRecur(manager, T, cube);
-        if (res1 == NULL) return(NULL);
+        if (res1 == NULL) return (NULL);
         cuddRef(res1);
         res2 = cuddAddUnivAbstractRecur(manager, E, cube);
         if (res2 == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            return (NULL);
         }
         cuddRef(res2);
-        res = (res1 == res2) ? res1 :
-            cuddUniqueInter(manager, (int) f->index, res1, res2);
+        res = (res1 == res2) ? res1 : cuddUniqueInter(manager, (int)f->index, res1, res2);
         if (res == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            Cudd_RecursiveDeref(manager,res2);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            Cudd_RecursiveDeref(manager, res2);
+            return (NULL);
         }
         cuddDeref(res1);
         cuddDeref(res2);
         cuddCacheInsert2(manager, Cudd_addUnivAbstract, f, cube, res);
-        return(res);
+        return (res);
     }
 
 } /* end of cuddAddUnivAbstractRecur */
-
 
 /**Function********************************************************************
 
@@ -465,30 +445,29 @@ cuddAddUnivAbstractRecur(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddAddOrAbstractRecur(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * cube)
-{
-    DdNode      *T, *E, *res, *res1, *res2, *one;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* cube) {
+    DdNode *T, *E, *res, *res1, *res2, *one;
 
     statLine(manager);
     one = DD_ONE(manager);
 
     /* Cube is guaranteed to be a cube at this point. */
-    if (cuddIsConstant(f) || cube == one) {  
-        return(f);
+    if (cuddIsConstant(f) || cube == one) {
+        return (f);
     }
 
     /* Abstract a variable that does not appear in f. */
-    if (cuddI(manager,f->index) > cuddI(manager,cube->index)) {
+    if (cuddI(manager, f->index) > cuddI(manager, cube->index)) {
         res = cuddAddOrAbstractRecur(manager, f, cuddT(cube));
-        return(res);
+        return (res);
     }
 
     if ((res = cuddCacheLookup2(manager, Cudd_addOrAbstract, f, cube)) != NULL) {
-        return(res);
+        return (res);
     }
 
     T = cuddT(f);
@@ -497,61 +476,57 @@ cuddAddOrAbstractRecur(
     /* If the two indices are the same, so are their levels. */
     if (f->index == cube->index) {
         res1 = cuddAddOrAbstractRecur(manager, T, cuddT(cube));
-        if (res1 == NULL) return(NULL);
+        if (res1 == NULL) return (NULL);
         cuddRef(res1);
         if (res1 != one) {
             res2 = cuddAddOrAbstractRecur(manager, E, cuddT(cube));
             if (res2 == NULL) {
-                Cudd_RecursiveDeref(manager,res1);
-                return(NULL);
+                Cudd_RecursiveDeref(manager, res1);
+                return (NULL);
             }
             cuddRef(res2);
             res = cuddAddApplyRecur(manager, Cudd_addOr, res1, res2);
             if (res == NULL) {
-                Cudd_RecursiveDeref(manager,res1);
-                Cudd_RecursiveDeref(manager,res2);
-                return(NULL);
+                Cudd_RecursiveDeref(manager, res1);
+                Cudd_RecursiveDeref(manager, res2);
+                return (NULL);
             }
             cuddRef(res);
-            Cudd_RecursiveDeref(manager,res1);
-            Cudd_RecursiveDeref(manager,res2);
+            Cudd_RecursiveDeref(manager, res1);
+            Cudd_RecursiveDeref(manager, res2);
         } else {
             res = res1;
         }
         cuddCacheInsert2(manager, Cudd_addOrAbstract, f, cube, res);
         cuddDeref(res);
-        return(res);
+        return (res);
     } else { /* if (cuddI(manager,f->index) < cuddI(manager,cube->index)) */
         res1 = cuddAddOrAbstractRecur(manager, T, cube);
-        if (res1 == NULL) return(NULL);
+        if (res1 == NULL) return (NULL);
         cuddRef(res1);
         res2 = cuddAddOrAbstractRecur(manager, E, cube);
         if (res2 == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            return (NULL);
         }
         cuddRef(res2);
-        res = (res1 == res2) ? res1 :
-            cuddUniqueInter(manager, (int) f->index, res1, res2);
+        res = (res1 == res2) ? res1 : cuddUniqueInter(manager, (int)f->index, res1, res2);
         if (res == NULL) {
-            Cudd_RecursiveDeref(manager,res1);
-            Cudd_RecursiveDeref(manager,res2);
-            return(NULL);
+            Cudd_RecursiveDeref(manager, res1);
+            Cudd_RecursiveDeref(manager, res2);
+            return (NULL);
         }
         cuddDeref(res1);
         cuddDeref(res2);
         cuddCacheInsert2(manager, Cudd_addOrAbstract, f, cube, res);
-        return(res);
+        return (res);
     }
 
 } /* end of cuddAddOrAbstractRecur */
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -568,21 +543,16 @@ cuddAddOrAbstractRecur(
 ******************************************************************************/
 static int
 addCheckPositiveCube(
-  DdManager * manager,
-  DdNode * cube)
-{
-    if (Cudd_IsComplement(cube)) return(0);
-    if (cube == DD_ONE(manager)) return(1);
-    if (cuddIsConstant(cube)) return(0);
+    DdManager* manager,
+    DdNode* cube) {
+    if (Cudd_IsComplement(cube)) return (0);
+    if (cube == DD_ONE(manager)) return (1);
+    if (cuddIsConstant(cube)) return (0);
     if (cuddE(cube) == DD_ZERO(manager)) {
-        return(addCheckPositiveCube(manager, cuddT(cube)));
+        return (addCheckPositiveCube(manager, cuddT(cube)));
     }
-    return(0);
+    return (0);
 
 } /* end of addCheckPositiveCube */
 
-
 ABC_NAMESPACE_IMPL_END
-
-
-

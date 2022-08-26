@@ -41,18 +41,14 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Cba_Man_t * Cba_ManReadCba( char * pFileName )
-{
+Cba_Man_t* Cba_ManReadCba(char* pFileName) {
     return NULL;
 }
-void Cba_ManWriteCba( char * pFileName, Cba_Man_t * p )
-{
+void Cba_ManWriteCba(char* pFileName, Cba_Man_t* p) {
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

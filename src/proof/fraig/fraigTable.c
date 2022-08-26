@@ -20,13 +20,12 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static void Fraig_TableResizeS( Fraig_HashTable_t * p );
-static void Fraig_TableResizeF( Fraig_HashTable_t * p, int fUseSimR );
+static void Fraig_TableResizeS(Fraig_HashTable_t* p);
+static void Fraig_TableResizeF(Fraig_HashTable_t* p, int fUseSimR);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -43,16 +42,15 @@ static void Fraig_TableResizeF( Fraig_HashTable_t * p, int fUseSimR );
   SeeAlso     []
 
 ***********************************************************************/
-Fraig_HashTable_t * Fraig_HashTableCreate( int nSize )
-{
-    Fraig_HashTable_t * p;
+Fraig_HashTable_t* Fraig_HashTableCreate(int nSize) {
+    Fraig_HashTable_t* p;
     // allocate the table
-    p = ABC_ALLOC( Fraig_HashTable_t, 1 );
-    memset( p, 0, sizeof(Fraig_HashTable_t) );
+    p = ABC_ALLOC(Fraig_HashTable_t, 1);
+    memset(p, 0, sizeof(Fraig_HashTable_t));
     // allocate and clean the bins
     p->nBins = Abc_PrimeCudd(nSize);
-    p->pBins = ABC_ALLOC( Fraig_Node_t *, p->nBins );
-    memset( p->pBins, 0, sizeof(Fraig_Node_t *) * p->nBins );
+    p->pBins = ABC_ALLOC(Fraig_Node_t*, p->nBins);
+    memset(p->pBins, 0, sizeof(Fraig_Node_t*) * p->nBins);
     return p;
 }
 
@@ -67,10 +65,9 @@ Fraig_HashTable_t * Fraig_HashTableCreate( int nSize )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_HashTableFree( Fraig_HashTable_t * p )
-{
-    ABC_FREE( p->pBins );
-    ABC_FREE( p );
+void Fraig_HashTableFree(Fraig_HashTable_t* p) {
+    ABC_FREE(p->pBins);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -87,31 +84,27 @@ void Fraig_HashTableFree( Fraig_HashTable_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_HashTableLookupS( Fraig_Man_t * pMan, Fraig_Node_t * p1, Fraig_Node_t * p2, Fraig_Node_t ** ppNodeRes )
-{
-    Fraig_HashTable_t * p = pMan->pTableS;
-    Fraig_Node_t * pEnt;
+int Fraig_HashTableLookupS(Fraig_Man_t* pMan, Fraig_Node_t* p1, Fraig_Node_t* p2, Fraig_Node_t** ppNodeRes) {
+    Fraig_HashTable_t* p = pMan->pTableS;
+    Fraig_Node_t* pEnt;
     unsigned Key;
 
     // order the arguments
-    if ( Fraig_Regular(p1)->Num > Fraig_Regular(p2)->Num )
+    if (Fraig_Regular(p1)->Num > Fraig_Regular(p2)->Num)
         pEnt = p1, p1 = p2, p2 = pEnt;
 
-    Key = Fraig_HashKey2( p1, p2, p->nBins );
-    Fraig_TableBinForEachEntryS( p->pBins[Key], pEnt )
-        if ( pEnt->p1 == p1 && pEnt->p2 == p2 )
-        {
-            *ppNodeRes = pEnt;
-            return 1;
-        }
+    Key = Fraig_HashKey2(p1, p2, p->nBins);
+    Fraig_TableBinForEachEntryS(p->pBins[Key], pEnt) if (pEnt->p1 == p1 && pEnt->p2 == p2) {
+        *ppNodeRes = pEnt;
+        return 1;
+    }
     // check if it is a good time for table resizing
-    if ( p->nEntries >= 2 * p->nBins )
-    {
-        Fraig_TableResizeS( p );
-        Key = Fraig_HashKey2( p1, p2, p->nBins );
+    if (p->nEntries >= 2 * p->nBins) {
+        Fraig_TableResizeS(p);
+        Key = Fraig_HashKey2(p1, p2, p->nBins);
     }
     // create the new node
-    pEnt = Fraig_NodeCreate( pMan, p1, p2 );
+    pEnt = Fraig_NodeCreate(pMan, p1, p2);
     // add the node to the corresponding linked list in the table
     pEnt->pNextS = p->pBins[Key];
     p->pBins[Key] = pEnt;
@@ -119,7 +112,6 @@ int Fraig_HashTableLookupS( Fraig_Man_t * pMan, Fraig_Node_t * p1, Fraig_Node_t 
     p->nEntries++;
     return 0;
 }
-
 
 /**Function*************************************************************
 
@@ -133,40 +125,36 @@ int Fraig_HashTableLookupS( Fraig_Man_t * pMan, Fraig_Node_t * p1, Fraig_Node_t 
   SeeAlso     []
 
 ***********************************************************************/
-Fraig_Node_t * Fraig_HashTableLookupF( Fraig_Man_t * pMan, Fraig_Node_t * pNode )
-{
-    Fraig_HashTable_t * p = pMan->pTableF;
-    Fraig_Node_t * pEnt, * pEntD;
+Fraig_Node_t* Fraig_HashTableLookupF(Fraig_Man_t* pMan, Fraig_Node_t* pNode) {
+    Fraig_HashTable_t* p = pMan->pTableF;
+    Fraig_Node_t *pEnt, *pEntD;
     unsigned Key;
 
     // go through the hash table entries
     Key = pNode->uHashR % p->nBins;
-    Fraig_TableBinForEachEntryF( p->pBins[Key], pEnt )
-    {
+    Fraig_TableBinForEachEntryF(p->pBins[Key], pEnt) {
         // if their simulation info differs, skip
-        if ( !Fraig_CompareSimInfo( pNode, pEnt, pMan->nWordsRand, 1 ) )
+        if (!Fraig_CompareSimInfo(pNode, pEnt, pMan->nWordsRand, 1))
             continue;
         // equivalent up to the complement
-        Fraig_TableBinForEachEntryD( pEnt, pEntD )
-        {
+        Fraig_TableBinForEachEntryD(pEnt, pEntD) {
             // if their simulation info differs, skip
-            if ( !Fraig_CompareSimInfo( pNode, pEntD, pMan->iWordStart, 0 ) )
+            if (!Fraig_CompareSimInfo(pNode, pEntD, pMan->iWordStart, 0))
                 continue;
             // found a simulation-equivalent node
-            return pEntD; 
+            return pEntD;
         }
         // did not find a simulation equivalent node
         // add the node to the corresponding linked list
         pNode->pNextD = pEnt->pNextD;
-        pEnt->pNextD  = pNode;
+        pEnt->pNextD = pNode;
         // return NULL, because there is no functional equivalence in this case
         return NULL;
     }
 
     // check if it is a good time for table resizing
-    if ( p->nEntries >= 2 * p->nBins )
-    {
-        Fraig_TableResizeF( p, 1 );
+    if (p->nEntries >= 2 * p->nBins) {
+        Fraig_TableResizeF(p, 1);
         Key = pNode->uHashR % p->nBins;
     }
 
@@ -190,27 +178,24 @@ Fraig_Node_t * Fraig_HashTableLookupF( Fraig_Man_t * pMan, Fraig_Node_t * pNode 
   SeeAlso     []
 
 ***********************************************************************/
-Fraig_Node_t * Fraig_HashTableLookupF0( Fraig_Man_t * pMan, Fraig_Node_t * pNode )
-{
-    Fraig_HashTable_t * p = pMan->pTableF0;
-    Fraig_Node_t * pEnt;
+Fraig_Node_t* Fraig_HashTableLookupF0(Fraig_Man_t* pMan, Fraig_Node_t* pNode) {
+    Fraig_HashTable_t* p = pMan->pTableF0;
+    Fraig_Node_t* pEnt;
     unsigned Key;
 
     // go through the hash table entries
     Key = pNode->uHashD % p->nBins;
-    Fraig_TableBinForEachEntryF( p->pBins[Key], pEnt )
-    {
+    Fraig_TableBinForEachEntryF(p->pBins[Key], pEnt) {
         // if their simulation info differs, skip
-        if ( !Fraig_CompareSimInfo( pNode, pEnt, pMan->iWordStart, 0 ) )
+        if (!Fraig_CompareSimInfo(pNode, pEnt, pMan->iWordStart, 0))
             continue;
         // found a simulation-equivalent node
-        return pEnt; 
+        return pEnt;
     }
 
     // check if it is a good time for table resizing
-    if ( p->nEntries >= 2 * p->nBins )
-    {
-        Fraig_TableResizeF( p, 0 );
+    if (p->nEntries >= 2 * p->nBins) {
+        Fraig_TableResizeF(p, 0);
         Key = pNode->uHashD % p->nBins;
     }
 
@@ -234,9 +219,8 @@ Fraig_Node_t * Fraig_HashTableLookupF0( Fraig_Man_t * pMan, Fraig_Node_t * pNode
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_HashTableInsertF0( Fraig_Man_t * pMan, Fraig_Node_t * pNode )
-{
-    Fraig_HashTable_t * p = pMan->pTableF0;
+void Fraig_HashTableInsertF0(Fraig_Man_t* pMan, Fraig_Node_t* pNode) {
+    Fraig_HashTable_t* p = pMan->pTableF0;
     unsigned Key = pNode->uHashD % p->nBins;
 
     pNode->pNextF = p->pBins[Key];
@@ -244,7 +228,6 @@ void Fraig_HashTableInsertF0( Fraig_Man_t * pMan, Fraig_Node_t * pNode )
     p->nEntries++;
 }
 
-
 /**Function*************************************************************
 
   Synopsis    [Resizes the table.]
@@ -256,35 +239,33 @@ void Fraig_HashTableInsertF0( Fraig_Man_t * pMan, Fraig_Node_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_TableResizeS( Fraig_HashTable_t * p )
-{
-    Fraig_Node_t ** pBinsNew;
-    Fraig_Node_t * pEnt, * pEnt2;
+void Fraig_TableResizeS(Fraig_HashTable_t* p) {
+    Fraig_Node_t** pBinsNew;
+    Fraig_Node_t *pEnt, *pEnt2;
     int nBinsNew, Counter, i;
     abctime clk;
     unsigned Key;
 
-clk = Abc_Clock();
+    clk = Abc_Clock();
     // get the new table size
-    nBinsNew = Abc_PrimeCudd(2 * p->nBins); 
+    nBinsNew = Abc_PrimeCudd(2 * p->nBins);
     // allocate a new array
-    pBinsNew = ABC_ALLOC( Fraig_Node_t *, nBinsNew );
-    memset( pBinsNew, 0, sizeof(Fraig_Node_t *) * nBinsNew );
+    pBinsNew = ABC_ALLOC(Fraig_Node_t*, nBinsNew);
+    memset(pBinsNew, 0, sizeof(Fraig_Node_t*) * nBinsNew);
     // rehash the entries from the old table
     Counter = 0;
-    for ( i = 0; i < p->nBins; i++ )
-        Fraig_TableBinForEachEntrySafeS( p->pBins[i], pEnt, pEnt2 )
-        {
-            Key = Fraig_HashKey2( pEnt->p1, pEnt->p2, nBinsNew );
+    for (i = 0; i < p->nBins; i++)
+        Fraig_TableBinForEachEntrySafeS(p->pBins[i], pEnt, pEnt2) {
+            Key = Fraig_HashKey2(pEnt->p1, pEnt->p2, nBinsNew);
             pEnt->pNextS = pBinsNew[Key];
             pBinsNew[Key] = pEnt;
             Counter++;
         }
-    assert( Counter == p->nEntries );
-//    printf( "Increasing the structural table size from %6d to %6d. ", p->nBins, nBinsNew );
-//    ABC_PRT( "Time", Abc_Clock() - clk );
+    assert(Counter == p->nEntries);
+    //    printf( "Increasing the structural table size from %6d to %6d. ", p->nBins, nBinsNew );
+    //    ABC_PRT( "Time", Abc_Clock() - clk );
     // replace the table and the parameters
-    ABC_FREE( p->pBins );
+    ABC_FREE(p->pBins);
     p->pBins = pBinsNew;
     p->nBins = nBinsNew;
 }
@@ -300,26 +281,24 @@ clk = Abc_Clock();
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_TableResizeF( Fraig_HashTable_t * p, int fUseSimR )
-{
-    Fraig_Node_t ** pBinsNew;
-    Fraig_Node_t * pEnt, * pEnt2;
+void Fraig_TableResizeF(Fraig_HashTable_t* p, int fUseSimR) {
+    Fraig_Node_t** pBinsNew;
+    Fraig_Node_t *pEnt, *pEnt2;
     int nBinsNew, Counter, i;
     abctime clk;
     unsigned Key;
 
-clk = Abc_Clock();
+    clk = Abc_Clock();
     // get the new table size
-    nBinsNew = Abc_PrimeCudd(2 * p->nBins); 
+    nBinsNew = Abc_PrimeCudd(2 * p->nBins);
     // allocate a new array
-    pBinsNew = ABC_ALLOC( Fraig_Node_t *, nBinsNew );
-    memset( pBinsNew, 0, sizeof(Fraig_Node_t *) * nBinsNew );
+    pBinsNew = ABC_ALLOC(Fraig_Node_t*, nBinsNew);
+    memset(pBinsNew, 0, sizeof(Fraig_Node_t*) * nBinsNew);
     // rehash the entries from the old table
     Counter = 0;
-    for ( i = 0; i < p->nBins; i++ )
-        Fraig_TableBinForEachEntrySafeF( p->pBins[i], pEnt, pEnt2 )
-        {
-            if ( fUseSimR )
+    for (i = 0; i < p->nBins; i++)
+        Fraig_TableBinForEachEntrySafeF(p->pBins[i], pEnt, pEnt2) {
+            if (fUseSimR)
                 Key = pEnt->uHashR % nBinsNew;
             else
                 Key = pEnt->uHashD % nBinsNew;
@@ -327,15 +306,14 @@ clk = Abc_Clock();
             pBinsNew[Key] = pEnt;
             Counter++;
         }
-    assert( Counter == p->nEntries );
-//    printf( "Increasing the functional table size from %6d to %6d. ", p->nBins, nBinsNew );
-//    ABC_PRT( "Time", Abc_Clock() - clk );
+    assert(Counter == p->nEntries);
+    //    printf( "Increasing the functional table size from %6d to %6d. ", p->nBins, nBinsNew );
+    //    ABC_PRT( "Time", Abc_Clock() - clk );
     // replace the table and the parameters
-    ABC_FREE( p->pBins );
+    ABC_FREE(p->pBins);
     p->pBins = pBinsNew;
     p->nBins = nBinsNew;
 }
-
 
 /**Function*************************************************************
 
@@ -348,29 +326,25 @@ clk = Abc_Clock();
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_CompareSimInfo( Fraig_Node_t * pNode1, Fraig_Node_t * pNode2, int iWordLast, int fUseRand )
-{
+int Fraig_CompareSimInfo(Fraig_Node_t* pNode1, Fraig_Node_t* pNode2, int iWordLast, int fUseRand) {
     int i;
-    assert( !Fraig_IsComplement(pNode1) );
-    assert( !Fraig_IsComplement(pNode2) );
-    if ( fUseRand )
-    {
+    assert(!Fraig_IsComplement(pNode1));
+    assert(!Fraig_IsComplement(pNode2));
+    if (fUseRand) {
         // if their signatures differ, skip
-        if ( pNode1->uHashR != pNode2->uHashR )
+        if (pNode1->uHashR != pNode2->uHashR)
             return 0;
         // check the simulation info
-        for ( i = 0; i < iWordLast; i++ )
-            if ( pNode1->puSimR[i] != pNode2->puSimR[i] )
+        for (i = 0; i < iWordLast; i++)
+            if (pNode1->puSimR[i] != pNode2->puSimR[i])
                 return 0;
-    }
-    else
-    {
+    } else {
         // if their signatures differ, skip
-        if ( pNode1->uHashD != pNode2->uHashD )
+        if (pNode1->uHashD != pNode2->uHashD)
             return 0;
         // check the simulation info
-        for ( i = 0; i < iWordLast; i++ )
-            if ( pNode1->puSimD[i] != pNode2->puSimD[i] )
+        for (i = 0; i < iWordLast; i++)
+            if (pNode1->puSimD[i] != pNode2->puSimD[i])
                 return 0;
     }
     return 1;
@@ -387,50 +361,40 @@ int Fraig_CompareSimInfo( Fraig_Node_t * pNode1, Fraig_Node_t * pNode2, int iWor
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_FindFirstDiff( Fraig_Node_t * pNode1, Fraig_Node_t * pNode2, int fCompl, int iWordLast, int fUseRand )
-{
+int Fraig_FindFirstDiff(Fraig_Node_t* pNode1, Fraig_Node_t* pNode2, int fCompl, int iWordLast, int fUseRand) {
     int i, v;
-    assert( !Fraig_IsComplement(pNode1) );
-    assert( !Fraig_IsComplement(pNode2) );
+    assert(!Fraig_IsComplement(pNode1));
+    assert(!Fraig_IsComplement(pNode2));
     // take into account possible internal complementation
     fCompl ^= pNode1->fInv;
     fCompl ^= pNode2->fInv;
     // find the pattern
-    if ( fCompl )
-    {
-        if ( fUseRand )
-        {
-            for ( i = 0; i < iWordLast; i++ )
-                if ( pNode1->puSimR[i] != ~pNode2->puSimR[i] )
-                    for ( v = 0; v < 32; v++ )
-                        if ( (pNode1->puSimR[i] ^ ~pNode2->puSimR[i]) & (1 << v) )
+    if (fCompl) {
+        if (fUseRand) {
+            for (i = 0; i < iWordLast; i++)
+                if (pNode1->puSimR[i] != ~pNode2->puSimR[i])
+                    for (v = 0; v < 32; v++)
+                        if ((pNode1->puSimR[i] ^ ~pNode2->puSimR[i]) & (1 << v))
+                            return i * 32 + v;
+        } else {
+            for (i = 0; i < iWordLast; i++)
+                if (pNode1->puSimD[i] != ~pNode2->puSimD[i])
+                    for (v = 0; v < 32; v++)
+                        if ((pNode1->puSimD[i] ^ ~pNode2->puSimD[i]) & (1 << v))
                             return i * 32 + v;
         }
-        else
-        {
-            for ( i = 0; i < iWordLast; i++ )
-                if ( pNode1->puSimD[i] !=  ~pNode2->puSimD[i] )
-                    for ( v = 0; v < 32; v++ )
-                        if ( (pNode1->puSimD[i] ^ ~pNode2->puSimD[i]) & (1 << v) )
+    } else {
+        if (fUseRand) {
+            for (i = 0; i < iWordLast; i++)
+                if (pNode1->puSimR[i] != pNode2->puSimR[i])
+                    for (v = 0; v < 32; v++)
+                        if ((pNode1->puSimR[i] ^ pNode2->puSimR[i]) & (1 << v))
                             return i * 32 + v;
-        }
-    }
-    else
-    {
-        if ( fUseRand )
-        {
-            for ( i = 0; i < iWordLast; i++ )
-                if ( pNode1->puSimR[i] != pNode2->puSimR[i] )
-                    for ( v = 0; v < 32; v++ )
-                        if ( (pNode1->puSimR[i] ^ pNode2->puSimR[i]) & (1 << v) )
-                            return i * 32 + v;
-        }
-        else
-        {
-            for ( i = 0; i < iWordLast; i++ )
-                if ( pNode1->puSimD[i] !=  pNode2->puSimD[i] )
-                    for ( v = 0; v < 32; v++ )
-                        if ( (pNode1->puSimD[i] ^ pNode2->puSimD[i]) & (1 << v) )
+        } else {
+            for (i = 0; i < iWordLast; i++)
+                if (pNode1->puSimD[i] != pNode2->puSimD[i])
+                    for (v = 0; v < 32; v++)
+                        if ((pNode1->puSimD[i] ^ pNode2->puSimD[i]) & (1 << v))
                             return i * 32 + v;
         }
     }
@@ -448,18 +412,17 @@ int Fraig_FindFirstDiff( Fraig_Node_t * pNode1, Fraig_Node_t * pNode2, int fComp
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_CompareSimInfoUnderMask( Fraig_Node_t * pNode1, Fraig_Node_t * pNode2, int iWordLast, int fUseRand, unsigned * puMask )
-{
-    unsigned * pSims1, * pSims2;
+int Fraig_CompareSimInfoUnderMask(Fraig_Node_t* pNode1, Fraig_Node_t* pNode2, int iWordLast, int fUseRand, unsigned* puMask) {
+    unsigned *pSims1, *pSims2;
     int i;
-    assert( !Fraig_IsComplement(pNode1) );
-    assert( !Fraig_IsComplement(pNode2) );
+    assert(!Fraig_IsComplement(pNode1));
+    assert(!Fraig_IsComplement(pNode2));
     // get hold of simulation info
-    pSims1 = fUseRand? pNode1->puSimR : pNode1->puSimD;
-    pSims2 = fUseRand? pNode2->puSimR : pNode2->puSimD;    
+    pSims1 = fUseRand ? pNode1->puSimR : pNode1->puSimD;
+    pSims2 = fUseRand ? pNode2->puSimR : pNode2->puSimD;
     // check the simulation info
-    for ( i = 0; i < iWordLast; i++ )
-        if ( (pSims1[i] & puMask[i]) != (pSims2[i] & puMask[i]) )
+    for (i = 0; i < iWordLast; i++)
+        if ((pSims1[i] & puMask[i]) != (pSims2[i] & puMask[i]))
             return 0;
     return 1;
 }
@@ -475,20 +438,18 @@ int Fraig_CompareSimInfoUnderMask( Fraig_Node_t * pNode1, Fraig_Node_t * pNode2,
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_CollectXors( Fraig_Node_t * pNode1, Fraig_Node_t * pNode2, int iWordLast, int fUseRand, unsigned * puMask )
-{
-    unsigned * pSims1, * pSims2;
+void Fraig_CollectXors(Fraig_Node_t* pNode1, Fraig_Node_t* pNode2, int iWordLast, int fUseRand, unsigned* puMask) {
+    unsigned *pSims1, *pSims2;
     int i;
-    assert( !Fraig_IsComplement(pNode1) );
-    assert( !Fraig_IsComplement(pNode2) );
+    assert(!Fraig_IsComplement(pNode1));
+    assert(!Fraig_IsComplement(pNode2));
     // get hold of simulation info
-    pSims1 = fUseRand? pNode1->puSimR : pNode1->puSimD;
-    pSims2 = fUseRand? pNode2->puSimR : pNode2->puSimD;    
+    pSims1 = fUseRand ? pNode1->puSimR : pNode1->puSimD;
+    pSims2 = fUseRand ? pNode2->puSimR : pNode2->puSimD;
     // check the simulation info
-    for ( i = 0; i < iWordLast; i++ )
-        puMask[i] = ( pSims1[i] ^ pSims2[i] );
+    for (i = 0; i < iWordLast; i++)
+        puMask[i] = (pSims1[i] ^ pSims2[i]);
 }
-
 
 /**Function*************************************************************
 
@@ -501,26 +462,23 @@ void Fraig_CollectXors( Fraig_Node_t * pNode1, Fraig_Node_t * pNode2, int iWordL
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_TablePrintStatsS( Fraig_Man_t * pMan )
-{
-    Fraig_HashTable_t * pT = pMan->pTableS;
-    Fraig_Node_t * pNode;
+void Fraig_TablePrintStatsS(Fraig_Man_t* pMan) {
+    Fraig_HashTable_t* pT = pMan->pTableS;
+    Fraig_Node_t* pNode;
     int i, Counter;
 
-    printf( "Structural table. Table size = %d. Number of entries = %d.\n", pT->nBins, pT->nEntries );
-    for ( i = 0; i < pT->nBins; i++ )
-    {
+    printf("Structural table. Table size = %d. Number of entries = %d.\n", pT->nBins, pT->nEntries);
+    for (i = 0; i < pT->nBins; i++) {
         Counter = 0;
-        Fraig_TableBinForEachEntryS( pT->pBins[i], pNode )
+        Fraig_TableBinForEachEntryS(pT->pBins[i], pNode)
             Counter++;
-        if ( Counter > 1 )
-        {
-            printf( "%d ", Counter );
-            if ( Counter > 50 )
-                printf( "{%d} ", i );
+        if (Counter > 1) {
+            printf("%d ", Counter);
+            if (Counter > 50)
+                printf("{%d} ", i);
         }
     }
-    printf( "\n" );
+    printf("\n");
 }
 
 /**Function*************************************************************
@@ -534,22 +492,20 @@ void Fraig_TablePrintStatsS( Fraig_Man_t * pMan )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_TablePrintStatsF( Fraig_Man_t * pMan )
-{
-    Fraig_HashTable_t * pT = pMan->pTableF;
-    Fraig_Node_t * pNode;
+void Fraig_TablePrintStatsF(Fraig_Man_t* pMan) {
+    Fraig_HashTable_t* pT = pMan->pTableF;
+    Fraig_Node_t* pNode;
     int i, Counter;
 
-    printf( "Functional table. Table size = %d. Number of entries = %d.\n", pT->nBins, pT->nEntries );
-    for ( i = 0; i < pT->nBins; i++ )
-    {
+    printf("Functional table. Table size = %d. Number of entries = %d.\n", pT->nBins, pT->nEntries);
+    for (i = 0; i < pT->nBins; i++) {
         Counter = 0;
-        Fraig_TableBinForEachEntryF( pT->pBins[i], pNode )
+        Fraig_TableBinForEachEntryF(pT->pBins[i], pNode)
             Counter++;
-        if ( Counter > 1 )
-            printf( "{%d} ", Counter );
+        if (Counter > 1)
+            printf("{%d} ", Counter);
     }
-    printf( "\n" );
+    printf("\n");
 }
 
 /**Function*************************************************************
@@ -563,27 +519,25 @@ void Fraig_TablePrintStatsF( Fraig_Man_t * pMan )
   SeeAlso     []
 
 ***********************************************************************/
-void Fraig_TablePrintStatsF0( Fraig_Man_t * pMan )
-{
-    Fraig_HashTable_t * pT = pMan->pTableF0;
-    Fraig_Node_t * pNode;
+void Fraig_TablePrintStatsF0(Fraig_Man_t* pMan) {
+    Fraig_HashTable_t* pT = pMan->pTableF0;
+    Fraig_Node_t* pNode;
     int i, Counter;
 
-    printf( "Zero-node table. Table size = %d. Number of entries = %d.\n", pT->nBins, pT->nEntries );
-    for ( i = 0; i < pT->nBins; i++ )
-    {
+    printf("Zero-node table. Table size = %d. Number of entries = %d.\n", pT->nBins, pT->nEntries);
+    for (i = 0; i < pT->nBins; i++) {
         Counter = 0;
-        Fraig_TableBinForEachEntryF( pT->pBins[i], pNode )
+        Fraig_TableBinForEachEntryF(pT->pBins[i], pNode)
             Counter++;
-        if ( Counter == 0 )
+        if (Counter == 0)
             continue;
-/*
+        /*
         printf( "\nBin = %4d :  Number of entries = %4d\n", i, Counter );
         Fraig_TableBinForEachEntryF( pT->pBins[i], pNode )
             printf( "Node %5d. Hash = %10d.\n", pNode->Num, pNode->uHashD );
 */
     }
-    printf( "\n" );
+    printf("\n");
 }
 
 /**Function*************************************************************
@@ -601,56 +555,52 @@ void Fraig_TablePrintStatsF0( Fraig_Man_t * pMan )
   SeeAlso     []
 
 ***********************************************************************/
-int Fraig_TableRehashF0( Fraig_Man_t * pMan, int fLinkEquiv )
-{
-    Fraig_HashTable_t * pT = pMan->pTableF0;
-    Fraig_Node_t ** pBinsNew;
-    Fraig_Node_t * pEntF, * pEntF2, * pEnt, * pEntD2, * pEntN;
+int Fraig_TableRehashF0(Fraig_Man_t* pMan, int fLinkEquiv) {
+    Fraig_HashTable_t* pT = pMan->pTableF0;
+    Fraig_Node_t** pBinsNew;
+    Fraig_Node_t *pEntF, *pEntF2, *pEnt, *pEntD2, *pEntN;
     int ReturnValue, Counter, i;
     unsigned Key;
 
     // allocate a new array of bins
-    pBinsNew = ABC_ALLOC( Fraig_Node_t *, pT->nBins );
-    memset( pBinsNew, 0, sizeof(Fraig_Node_t *) * pT->nBins );
+    pBinsNew = ABC_ALLOC(Fraig_Node_t*, pT->nBins);
+    memset(pBinsNew, 0, sizeof(Fraig_Node_t*) * pT->nBins);
 
     // rehash the entries in the table
     // go through all the nodes in the F-lists (and possible in D-lists, if used)
     Counter = 0;
     ReturnValue = 0;
-    for ( i = 0; i < pT->nBins; i++ )
-        Fraig_TableBinForEachEntrySafeF( pT->pBins[i], pEntF, pEntF2 )
-        Fraig_TableBinForEachEntrySafeD( pEntF, pEnt, pEntD2 )
-        {
+    for (i = 0; i < pT->nBins; i++)
+        Fraig_TableBinForEachEntrySafeF(pT->pBins[i], pEntF, pEntF2)
+            Fraig_TableBinForEachEntrySafeD(pEntF, pEnt, pEntD2) {
             // decide where to put entry pEnt
             Key = pEnt->uHashD % pT->nBins;
-            if ( fLinkEquiv )
-            {
+            if (fLinkEquiv) {
                 // go through the entries in the new bin
-                Fraig_TableBinForEachEntryF( pBinsNew[Key], pEntN )
-                {
+                Fraig_TableBinForEachEntryF(pBinsNew[Key], pEntN) {
                     // if they have different values skip
-                    if ( pEnt->uHashD != pEntN->uHashD )
+                    if (pEnt->uHashD != pEntN->uHashD)
                         continue;
                     // they have the same hash value, add pEnt to the D-list pEnt3
-                    pEnt->pNextD  = pEntN->pNextD;
+                    pEnt->pNextD = pEntN->pNextD;
                     pEntN->pNextD = pEnt;
                     ReturnValue = 1;
                     Counter++;
                     break;
                 }
-                if ( pEntN != NULL ) // already linked
+                if (pEntN != NULL) // already linked
                     continue;
                 // we did not find equal entry
             }
             // link the new entry
-            pEnt->pNextF  = pBinsNew[Key];
+            pEnt->pNextF = pBinsNew[Key];
             pBinsNew[Key] = pEnt;
-            pEnt->pNextD  = NULL;
+            pEnt->pNextD = NULL;
             Counter++;
         }
-    assert( Counter == pT->nEntries );
+    assert(Counter == pT->nEntries);
     // replace the table and the parameters
-    ABC_FREE( pT->pBins );
+    ABC_FREE(pT->pBins);
     pT->pBins = pBinsNew;
     return ReturnValue;
 }
@@ -659,6 +609,4 @@ int Fraig_TableRehashF0( Fraig_Man_t * pMan, int fLinkEquiv )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

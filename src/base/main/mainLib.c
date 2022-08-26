@@ -23,11 +23,10 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
- 
+
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
@@ -49,17 +48,16 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_Start()
-{
-    Abc_Frame_t * pAbc;
+void Abc_Start() {
+    Abc_Frame_t* pAbc;
     // added to detect memory leaks:
-#if defined(_DEBUG) && defined(_MSC_VER) 
-    _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#if defined(_DEBUG) && defined(_MSC_VER)
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
     // start the glocal frame
     pAbc = Abc_FrameGetGlobalFrame();
     // source the resource file
-//    Abc_UtilsSource( pAbc );
+    //    Abc_UtilsSource( pAbc );
 }
 
 /**Function*************************************************************
@@ -73,21 +71,17 @@ void Abc_Start()
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_Stop()
-{
-    Abc_Frame_t * pAbc;
+void Abc_Stop() {
+    Abc_Frame_t* pAbc;
     pAbc = Abc_FrameGetGlobalFrame();
     // perform uninitializations
-    Abc_FrameEnd( pAbc );
+    Abc_FrameEnd(pAbc);
     // stop the framework
-    Abc_FrameDeallocate( pAbc );
+    Abc_FrameDeallocate(pAbc);
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

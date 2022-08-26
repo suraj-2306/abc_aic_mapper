@@ -17,27 +17,26 @@
   Revision    [$Id: vec.h,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
-#ifndef ABC__misc__vec__vec_h
-#define ABC__misc__vec__vec_h
 
+#ifndef ABC__misc__vec__vec_h
+#    define ABC__misc__vec__vec_h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
 ////////////////////////////////////////////////////////////////////////
 
-#include "misc/util/abc_global.h"
+#    include "misc/util/abc_global.h"
 
-#include "vecInt.h"
-#include "vecFlt.h"
-#include "vecStr.h"
-#include "vecPtr.h"
-#include "vecVec.h"
-#include "vecAtt.h"
-#include "vecWrd.h"
-#include "vecBit.h"
-#include "vecMem.h"
-#include "vecWec.h"
+#    include "vecInt.h"
+#    include "vecFlt.h"
+#    include "vecStr.h"
+#    include "vecPtr.h"
+#    include "vecVec.h"
+#    include "vecAtt.h"
+#    include "vecWrd.h"
+#    include "vecBit.h"
+#    include "vecMem.h"
+#    include "vecWec.h"
 
 ////////////////////////////////////////////////////////////////////////
 ///                      MACRO DEFINITIONS                           ///
@@ -47,10 +46,7 @@
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
 ABC_NAMESPACE_HEADER_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
@@ -60,15 +56,10 @@ ABC_NAMESPACE_HEADER_START
 ///                    FUNCTION DECLARATIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
 ABC_NAMESPACE_HEADER_END
-
-
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

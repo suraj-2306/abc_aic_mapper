@@ -62,28 +62,22 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
 typedef struct hashEntry {
-    DdNode *f;
-    DdNode *g;
+    DdNode* f;
+    DdNode* g;
 } HashEntry;
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -94,7 +88,7 @@ static char rcsid[] DD_UNUSED = "$Id: cuddBddCorr.c,v 1.14 2004/08/13 18:04:46 f
 #endif
 
 #ifdef CORREL_STATS
-static  int     num_calls;
+static int num_calls;
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -107,19 +101,17 @@ static  int     num_calls;
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static double bddCorrelationAux (DdManager *dd, DdNode *f, DdNode *g, st__table *table);
-static double bddCorrelationWeightsAux (DdManager *dd, DdNode *f, DdNode *g, double *prob, st__table *table);
-static int CorrelCompare (const char *key1, const char *key2);
-static int CorrelHash (const char *key, int modulus);
-static enum st__retval CorrelCleanUp (char *key, char *value, char *arg);
+static double bddCorrelationAux(DdManager* dd, DdNode* f, DdNode* g, st__table* table);
+static double bddCorrelationWeightsAux(DdManager* dd, DdNode* f, DdNode* g, double* prob, st__table* table);
+static int CorrelCompare(const char* key1, const char* key2);
+static int CorrelHash(const char* key, int modulus);
+static enum st__retval CorrelCleanUp(char* key, char* value, char* arg);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -137,27 +129,24 @@ static enum st__retval CorrelCleanUp (char *key, char *value, char *arg);
 ******************************************************************************/
 double
 Cudd_bddCorrelation(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * g)
-{
-
-    st__table    *table;
-    double      correlation;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* g) {
+    st__table* table;
+    double correlation;
 
 #ifdef CORREL_STATS
     num_calls = 0;
 #endif
 
-    table = st__init_table(CorrelCompare,CorrelHash);
-    if (table == NULL) return((double)CUDD_OUT_OF_MEM);
-    correlation = bddCorrelationAux(manager,f,g,table);
+    table = st__init_table(CorrelCompare, CorrelHash);
+    if (table == NULL) return ((double)CUDD_OUT_OF_MEM);
+    correlation = bddCorrelationAux(manager, f, g, table);
     st__foreach(table, CorrelCleanUp, NIL(char));
     st__free_table(table);
-    return(correlation);
+    return (correlation);
 
 } /* end of Cudd_bddCorrelation */
-
 
 /**Function********************************************************************
 
@@ -179,38 +168,33 @@ Cudd_bddCorrelation(
 ******************************************************************************/
 double
 Cudd_bddCorrelationWeights(
-  DdManager * manager,
-  DdNode * f,
-  DdNode * g,
-  double * prob)
-{
-
-    st__table    *table;
-    double      correlation;
+    DdManager* manager,
+    DdNode* f,
+    DdNode* g,
+    double* prob) {
+    st__table* table;
+    double correlation;
 
 #ifdef CORREL_STATS
     num_calls = 0;
 #endif
 
-    table = st__init_table(CorrelCompare,CorrelHash);
-    if (table == NULL) return((double)CUDD_OUT_OF_MEM);
-    correlation = bddCorrelationWeightsAux(manager,f,g,prob,table);
+    table = st__init_table(CorrelCompare, CorrelHash);
+    if (table == NULL) return ((double)CUDD_OUT_OF_MEM);
+    correlation = bddCorrelationWeightsAux(manager, f, g, prob, table);
     st__foreach(table, CorrelCleanUp, NIL(char));
     st__free_table(table);
-    return(correlation);
+    return (correlation);
 
 } /* end of Cudd_bddCorrelationWeights */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -227,14 +211,13 @@ Cudd_bddCorrelationWeights(
 ******************************************************************************/
 static double
 bddCorrelationAux(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g,
-  st__table * table)
-{
-    DdNode      *Fv, *Fnv, *G, *Gv, *Gnv;
-    double      min, *pmin, min1, min2, *dummy;
-    HashEntry   *entry;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g,
+    st__table* table) {
+    DdNode *Fv, *Fnv, *G, *Gv, *Gnv;
+    double min, *pmin, min1, min2, *dummy;
+    HashEntry* entry;
     unsigned int topF, topG;
 
     statLine(dd);
@@ -243,44 +226,57 @@ bddCorrelationAux(
 #endif
 
     /* Terminal cases: only work for BDDs. */
-    if (f == g) return(1.0);
-    if (f == Cudd_Not(g)) return(0.0);
+    if (f == g) return (1.0);
+    if (f == Cudd_Not(g)) return (0.0);
 
     /* Standardize call using the following properties:
     **     (f EXNOR g)   = (g EXNOR f)
     **     (f' EXNOR g') = (f EXNOR g).
     */
     if (cuddF2L(f) > cuddF2L(g)) {
-        DdNode *tmp = f;
-        f = g; g = tmp;
+        DdNode* tmp = f;
+        f = g;
+        g = tmp;
     }
     if (Cudd_IsComplement(f)) {
         f = Cudd_Not(f);
         g = Cudd_Not(g);
     }
     /* From now on, f is regular. */
-    
-    entry = ABC_ALLOC(HashEntry,1);
+
+    entry = ABC_ALLOC(HashEntry, 1);
     if (entry == NULL) {
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(CUDD_OUT_OF_MEM);
+        return (CUDD_OUT_OF_MEM);
     }
-    entry->f = f; entry->g = g;
+    entry->f = f;
+    entry->g = g;
 
     /* We do not use the fact that
     ** correlation(f,g') = 1 - correlation(f,g)
     ** to minimize the risk of cancellation.
     */
-    if ( st__lookup(table, (const char *)entry, (char **)&dummy)) {
+    if (st__lookup(table, (const char*)entry, (char**)&dummy)) {
         min = *dummy;
         ABC_FREE(entry);
-        return(min);
+        return (min);
     }
 
     G = Cudd_Regular(g);
-    topF = cuddI(dd,f->index); topG = cuddI(dd,G->index);
-    if (topF <= topG) { Fv = cuddT(f); Fnv = cuddE(f); } else { Fv = Fnv = f; }
-    if (topG <= topF) { Gv = cuddT(G); Gnv = cuddE(G); } else { Gv = Gnv = G; }
+    topF = cuddI(dd, f->index);
+    topG = cuddI(dd, G->index);
+    if (topF <= topG) {
+        Fv = cuddT(f);
+        Fnv = cuddE(f);
+    } else {
+        Fv = Fnv = f;
+    }
+    if (topG <= topF) {
+        Gv = cuddT(G);
+        Gnv = cuddE(G);
+    } else {
+        Gv = Gnv = G;
+    }
 
     if (g != G) {
         Gv = Cudd_Not(Gv);
@@ -290,31 +286,30 @@ bddCorrelationAux(
     min1 = bddCorrelationAux(dd, Fv, Gv, table) / 2.0;
     if (min1 == (double)CUDD_OUT_OF_MEM) {
         ABC_FREE(entry);
-        return(CUDD_OUT_OF_MEM);
+        return (CUDD_OUT_OF_MEM);
     }
-    min2 = bddCorrelationAux(dd, Fnv, Gnv, table) / 2.0; 
+    min2 = bddCorrelationAux(dd, Fnv, Gnv, table) / 2.0;
     if (min2 == (double)CUDD_OUT_OF_MEM) {
         ABC_FREE(entry);
-        return(CUDD_OUT_OF_MEM);
+        return (CUDD_OUT_OF_MEM);
     }
-    min = (min1+min2);
-    
-    pmin = ABC_ALLOC(double,1);
+    min = (min1 + min2);
+
+    pmin = ABC_ALLOC(double, 1);
     if (pmin == NULL) {
         dd->errorCode = CUDD_MEMORY_OUT;
-        return((double)CUDD_OUT_OF_MEM);
+        return ((double)CUDD_OUT_OF_MEM);
     }
     *pmin = min;
 
-    if ( st__insert(table,(char *)entry, (char *)pmin) == st__OUT_OF_MEM) {
+    if (st__insert(table, (char*)entry, (char*)pmin) == st__OUT_OF_MEM) {
         ABC_FREE(entry);
         ABC_FREE(pmin);
-        return((double)CUDD_OUT_OF_MEM);
+        return ((double)CUDD_OUT_OF_MEM);
     }
-    return(min);
+    return (min);
 
 } /* end of bddCorrelationAux */
-
 
 /**Function********************************************************************
 
@@ -329,16 +324,15 @@ bddCorrelationAux(
 ******************************************************************************/
 static double
 bddCorrelationWeightsAux(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g,
-  double * prob,
-  st__table * table)
-{
-    DdNode      *Fv, *Fnv, *G, *Gv, *Gnv;
-    double      min, *pmin, min1, min2, *dummy;
-    HashEntry   *entry;
-    int         topF, topG, index;
+    DdManager* dd,
+    DdNode* f,
+    DdNode* g,
+    double* prob,
+    st__table* table) {
+    DdNode *Fv, *Fnv, *G, *Gv, *Gnv;
+    double min, *pmin, min1, min2, *dummy;
+    HashEntry* entry;
+    int topF, topG, index;
 
     statLine(dd);
 #ifdef CORREL_STATS
@@ -346,50 +340,59 @@ bddCorrelationWeightsAux(
 #endif
 
     /* Terminal cases: only work for BDDs. */
-    if (f == g) return(1.0);
-    if (f == Cudd_Not(g)) return(0.0);
+    if (f == g) return (1.0);
+    if (f == Cudd_Not(g)) return (0.0);
 
     /* Standardize call using the following properties:
     **     (f EXNOR g)   = (g EXNOR f)
     **     (f' EXNOR g') = (f EXNOR g).
     */
     if (cuddF2L(f) > cuddF2L(g)) {
-        DdNode *tmp = f;
-        f = g; g = tmp;
+        DdNode* tmp = f;
+        f = g;
+        g = tmp;
     }
     if (Cudd_IsComplement(f)) {
         f = Cudd_Not(f);
         g = Cudd_Not(g);
     }
     /* From now on, f is regular. */
-    
-    entry = ABC_ALLOC(HashEntry,1);
+
+    entry = ABC_ALLOC(HashEntry, 1);
     if (entry == NULL) {
         dd->errorCode = CUDD_MEMORY_OUT;
-        return((double)CUDD_OUT_OF_MEM);
+        return ((double)CUDD_OUT_OF_MEM);
     }
-    entry->f = f; entry->g = g;
+    entry->f = f;
+    entry->g = g;
 
     /* We do not use the fact that
     ** correlation(f,g') = 1 - correlation(f,g)
     ** to minimize the risk of cancellation.
     */
-    if ( st__lookup(table, (const char *)entry, (char **)&dummy)) {
+    if (st__lookup(table, (const char*)entry, (char**)&dummy)) {
         min = *dummy;
         ABC_FREE(entry);
-        return(min);
+        return (min);
     }
 
     G = Cudd_Regular(g);
-    topF = cuddI(dd,f->index); topG = cuddI(dd,G->index);
+    topF = cuddI(dd, f->index);
+    topG = cuddI(dd, G->index);
     if (topF <= topG) {
-        Fv = cuddT(f); Fnv = cuddE(f);
+        Fv = cuddT(f);
+        Fnv = cuddE(f);
         index = f->index;
     } else {
         Fv = Fnv = f;
         index = G->index;
     }
-    if (topG <= topF) { Gv = cuddT(G); Gnv = cuddE(G); } else { Gv = Gnv = G; }
+    if (topG <= topF) {
+        Gv = cuddT(G);
+        Gnv = cuddE(G);
+    } else {
+        Gv = Gnv = G;
+    }
 
     if (g != G) {
         Gv = Cudd_Not(Gv);
@@ -399,31 +402,30 @@ bddCorrelationWeightsAux(
     min1 = bddCorrelationWeightsAux(dd, Fv, Gv, prob, table) * prob[index];
     if (min1 == (double)CUDD_OUT_OF_MEM) {
         ABC_FREE(entry);
-        return((double)CUDD_OUT_OF_MEM);
+        return ((double)CUDD_OUT_OF_MEM);
     }
-    min2 = bddCorrelationWeightsAux(dd, Fnv, Gnv, prob, table) * (1.0 - prob[index]); 
+    min2 = bddCorrelationWeightsAux(dd, Fnv, Gnv, prob, table) * (1.0 - prob[index]);
     if (min2 == (double)CUDD_OUT_OF_MEM) {
         ABC_FREE(entry);
-        return((double)CUDD_OUT_OF_MEM);
+        return ((double)CUDD_OUT_OF_MEM);
     }
-    min = (min1+min2);
-    
-    pmin = ABC_ALLOC(double,1);
+    min = (min1 + min2);
+
+    pmin = ABC_ALLOC(double, 1);
     if (pmin == NULL) {
         dd->errorCode = CUDD_MEMORY_OUT;
-        return((double)CUDD_OUT_OF_MEM);
+        return ((double)CUDD_OUT_OF_MEM);
     }
     *pmin = min;
 
-    if ( st__insert(table,(char *)entry, (char *)pmin) == st__OUT_OF_MEM) {
+    if (st__insert(table, (char*)entry, (char*)pmin) == st__OUT_OF_MEM) {
         ABC_FREE(entry);
         ABC_FREE(pmin);
-        return((double)CUDD_OUT_OF_MEM);
+        return ((double)CUDD_OUT_OF_MEM);
     }
-    return(min);
+    return (min);
 
 } /* end of bddCorrelationWeightsAux */
-
 
 /**Function********************************************************************
 
@@ -437,20 +439,18 @@ bddCorrelationWeightsAux(
 ******************************************************************************/
 static int
 CorrelCompare(
-  const char * key1,
-  const char * key2)
-{
-    HashEntry *entry1;
-    HashEntry *entry2;
+    const char* key1,
+    const char* key2) {
+    HashEntry* entry1;
+    HashEntry* entry2;
 
-    entry1 = (HashEntry *) key1;
-    entry2 = (HashEntry *) key2;
-    if (entry1->f != entry2->f || entry1->g != entry2->g) return(1);
+    entry1 = (HashEntry*)key1;
+    entry2 = (HashEntry*)key2;
+    if (entry1->f != entry2->f || entry1->g != entry2->g) return (1);
 
-    return(0);
+    return (0);
 
 } /* end of CorrelCompare */
-
 
 /**Function********************************************************************
 
@@ -464,23 +464,21 @@ CorrelCompare(
 ******************************************************************************/
 static int
 CorrelHash(
-  const char * key,
-  int  modulus)
-{
-    HashEntry *entry;
+    const char* key,
+    int modulus) {
+    HashEntry* entry;
     int val = 0;
 
-    entry = (HashEntry *) key;
+    entry = (HashEntry*)key;
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
-    val = ((int) ((long)entry->f))*997 + ((int) ((long)entry->g));
+    val = ((int)((long)entry->f)) * 997 + ((int)((long)entry->g));
 #else
-    val = ((int) entry->f)*997 + ((int) entry->g);
+    val = ((int)entry->f) * 997 + ((int)entry->g);
 #endif
 
     return ((val < 0) ? -val : val) % modulus;
 
 } /* end of CorrelHash */
-
 
 /**Function********************************************************************
 
@@ -494,22 +492,18 @@ CorrelHash(
 ******************************************************************************/
 static enum st__retval
 CorrelCleanUp(
-  char * key,
-  char * value,
-  char * arg)
-{
-    double      *d;
-    HashEntry *entry;
+    char* key,
+    char* value,
+    char* arg) {
+    double* d;
+    HashEntry* entry;
 
-    entry = (HashEntry *) key;
+    entry = (HashEntry*)key;
     ABC_FREE(entry);
-    d = (double *)value;
+    d = (double*)value;
     ABC_FREE(d);
     return st__CONTINUE;
 
 } /* end of CorrelCleanUp */
 
-
 ABC_NAMESPACE_IMPL_END
-
-

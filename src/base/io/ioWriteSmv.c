@@ -22,15 +22,14 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static int Io_WriteSmvCheckNames( Abc_Ntk_t * pNtk );
+static int Io_WriteSmvCheckNames(Abc_Ntk_t* pNtk);
 
-static int Io_WriteSmvOne( FILE * pFile, Abc_Ntk_t * pNtk );
-static int Io_WriteSmvOneNode( FILE * pFile, Abc_Obj_t * pNode );
+static int Io_WriteSmvOne(FILE* pFile, Abc_Ntk_t* pNtk);
+static int Io_WriteSmvOneNode(FILE* pFile, Abc_Obj_t* pNode);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -42,18 +41,17 @@ static int Io_WriteSmvOneNode( FILE * pFile, Abc_Obj_t * pNode );
 // This function replaces '|' with '_' I think abc introduces '|' when
 // flattening hierarchy. The '|' is interpreted as a or function by nusmv
 // which is unfortunate. This probably should be fixed elsewhere.
-static char *cleanUNSAFE( const char *s )
-{
-    char *t;
+static char* cleanUNSAFE(const char* s) {
+    char* t;
     static char buffer[1024];
-    assert (strlen(s) < 1024);
+    assert(strlen(s) < 1024);
     strcpy(buffer, s);
-    for (t = buffer; *t != 0; ++t) *t = (*t == '|') ? '_' : *t;
+    for (t = buffer; *t != 0; ++t)
+        *t = (*t == '|') ? '_' : *t;
     return buffer;
 }
 
-static int hasPrefix(const char *needle, const char *haystack)
-{
+static int hasPrefix(const char* needle, const char* haystack) {
     return (strncmp(haystack, needle, strlen(needle)) == 0);
 }
 
@@ -68,31 +66,28 @@ static int hasPrefix(const char *needle, const char *haystack)
   SeeAlso     []
 
 ***********************************************************************/
-int Io_WriteSmv( Abc_Ntk_t * pNtk, char * pFileName )
-{
-    Abc_Ntk_t * pExdc;
-    FILE * pFile;
-    assert( Abc_NtkIsSopNetlist(pNtk) );
-    if ( !Io_WriteSmvCheckNames(pNtk) )
-    {
-        fprintf( stdout, "Io_WriteSmv(): Signal names in this benchmark contain parentheses making them impossible to reproduce in the SMV format. Use \"short_names\".\n" );
+int Io_WriteSmv(Abc_Ntk_t* pNtk, char* pFileName) {
+    Abc_Ntk_t* pExdc;
+    FILE* pFile;
+    assert(Abc_NtkIsSopNetlist(pNtk));
+    if (!Io_WriteSmvCheckNames(pNtk)) {
+        fprintf(stdout, "Io_WriteSmv(): Signal names in this benchmark contain parentheses making them impossible to reproduce in the SMV format. Use \"short_names\".\n");
         return 0;
     }
-    pFile = fopen( pFileName, "w" );
-    if ( pFile == NULL )
-    {
-        fprintf( stdout, "Io_WriteSmv(): Cannot open the output file.\n" );
+    pFile = fopen(pFileName, "w");
+    if (pFile == NULL) {
+        fprintf(stdout, "Io_WriteSmv(): Cannot open the output file.\n");
         return 0;
     }
-    fprintf( pFile, "-- benchmark \"%s\" written by ABC on %s\n", pNtk->pName, Extra_TimeStamp() );
+    fprintf(pFile, "-- benchmark \"%s\" written by ABC on %s\n", pNtk->pName, Extra_TimeStamp());
     // write the network
-    Io_WriteSmvOne( pFile, pNtk );
+    Io_WriteSmvOne(pFile, pNtk);
     // write EXDC network if it exists
-    pExdc = Abc_NtkExdc( pNtk );
-    if ( pExdc )
-        printf( "Io_WriteSmv: EXDC is not written (warning).\n" );
+    pExdc = Abc_NtkExdc(pNtk);
+    if (pExdc)
+        printf("Io_WriteSmv: EXDC is not written (warning).\n");
     // finalize the file
-    fclose( pFile );
+    fclose(pFile);
     return 1;
 }
 
@@ -107,81 +102,70 @@ int Io_WriteSmv( Abc_Ntk_t * pNtk, char * pFileName )
   SeeAlso     []
 
 ***********************************************************************/
-int Io_WriteSmvOne( FILE * pFile, Abc_Ntk_t * pNtk )
-{
-    ProgressBar * pProgress;
-    Abc_Obj_t * pNode;
+int Io_WriteSmvOne(FILE* pFile, Abc_Ntk_t* pNtk) {
+    ProgressBar* pProgress;
+    Abc_Obj_t* pNode;
     int i;
 
     // write the PIs/POs/latches
-    fprintf( pFile, "MODULE main\n");   // nusmv needs top module to be main
-    fprintf ( pFile, "\n" );
+    fprintf(pFile, "MODULE main\n"); // nusmv needs top module to be main
+    fprintf(pFile, "\n");
 
-    fprintf( pFile, "VAR  -- inputs\n");
-    Abc_NtkForEachPi( pNtk, pNode, i )
-        fprintf( pFile, "    %s : boolean;\n", 
-                cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode))) );
-    fprintf ( pFile, "\n" );
+    fprintf(pFile, "VAR  -- inputs\n");
+    Abc_NtkForEachPi(pNtk, pNode, i)
+        fprintf(pFile, "    %s : boolean;\n",
+                cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode))));
+    fprintf(pFile, "\n");
 
-    fprintf( pFile, "VAR  -- state variables\n");
-    Abc_NtkForEachLatch( pNtk, pNode, i )
-        fprintf( pFile, "    %s : boolean;\n", 
-                cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pNode)))) ); 
-    fprintf ( pFile, "\n" );
+    fprintf(pFile, "VAR  -- state variables\n");
+    Abc_NtkForEachLatch(pNtk, pNode, i)
+        fprintf(pFile, "    %s : boolean;\n",
+                cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pNode)))));
+    fprintf(pFile, "\n");
 
-    // No outputs needed for NuSMV: 
+    // No outputs needed for NuSMV:
     // TODO: Add sepcs by recognizing assume_.* and assert_.*
     //
     // Abc_NtkForEachPo( pNtk, pNode, i )
     //    fprintf( pFile, "OUTPUT(%s)\n", Abc_ObjName(Abc_ObjFanin0(pNode)) );
-    
+
     // write internal nodes
-    fprintf( pFile, "DEFINE\n");
-    pProgress = Extra_ProgressBarStart( stdout, Abc_NtkObjNumMax(pNtk) );
-    Abc_NtkForEachNode( pNtk, pNode, i )
-    {
-        Extra_ProgressBarUpdate( pProgress, i, NULL );
-        Io_WriteSmvOneNode( pFile, pNode );
+    fprintf(pFile, "DEFINE\n");
+    pProgress = Extra_ProgressBarStart(stdout, Abc_NtkObjNumMax(pNtk));
+    Abc_NtkForEachNode(pNtk, pNode, i) {
+        Extra_ProgressBarUpdate(pProgress, i, NULL);
+        Io_WriteSmvOneNode(pFile, pNode);
     }
-    Extra_ProgressBarStop( pProgress );
-    fprintf ( pFile, "\n" );
+    Extra_ProgressBarStop(pProgress);
+    fprintf(pFile, "\n");
 
-    fprintf( pFile, "ASSIGN\n");
-    Abc_NtkForEachLatch( pNtk, pNode, i )
-    {
-        int Reset = (int)(ABC_PTRUINT_T)Abc_ObjData( pNode );
-        assert (Reset >= 1);
-        assert (Reset <= 3);
+    fprintf(pFile, "ASSIGN\n");
+    Abc_NtkForEachLatch(pNtk, pNode, i) {
+        int Reset = (int)(ABC_PTRUINT_T)Abc_ObjData(pNode);
+        assert(Reset >= 1);
+        assert(Reset <= 3);
 
-        if (Reset != 3)
-        {
-            fprintf( pFile, "    init(%s) := %d;\n", 
-                cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pNode)))),
-                Reset - 1); 
+        if (Reset != 3) {
+            fprintf(pFile, "    init(%s) := %d;\n",
+                    cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pNode)))),
+                    Reset - 1);
         }
-        fprintf( pFile, "    next(%s) := ", 
-                cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pNode)))) ); 
-        fprintf( pFile, "%s;\n", 
-                cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(Abc_ObjFanin0(pNode)))) );
+        fprintf(pFile, "    next(%s) := ",
+                cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(Abc_ObjFanout0(pNode)))));
+        fprintf(pFile, "%s;\n",
+                cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(Abc_ObjFanin0(pNode)))));
     }
-      
-    fprintf ( pFile, "\n" );
-    Abc_NtkForEachPo( pNtk, pNode, i )
-    {
-        const char *n = cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(pNode)));
+
+    fprintf(pFile, "\n");
+    Abc_NtkForEachPo(pNtk, pNode, i) {
+        const char* n = cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(pNode)));
         // fprintf( pFile, "-- output %s;\n", n );
-        if (hasPrefix("assume_fair_", n))
-        {
-            fprintf( pFile, "FAIRNESS %s;\n", n );
-        }
-        else if (hasPrefix("Assert_", n) || 
-                hasPrefix("assert_safety_", n))
-        {
-            fprintf( pFile, "INVARSPEC %s;\n", n );
-        }
-        else if (hasPrefix("assert_fair_", n))
-        {
-            fprintf( pFile, "LTLSPEC G F %s;\n", n );
+        if (hasPrefix("assume_fair_", n)) {
+            fprintf(pFile, "FAIRNESS %s;\n", n);
+        } else if (hasPrefix("Assert_", n) || hasPrefix("assert_safety_", n)) {
+            fprintf(pFile, "INVARSPEC %s;\n", n);
+        } else if (hasPrefix("assert_fair_", n)) {
+            fprintf(pFile, "LTLSPEC G F %s;\n", n);
         }
     }
 
@@ -199,36 +183,27 @@ int Io_WriteSmvOne( FILE * pFile, Abc_Ntk_t * pNtk )
   SeeAlso     []
 
 ***********************************************************************/
-int Io_WriteSmvOneNode( FILE * pFile, Abc_Obj_t * pNode )
-{
+int Io_WriteSmvOneNode(FILE* pFile, Abc_Obj_t* pNode) {
     int nFanins;
 
-    assert( Abc_ObjIsNode(pNode) );
+    assert(Abc_ObjIsNode(pNode));
     nFanins = Abc_ObjFaninNum(pNode);
-    if ( nFanins == 0 )
-    {   // write the constant 1 node
-        assert( Abc_NodeIsConst1(pNode) );
-        fprintf( pFile, "    %s", cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode)) ) );
-        fprintf( pFile, " := 1;\n" );
-    }
-    else if ( nFanins == 1 )
-    {   // write the interver/buffer
-        if ( Abc_NodeIsBuf(pNode) )
-        {
-            fprintf( pFile, "    %s := ", cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode))) );
-            fprintf( pFile, "%s;\n",      cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(pNode))) );
+    if (nFanins == 0) { // write the constant 1 node
+        assert(Abc_NodeIsConst1(pNode));
+        fprintf(pFile, "    %s", cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode))));
+        fprintf(pFile, " := 1;\n");
+    } else if (nFanins == 1) { // write the interver/buffer
+        if (Abc_NodeIsBuf(pNode)) {
+            fprintf(pFile, "    %s := ", cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode))));
+            fprintf(pFile, "%s;\n", cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(pNode))));
+        } else {
+            fprintf(pFile, "    %s := !", cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode))));
+            fprintf(pFile, "%s;\n", cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(pNode))));
         }
-        else
-        {
-            fprintf( pFile, "    %s := !",  cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode))) );
-            fprintf( pFile, "%s;\n",       cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(pNode))) );
-        }
-    }
-    else
-    {   // write the AND gate
-        fprintf( pFile, "    %s", cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode))) );
-        fprintf( pFile, " := %s & ", cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(pNode))) );
-        fprintf( pFile, "%s;\n", cleanUNSAFE(Abc_ObjName(Abc_ObjFanin1(pNode))) );
+    } else { // write the AND gate
+        fprintf(pFile, "    %s", cleanUNSAFE(Abc_ObjName(Abc_ObjFanout0(pNode))));
+        fprintf(pFile, " := %s & ", cleanUNSAFE(Abc_ObjName(Abc_ObjFanin0(pNode))));
+        fprintf(pFile, "%s;\n", cleanUNSAFE(Abc_ObjName(Abc_ObjFanin1(pNode))));
     }
     return 1;
 }
@@ -244,15 +219,11 @@ int Io_WriteSmvOneNode( FILE * pFile, Abc_Obj_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-int Io_WriteSmvCheckNames( Abc_Ntk_t * pNtk )
-{
-    Abc_Obj_t * pObj;
-    char * pName;
+int Io_WriteSmvCheckNames(Abc_Ntk_t* pNtk) {
+    Abc_Obj_t* pObj;
+    char* pName;
     int i;
-    Abc_NtkForEachObj( pNtk, pObj, i )
-        for ( pName = Nm_ManFindNameById(pNtk->pManName, i); pName && *pName; pName++ )
-            if ( *pName == '(' || *pName == ')' )
-                return 0;
+    Abc_NtkForEachObj(pNtk, pObj, i) for (pName = Nm_ManFindNameById(pNtk->pManName, i); pName && *pName; pName++) if (*pName == '(' || *pName == ')') return 0;
     return 1;
 }
 
@@ -260,6 +231,4 @@ int Io_WriteSmvCheckNames( Abc_Ntk_t * pNtk )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

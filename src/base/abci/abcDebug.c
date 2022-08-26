@@ -23,13 +23,12 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static int Abc_NtkCountFaninsTotal( Abc_Ntk_t * pNtk );
-static Abc_Ntk_t * Abc_NtkAutoDebugModify( Abc_Ntk_t * pNtk, int ObjNum, int fConst1 );
+static int Abc_NtkCountFaninsTotal(Abc_Ntk_t* pNtk);
+static Abc_Ntk_t* Abc_NtkAutoDebugModify(Abc_Ntk_t* pNtk, int ObjNum, int fConst1);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -47,59 +46,54 @@ static Abc_Ntk_t * Abc_NtkAutoDebugModify( Abc_Ntk_t * pNtk, int ObjNum, int fCo
   SeeAlso     []
 
 ***********************************************************************/
-void Abc_NtkAutoDebug( Abc_Ntk_t * pNtk, int (*pFuncError) (Abc_Ntk_t *) )
-{
-    Abc_Ntk_t * pNtkMod;
-    char * pFileName = "bug_found.blif";
+void Abc_NtkAutoDebug(Abc_Ntk_t* pNtk, int (*pFuncError)(Abc_Ntk_t*)) {
+    Abc_Ntk_t* pNtkMod;
+    char* pFileName = "bug_found.blif";
     int i, nSteps, nIter, ModNum, RandNum = 1;
     abctime clk, clkTotal = Abc_Clock();
-    assert( Abc_NtkIsLogic(pNtk) );
-    srand( 0x123123 );
+    assert(Abc_NtkIsLogic(pNtk));
+    srand(0x123123);
     // create internal copy of the network
     pNtk = Abc_NtkDup(pNtk);
-    if ( !(*pFuncError)( pNtk ) )
-    {
-        printf( "The original network does not cause the bug. Quitting.\n" );
-        Abc_NtkDelete( pNtk );
+    if (!(*pFuncError)(pNtk)) {
+        printf("The original network does not cause the bug. Quitting.\n");
+        Abc_NtkDelete(pNtk);
         return;
     }
     // perform incremental modifications
-    for ( nIter = 0; ; nIter++ )
-    {
+    for (nIter = 0;; nIter++) {
         clk = Abc_Clock();
         // count how many ways of modifying the network exists
         nSteps = 2 * Abc_NtkCountFaninsTotal(pNtk);
         // try modifying the network as many times
         RandNum ^= rand();
-        for ( i = 0; i < nSteps; i++ )
-        {
+        for (i = 0; i < nSteps; i++) {
             // get the shifted number of bug
             ModNum = (i + RandNum) % nSteps;
             // get the modified network
-            pNtkMod = Abc_NtkAutoDebugModify( pNtk, ModNum/2, ModNum%2 );
+            pNtkMod = Abc_NtkAutoDebugModify(pNtk, ModNum / 2, ModNum % 2);
             // write the network
-            Io_WriteBlifLogic( pNtk, "bug_temp.blif", 1 );   
+            Io_WriteBlifLogic(pNtk, "bug_temp.blif", 1);
             // check if the bug is still there
-            if ( (*pFuncError)( pNtkMod ) ) // bug is still there
+            if ((*pFuncError)(pNtkMod)) // bug is still there
             {
-                Abc_NtkDelete( pNtk );
+                Abc_NtkDelete(pNtk);
                 pNtk = pNtkMod;
                 break;
-            }
-            else // no bug
-                Abc_NtkDelete( pNtkMod );
+            } else // no bug
+                Abc_NtkDelete(pNtkMod);
         }
-        printf( "Iter %6d : Latches = %6d. Nodes = %6d. Steps = %6d. Error step = %3d.  ", 
-            nIter, Abc_NtkLatchNum(pNtk), Abc_NtkNodeNum(pNtk), nSteps, i );
-        ABC_PRT( "Time", Abc_Clock() - clk );
-        if ( i == nSteps ) // could not modify it while preserving the bug
+        printf("Iter %6d : Latches = %6d. Nodes = %6d. Steps = %6d. Error step = %3d.  ",
+               nIter, Abc_NtkLatchNum(pNtk), Abc_NtkNodeNum(pNtk), nSteps, i);
+        ABC_PRT("Time", Abc_Clock() - clk);
+        if (i == nSteps) // could not modify it while preserving the bug
             break;
     }
     // write out the final network
-    Io_WriteBlifLogic( pNtk, pFileName, 1 );
-    printf( "Final network written into file \"%s\". ", pFileName );
-    ABC_PRT( "Total time", Abc_Clock() - clkTotal );
-    Abc_NtkDelete( pNtk );
+    Io_WriteBlifLogic(pNtk, pFileName, 1);
+    printf("Final network written into file \"%s\". ", pFileName);
+    ABC_PRT("Total time", Abc_Clock() - clkTotal);
+    Abc_NtkDelete(pNtk);
 }
 
 /**Function*************************************************************
@@ -113,21 +107,19 @@ void Abc_NtkAutoDebug( Abc_Ntk_t * pNtk, int (*pFuncError) (Abc_Ntk_t *) )
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_NtkCountFaninsTotal( Abc_Ntk_t * pNtk )
-{
-    Abc_Obj_t * pObj, * pFanin;
+int Abc_NtkCountFaninsTotal(Abc_Ntk_t* pNtk) {
+    Abc_Obj_t *pObj, *pFanin;
     int i, k, Counter = 0;
-    Abc_NtkForEachObj( pNtk, pObj, i )
-        Abc_ObjForEachFanin( pObj, pFanin, k )
-        {
-            if ( !Abc_ObjIsNode(pObj) && !Abc_ObjIsPo(pObj) )
-                continue;
-            if ( Abc_ObjIsPo(pObj) && Abc_NtkPoNum(pNtk) == 1 )
-                continue;
-            if ( Abc_ObjIsNode(pObj) && Abc_NodeIsConst(pFanin) )
-                continue;
-            Counter++;
-        }
+    Abc_NtkForEachObj(pNtk, pObj, i)
+        Abc_ObjForEachFanin(pObj, pFanin, k) {
+        if (!Abc_ObjIsNode(pObj) && !Abc_ObjIsPo(pObj))
+            continue;
+        if (Abc_ObjIsPo(pObj) && Abc_NtkPoNum(pNtk) == 1)
+            continue;
+        if (Abc_ObjIsNode(pObj) && Abc_NodeIsConst(pFanin))
+            continue;
+        Counter++;
+    }
     return Counter;
 }
 
@@ -142,26 +134,23 @@ int Abc_NtkCountFaninsTotal( Abc_Ntk_t * pNtk )
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_NtkFindGivenFanin( Abc_Ntk_t * pNtk, int Step, Abc_Obj_t ** ppObj, Abc_Obj_t ** ppFanin )
-{
-    Abc_Obj_t * pObj, * pFanin;
+int Abc_NtkFindGivenFanin(Abc_Ntk_t* pNtk, int Step, Abc_Obj_t** ppObj, Abc_Obj_t** ppFanin) {
+    Abc_Obj_t *pObj, *pFanin;
     int i, k, Counter = 0;
-    Abc_NtkForEachObj( pNtk, pObj, i )
-        Abc_ObjForEachFanin( pObj, pFanin, k )
-        {
-            if ( !Abc_ObjIsNode(pObj) && !Abc_ObjIsPo(pObj) )
-                continue;
-            if ( Abc_ObjIsPo(pObj) && Abc_NtkPoNum(pNtk) == 1 )
-                continue;
-            if ( Abc_ObjIsNode(pObj) && Abc_NodeIsConst(pFanin) )
-                continue;
-            if ( Counter++ == Step )
-            {
-                *ppObj   = pObj;
-                *ppFanin = pFanin;
-                return 1;
-            }
+    Abc_NtkForEachObj(pNtk, pObj, i)
+        Abc_ObjForEachFanin(pObj, pFanin, k) {
+        if (!Abc_ObjIsNode(pObj) && !Abc_ObjIsPo(pObj))
+            continue;
+        if (Abc_ObjIsPo(pObj) && Abc_NtkPoNum(pNtk) == 1)
+            continue;
+        if (Abc_ObjIsNode(pObj) && Abc_NodeIsConst(pFanin))
+            continue;
+        if (Counter++ == Step) {
+            *ppObj = pObj;
+            *ppFanin = pFanin;
+            return 1;
         }
+    }
     return 0;
 }
 
@@ -176,31 +165,29 @@ int Abc_NtkFindGivenFanin( Abc_Ntk_t * pNtk, int Step, Abc_Obj_t ** ppObj, Abc_O
   SeeAlso     []
 
 ***********************************************************************/
-Abc_Ntk_t * Abc_NtkAutoDebugModify( Abc_Ntk_t * pNtkInit, int Step, int fConst1 )
-{
-    extern void Abc_NtkCycleInitStateSop( Abc_Ntk_t * pNtk, int nFrames, int fVerbose );
-    Abc_Ntk_t * pNtk;
-    Abc_Obj_t * pObj, * pFanin, * pConst;
+Abc_Ntk_t* Abc_NtkAutoDebugModify(Abc_Ntk_t* pNtkInit, int Step, int fConst1) {
+    extern void Abc_NtkCycleInitStateSop(Abc_Ntk_t * pNtk, int nFrames, int fVerbose);
+    Abc_Ntk_t* pNtk;
+    Abc_Obj_t *pObj, *pFanin, *pConst;
     // copy the network
-    pNtk = Abc_NtkDup( pNtkInit );
-    assert( Abc_NtkNodeNum(pNtk) == Abc_NtkNodeNum(pNtkInit) );
+    pNtk = Abc_NtkDup(pNtkInit);
+    assert(Abc_NtkNodeNum(pNtk) == Abc_NtkNodeNum(pNtkInit));
     // find the object number
-    Abc_NtkFindGivenFanin( pNtk, Step, &pObj, &pFanin );
-    // consider special case 
-    if ( Abc_ObjIsPo(pObj) && Abc_NodeIsConst(pFanin) )
-    {
-        Abc_NtkDeleteAll_rec( pObj );
+    Abc_NtkFindGivenFanin(pNtk, Step, &pObj, &pFanin);
+    // consider special case
+    if (Abc_ObjIsPo(pObj) && Abc_NodeIsConst(pFanin)) {
+        Abc_NtkDeleteAll_rec(pObj);
         return pNtk;
     }
     // plug in a constant node
-    pConst = fConst1? Abc_NtkCreateNodeConst1(pNtk) : Abc_NtkCreateNodeConst0(pNtk);
-    Abc_ObjTransferFanout( pFanin, pConst );
-    Abc_NtkDeleteAll_rec( pFanin );
+    pConst = fConst1 ? Abc_NtkCreateNodeConst1(pNtk) : Abc_NtkCreateNodeConst0(pNtk);
+    Abc_ObjTransferFanout(pFanin, pConst);
+    Abc_NtkDeleteAll_rec(pFanin);
 
-    Abc_NtkSweep( pNtk, 0 );
-    Abc_NtkCleanupSeq( pNtk, 0, 0, 0 );
-    Abc_NtkToSop( pNtk, -1, ABC_INFINITY );
-    Abc_NtkCycleInitStateSop( pNtk, 50, 0 );
+    Abc_NtkSweep(pNtk, 0);
+    Abc_NtkCleanupSeq(pNtk, 0, 0, 0);
+    Abc_NtkToSop(pNtk, -1, ABC_INFINITY);
+    Abc_NtkCycleInitStateSop(pNtk, 50, 0);
     return pNtk;
 }
 
@@ -208,6 +195,4 @@ Abc_Ntk_t * Abc_NtkAutoDebugModify( Abc_Ntk_t * pNtkInit, int Step, int fConst1 
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

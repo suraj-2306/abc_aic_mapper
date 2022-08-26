@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,10 +41,9 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-int  Msat_SolverAddVar( Msat_Solver_t * p, int Level )
-{
-    if ( p->nVars == p->nVarsAlloc )
-        Msat_SolverResize( p, 2 * p->nVarsAlloc );
+int Msat_SolverAddVar(Msat_Solver_t* p, int Level) {
+    if (p->nVars == p->nVarsAlloc)
+        Msat_SolverResize(p, 2 * p->nVarsAlloc);
     p->pLevel[p->nVars] = Level;
     p->nVars++;
     return 1;
@@ -62,15 +60,14 @@ int  Msat_SolverAddVar( Msat_Solver_t * p, int Level )
   SeeAlso     []
 
 ***********************************************************************/
-int  Msat_SolverAddClause( Msat_Solver_t * p, Msat_IntVec_t * vLits )
-{
-    Msat_Clause_t * pC; 
-    int  Value;
-    Value = Msat_ClauseCreate( p, vLits, 0, &pC );
-    if ( pC != NULL )
-        Msat_ClauseVecPush( p->vClauses, pC );
-//    else if ( p->fProof )
-//        Msat_ClauseCreateFake( p, vLits );
+int Msat_SolverAddClause(Msat_Solver_t* p, Msat_IntVec_t* vLits) {
+    Msat_Clause_t* pC;
+    int Value;
+    Value = Msat_ClauseCreate(p, vLits, 0, &pC);
+    if (pC != NULL)
+        Msat_ClauseVecPush(p->vClauses, pC);
+    //    else if ( p->fProof )
+    //        Msat_ClauseCreateFake( p, vLits );
     return Value;
 }
 
@@ -85,14 +82,13 @@ int  Msat_SolverAddClause( Msat_Solver_t * p, Msat_IntVec_t * vLits )
   SeeAlso     []
 
 ***********************************************************************/
-double Msat_SolverProgressEstimate( Msat_Solver_t * p )
-{
+double Msat_SolverProgressEstimate(Msat_Solver_t* p) {
     double dProgress = 0.0;
     double dF = 1.0 / p->nVars;
     int i;
-    for ( i = 0; i < p->nVars; i++ )
-        if ( p->pAssigns[i] != MSAT_VAR_UNASSIGNED )
-            dProgress += pow( dF, p->pLevel[i] );
+    for (i = 0; i < p->nVars; i++)
+        if (p->pAssigns[i] != MSAT_VAR_UNASSIGNED)
+            dProgress += pow(dF, p->pLevel[i]);
     return dProgress / p->nVars;
 }
 
@@ -107,10 +103,9 @@ double Msat_SolverProgressEstimate( Msat_Solver_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_SolverPrintStats( Msat_Solver_t * p )
-{
-    printf("C solver (%d vars; %d clauses; %d learned):\n", 
-        p->nVars, Msat_ClauseVecReadSize(p->vClauses), Msat_ClauseVecReadSize(p->vLearned) );
+void Msat_SolverPrintStats(Msat_Solver_t* p) {
+    printf("C solver (%d vars; %d clauses; %d learned):\n",
+           p->nVars, Msat_ClauseVecReadSize(p->vClauses), Msat_ClauseVecReadSize(p->vLearned));
     printf("starts        : %d\n", (int)p->Stats.nStarts);
     printf("conflicts     : %d\n", (int)p->Stats.nConflicts);
     printf("decisions     : %d\n", (int)p->Stats.nDecisions);
@@ -135,58 +130,53 @@ void Msat_SolverPrintStats( Msat_Solver_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int  Msat_SolverSolve( Msat_Solver_t * p, Msat_IntVec_t * vAssumps, int nBackTrackLimit, int nTimeLimit )
-{
-    Msat_SearchParams_t Params = { 0.95, 0.999 };
+int Msat_SolverSolve(Msat_Solver_t* p, Msat_IntVec_t* vAssumps, int nBackTrackLimit, int nTimeLimit) {
+    Msat_SearchParams_t Params = {0.95, 0.999};
     double nConflictsLimit, nLearnedLimit;
     Msat_Type_t Status;
     abctime timeStart = Abc_Clock();
 
-//    p->pFreq = ABC_ALLOC( int, p->nVarsAlloc );
-//    memset( p->pFreq, 0, sizeof(int) * p->nVarsAlloc );
- 
-    if ( vAssumps )
-    {
-        int * pAssumps, nAssumps, i;
+    //    p->pFreq = ABC_ALLOC( int, p->nVarsAlloc );
+    //    memset( p->pFreq, 0, sizeof(int) * p->nVarsAlloc );
 
-        assert( Msat_IntVecReadSize(p->vTrailLim) == 0 );
+    if (vAssumps) {
+        int *pAssumps, nAssumps, i;
 
-        nAssumps = Msat_IntVecReadSize( vAssumps );
-        pAssumps = Msat_IntVecReadArray( vAssumps );
-        for ( i = 0; i < nAssumps; i++ )
-        {
-            if ( !Msat_SolverAssume(p, pAssumps[i]) || Msat_SolverPropagate(p) )
-            {
-                Msat_QueueClear( p->pQueue );
-                Msat_SolverCancelUntil( p, 0 );
+        assert(Msat_IntVecReadSize(p->vTrailLim) == 0);
+
+        nAssumps = Msat_IntVecReadSize(vAssumps);
+        pAssumps = Msat_IntVecReadArray(vAssumps);
+        for (i = 0; i < nAssumps; i++) {
+            if (!Msat_SolverAssume(p, pAssumps[i]) || Msat_SolverPropagate(p)) {
+                Msat_QueueClear(p->pQueue);
+                Msat_SolverCancelUntil(p, 0);
                 return MSAT_FALSE;
             }
         }
     }
-    p->nLevelRoot   = Msat_SolverReadDecisionLevel(p);
-    p->nClausesInit = Msat_ClauseVecReadSize( p->vClauses );    
+    p->nLevelRoot = Msat_SolverReadDecisionLevel(p);
+    p->nClausesInit = Msat_ClauseVecReadSize(p->vClauses);
     nConflictsLimit = 100;
-    nLearnedLimit   = Msat_ClauseVecReadSize(p->vClauses) / 3;
+    nLearnedLimit = Msat_ClauseVecReadSize(p->vClauses) / 3;
     Status = MSAT_UNKNOWN;
     p->nBackTracks = (int)p->Stats.nConflicts;
-    while ( Status == MSAT_UNKNOWN )
-    {
-        if ( p->fVerbose )
-            printf("Solving -- conflicts=%d   learnts=%d   progress=%.4f %%\n", 
-                (int)nConflictsLimit, (int)nLearnedLimit, p->dProgress*100);
-        Status = Msat_SolverSearch( p, (int)nConflictsLimit, (int)nLearnedLimit, nBackTrackLimit, &Params );
+    while (Status == MSAT_UNKNOWN) {
+        if (p->fVerbose)
+            printf("Solving -- conflicts=%d   learnts=%d   progress=%.4f %%\n",
+                   (int)nConflictsLimit, (int)nLearnedLimit, p->dProgress * 100);
+        Status = Msat_SolverSearch(p, (int)nConflictsLimit, (int)nLearnedLimit, nBackTrackLimit, &Params);
         nConflictsLimit *= 1.5;
-        nLearnedLimit   *= 1.1;
+        nLearnedLimit *= 1.1;
         // if the limit on the number of backtracks is given, quit the restart loop
-        if ( nBackTrackLimit > 0 && (int)p->Stats.nConflicts - p->nBackTracks > nBackTrackLimit )
+        if (nBackTrackLimit > 0 && (int)p->Stats.nConflicts - p->nBackTracks > nBackTrackLimit)
             break;
         // if the runtime limit is exceeded, quit the restart loop
-        if ( nTimeLimit > 0 && Abc_Clock() - timeStart >= nTimeLimit * CLOCKS_PER_SEC )
+        if (nTimeLimit > 0 && Abc_Clock() - timeStart >= nTimeLimit * CLOCKS_PER_SEC)
             break;
     }
-    Msat_SolverCancelUntil( p, 0 );
+    Msat_SolverCancelUntil(p, 0);
     p->nBackTracks = (int)p->Stats.nConflicts - p->nBackTracks;
-/*
+    /*
     ABC_PRT( "True solver runtime", Abc_Clock() - timeStart );
     // print the statistics
     {
@@ -210,6 +200,4 @@ int  Msat_SolverSolve( Msat_Solver_t * p, Msat_IntVec_t * vAssumps, int nBackTra
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

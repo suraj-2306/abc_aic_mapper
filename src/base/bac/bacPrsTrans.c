@@ -28,12 +28,11 @@ ABC_NAMESPACE_IMPL_START
 ////////////////////////////////////////////////////////////////////////
 
 typedef struct Bac_Trip_t_ Bac_Trip_t;
-struct Bac_Trip_t_
-{
+struct Bac_Trip_t_ {
     Bac_ObjType_t Type;
-    char *        pName;
-    char *        pCode;
-    char *        pSigs[6];
+    char* pName;
+    char* pCode;
+    char* pSigs[6];
 };
 /*
 static Bac_Trip_t s_Types[100] =
@@ -136,58 +135,52 @@ static Bac_Trip_t s_Types[100] =
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Psr_ManRangeSizeName( Psr_Ntk_t * p, int Name )
-{
+static inline int Psr_ManRangeSizeName(Psr_Ntk_t* p, int Name) {
     return 1;
 }
-static inline int Psr_ManRangeSizeRange( Psr_Ntk_t * p, int Range )
-{
-    char * pStr; 
+static inline int Psr_ManRangeSizeRange(Psr_Ntk_t* p, int Range) {
+    char* pStr;
     int Left, Right;
-    if ( Range == 0 ) 
+    if (Range == 0)
         return 1;
-    pStr = Psr_NtkStr( p, Range );
-    assert( pStr[0] == '[' );
-    Left = Right = atoi( pStr + 1 );
-    pStr = strstr( pStr, "=" );
-    if ( pStr )
-        Right = atoi( pStr + 1 );
+    pStr = Psr_NtkStr(p, Range);
+    assert(pStr[0] == '[');
+    Left = Right = atoi(pStr + 1);
+    pStr = strstr(pStr, "=");
+    if (pStr)
+        Right = atoi(pStr + 1);
     return 1 + (Left > Right ? Left - Right : Right - Left);
 }
-static inline int Psr_ManRangeSizeConst( Psr_Ntk_t * p, int Const )
-{
-    return atoi( Psr_NtkStr(p, Const) );
+static inline int Psr_ManRangeSizeConst(Psr_Ntk_t* p, int Const) {
+    return atoi(Psr_NtkStr(p, Const));
 }
-static inline int Psr_ManRangeSizeConcat( Psr_Ntk_t * p, int Con )
-{
-    extern int Psr_ManRangeSizeArray( Psr_Ntk_t * p, Vec_Int_t * vSlices, int Start, int Stop );
-    Vec_Int_t * vSigs = Psr_CatSignals(p, Con);
-    return Psr_ManRangeSizeArray( p, vSigs, 0, Vec_IntSize(vSigs) );
+static inline int Psr_ManRangeSizeConcat(Psr_Ntk_t* p, int Con) {
+    extern int Psr_ManRangeSizeArray(Psr_Ntk_t * p, Vec_Int_t * vSlices, int Start, int Stop);
+    Vec_Int_t* vSigs = Psr_CatSignals(p, Con);
+    return Psr_ManRangeSizeArray(p, vSigs, 0, Vec_IntSize(vSigs));
 }
-static inline int Psr_ManRangeSizeSignal( Psr_Ntk_t * p, int Sig )
-{
-    int Value = Abc_Lit2Var2( Sig );
-    Psr_ManType_t Type = (Psr_ManType_t)Abc_Lit2Att2( Sig );
-    if ( Type == BAC_PRS_NAME )
-        return Psr_ManRangeSizeName( p, Value );
-    if ( Type == BAC_PRS_SLICE )
-        return Psr_ManRangeSizeRange( p, Psr_SliceRange(p, Value) );
-    if ( Type == BAC_PRS_CONST )
-        return Psr_ManRangeSizeConst( p, Value );
-    if ( Type == BAC_PRS_CONCAT )
-        return Psr_ManRangeSizeConcat( p, Value );
-    assert( 0 );
+static inline int Psr_ManRangeSizeSignal(Psr_Ntk_t* p, int Sig) {
+    int Value = Abc_Lit2Var2(Sig);
+    Psr_ManType_t Type = (Psr_ManType_t)Abc_Lit2Att2(Sig);
+    if (Type == BAC_PRS_NAME)
+        return Psr_ManRangeSizeName(p, Value);
+    if (Type == BAC_PRS_SLICE)
+        return Psr_ManRangeSizeRange(p, Psr_SliceRange(p, Value));
+    if (Type == BAC_PRS_CONST)
+        return Psr_ManRangeSizeConst(p, Value);
+    if (Type == BAC_PRS_CONCAT)
+        return Psr_ManRangeSizeConcat(p, Value);
+    assert(0);
     return 0;
 }
-int Psr_ManRangeSizeArray( Psr_Ntk_t * p, Vec_Int_t * vSlices, int Start, int Stop )
-{
+int Psr_ManRangeSizeArray(Psr_Ntk_t* p, Vec_Int_t* vSlices, int Start, int Stop) {
     int i, Sig, Count = 0;
-    assert( Vec_IntSize(vSlices) > 0 );
-    Vec_IntForEachEntryStartStop( vSlices, Sig, i, Start, Stop )
-        Count += Psr_ManRangeSizeSignal( p, Sig );
+    assert(Vec_IntSize(vSlices) > 0);
+    Vec_IntForEachEntryStartStop(vSlices, Sig, i, Start, Stop)
+        Count
+        += Psr_ManRangeSizeSignal(p, Sig);
     return Count;
 }
-
 
 /**Function*************************************************************
 
@@ -201,11 +194,8 @@ int Psr_ManRangeSizeArray( Psr_Ntk_t * p, Vec_Int_t * vSlices, int Start, int St
 
 ***********************************************************************/
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

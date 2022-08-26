@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,32 +41,30 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Rsb_Man_t * Rsb_ManAlloc( int nLeafMax, int nDivMax, int nDecMax, int fVerbose )
-{
-    Rsb_Man_t * p;
-    assert( nLeafMax <= 20 );
-    assert( nDivMax  <= 200 );
-    p = ABC_CALLOC( Rsb_Man_t, 1 );
-    p->nLeafMax   = nLeafMax;
-    p->nDivMax    = nDivMax;
-    p->nDecMax    = nDecMax;
-    p->fVerbose   = fVerbose;
+Rsb_Man_t* Rsb_ManAlloc(int nLeafMax, int nDivMax, int nDecMax, int fVerbose) {
+    Rsb_Man_t* p;
+    assert(nLeafMax <= 20);
+    assert(nDivMax <= 200);
+    p = ABC_CALLOC(Rsb_Man_t, 1);
+    p->nLeafMax = nLeafMax;
+    p->nDivMax = nDivMax;
+    p->nDecMax = nDecMax;
+    p->fVerbose = fVerbose;
     // decomposition
-    p->vCexes     = Vec_WrdAlloc( nDivMax + 150 );
-    p->vDecPats   = Vec_IntAlloc( Abc_TtWordNum(nLeafMax) );
-    p->vFanins    = Vec_IntAlloc( 10 );
-    p->vFaninsOld = Vec_IntAlloc( 10 );
-    p->vTries     = Vec_IntAlloc( 10 );
+    p->vCexes = Vec_WrdAlloc(nDivMax + 150);
+    p->vDecPats = Vec_IntAlloc(Abc_TtWordNum(nLeafMax));
+    p->vFanins = Vec_IntAlloc(10);
+    p->vFaninsOld = Vec_IntAlloc(10);
+    p->vTries = Vec_IntAlloc(10);
     return p;
 }
-void Rsb_ManFree( Rsb_Man_t * p )
-{
-    Vec_WrdFree( p->vCexes );
-    Vec_IntFree( p->vDecPats );
-    Vec_IntFree( p->vFanins );
-    Vec_IntFree( p->vFaninsOld );
-    Vec_IntFree( p->vTries );
-    ABC_FREE( p );
+void Rsb_ManFree(Rsb_Man_t* p) {
+    Vec_WrdFree(p->vCexes);
+    Vec_IntFree(p->vDecPats);
+    Vec_IntFree(p->vFanins);
+    Vec_IntFree(p->vFaninsOld);
+    Vec_IntFree(p->vTries);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -81,12 +78,10 @@ void Rsb_ManFree( Rsb_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Int_t * Rsb_ManGetFanins( Rsb_Man_t * p )
-{
+Vec_Int_t* Rsb_ManGetFanins(Rsb_Man_t* p) {
     return p->vFanins;
 }
-Vec_Int_t * Rsb_ManGetFaninsOld( Rsb_Man_t * p )
-{
+Vec_Int_t* Rsb_ManGetFaninsOld(Rsb_Man_t* p) {
     return p->vFaninsOld;
 }
 
@@ -94,6 +89,4 @@ Vec_Int_t * Rsb_ManGetFaninsOld( Rsb_Man_t * p )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

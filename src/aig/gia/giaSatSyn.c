@@ -24,11 +24,9 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
- 
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -45,9 +43,8 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Gia_Man_t * Gia_ManSyn( Gia_Man_t * p, int nNodes, int nOuts, int nTimeLimit, int fUseXor, int fFancy, int fVerbose )
-{
-    Gia_Man_t * pNew = NULL;
+Gia_Man_t* Gia_ManSyn(Gia_Man_t* p, int nNodes, int nOuts, int nTimeLimit, int fUseXor, int fFancy, int fVerbose) {
+    Gia_Man_t* pNew = NULL;
     return pNew;
 }
 
@@ -55,6 +52,4 @@ Gia_Man_t * Gia_ManSyn( Gia_Man_t * p, int nNodes, int nOuts, int nTimeLimit, in
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

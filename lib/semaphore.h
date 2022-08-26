@@ -36,38 +36,38 @@
  *      if not, write to the Free Software Foundation, Inc.,
  *      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
-#if !defined( SEMAPHORE_H )
-#define SEMAPHORE_H
+#if !defined(SEMAPHORE_H)
+#    define SEMAPHORE_H
 
-#undef PTW32_LEVEL
+#    undef PTW32_LEVEL
 
-#if defined(_POSIX_SOURCE)
-#define PTW32_LEVEL 0
+#    if defined(_POSIX_SOURCE)
+#        define PTW32_LEVEL 0
 /* Early POSIX */
-#endif
+#    endif
 
-#if defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 199309
-#undef PTW32_LEVEL
-#define PTW32_LEVEL 1
+#    if defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 199309
+#        undef PTW32_LEVEL
+#        define PTW32_LEVEL 1
 /* Include 1b, 1c and 1d */
-#endif
+#    endif
 
-#if defined(INCLUDE_NP)
-#undef PTW32_LEVEL
-#define PTW32_LEVEL 2
+#    if defined(INCLUDE_NP)
+#        undef PTW32_LEVEL
+#        define PTW32_LEVEL 2
 /* Include Non-Portable extensions */
-#endif
+#    endif
 
-#define PTW32_LEVEL_MAX 3
+#    define PTW32_LEVEL_MAX 3
 
-#if !defined(PTW32_LEVEL)
-#define PTW32_LEVEL PTW32_LEVEL_MAX
+#    if !defined(PTW32_LEVEL)
+#        define PTW32_LEVEL PTW32_LEVEL_MAX
 /* Include everything */
-#endif
+#    endif
 
-#if __GNUC__ && ! defined (__declspec)
-# error Please upgrade your GNU compiler to one that supports __declspec.
-#endif
+#    if __GNUC__ && !defined(__declspec)
+#        error Please upgrade your GNU compiler to one that supports __declspec.
+#    endif
 
 /*
  * When building the DLL code, you should define PTW32_BUILD so that
@@ -75,92 +75,90 @@
  * do NOT define PTW32_BUILD, and then the variables/functions will
  * be imported correctly.
  */
-#ifndef PTW32_STATIC_LIB
-#  ifdef PTW32_BUILD
-#    define PTW32_DLLPORT __declspec (dllexport)
-#  else
-#    define PTW32_DLLPORT __declspec (dllimport)
-#  endif
-#else
-#  define PTW32_DLLPORT
-#endif
+#    ifndef PTW32_STATIC_LIB
+#        ifdef PTW32_BUILD
+#            define PTW32_DLLPORT __declspec(dllexport)
+#        else
+#            define PTW32_DLLPORT __declspec(dllimport)
+#        endif
+#    else
+#        define PTW32_DLLPORT
+#    endif
 
 /*
  * This is a duplicate of what is in the autoconf config.h,
  * which is only used when building the pthread-win32 libraries.
  */
 
-#ifndef PTW32_CONFIG_H
-#  if defined(WINCE)
-#    define NEED_ERRNO
-#    define NEED_SEM
-#  endif
-#  if defined(_UWIN) || defined(__MINGW32__)
-#    define HAVE_MODE_T
-#  endif
-#endif
+#    ifndef PTW32_CONFIG_H
+#        if defined(WINCE)
+#            define NEED_ERRNO
+#            define NEED_SEM
+#        endif
+#        if defined(_UWIN) || defined(__MINGW32__)
+#            define HAVE_MODE_T
+#        endif
+#    endif
 
 /*
  *
  */
 
-#if PTW32_LEVEL >= PTW32_LEVEL_MAX
-#ifdef NEED_ERRNO
-#include "need_errno.h"
-#else
-#include <errno.h>
-#endif
-#endif /* PTW32_LEVEL >= PTW32_LEVEL_MAX */
+#    if PTW32_LEVEL >= PTW32_LEVEL_MAX
+#        ifdef NEED_ERRNO
+#            include "need_errno.h"
+#        else
+#            include <errno.h>
+#        endif
+#    endif /* PTW32_LEVEL >= PTW32_LEVEL_MAX */
 
-#define _POSIX_SEMAPHORES
+#    define _POSIX_SEMAPHORES
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif                /* __cplusplus */
+#    ifdef __cplusplus
+extern "C" {
+#    endif /* __cplusplus */
 
-#ifndef HAVE_MODE_T
+#    ifndef HAVE_MODE_T
 typedef unsigned int mode_t;
-#endif
+#    endif
 
+typedef struct sem_t_* sem_t;
 
-typedef struct sem_t_ * sem_t;
+PTW32_DLLPORT int __cdecl sem_init(sem_t* sem,
+                                   int pshared,
+                                   unsigned int value);
 
-PTW32_DLLPORT int __cdecl sem_init (sem_t * sem,
-                int pshared,
-                unsigned int value);
+PTW32_DLLPORT int __cdecl sem_destroy(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_destroy (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_trywait(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_trywait (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_wait(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_wait (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_timedwait(sem_t* sem,
+                                        const struct timespec* abstime);
 
-PTW32_DLLPORT int __cdecl sem_timedwait (sem_t * sem,
-                 const struct timespec * abstime);
+PTW32_DLLPORT int __cdecl sem_post(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_post (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_post_multiple(sem_t* sem,
+                                            int count);
 
-PTW32_DLLPORT int __cdecl sem_post_multiple (sem_t * sem,
-                     int count);
+PTW32_DLLPORT int __cdecl sem_open(const char* name,
+                                   int oflag,
+                                   mode_t mode,
+                                   unsigned int value);
 
-PTW32_DLLPORT int __cdecl sem_open (const char * name,
-                int oflag,
-                mode_t mode,
-                unsigned int value);
+PTW32_DLLPORT int __cdecl sem_close(sem_t* sem);
 
-PTW32_DLLPORT int __cdecl sem_close (sem_t * sem);
+PTW32_DLLPORT int __cdecl sem_unlink(const char* name);
 
-PTW32_DLLPORT int __cdecl sem_unlink (const char * name);
+PTW32_DLLPORT int __cdecl sem_getvalue(sem_t* sem,
+                                       int* sval);
 
-PTW32_DLLPORT int __cdecl sem_getvalue (sem_t * sem,
-                int * sval);
+#    ifdef __cplusplus
+} /* End of extern "C" */
+#    endif /* __cplusplus */
 
-#ifdef __cplusplus
-}                /* End of extern "C" */
-#endif                /* __cplusplus */
+#    undef PTW32_LEVEL
+#    undef PTW32_LEVEL_MAX
 
-#undef PTW32_LEVEL
-#undef PTW32_LEVEL_MAX
-
-#endif                /* !SEMAPHORE_H */
+#endif /* !SEMAPHORE_H */

@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,106 +41,90 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Lpk_Res_t * Lpk_MuxAnalize( Lpk_Man_t * pMan, Lpk_Fun_t * p )
-{
-    static Lpk_Res_t Res, * pRes = &Res;
+Lpk_Res_t* Lpk_MuxAnalize(Lpk_Man_t* pMan, Lpk_Fun_t* p) {
+    static Lpk_Res_t Res, *pRes = &Res;
     int nSuppSize0, nSuppSize1, nSuppSizeS, nSuppSizeL;
     int Var, Area, Polarity, Delay, Delay0, Delay1, DelayA, DelayB;
-    memset( pRes, 0, sizeof(Lpk_Res_t) );
-    assert( p->uSupp == Kit_BitMask(p->nVars) );
-    assert( p->fSupports );
+    memset(pRes, 0, sizeof(Lpk_Res_t));
+    assert(p->uSupp == Kit_BitMask(p->nVars));
+    assert(p->fSupports);
     // derive the delay and area after MUX-decomp with each var - and find the best var
     pRes->Variable = -1;
-    Lpk_SuppForEachVar( p->uSupp, Var )
-    {
-        nSuppSize0 = Kit_WordCountOnes(p->puSupps[2*Var+0]);
-        nSuppSize1 = Kit_WordCountOnes(p->puSupps[2*Var+1]);
-        assert( nSuppSize0 < (int)p->nVars );
-        assert( nSuppSize1 < (int)p->nVars );
-        if ( nSuppSize0 < 1 || nSuppSize1 < 1 )
+    Lpk_SuppForEachVar(p->uSupp, Var) {
+        nSuppSize0 = Kit_WordCountOnes(p->puSupps[2 * Var + 0]);
+        nSuppSize1 = Kit_WordCountOnes(p->puSupps[2 * Var + 1]);
+        assert(nSuppSize0 < (int)p->nVars);
+        assert(nSuppSize1 < (int)p->nVars);
+        if (nSuppSize0 < 1 || nSuppSize1 < 1)
             continue;
-//printf( "%d %d    ", nSuppSize0, nSuppSize1 );
-        if ( nSuppSize0 <= (int)p->nLutK - 2 && nSuppSize1 <= (int)p->nLutK - 2 )
-        {
+        //printf( "%d %d    ", nSuppSize0, nSuppSize1 );
+        if (nSuppSize0 <= (int)p->nLutK - 2 && nSuppSize1 <= (int)p->nLutK - 2) {
             // include cof var into 0-block
-            DelayA = Lpk_SuppDelay( p->puSupps[2*Var+0] | (1<<Var), p->pDelays );
-            DelayB = Lpk_SuppDelay( p->puSupps[2*Var+1]           , p->pDelays );
-            Delay0 = Abc_MaxInt( DelayA, DelayB + 1 );
+            DelayA = Lpk_SuppDelay(p->puSupps[2 * Var + 0] | (1 << Var), p->pDelays);
+            DelayB = Lpk_SuppDelay(p->puSupps[2 * Var + 1], p->pDelays);
+            Delay0 = Abc_MaxInt(DelayA, DelayB + 1);
             // include cof var into 1-block
-            DelayA = Lpk_SuppDelay( p->puSupps[2*Var+1] | (1<<Var), p->pDelays );
-            DelayB = Lpk_SuppDelay( p->puSupps[2*Var+0]           , p->pDelays );
-            Delay1 = Abc_MaxInt( DelayA, DelayB + 1 );
+            DelayA = Lpk_SuppDelay(p->puSupps[2 * Var + 1] | (1 << Var), p->pDelays);
+            DelayB = Lpk_SuppDelay(p->puSupps[2 * Var + 0], p->pDelays);
+            Delay1 = Abc_MaxInt(DelayA, DelayB + 1);
             // get the best delay
-            Delay = Abc_MinInt( Delay0, Delay1 );
+            Delay = Abc_MinInt(Delay0, Delay1);
             Area = 2;
             Polarity = (int)(Delay == Delay1);
-        }
-        else if ( nSuppSize0 <= (int)p->nLutK - 2 )
-        {
-            DelayA = Lpk_SuppDelay( p->puSupps[2*Var+0] | (1<<Var), p->pDelays );
-            DelayB = Lpk_SuppDelay( p->puSupps[2*Var+1]           , p->pDelays );
-            Delay = Abc_MaxInt( DelayA, DelayB + 1 );
-            Area = 1 + Lpk_LutNumLuts( nSuppSize1, p->nLutK );
+        } else if (nSuppSize0 <= (int)p->nLutK - 2) {
+            DelayA = Lpk_SuppDelay(p->puSupps[2 * Var + 0] | (1 << Var), p->pDelays);
+            DelayB = Lpk_SuppDelay(p->puSupps[2 * Var + 1], p->pDelays);
+            Delay = Abc_MaxInt(DelayA, DelayB + 1);
+            Area = 1 + Lpk_LutNumLuts(nSuppSize1, p->nLutK);
             Polarity = 0;
-        }
-        else if ( nSuppSize1 <= (int)p->nLutK - 2 )
-        {
-            DelayA = Lpk_SuppDelay( p->puSupps[2*Var+1] | (1<<Var), p->pDelays );
-            DelayB = Lpk_SuppDelay( p->puSupps[2*Var+0]           , p->pDelays );
-            Delay = Abc_MaxInt( DelayA, DelayB + 1 );
-            Area = 1 + Lpk_LutNumLuts( nSuppSize0, p->nLutK );
+        } else if (nSuppSize1 <= (int)p->nLutK - 2) {
+            DelayA = Lpk_SuppDelay(p->puSupps[2 * Var + 1] | (1 << Var), p->pDelays);
+            DelayB = Lpk_SuppDelay(p->puSupps[2 * Var + 0], p->pDelays);
+            Delay = Abc_MaxInt(DelayA, DelayB + 1);
+            Area = 1 + Lpk_LutNumLuts(nSuppSize0, p->nLutK);
             Polarity = 1;
-        }
-        else if ( nSuppSize0 <= (int)p->nLutK )
-        {
-            DelayA = Lpk_SuppDelay( p->puSupps[2*Var+1] | (1<<Var), p->pDelays );
-            DelayB = Lpk_SuppDelay( p->puSupps[2*Var+0]           , p->pDelays );
-            Delay = Abc_MaxInt( DelayA, DelayB + 1 );
-            Area = 1 + Lpk_LutNumLuts( nSuppSize1+2, p->nLutK );
+        } else if (nSuppSize0 <= (int)p->nLutK) {
+            DelayA = Lpk_SuppDelay(p->puSupps[2 * Var + 1] | (1 << Var), p->pDelays);
+            DelayB = Lpk_SuppDelay(p->puSupps[2 * Var + 0], p->pDelays);
+            Delay = Abc_MaxInt(DelayA, DelayB + 1);
+            Area = 1 + Lpk_LutNumLuts(nSuppSize1 + 2, p->nLutK);
             Polarity = 1;
-        }
-        else if ( nSuppSize1 <= (int)p->nLutK )
-        {
-            DelayA = Lpk_SuppDelay( p->puSupps[2*Var+0] | (1<<Var), p->pDelays );
-            DelayB = Lpk_SuppDelay( p->puSupps[2*Var+1]           , p->pDelays );
-            Delay = Abc_MaxInt( DelayA, DelayB + 1 );
-            Area = 1 + Lpk_LutNumLuts( nSuppSize0+2, p->nLutK );
+        } else if (nSuppSize1 <= (int)p->nLutK) {
+            DelayA = Lpk_SuppDelay(p->puSupps[2 * Var + 0] | (1 << Var), p->pDelays);
+            DelayB = Lpk_SuppDelay(p->puSupps[2 * Var + 1], p->pDelays);
+            Delay = Abc_MaxInt(DelayA, DelayB + 1);
+            Area = 1 + Lpk_LutNumLuts(nSuppSize0 + 2, p->nLutK);
             Polarity = 0;
-        }
-        else
-        {
+        } else {
             // include cof var into 0-block
-            DelayA = Lpk_SuppDelay( p->puSupps[2*Var+0] | (1<<Var), p->pDelays );
-            DelayB = Lpk_SuppDelay( p->puSupps[2*Var+1]           , p->pDelays );
-            Delay0 = Abc_MaxInt( DelayA, DelayB + 1 );
+            DelayA = Lpk_SuppDelay(p->puSupps[2 * Var + 0] | (1 << Var), p->pDelays);
+            DelayB = Lpk_SuppDelay(p->puSupps[2 * Var + 1], p->pDelays);
+            Delay0 = Abc_MaxInt(DelayA, DelayB + 1);
             // include cof var into 1-block
-            DelayA = Lpk_SuppDelay( p->puSupps[2*Var+1] | (1<<Var), p->pDelays );
-            DelayB = Lpk_SuppDelay( p->puSupps[2*Var+0]           , p->pDelays );
-            Delay1 = Abc_MaxInt( DelayA, DelayB + 1 );
+            DelayA = Lpk_SuppDelay(p->puSupps[2 * Var + 1] | (1 << Var), p->pDelays);
+            DelayB = Lpk_SuppDelay(p->puSupps[2 * Var + 0], p->pDelays);
+            Delay1 = Abc_MaxInt(DelayA, DelayB + 1);
             // get the best delay
-            Delay = Abc_MinInt( Delay0, Delay1 );
-            if ( Delay == Delay0 )
-                Area = Lpk_LutNumLuts( nSuppSize0+2, p->nLutK ) + Lpk_LutNumLuts( nSuppSize1, p->nLutK );
+            Delay = Abc_MinInt(Delay0, Delay1);
+            if (Delay == Delay0)
+                Area = Lpk_LutNumLuts(nSuppSize0 + 2, p->nLutK) + Lpk_LutNumLuts(nSuppSize1, p->nLutK);
             else
-                Area = Lpk_LutNumLuts( nSuppSize1+2, p->nLutK ) + Lpk_LutNumLuts( nSuppSize0, p->nLutK );
+                Area = Lpk_LutNumLuts(nSuppSize1 + 2, p->nLutK) + Lpk_LutNumLuts(nSuppSize0, p->nLutK);
             Polarity = (int)(Delay == Delay1);
         }
         // find the best variable
-        if ( Delay > (int)p->nDelayLim )
+        if (Delay > (int)p->nDelayLim)
             continue;
-        if ( Area > (int)p->nAreaLim )
+        if (Area > (int)p->nAreaLim)
             continue;
-        nSuppSizeS = Abc_MinInt( nSuppSize0 + 2 *!Polarity, nSuppSize1 + 2 * Polarity );
-        nSuppSizeL = Abc_MaxInt( nSuppSize0 + 2 *!Polarity, nSuppSize1 + 2 * Polarity );
-        if ( nSuppSizeL > (int)p->nVars )
+        nSuppSizeS = Abc_MinInt(nSuppSize0 + 2 * !Polarity, nSuppSize1 + 2 * Polarity);
+        nSuppSizeL = Abc_MaxInt(nSuppSize0 + 2 * !Polarity, nSuppSize1 + 2 * Polarity);
+        if (nSuppSizeL > (int)p->nVars)
             continue;
-        if ( pRes->Variable == -1 || pRes->AreaEst > Area || 
-            (pRes->AreaEst == Area && pRes->nSuppSizeS + pRes->nSuppSizeL > nSuppSizeS + nSuppSizeL) || 
-            (pRes->AreaEst == Area && pRes->nSuppSizeS + pRes->nSuppSizeL == nSuppSizeS + nSuppSizeL && pRes->DelayEst > Delay) )
-        {
+        if (pRes->Variable == -1 || pRes->AreaEst > Area || (pRes->AreaEst == Area && pRes->nSuppSizeS + pRes->nSuppSizeL > nSuppSizeS + nSuppSizeL) || (pRes->AreaEst == Area && pRes->nSuppSizeS + pRes->nSuppSizeL == nSuppSizeS + nSuppSizeL && pRes->DelayEst > Delay)) {
             pRes->Variable = Var;
             pRes->Polarity = Polarity;
-            pRes->AreaEst  = Area;
+            pRes->AreaEst = Area;
             pRes->DelayEst = Delay;
             pRes->nSuppSizeS = nSuppSizeS;
             pRes->nSuppSizeL = nSuppSizeL;
@@ -161,20 +144,19 @@ Lpk_Res_t * Lpk_MuxAnalize( Lpk_Man_t * pMan, Lpk_Fun_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Lpk_Fun_t * Lpk_MuxSplit( Lpk_Man_t * pMan, Lpk_Fun_t * p, int Var, int Pol )
-{
-    Lpk_Fun_t * pNew;
-    unsigned * pTruth  = Lpk_FunTruth( p, 0 );
-    unsigned * pTruth0 = Lpk_FunTruth( p, 1 );
-    unsigned * pTruth1 = Lpk_FunTruth( p, 2 );
-//    unsigned uSupp;
-    int iVarVac; 
-    assert( Var >= 0 && Var < (int)p->nVars );
-    assert( p->nAreaLim >= 2 );
-    assert( p->uSupp == Kit_BitMask(p->nVars) );
-    Kit_TruthCofactor0New( pTruth0, pTruth, p->nVars, Var );
-    Kit_TruthCofactor1New( pTruth1, pTruth, p->nVars, Var );
-/*
+Lpk_Fun_t* Lpk_MuxSplit(Lpk_Man_t* pMan, Lpk_Fun_t* p, int Var, int Pol) {
+    Lpk_Fun_t* pNew;
+    unsigned* pTruth = Lpk_FunTruth(p, 0);
+    unsigned* pTruth0 = Lpk_FunTruth(p, 1);
+    unsigned* pTruth1 = Lpk_FunTruth(p, 2);
+    //    unsigned uSupp;
+    int iVarVac;
+    assert(Var >= 0 && Var < (int)p->nVars);
+    assert(p->nAreaLim >= 2);
+    assert(p->uSupp == Kit_BitMask(p->nVars));
+    Kit_TruthCofactor0New(pTruth0, pTruth, p->nVars, Var);
+    Kit_TruthCofactor1New(pTruth1, pTruth, p->nVars, Var);
+    /*
 uSupp = Kit_TruthSupport( pTruth, p->nVars );
 Extra_PrintBinary( stdout, &uSupp, 16 ); printf( "\n" );
 uSupp = Kit_TruthSupport( pTruth0, p->nVars );
@@ -183,45 +165,39 @@ uSupp = Kit_TruthSupport( pTruth1, p->nVars );
 Extra_PrintBinary( stdout, &uSupp, 16 ); printf( "\n\n" );
 */
     // derive the new component
-    pNew = Lpk_FunDup( p, Pol ? pTruth0 : pTruth1 );
+    pNew = Lpk_FunDup(p, Pol ? pTruth0 : pTruth1);
     // update the support of the old component
-    p->uSupp  = Kit_TruthSupport( Pol ? pTruth1 : pTruth0, p->nVars );
+    p->uSupp = Kit_TruthSupport(Pol ? pTruth1 : pTruth0, p->nVars);
     p->uSupp |= (1 << Var);
     // update the truth table of the old component
-    iVarVac = Kit_WordFindFirstBit( ~p->uSupp );
-    assert( iVarVac < (int)p->nVars );
+    iVarVac = Kit_WordFindFirstBit(~p->uSupp);
+    assert(iVarVac < (int)p->nVars);
     p->uSupp |= (1 << iVarVac);
-    Kit_TruthIthVar( pTruth, p->nVars, iVarVac );
-    if ( Pol )
-        Kit_TruthMuxVar( pTruth, pTruth, pTruth1, p->nVars, Var );
+    Kit_TruthIthVar(pTruth, p->nVars, iVarVac);
+    if (Pol)
+        Kit_TruthMuxVar(pTruth, pTruth, pTruth1, p->nVars, Var);
     else
-        Kit_TruthMuxVar( pTruth, pTruth0, pTruth, p->nVars, Var );
-    assert( p->uSupp == Kit_TruthSupport(pTruth, p->nVars) );
+        Kit_TruthMuxVar(pTruth, pTruth0, pTruth, p->nVars, Var);
+    assert(p->uSupp == Kit_TruthSupport(pTruth, p->nVars));
     // set the decomposed variable
     p->pFanins[iVarVac] = pNew->Id;
     p->pDelays[iVarVac] = p->nDelayLim - 1;
     // support minimize both
     p->fSupports = 0;
-    Lpk_FunSuppMinimize( p );
-    Lpk_FunSuppMinimize( pNew );
+    Lpk_FunSuppMinimize(p);
+    Lpk_FunSuppMinimize(pNew);
     // update delay and area requirements
     pNew->nDelayLim = p->nDelayLim - 1;
-    if ( pNew->nVars <= pNew->nLutK )
-    {
+    if (pNew->nVars <= pNew->nLutK) {
         pNew->nAreaLim = 1;
         p->nAreaLim = p->nAreaLim - 1;
-    }
-    else if ( p->nVars <= p->nLutK )
-    {
+    } else if (p->nVars <= p->nLutK) {
         pNew->nAreaLim = p->nAreaLim - 1;
         p->nAreaLim = 1;
-    }
-    else if ( p->nVars < pNew->nVars )
-    {
+    } else if (p->nVars < pNew->nVars) {
         pNew->nAreaLim = p->nAreaLim / 2 + p->nAreaLim % 2;
         p->nAreaLim = p->nAreaLim / 2 - p->nAreaLim % 2;
-    }
-    else // if ( pNew->nVars < p->nVars )
+    } else // if ( pNew->nVars < p->nVars )
     {
         pNew->nAreaLim = p->nAreaLim / 2 - p->nAreaLim % 2;
         p->nAreaLim = p->nAreaLim / 2 + p->nAreaLim % 2;
@@ -230,11 +206,8 @@ Extra_PrintBinary( stdout, &uSupp, 16 ); printf( "\n\n" );
     return pNew;
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -82,12 +82,9 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
@@ -109,7 +106,6 @@ static char rcsid[] DD_UNUSED = "$Id: cuddLevelQ.c,v 1.13 2009/03/08 02:49:02 fa
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
 /**Macro***********************************************************************
 
   Synopsis    [Hash function for the table of a level queue.]
@@ -122,13 +118,12 @@ static char rcsid[] DD_UNUSED = "$Id: cuddLevelQ.c,v 1.13 2009/03/08 02:49:02 fa
 
 ******************************************************************************/
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
-#define lqHash(key,shift) \
-(((unsigned)(ptruint)(key) * DD_P1) >> (shift))
+#    define lqHash(key, shift) \
+        (((unsigned)(ptruint)(key)*DD_P1) >> (shift))
 #else
-#define lqHash(key,shift) \
-(((unsigned)(key) * DD_P1) >> (shift))
+#    define lqHash(key, shift) \
+        (((unsigned)(key)*DD_P1) >> (shift))
 #endif
-
 
 /**AutomaticStart*************************************************************/
 
@@ -136,18 +131,16 @@ static char rcsid[] DD_UNUSED = "$Id: cuddLevelQ.c,v 1.13 2009/03/08 02:49:02 fa
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static DdQueueItem * hashLookup (DdLevelQueue *queue, void *key);
-static int hashInsert (DdLevelQueue *queue, DdQueueItem *item);
-static void hashDelete (DdLevelQueue *queue, DdQueueItem *item);
-static int hashResize (DdLevelQueue *queue);
+static DdQueueItem* hashLookup(DdLevelQueue* queue, void* key);
+static int hashInsert(DdLevelQueue* queue, DdQueueItem* item);
+static void hashDelete(DdLevelQueue* queue, DdQueueItem* item);
+static int hashResize(DdLevelQueue* queue);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -165,30 +158,29 @@ static int hashResize (DdLevelQueue *queue);
   SeeAlso     [cuddLevelQueueQuit cuddLevelQueueEnqueue cuddLevelQueueDequeue]
 
 ******************************************************************************/
-DdLevelQueue *
+DdLevelQueue*
 cuddLevelQueueInit(
-  int  levels /* number of levels */,
-  int  itemSize /* size of the item */,
-  int  numBuckets /* initial number of hash buckets */)
-{
-    DdLevelQueue *queue;
+    int levels /* number of levels */,
+    int itemSize /* size of the item */,
+    int numBuckets /* initial number of hash buckets */) {
+    DdLevelQueue* queue;
     int logSize;
 
-    queue = ABC_ALLOC(DdLevelQueue,1);
+    queue = ABC_ALLOC(DdLevelQueue, 1);
     if (queue == NULL)
-        return(NULL);
+        return (NULL);
 #ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
+#    pragma pointer_size save
+#    pragma pointer_size short
 #endif
     /* Keep pointers to the insertion points for all levels. */
-    queue->last = ABC_ALLOC(DdQueueItem *, levels);
+    queue->last = ABC_ALLOC(DdQueueItem*, levels);
 #ifdef __osf__
-#pragma pointer_size restore
+#    pragma pointer_size restore
 #endif
     if (queue->last == NULL) {
         ABC_FREE(queue);
-        return(NULL);
+        return (NULL);
     }
     /* Use a hash table to test for uniqueness. */
     if (numBuckets < 2) numBuckets = 2;
@@ -196,26 +188,26 @@ cuddLevelQueueInit(
     queue->numBuckets = 1 << logSize;
     queue->shift = sizeof(int) * 8 - logSize;
 #ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
+#    pragma pointer_size save
+#    pragma pointer_size short
 #endif
-    queue->buckets = ABC_ALLOC(DdQueueItem *, queue->numBuckets);
+    queue->buckets = ABC_ALLOC(DdQueueItem*, queue->numBuckets);
 #ifdef __osf__
-#pragma pointer_size restore
+#    pragma pointer_size restore
 #endif
     if (queue->buckets == NULL) {
         ABC_FREE(queue->last);
         ABC_FREE(queue);
-        return(NULL);
+        return (NULL);
     }
 #ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
+#    pragma pointer_size save
+#    pragma pointer_size short
 #endif
-    memset(queue->last, 0, levels * sizeof(DdQueueItem *));
-    memset(queue->buckets, 0, queue->numBuckets * sizeof(DdQueueItem *));
+    memset(queue->last, 0, levels * sizeof(DdQueueItem*));
+    memset(queue->buckets, 0, queue->numBuckets * sizeof(DdQueueItem*));
 #ifdef __osf__
-#pragma pointer_size restore
+#    pragma pointer_size restore
 #endif
     queue->first = NULL;
     queue->freelist = NULL;
@@ -223,10 +215,9 @@ cuddLevelQueueInit(
     queue->itemsize = itemSize;
     queue->size = 0;
     queue->maxsize = queue->numBuckets * DD_MAX_SUBTABLE_DENSITY;
-    return(queue);
+    return (queue);
 
 } /* end of cuddLevelQueueInit */
-
 
 /**Function********************************************************************
 
@@ -240,11 +231,9 @@ cuddLevelQueueInit(
   SeeAlso     [cuddLevelQueueInit]
 
 ******************************************************************************/
-void
-cuddLevelQueueQuit(
-  DdLevelQueue * queue)
-{
-    DdQueueItem *item;
+void cuddLevelQueueQuit(
+    DdLevelQueue* queue) {
+    DdQueueItem* item;
 
     while (queue->freelist != NULL) {
         item = queue->freelist;
@@ -252,7 +241,7 @@ cuddLevelQueueQuit(
         ABC_FREE(item);
     }
     while (queue->first != NULL) {
-        item = (DdQueueItem *) queue->first;
+        item = (DdQueueItem*)queue->first;
         queue->first = item->next;
         ABC_FREE(item);
     }
@@ -262,7 +251,6 @@ cuddLevelQueueQuit(
     return;
 
 } /* end of cuddLevelQueueQuit */
-
 
 /**Function********************************************************************
 
@@ -278,27 +266,25 @@ cuddLevelQueueQuit(
   SeeAlso     [cuddLevelQueueInit cuddLevelQueueDequeue]
 
 ******************************************************************************/
-void *
-cuddLevelQueueEnqueue(
-  DdLevelQueue * queue /* level queue */,
-  void * key /* key to be enqueued */,
-  int  level /* level at which to insert */)
-{
+void* cuddLevelQueueEnqueue(
+    DdLevelQueue* queue /* level queue */,
+    void* key /* key to be enqueued */,
+    int level /* level at which to insert */) {
     int plevel;
-    DdQueueItem *item;
+    DdQueueItem* item;
 
 #ifdef DD_DEBUG
     assert(level < queue->levels);
 #endif
     /* Check whether entry for this node exists. */
-    item = hashLookup(queue,key);
-    if (item != NULL) return(item);
+    item = hashLookup(queue, key);
+    if (item != NULL) return (item);
 
     /* Get a free item from either the free list or the memory manager. */
     if (queue->freelist == NULL) {
-        item = (DdQueueItem *) ABC_ALLOC(char, queue->itemsize);
+        item = (DdQueueItem*)ABC_ALLOC(char, queue->itemsize);
         if (item == NULL)
-            return(NULL);
+            return (NULL);
     } else {
         item = queue->freelist;
         queue->freelist = item->next;
@@ -321,7 +307,7 @@ cuddLevelQueueEnqueue(
             plevel--;
         if (queue->last[plevel] == NULL) {
             /* No element precedes this one in the queue. */
-            item->next = (DdQueueItem *) queue->first;
+            item->next = (DdQueueItem*)queue->first;
             queue->first = item;
         } else {
             item->next = queue->last[plevel]->next;
@@ -331,13 +317,12 @@ cuddLevelQueueEnqueue(
     queue->last[level] = item;
 
     /* Insert entry for the key in the hash table. */
-    if (hashInsert(queue,item) == 0) {
-        return(NULL);
+    if (hashInsert(queue, item) == 0) {
+        return (NULL);
     }
-    return(item);
+    return (item);
 
 } /* end of cuddLevelQueueEnqueue */
-
 
 /**Function********************************************************************
 
@@ -350,15 +335,13 @@ cuddLevelQueueEnqueue(
   SeeAlso     [cuddLevelQueueEnqueue]
 
 ******************************************************************************/
-void
-cuddLevelQueueDequeue(
-  DdLevelQueue * queue,
-  int  level)
-{
-    DdQueueItem *item = (DdQueueItem *) queue->first;
+void cuddLevelQueueDequeue(
+    DdLevelQueue* queue,
+    int level) {
+    DdQueueItem* item = (DdQueueItem*)queue->first;
 
     /* Delete from the hash table. */
-    hashDelete(queue,item);
+    hashDelete(queue, item);
 
     /* Since we delete from the front, if this is the last item for
     ** its level, there are no other items for the same level. */
@@ -375,11 +358,9 @@ cuddLevelQueueDequeue(
 
 } /* end of cuddLevelQueueDequeue */
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -394,27 +375,25 @@ cuddLevelQueueDequeue(
   SeeAlso     [cuddLevelQueueEnqueue hashInsert]
 
 ******************************************************************************/
-static DdQueueItem *
+static DdQueueItem*
 hashLookup(
-  DdLevelQueue * queue,
-  void * key)
-{
+    DdLevelQueue* queue,
+    void* key) {
     int posn;
-    DdQueueItem *item;
+    DdQueueItem* item;
 
-    posn = lqHash(key,queue->shift);
+    posn = lqHash(key, queue->shift);
     item = queue->buckets[posn];
 
     while (item != NULL) {
         if (item->key == key) {
-            return(item);
+            return (item);
         }
         item = item->cnext;
     }
-    return(NULL);
+    return (NULL);
 
 } /* end of hashLookup */
-
 
 /**Function********************************************************************
 
@@ -431,25 +410,23 @@ hashLookup(
 ******************************************************************************/
 static int
 hashInsert(
-  DdLevelQueue * queue,
-  DdQueueItem * item)
-{
+    DdLevelQueue* queue,
+    DdQueueItem* item) {
     int result;
     int posn;
 
     if (queue->size > queue->maxsize) {
         result = hashResize(queue);
-        if (result == 0) return(0);
+        if (result == 0) return (0);
     }
 
-    posn = lqHash(item->key,queue->shift);
+    posn = lqHash(item->key, queue->shift);
     item->cnext = queue->buckets[posn];
     queue->buckets[posn] = item;
 
-    return(1);
-    
-} /* end of hashInsert */
+    return (1);
 
+} /* end of hashInsert */
 
 /**Function********************************************************************
 
@@ -465,13 +442,12 @@ hashInsert(
 ******************************************************************************/
 static void
 hashDelete(
-  DdLevelQueue * queue,
-  DdQueueItem * item)
-{
+    DdLevelQueue* queue,
+    DdQueueItem* item) {
     int posn;
-    DdQueueItem *prevItem;
+    DdQueueItem* prevItem;
 
-    posn = lqHash(item->key,queue->shift);
+    posn = lqHash(item->key, queue->shift);
     prevItem = queue->buckets[posn];
 
     if (prevItem == NULL) return;
@@ -491,7 +467,6 @@ hashDelete(
 
 } /* end of hashDelete */
 
-
 /**Function********************************************************************
 
   Synopsis    [Resizes the hash table of a level queue.]
@@ -506,21 +481,20 @@ hashDelete(
 ******************************************************************************/
 static int
 hashResize(
-  DdLevelQueue * queue)
-{
+    DdLevelQueue* queue) {
     int j;
     int posn;
-    DdQueueItem *item;
-    DdQueueItem *next;
+    DdQueueItem* item;
+    DdQueueItem* next;
     int numBuckets;
 #ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
+#    pragma pointer_size save
+#    pragma pointer_size short
 #endif
-    DdQueueItem **buckets;
-    DdQueueItem **oldBuckets = queue->buckets;
+    DdQueueItem** buckets;
+    DdQueueItem** oldBuckets = queue->buckets;
 #ifdef __osf__
-#pragma pointer_size restore
+#    pragma pointer_size restore
 #endif
     int shift;
     int oldNumBuckets = queue->numBuckets;
@@ -532,22 +506,22 @@ hashResize(
     saveHandler = MMoutOfMemory;
     MMoutOfMemory = Cudd_OutOfMem;
 #ifdef __osf__
-#pragma pointer_size save
-#pragma pointer_size short
+#    pragma pointer_size save
+#    pragma pointer_size short
 #endif
-    buckets = queue->buckets = ABC_ALLOC(DdQueueItem *, numBuckets);
+    buckets = queue->buckets = ABC_ALLOC(DdQueueItem*, numBuckets);
     MMoutOfMemory = saveHandler;
     if (buckets == NULL) {
         queue->maxsize <<= 1;
-        return(1);
+        return (1);
     }
 
     queue->numBuckets = numBuckets;
     shift = --(queue->shift);
     queue->maxsize <<= 1;
-    memset(buckets, 0, numBuckets * sizeof(DdQueueItem *));
+    memset(buckets, 0, numBuckets * sizeof(DdQueueItem*));
 #ifdef __osf__
-#pragma pointer_size restore
+#    pragma pointer_size restore
 #endif
     for (j = 0; j < oldNumBuckets; j++) {
         item = oldBuckets[j];
@@ -560,10 +534,8 @@ hashResize(
         }
     }
     ABC_FREE(oldBuckets);
-    return(1);
+    return (1);
 
 } /* end of hashResize */
 
-
 ABC_NAMESPACE_IMPL_END
-

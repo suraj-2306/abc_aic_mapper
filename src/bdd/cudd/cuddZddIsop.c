@@ -66,22 +66,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -95,13 +90,11 @@ static char rcsid[] DD_UNUSED = "$Id: cuddZddIsop.c,v 1.20 2009/02/19 16:26:12 f
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticStart*************************************************************/
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
-
 
 /**AutomaticEnd***************************************************************/
 
@@ -132,15 +125,14 @@ static char rcsid[] DD_UNUSED = "$Id: cuddZddIsop.c,v 1.20 2009/02/19 16:26:12 f
   SeeAlso     [Cudd_bddIsop Cudd_zddVarsFromBddVars]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_zddIsop(
-  DdManager * dd,
-  DdNode * L,
-  DdNode * U,
-  DdNode ** zdd_I)
-{
-    DdNode      *res;
-    int         autoDynZ;
+    DdManager* dd,
+    DdNode* L,
+    DdNode* U,
+    DdNode** zdd_I) {
+    DdNode* res;
+    int autoDynZ;
 
     autoDynZ = dd->autoDynZ;
     dd->autoDynZ = 0;
@@ -150,10 +142,9 @@ Cudd_zddIsop(
         res = cuddZddIsop(dd, L, U, zdd_I);
     } while (dd->reordered == 1);
     dd->autoDynZ = autoDynZ;
-    return(res);
+    return (res);
 
 } /* end of Cudd_zddIsop */
-
 
 /**Function********************************************************************
 
@@ -170,22 +161,20 @@ Cudd_zddIsop(
   SeeAlso     [Cudd_zddIsop]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_bddIsop(
-  DdManager * dd,
-  DdNode * L,
-  DdNode * U)
-{
-    DdNode      *res;
+    DdManager* dd,
+    DdNode* L,
+    DdNode* U) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
         res = cuddBddIsop(dd, L, U);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_bddIsop */
-
 
 /**Function********************************************************************
 
@@ -199,25 +188,22 @@ Cudd_bddIsop(
   SeeAlso     [cuddMakeBddFromZddCover]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 Cudd_MakeBddFromZddCover(
-  DdManager * dd,
-  DdNode * node)
-{
-    DdNode      *res;
+    DdManager* dd,
+    DdNode* node) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
         res = cuddMakeBddFromZddCover(dd, node);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 } /* end of Cudd_MakeBddFromZddCover */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 #ifdef USE_CASH_DUMMY
 /**Function********************************************************************
@@ -226,14 +212,12 @@ Cudd_MakeBddFromZddCover(
               be casted to DD_CTFP.
 
 ******************************************************************************/
-static DdNode  *
-cuddZddIsop_dummy(DdManager * dd, DdNode * L, DdNode * U)
-{
-  assert(0);
-  return 0;
+static DdNode*
+cuddZddIsop_dummy(DdManager* dd, DdNode* L, DdNode* U) {
+    assert(0);
+    return 0;
 }
 #endif
-
 
 /**Function********************************************************************
 
@@ -246,37 +230,36 @@ cuddZddIsop_dummy(DdManager * dd, DdNode * L, DdNode * U)
   SeeAlso     [Cudd_zddIsop]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddZddIsop(
-  DdManager * dd,
-  DdNode * L,
-  DdNode * U,
-  DdNode ** zdd_I)
-{
-    DdNode      *one = DD_ONE(dd);
-    DdNode      *zero = Cudd_Not(one);
-    DdNode      *zdd_one = DD_ONE(dd);
-    DdNode      *zdd_zero = DD_ZERO(dd);
-    int         v, top_l, top_u;
-    DdNode      *Lsub0, *Usub0, *Lsub1, *Usub1, *Ld, *Ud;
-    DdNode      *Lsuper0, *Usuper0, *Lsuper1, *Usuper1;
-    DdNode      *Isub0, *Isub1, *Id;
-    DdNode      *zdd_Isub0, *zdd_Isub1, *zdd_Id;
-    DdNode      *x;
-    DdNode      *term0, *term1, *sum;
-    DdNode      *Lv, *Uv, *Lnv, *Unv;
-    DdNode      *r, *y, *z;
-    int         index;
-    DD_CTFP     cacheOp;
+    DdManager* dd,
+    DdNode* L,
+    DdNode* U,
+    DdNode** zdd_I) {
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = Cudd_Not(one);
+    DdNode* zdd_one = DD_ONE(dd);
+    DdNode* zdd_zero = DD_ZERO(dd);
+    int v, top_l, top_u;
+    DdNode *Lsub0, *Usub0, *Lsub1, *Usub1, *Ld, *Ud;
+    DdNode *Lsuper0, *Usuper0, *Lsuper1, *Usuper1;
+    DdNode *Isub0, *Isub1, *Id;
+    DdNode *zdd_Isub0, *zdd_Isub1, *zdd_Id;
+    DdNode* x;
+    DdNode *term0, *term1, *sum;
+    DdNode *Lv, *Uv, *Lnv, *Unv;
+    DdNode *r, *y, *z;
+    int index;
+    DD_CTFP cacheOp;
 
     statLine(dd);
     if (L == zero) {
         *zdd_I = zdd_zero;
-        return(zero);
+        return (zero);
     }
     if (U == one) {
         *zdd_I = zdd_one;
-        return(one);
+        return (one);
     }
 
     if (U == zero || L == one) {
@@ -290,15 +273,15 @@ cuddZddIsop(
     ** recursion. Clearly, collisions may evict only one of the two
     ** results. */
 #ifdef USE_CASH_DUMMY
-    cacheOp = (DD_CTFP) cuddZddIsop_dummy;
+    cacheOp = (DD_CTFP)cuddZddIsop_dummy;
 #else
-    cacheOp = (DD_CTFP) cuddZddIsop;
+    cacheOp = (DD_CTFP)cuddZddIsop;
 #endif
     r = cuddCacheLookup2(dd, cuddBddIsop, L, U);
     if (r) {
         *zdd_I = cuddCacheLookup2Zdd(dd, cacheOp, L, U);
         if (*zdd_I)
-            return(r);
+            return (r);
         else {
             /* The BDD result may have been dead. In that case
             ** cuddCacheLookup2 would have called cuddReclaim,
@@ -321,8 +304,7 @@ cuddZddIsop(
             Lv = Cudd_Not(Lv);
             Lnv = Cudd_Not(Lnv);
         }
-    }
-    else {
+    } else {
         index = Cudd_Regular(U)->index;
         Lv = Lnv = L;
     }
@@ -334,20 +316,19 @@ cuddZddIsop(
             Uv = Cudd_Not(Uv);
             Unv = Cudd_Not(Unv);
         }
-    }
-    else {
+    } else {
         Uv = Unv = U;
     }
 
     Lsub0 = cuddBddAndRecur(dd, Lnv, Cudd_Not(Uv));
     if (Lsub0 == NULL)
-        return(NULL);
+        return (NULL);
     Cudd_Ref(Lsub0);
     Usub0 = Unv;
     Lsub1 = cuddBddAndRecur(dd, Lv, Cudd_Not(Unv));
     if (Lsub1 == NULL) {
         Cudd_RecursiveDeref(dd, Lsub0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Lsub1);
     Usub1 = Uv;
@@ -356,7 +337,7 @@ cuddZddIsop(
     if (Isub0 == NULL) {
         Cudd_RecursiveDeref(dd, Lsub0);
         Cudd_RecursiveDeref(dd, Lsub1);
-        return(NULL);
+        return (NULL);
     }
     /*
     if ((!cuddIsConstant(Cudd_Regular(Isub0))) &&
@@ -373,7 +354,7 @@ cuddZddIsop(
         Cudd_RecursiveDeref(dd, Lsub1);
         Cudd_RecursiveDeref(dd, Isub0);
         Cudd_RecursiveDerefZdd(dd, zdd_Isub0);
-        return(NULL);
+        return (NULL);
     }
     /*
     if ((!cuddIsConstant(Cudd_Regular(Isub1))) &&
@@ -393,7 +374,7 @@ cuddZddIsop(
         Cudd_RecursiveDerefZdd(dd, zdd_Isub0);
         Cudd_RecursiveDeref(dd, Isub1);
         Cudd_RecursiveDerefZdd(dd, zdd_Isub1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Lsuper0);
     Lsuper1 = cuddBddAndRecur(dd, Lv, Cudd_Not(Isub1));
@@ -403,7 +384,7 @@ cuddZddIsop(
         Cudd_RecursiveDeref(dd, Isub1);
         Cudd_RecursiveDerefZdd(dd, zdd_Isub1);
         Cudd_RecursiveDeref(dd, Lsuper0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Lsuper1);
     Usuper0 = Unv;
@@ -418,7 +399,7 @@ cuddZddIsop(
         Cudd_RecursiveDerefZdd(dd, zdd_Isub1);
         Cudd_RecursiveDeref(dd, Lsuper0);
         Cudd_RecursiveDeref(dd, Lsuper1);
-        return(NULL);
+        return (NULL);
     }
     Ld = Cudd_Not(Ld);
     Cudd_Ref(Ld);
@@ -432,7 +413,7 @@ cuddZddIsop(
         Cudd_RecursiveDeref(dd, Lsuper0);
         Cudd_RecursiveDeref(dd, Lsuper1);
         Cudd_RecursiveDeref(dd, Ld);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Ud);
     Cudd_RecursiveDeref(dd, Lsuper0);
@@ -446,7 +427,7 @@ cuddZddIsop(
         Cudd_RecursiveDerefZdd(dd, zdd_Isub1);
         Cudd_RecursiveDeref(dd, Ld);
         Cudd_RecursiveDeref(dd, Ud);
-        return(NULL);
+        return (NULL);
     }
     /*
     if ((!cuddIsConstant(Cudd_Regular(Id))) &&
@@ -468,7 +449,7 @@ cuddZddIsop(
         Cudd_RecursiveDerefZdd(dd, zdd_Isub1);
         Cudd_RecursiveDeref(dd, Id);
         Cudd_RecursiveDerefZdd(dd, zdd_Id);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(x);
     /* term0 = x * Isub0 */
@@ -481,7 +462,7 @@ cuddZddIsop(
         Cudd_RecursiveDeref(dd, Id);
         Cudd_RecursiveDerefZdd(dd, zdd_Id);
         Cudd_RecursiveDeref(dd, x);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term0);
     Cudd_RecursiveDeref(dd, Isub0);
@@ -495,7 +476,7 @@ cuddZddIsop(
         Cudd_RecursiveDerefZdd(dd, zdd_Id);
         Cudd_RecursiveDeref(dd, x);
         Cudd_RecursiveDeref(dd, term0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term1);
     Cudd_RecursiveDeref(dd, x);
@@ -509,7 +490,7 @@ cuddZddIsop(
         Cudd_RecursiveDerefZdd(dd, zdd_Id);
         Cudd_RecursiveDeref(dd, term0);
         Cudd_RecursiveDeref(dd, term1);
-        return(NULL);
+        return (NULL);
     }
     sum = Cudd_Not(sum);
     Cudd_Ref(sum);
@@ -524,7 +505,7 @@ cuddZddIsop(
         Cudd_RecursiveDeref(dd, Id);
         Cudd_RecursiveDerefZdd(dd, zdd_Id);
         Cudd_RecursiveDeref(dd, sum);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(r);
     Cudd_RecursiveDeref(dd, sum);
@@ -537,10 +518,9 @@ cuddZddIsop(
             Cudd_RecursiveDerefZdd(dd, zdd_Isub1);
             Cudd_RecursiveDerefZdd(dd, zdd_Id);
             Cudd_RecursiveDeref(dd, r);
-            return(NULL);
+            return (NULL);
         }
-    }
-    else {
+    } else {
         z = zdd_Id;
     }
     Cudd_Ref(z);
@@ -552,10 +532,9 @@ cuddZddIsop(
             Cudd_RecursiveDerefZdd(dd, zdd_Id);
             Cudd_RecursiveDeref(dd, r);
             Cudd_RecursiveDerefZdd(dd, z);
-            return(NULL);
+            return (NULL);
         }
-    }
-    else
+    } else
         y = z;
     Cudd_Ref(y);
 
@@ -575,10 +554,9 @@ cuddZddIsop(
         printf("*** ERROR : mismatch in indices between BDD and ZDD. ***\n");
     }
     */
-    return(r);
+    return (r);
 
 } /* end of cuddZddIsop */
-
 
 /**Function********************************************************************
 
@@ -591,34 +569,33 @@ cuddZddIsop(
   SeeAlso     [Cudd_bddIsop]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddBddIsop(
-  DdManager * dd,
-  DdNode * L,
-  DdNode * U)
-{
-    DdNode      *one = DD_ONE(dd);
-    DdNode      *zero = Cudd_Not(one);
-    int         v, top_l, top_u;
-    DdNode      *Lsub0, *Usub0, *Lsub1, *Usub1, *Ld, *Ud;
-    DdNode      *Lsuper0, *Usuper0, *Lsuper1, *Usuper1;
-    DdNode      *Isub0, *Isub1, *Id;
-    DdNode      *x;
-    DdNode      *term0, *term1, *sum;
-    DdNode      *Lv, *Uv, *Lnv, *Unv;
-    DdNode      *r;
-    int         index;
+    DdManager* dd,
+    DdNode* L,
+    DdNode* U) {
+    DdNode* one = DD_ONE(dd);
+    DdNode* zero = Cudd_Not(one);
+    int v, top_l, top_u;
+    DdNode *Lsub0, *Usub0, *Lsub1, *Usub1, *Ld, *Ud;
+    DdNode *Lsuper0, *Usuper0, *Lsuper1, *Usuper1;
+    DdNode *Isub0, *Isub1, *Id;
+    DdNode* x;
+    DdNode *term0, *term1, *sum;
+    DdNode *Lv, *Uv, *Lnv, *Unv;
+    DdNode* r;
+    int index;
 
     statLine(dd);
     if (L == zero)
-        return(zero);
+        return (zero);
     if (U == one)
-        return(one);
+        return (one);
 
     /* Check cache */
     r = cuddCacheLookup2(dd, cuddBddIsop, L, U);
     if (r)
-        return(r);
+        return (r);
 
     top_l = dd->perm[Cudd_Regular(L)->index];
     top_u = dd->perm[Cudd_Regular(U)->index];
@@ -633,8 +610,7 @@ cuddBddIsop(
             Lv = Cudd_Not(Lv);
             Lnv = Cudd_Not(Lnv);
         }
-    }
-    else {
+    } else {
         index = Cudd_Regular(U)->index;
         Lv = Lnv = L;
     }
@@ -646,20 +622,19 @@ cuddBddIsop(
             Uv = Cudd_Not(Uv);
             Unv = Cudd_Not(Unv);
         }
-    }
-    else {
+    } else {
         Uv = Unv = U;
     }
 
     Lsub0 = cuddBddAndRecur(dd, Lnv, Cudd_Not(Uv));
     if (Lsub0 == NULL)
-        return(NULL);
+        return (NULL);
     Cudd_Ref(Lsub0);
     Usub0 = Unv;
     Lsub1 = cuddBddAndRecur(dd, Lv, Cudd_Not(Unv));
     if (Lsub1 == NULL) {
         Cudd_RecursiveDeref(dd, Lsub0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Lsub1);
     Usub1 = Uv;
@@ -668,7 +643,7 @@ cuddBddIsop(
     if (Isub0 == NULL) {
         Cudd_RecursiveDeref(dd, Lsub0);
         Cudd_RecursiveDeref(dd, Lsub1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Isub0);
     Isub1 = cuddBddIsop(dd, Lsub1, Usub1);
@@ -676,7 +651,7 @@ cuddBddIsop(
         Cudd_RecursiveDeref(dd, Lsub0);
         Cudd_RecursiveDeref(dd, Lsub1);
         Cudd_RecursiveDeref(dd, Isub0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Isub1);
     Cudd_RecursiveDeref(dd, Lsub0);
@@ -686,7 +661,7 @@ cuddBddIsop(
     if (Lsuper0 == NULL) {
         Cudd_RecursiveDeref(dd, Isub0);
         Cudd_RecursiveDeref(dd, Isub1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Lsuper0);
     Lsuper1 = cuddBddAndRecur(dd, Lv, Cudd_Not(Isub1));
@@ -694,7 +669,7 @@ cuddBddIsop(
         Cudd_RecursiveDeref(dd, Isub0);
         Cudd_RecursiveDeref(dd, Isub1);
         Cudd_RecursiveDeref(dd, Lsuper0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Lsuper1);
     Usuper0 = Unv;
@@ -708,7 +683,7 @@ cuddBddIsop(
         Cudd_RecursiveDeref(dd, Isub1);
         Cudd_RecursiveDeref(dd, Lsuper0);
         Cudd_RecursiveDeref(dd, Lsuper1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Ld);
     Ud = cuddBddAndRecur(dd, Usuper0, Usuper1);
@@ -718,7 +693,7 @@ cuddBddIsop(
         Cudd_RecursiveDeref(dd, Lsuper0);
         Cudd_RecursiveDeref(dd, Lsuper1);
         Cudd_RecursiveDeref(dd, Ld);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Ud);
     Cudd_RecursiveDeref(dd, Lsuper0);
@@ -730,7 +705,7 @@ cuddBddIsop(
         Cudd_RecursiveDeref(dd, Isub1);
         Cudd_RecursiveDeref(dd, Ld);
         Cudd_RecursiveDeref(dd, Ud);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(Id);
     Cudd_RecursiveDeref(dd, Ld);
@@ -741,7 +716,7 @@ cuddBddIsop(
         Cudd_RecursiveDeref(dd, Isub0);
         Cudd_RecursiveDeref(dd, Isub1);
         Cudd_RecursiveDeref(dd, Id);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(x);
     term0 = cuddBddAndRecur(dd, Cudd_Not(x), Isub0);
@@ -750,7 +725,7 @@ cuddBddIsop(
         Cudd_RecursiveDeref(dd, Isub1);
         Cudd_RecursiveDeref(dd, Id);
         Cudd_RecursiveDeref(dd, x);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term0);
     Cudd_RecursiveDeref(dd, Isub0);
@@ -760,7 +735,7 @@ cuddBddIsop(
         Cudd_RecursiveDeref(dd, Id);
         Cudd_RecursiveDeref(dd, x);
         Cudd_RecursiveDeref(dd, term0);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(term1);
     Cudd_RecursiveDeref(dd, x);
@@ -772,7 +747,7 @@ cuddBddIsop(
         Cudd_RecursiveDeref(dd, Id);
         Cudd_RecursiveDeref(dd, term0);
         Cudd_RecursiveDeref(dd, term1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(sum);
     Cudd_RecursiveDeref(dd, term0);
@@ -783,7 +758,7 @@ cuddBddIsop(
     if (r == NULL) {
         Cudd_RecursiveDeref(dd, Id);
         Cudd_RecursiveDeref(dd, sum);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(r);
     Cudd_RecursiveDeref(dd, sum);
@@ -792,10 +767,9 @@ cuddBddIsop(
     cuddCacheInsert2(dd, cuddBddIsop, L, U, r);
 
     Cudd_Deref(r);
-    return(r);
+    return (r);
 
 } /* end of cuddBddIsop */
-
 
 /**Function********************************************************************
 
@@ -816,30 +790,29 @@ cuddBddIsop(
   SeeAlso     [Cudd_MakeBddFromZddCover]
 
 ******************************************************************************/
-DdNode  *
+DdNode*
 cuddMakeBddFromZddCover(
-  DdManager * dd,
-  DdNode * node)
-{
-    DdNode      *neW;
-    int         v;
-    DdNode      *f1, *f0, *fd;
-    DdNode      *b1, *b0, *bd;
-    DdNode      *T, *E;
+    DdManager* dd,
+    DdNode* node) {
+    DdNode* neW;
+    int v;
+    DdNode *f1, *f0, *fd;
+    DdNode *b1, *b0, *bd;
+    DdNode *T, *E;
 
     statLine(dd);
     if (node == dd->one)
-        return(dd->one);
+        return (dd->one);
     if (node == dd->zero)
-        return(Cudd_Not(dd->one));
+        return (Cudd_Not(dd->one));
 
     /* Check cache */
     neW = cuddCacheLookup1(dd, cuddMakeBddFromZddCover, node);
     if (neW)
-        return(neW);
+        return (neW);
 
-    v = Cudd_Regular(node)->index;      /* either yi or zi */
-    if (cuddZddGetCofactors3(dd, node, v, &f1, &f0, &fd)) return(NULL);
+    v = Cudd_Regular(node)->index; /* either yi or zi */
+    if (cuddZddGetCofactors3(dd, node, v, &f1, &f0, &fd)) return (NULL);
     Cudd_Ref(f1);
     Cudd_Ref(f0);
     Cudd_Ref(fd);
@@ -849,7 +822,7 @@ cuddMakeBddFromZddCover(
         Cudd_RecursiveDerefZdd(dd, f1);
         Cudd_RecursiveDerefZdd(dd, f0);
         Cudd_RecursiveDerefZdd(dd, fd);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(b1);
     b0 = cuddMakeBddFromZddCover(dd, f0);
@@ -858,7 +831,7 @@ cuddMakeBddFromZddCover(
         Cudd_RecursiveDerefZdd(dd, f0);
         Cudd_RecursiveDerefZdd(dd, fd);
         Cudd_RecursiveDeref(dd, b1);
-        return(NULL);
+        return (NULL);
     }
     Cudd_Ref(b0);
     Cudd_RecursiveDerefZdd(dd, f1);
@@ -869,7 +842,7 @@ cuddMakeBddFromZddCover(
             Cudd_RecursiveDerefZdd(dd, fd);
             Cudd_RecursiveDeref(dd, b1);
             Cudd_RecursiveDeref(dd, b0);
-            return(NULL);
+            return (NULL);
         }
         Cudd_Ref(bd);
         Cudd_RecursiveDerefZdd(dd, fd);
@@ -879,7 +852,7 @@ cuddMakeBddFromZddCover(
             Cudd_RecursiveDeref(dd, b1);
             Cudd_RecursiveDeref(dd, b0);
             Cudd_RecursiveDeref(dd, bd);
-            return(NULL);
+            return (NULL);
         }
         T = Cudd_NotCond(T, T != NULL);
         Cudd_Ref(T);
@@ -889,14 +862,13 @@ cuddMakeBddFromZddCover(
             Cudd_RecursiveDeref(dd, b0);
             Cudd_RecursiveDeref(dd, bd);
             Cudd_RecursiveDeref(dd, T);
-            return(NULL);
+            return (NULL);
         }
         E = Cudd_NotCond(E, E != NULL);
         Cudd_Ref(E);
         Cudd_RecursiveDeref(dd, b0);
         Cudd_RecursiveDeref(dd, bd);
-    }
-    else {
+    } else {
         Cudd_RecursiveDerefZdd(dd, fd);
         T = b1;
         E = b0;
@@ -907,16 +879,15 @@ cuddMakeBddFromZddCover(
         if (!neW) {
             Cudd_RecursiveDeref(dd, T);
             Cudd_RecursiveDeref(dd, E);
-            return(NULL);
+            return (NULL);
         }
         neW = Cudd_Not(neW);
-    }
-    else {
+    } else {
         neW = cuddUniqueInterIVO(dd, v / 2, T, E);
         if (!neW) {
             Cudd_RecursiveDeref(dd, T);
             Cudd_RecursiveDeref(dd, E);
-            return(NULL);
+            return (NULL);
         }
     }
     Cudd_Ref(neW);
@@ -925,15 +896,12 @@ cuddMakeBddFromZddCover(
 
     cuddCacheInsert1(dd, cuddMakeBddFromZddCover, node, neW);
     Cudd_Deref(neW);
-    return(neW);
+    return (neW);
 
 } /* end of cuddMakeBddFromZddCover */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-
 ABC_NAMESPACE_IMPL_END
-

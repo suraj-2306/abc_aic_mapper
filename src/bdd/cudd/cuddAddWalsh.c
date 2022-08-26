@@ -58,23 +58,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -84,11 +78,9 @@ ABC_NAMESPACE_IMPL_START
 static char rcsid[] DD_UNUSED = "$Id: cuddAddWalsh.c,v 1.10 2008/04/17 21:17:11 fabio Exp $";
 #endif
 
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
-
 
 /**AutomaticStart*************************************************************/
 
@@ -96,15 +88,13 @@ static char rcsid[] DD_UNUSED = "$Id: cuddAddWalsh.c,v 1.10 2008/04/17 21:17:11 
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static DdNode * addWalshInt (DdManager *dd, DdNode **x, DdNode **y, int n);
+static DdNode* addWalshInt(DdManager* dd, DdNode** x, DdNode** y, int n);
 
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -116,23 +106,21 @@ static DdNode * addWalshInt (DdManager *dd, DdNode **x, DdNode **y, int n);
   SideEffects [None]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_addWalsh(
-  DdManager * dd,
-  DdNode ** x,
-  DdNode ** y,
-  int  n)
-{
-    DdNode *res;
+    DdManager* dd,
+    DdNode** x,
+    DdNode** y,
+    int n) {
+    DdNode* res;
 
     do {
         dd->reordered = 0;
         res = addWalshInt(dd, x, y, n);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_addWalsh */
-
 
 /**Function********************************************************************
 
@@ -157,36 +145,35 @@ Cudd_addWalsh(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_addResidue(
-  DdManager * dd /* manager */,
-  int  n /* number of bits */,
-  int  m /* modulus */,
-  int  options /* options */,
-  int  top /* index of top variable */)
-{
+    DdManager* dd /* manager */,
+    int n /* number of bits */,
+    int m /* modulus */,
+    int options /* options */,
+    int top /* index of top variable */) {
     int msbLsb; /* MSB on top (1) or LSB on top (0) */
     int tc;     /* two's complement (1) or unsigned (0) */
     int i, j, k, t, residue, thisOne, previous, index;
     DdNode **array[2], *var, *tmp, *res;
 
     /* Sanity check. */
-    if (n < 1 && m < 2) return(NULL);
+    if (n < 1 && m < 2) return (NULL);
 
     msbLsb = options & CUDD_RESIDUE_MSB;
     tc = options & CUDD_RESIDUE_TC;
 
     /* Allocate and initialize working arrays. */
-    array[0] = ABC_ALLOC(DdNode *,m);
+    array[0] = ABC_ALLOC(DdNode*, m);
     if (array[0] == NULL) {
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
-    array[1] = ABC_ALLOC(DdNode *,m);
+    array[1] = ABC_ALLOC(DdNode*, m);
     if (array[1] == NULL) {
         ABC_FREE(array[0]);
         dd->errorCode = CUDD_MEMORY_OUT;
-        return(NULL);
+        return (NULL);
     }
     for (i = 0; i < m; i++) {
         array[0][i] = array[1][i] = NULL;
@@ -194,63 +181,63 @@ Cudd_addResidue(
 
     /* Initialize residues. */
     for (i = 0; i < m; i++) {
-        tmp = cuddUniqueConst(dd,(CUDD_VALUE_TYPE) i);
+        tmp = cuddUniqueConst(dd, (CUDD_VALUE_TYPE)i);
         if (tmp == NULL) {
             for (j = 0; j < i; j++) {
-                Cudd_RecursiveDeref(dd,array[1][j]);
+                Cudd_RecursiveDeref(dd, array[1][j]);
             }
             ABC_FREE(array[0]);
             ABC_FREE(array[1]);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(tmp);
         array[1][i] = tmp;
     }
 
     /* Main iteration. */
-    residue = 1;        /* residue of 2**0 */
+    residue = 1; /* residue of 2**0 */
     for (k = 0; k < n; k++) {
         /* Choose current and previous arrays. */
         thisOne = k & 1;
         previous = thisOne ^ 1;
         /* Build an ADD projection function. */
         if (msbLsb) {
-            index = top+n-k-1;
+            index = top + n - k - 1;
         } else {
-            index = top+k;
+            index = top + k;
         }
-        var = cuddUniqueInter(dd,index,DD_ONE(dd),DD_ZERO(dd));
+        var = cuddUniqueInter(dd, index, DD_ONE(dd), DD_ZERO(dd));
         if (var == NULL) {
             for (j = 0; j < m; j++) {
-                Cudd_RecursiveDeref(dd,array[previous][j]);
+                Cudd_RecursiveDeref(dd, array[previous][j]);
             }
             ABC_FREE(array[0]);
             ABC_FREE(array[1]);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(var);
-        for (i = 0; i < m; i ++) {
+        for (i = 0; i < m; i++) {
             t = (i + residue) % m;
-            tmp = Cudd_addIte(dd,var,array[previous][t],array[previous][i]);
+            tmp = Cudd_addIte(dd, var, array[previous][t], array[previous][i]);
             if (tmp == NULL) {
                 for (j = 0; j < i; j++) {
-                    Cudd_RecursiveDeref(dd,array[thisOne][j]);
+                    Cudd_RecursiveDeref(dd, array[thisOne][j]);
                 }
                 for (j = 0; j < m; j++) {
-                    Cudd_RecursiveDeref(dd,array[previous][j]);
+                    Cudd_RecursiveDeref(dd, array[previous][j]);
                 }
                 ABC_FREE(array[0]);
                 ABC_FREE(array[1]);
-                return(NULL);
+                return (NULL);
             }
             cuddRef(tmp);
             array[thisOne][i] = tmp;
         }
         /* One layer completed. Free the other array for the next iteration. */
         for (i = 0; i < m; i++) {
-            Cudd_RecursiveDeref(dd,array[previous][i]);
+            Cudd_RecursiveDeref(dd, array[previous][i]);
         }
-        Cudd_RecursiveDeref(dd,var);
+        Cudd_RecursiveDeref(dd, var);
         /* Update residue of 2**k. */
         residue = (2 * residue) % m;
         /* Adjust residue for MSB, if this is a two's complement number. */
@@ -261,7 +248,7 @@ Cudd_addResidue(
 
     /* We are only interested in the 0-residue node of the top layer. */
     for (i = 1; i < m; i++) {
-        Cudd_RecursiveDeref(dd,array[(n - 1) & 1][i]);
+        Cudd_RecursiveDeref(dd, array[(n - 1) & 1][i]);
     }
     res = array[(n - 1) & 1][0];
 
@@ -269,20 +256,17 @@ Cudd_addResidue(
     ABC_FREE(array[1]);
 
     cuddDeref(res);
-    return(res);
+    return (res);
 
 } /* end of Cudd_addResidue */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -294,52 +278,51 @@ Cudd_addResidue(
   SideEffects [None]
 
 ******************************************************************************/
-static DdNode *
+static DdNode*
 addWalshInt(
-  DdManager * dd,
-  DdNode ** x,
-  DdNode ** y,
-  int  n)
-{
+    DdManager* dd,
+    DdNode** x,
+    DdNode** y,
+    int n) {
     DdNode *one, *minusone;
     DdNode *t = NULL, *u = NULL, *t1, *u1, *v, *w;
-    int     i;
+    int i;
 
     one = DD_ONE(dd);
-    if (n == 0) return(one);
+    if (n == 0) return (one);
 
     /* Build bottom part of ADD outside loop */
-    minusone = cuddUniqueConst(dd,(CUDD_VALUE_TYPE) -1);
-    if (minusone == NULL) return(NULL);
+    minusone = cuddUniqueConst(dd, (CUDD_VALUE_TYPE)-1);
+    if (minusone == NULL) return (NULL);
     cuddRef(minusone);
-    v = Cudd_addIte(dd, y[n-1], minusone, one);
+    v = Cudd_addIte(dd, y[n - 1], minusone, one);
     if (v == NULL) {
         Cudd_RecursiveDeref(dd, minusone);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(v);
-    u = Cudd_addIte(dd, x[n-1], v, one);
+    u = Cudd_addIte(dd, x[n - 1], v, one);
     if (u == NULL) {
         Cudd_RecursiveDeref(dd, minusone);
         Cudd_RecursiveDeref(dd, v);
-        return(NULL);
+        return (NULL);
     }
     cuddRef(u);
     Cudd_RecursiveDeref(dd, v);
-    if (n>1) {
-        w = Cudd_addIte(dd, y[n-1], one, minusone);
+    if (n > 1) {
+        w = Cudd_addIte(dd, y[n - 1], one, minusone);
         if (w == NULL) {
             Cudd_RecursiveDeref(dd, minusone);
             Cudd_RecursiveDeref(dd, u);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(w);
-        t = Cudd_addIte(dd, x[n-1], w, minusone);
+        t = Cudd_addIte(dd, x[n - 1], w, minusone);
         if (t == NULL) {
             Cudd_RecursiveDeref(dd, minusone);
             Cudd_RecursiveDeref(dd, u);
             Cudd_RecursiveDeref(dd, w);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(t);
         Cudd_RecursiveDeref(dd, w);
@@ -347,13 +330,14 @@ addWalshInt(
     cuddDeref(minusone); /* minusone is in the result; it won't die */
 
     /* Loop to build the rest of the ADD */
-    for (i=n-2; i>=0; i--) {
-        t1 = t; u1 = u;
+    for (i = n - 2; i >= 0; i--) {
+        t1 = t;
+        u1 = u;
         v = Cudd_addIte(dd, y[i], t1, u1);
         if (v == NULL) {
             Cudd_RecursiveDeref(dd, u1);
             Cudd_RecursiveDeref(dd, t1);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(v);
         u = Cudd_addIte(dd, x[i], v, u1);
@@ -361,17 +345,17 @@ addWalshInt(
             Cudd_RecursiveDeref(dd, u1);
             Cudd_RecursiveDeref(dd, t1);
             Cudd_RecursiveDeref(dd, v);
-            return(NULL);
+            return (NULL);
         }
         cuddRef(u);
         Cudd_RecursiveDeref(dd, v);
-        if (i>0) {
+        if (i > 0) {
             w = Cudd_addIte(dd, y[i], u1, t1);
             if (w == NULL) {
                 Cudd_RecursiveDeref(dd, u1);
                 Cudd_RecursiveDeref(dd, t1);
                 Cudd_RecursiveDeref(dd, u);
-                return(NULL);
+                return (NULL);
             }
             cuddRef(w);
             t = Cudd_addIte(dd, x[i], w, t1);
@@ -380,7 +364,7 @@ addWalshInt(
                 Cudd_RecursiveDeref(dd, t1);
                 Cudd_RecursiveDeref(dd, u);
                 Cudd_RecursiveDeref(dd, w);
-                return(NULL);
+                return (NULL);
             }
             cuddRef(t);
             Cudd_RecursiveDeref(dd, w);
@@ -390,10 +374,8 @@ addWalshInt(
     }
 
     cuddDeref(u);
-    return(u);
+    return (u);
 
 } /* end of addWalshInt */
 
-
 ABC_NAMESPACE_IMPL_END
-

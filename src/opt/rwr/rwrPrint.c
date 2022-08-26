@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -30,7 +29,7 @@ ABC_NAMESPACE_IMPL_START
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
- 
+
 /**Function*************************************************************
 
   Synopsis    [Adds one node.]
@@ -42,14 +41,13 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Rwr_Trav2_rec( Rwr_Man_t * p, Rwr_Node_t * pNode, int * pVolume )
-{
-    if ( pNode->fUsed || pNode->TravId == p->nTravIds )
+void Rwr_Trav2_rec(Rwr_Man_t* p, Rwr_Node_t* pNode, int* pVolume) {
+    if (pNode->fUsed || pNode->TravId == p->nTravIds)
         return;
     pNode->TravId = p->nTravIds;
     (*pVolume)++;
-    Rwr_Trav2_rec( p, Rwr_Regular(pNode->p0), pVolume );
-    Rwr_Trav2_rec( p, Rwr_Regular(pNode->p1), pVolume );
+    Rwr_Trav2_rec(p, Rwr_Regular(pNode->p0), pVolume);
+    Rwr_Trav2_rec(p, Rwr_Regular(pNode->p1), pVolume);
 }
 
 /**Function*************************************************************
@@ -63,18 +61,16 @@ void Rwr_Trav2_rec( Rwr_Man_t * p, Rwr_Node_t * pNode, int * pVolume )
   SeeAlso     []
 
 ***********************************************************************/
-void Rwr_GetBushVolume( Rwr_Man_t * p, int Entry, int * pVolume, int * pnFuncs )
-{
-    Rwr_Node_t * pNode;
+void Rwr_GetBushVolume(Rwr_Man_t* p, int Entry, int* pVolume, int* pnFuncs) {
+    Rwr_Node_t* pNode;
     int Volume = 0;
     int nFuncs = 0;
-    Rwr_ManIncTravId( p );
-    for ( pNode = p->pTable[Entry]; pNode; pNode = pNode->pNext )
-    {
-        if ( pNode->uTruth != p->puCanons[pNode->uTruth] )
+    Rwr_ManIncTravId(p);
+    for (pNode = p->pTable[Entry]; pNode; pNode = pNode->pNext) {
+        if (pNode->uTruth != p->puCanons[pNode->uTruth])
             continue;
         nFuncs++;
-        Rwr_Trav2_rec( p, pNode, &Volume );
+        Rwr_Trav2_rec(p, pNode, &Volume);
     }
     *pVolume = Volume;
     *pnFuncs = nFuncs;
@@ -91,17 +87,15 @@ void Rwr_GetBushVolume( Rwr_Man_t * p, int Entry, int * pVolume, int * pnFuncs )
   SeeAlso     []
 
 ***********************************************************************/
-int Rwr_GetBushSumOfVolumes( Rwr_Man_t * p, int Entry )
-{
-    Rwr_Node_t * pNode;
+int Rwr_GetBushSumOfVolumes(Rwr_Man_t* p, int Entry) {
+    Rwr_Node_t* pNode;
     int Volume, VolumeTotal = 0;
-    for ( pNode = p->pTable[Entry]; pNode; pNode = pNode->pNext )
-    {
-        if ( pNode->uTruth != p->puCanons[pNode->uTruth] )
+    for (pNode = p->pTable[Entry]; pNode; pNode = pNode->pNext) {
+        if (pNode->uTruth != p->puCanons[pNode->uTruth])
             continue;
         Volume = 0;
-        Rwr_ManIncTravId( p );
-        Rwr_Trav2_rec( p, pNode, &Volume );
+        Rwr_ManIncTravId(p);
+        Rwr_Trav2_rec(p, pNode, &Volume);
         VolumeTotal += Volume;
     }
     return VolumeTotal;
@@ -118,78 +112,57 @@ int Rwr_GetBushSumOfVolumes( Rwr_Man_t * p, int Entry )
   SeeAlso     []
 
 ***********************************************************************/
-void Rwr_NodePrint_rec( FILE * pFile, Rwr_Node_t * pNode )
-{
-    assert( !Rwr_IsComplement(pNode) );
+void Rwr_NodePrint_rec(FILE* pFile, Rwr_Node_t* pNode) {
+    assert(!Rwr_IsComplement(pNode));
 
-    if ( pNode->Id == 0 )
-    {
-        fprintf( pFile, "Const1" );
+    if (pNode->Id == 0) {
+        fprintf(pFile, "Const1");
         return;
     }
 
-    if ( pNode->Id < 5 )
-    {
-        fprintf( pFile, "%c", 'a' + pNode->Id - 1 );
+    if (pNode->Id < 5) {
+        fprintf(pFile, "%c", 'a' + pNode->Id - 1);
         return;
     }
 
-    if ( Rwr_IsComplement(pNode->p0) )
-    {
-        if ( Rwr_Regular(pNode->p0)->Id < 5 )
-        {
-            Rwr_NodePrint_rec( pFile, Rwr_Regular(pNode->p0) );
-            fprintf( pFile, "\'" );
+    if (Rwr_IsComplement(pNode->p0)) {
+        if (Rwr_Regular(pNode->p0)->Id < 5) {
+            Rwr_NodePrint_rec(pFile, Rwr_Regular(pNode->p0));
+            fprintf(pFile, "\'");
+        } else {
+            fprintf(pFile, "(");
+            Rwr_NodePrint_rec(pFile, Rwr_Regular(pNode->p0));
+            fprintf(pFile, ")\'");
         }
-        else
-        {
-            fprintf( pFile, "(" );
-            Rwr_NodePrint_rec( pFile, Rwr_Regular(pNode->p0) );
-            fprintf( pFile, ")\'" );
-        }
-    }
-    else
-    {
-        if ( Rwr_Regular(pNode->p0)->Id < 5 )
-        {
-            Rwr_NodePrint_rec( pFile, Rwr_Regular(pNode->p0) );
-        }
-        else
-        {
-            fprintf( pFile, "(" );
-            Rwr_NodePrint_rec( pFile, Rwr_Regular(pNode->p0) );
-            fprintf( pFile, ")" );
+    } else {
+        if (Rwr_Regular(pNode->p0)->Id < 5) {
+            Rwr_NodePrint_rec(pFile, Rwr_Regular(pNode->p0));
+        } else {
+            fprintf(pFile, "(");
+            Rwr_NodePrint_rec(pFile, Rwr_Regular(pNode->p0));
+            fprintf(pFile, ")");
         }
     }
 
-    if ( pNode->fExor )
-        fprintf( pFile, "+" );
+    if (pNode->fExor)
+        fprintf(pFile, "+");
 
-    if ( Rwr_IsComplement(pNode->p1) )
-    {
-        if ( Rwr_Regular(pNode->p1)->Id < 5 )
-        {
-            Rwr_NodePrint_rec( pFile, Rwr_Regular(pNode->p1) );
-            fprintf( pFile, "\'" );
+    if (Rwr_IsComplement(pNode->p1)) {
+        if (Rwr_Regular(pNode->p1)->Id < 5) {
+            Rwr_NodePrint_rec(pFile, Rwr_Regular(pNode->p1));
+            fprintf(pFile, "\'");
+        } else {
+            fprintf(pFile, "(");
+            Rwr_NodePrint_rec(pFile, Rwr_Regular(pNode->p1));
+            fprintf(pFile, ")\'");
         }
-        else
-        {
-            fprintf( pFile, "(" );
-            Rwr_NodePrint_rec( pFile, Rwr_Regular(pNode->p1) );
-            fprintf( pFile, ")\'" );
-        }
-    }
-    else
-    {
-        if ( Rwr_Regular(pNode->p1)->Id < 5 )
-        {
-            Rwr_NodePrint_rec( pFile, Rwr_Regular(pNode->p1) );
-        }
-        else
-        {
-            fprintf( pFile, "(" );
-            Rwr_NodePrint_rec( pFile, Rwr_Regular(pNode->p1) );
-            fprintf( pFile, ")" );
+    } else {
+        if (Rwr_Regular(pNode->p1)->Id < 5) {
+            Rwr_NodePrint_rec(pFile, Rwr_Regular(pNode->p1));
+        } else {
+            fprintf(pFile, "(");
+            Rwr_NodePrint_rec(pFile, Rwr_Regular(pNode->p1));
+            fprintf(pFile, ")");
         }
     }
 }
@@ -205,22 +178,21 @@ void Rwr_NodePrint_rec( FILE * pFile, Rwr_Node_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-void Rwr_NodePrint( FILE * pFile, Rwr_Man_t * p, Rwr_Node_t * pNode )
-{
+void Rwr_NodePrint(FILE* pFile, Rwr_Man_t* p, Rwr_Node_t* pNode) {
     unsigned uTruth;
-    fprintf( pFile, "%5d : ", pNode->Id );
+    fprintf(pFile, "%5d : ", pNode->Id);
     uTruth = pNode->uTruth;
-    Extra_PrintHex( pFile, &uTruth, 4 );
-    fprintf( pFile, " tt=" );
-    Extra_PrintBinary( pFile, &uTruth, 16 );
-//    fprintf( pFile, " cn=", pNode->Id );
-//    uTruth = p->puCanons[pNode->uTruth];
-//    Extra_PrintBinary( pFile, &uTruth, 16 );
-    fprintf( pFile, " lev=%d", pNode->Level );
-    fprintf( pFile, " vol=%d", pNode->Volume );
-    fprintf( pFile, "  " );
-    Rwr_NodePrint_rec( pFile, pNode );
-    fprintf( pFile, "\n" );
+    Extra_PrintHex(pFile, &uTruth, 4);
+    fprintf(pFile, " tt=");
+    Extra_PrintBinary(pFile, &uTruth, 16);
+    //    fprintf( pFile, " cn=", pNode->Id );
+    //    uTruth = p->puCanons[pNode->uTruth];
+    //    Extra_PrintBinary( pFile, &uTruth, 16 );
+    fprintf(pFile, " lev=%d", pNode->Level);
+    fprintf(pFile, " vol=%d", pNode->Volume);
+    fprintf(pFile, "  ");
+    Rwr_NodePrint_rec(pFile, pNode);
+    fprintf(pFile, "\n");
 }
 
 /**Function*************************************************************
@@ -234,38 +206,34 @@ void Rwr_NodePrint( FILE * pFile, Rwr_Man_t * p, Rwr_Node_t * pNode )
   SeeAlso     []
 
 ***********************************************************************/
-void Rwr_ManPrint( Rwr_Man_t * p )
-{
-    FILE * pFile;
-    Rwr_Node_t * pNode;
+void Rwr_ManPrint(Rwr_Man_t* p) {
+    FILE* pFile;
+    Rwr_Node_t* pNode;
     unsigned uTruth;
     int Limit, Counter, Volume, nFuncs, i;
-    pFile = fopen( "graph_lib.txt", "w" );
+    pFile = fopen("graph_lib.txt", "w");
     Counter = 0;
     Limit = (1 << 16);
-    for ( i = 0; i < Limit; i++ )
-    {
-        if ( p->pTable[i] == NULL )
+    for (i = 0; i < Limit; i++) {
+        if (p->pTable[i] == NULL)
             continue;
-        if ( i != p->puCanons[i] )
+        if (i != p->puCanons[i])
             continue;
-        fprintf( pFile, "\nClass %3d. Func %6d.  ", p->pMap[i], Counter++ );
-        Rwr_GetBushVolume( p, i, &Volume, &nFuncs );
-        fprintf( pFile, "Roots = %3d. Vol = %3d. Sum = %3d.  ", nFuncs, Volume, Rwr_GetBushSumOfVolumes(p, i) );
+        fprintf(pFile, "\nClass %3d. Func %6d.  ", p->pMap[i], Counter++);
+        Rwr_GetBushVolume(p, i, &Volume, &nFuncs);
+        fprintf(pFile, "Roots = %3d. Vol = %3d. Sum = %3d.  ", nFuncs, Volume, Rwr_GetBushSumOfVolumes(p, i));
         uTruth = i;
-        Extra_PrintBinary( pFile, &uTruth, 16 );
-        fprintf( pFile, "\n" );
-        for ( pNode = p->pTable[i]; pNode; pNode = pNode->pNext )
-            if ( pNode->uTruth == p->puCanons[pNode->uTruth] )
-                Rwr_NodePrint( pFile, p, pNode );
+        Extra_PrintBinary(pFile, &uTruth, 16);
+        fprintf(pFile, "\n");
+        for (pNode = p->pTable[i]; pNode; pNode = pNode->pNext)
+            if (pNode->uTruth == p->puCanons[pNode->uTruth])
+                Rwr_NodePrint(pFile, p, pNode);
     }
-    fclose( pFile );
+    fclose(pFile);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

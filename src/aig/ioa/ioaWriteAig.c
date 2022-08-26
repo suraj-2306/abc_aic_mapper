@@ -23,7 +23,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -32,7 +31,6 @@ ABC_NAMESPACE_IMPL_START
     The following is taken from the AIGER format description, 
     which can be found at http://fmv.jku.at/aiger
 */
-
 
 /*
          The AIGER And-Inverter Graph (AIG) Format Version 20061129
@@ -128,9 +126,9 @@ Binary Format Definition
 
 */
 
-static int      Ioa_ObjMakeLit( int Var, int fCompl )                 { return (Var << 1) | fCompl;  }
-static int      Ioa_ObjAigerNum( Aig_Obj_t * pObj )                   { return pObj->iData;          }
-static void     Ioa_ObjSetAigerNum( Aig_Obj_t * pObj, unsigned Num )  { pObj->iData = Num;           }
+static int Ioa_ObjMakeLit(int Var, int fCompl) { return (Var << 1) | fCompl; }
+static int Ioa_ObjAigerNum(Aig_Obj_t* pObj) { return pObj->iData; }
+static void Ioa_ObjSetAigerNum(Aig_Obj_t* pObj, unsigned Num) { pObj->iData = Num; }
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -148,18 +146,16 @@ static void     Ioa_ObjSetAigerNum( Aig_Obj_t * pObj, unsigned Num )  { pObj->iD
   SeeAlso     []
 
 ***********************************************************************/
-int Ioa_WriteAigerEncode( unsigned char * pBuffer, int Pos, unsigned x )
-{
+int Ioa_WriteAigerEncode(unsigned char* pBuffer, int Pos, unsigned x) {
     unsigned char ch;
-    while (x & ~0x7f)
-    {
+    while (x & ~0x7f) {
         ch = (x & 0x7f) | 0x80;
-//        putc (ch, file);
+        //        putc (ch, file);
         pBuffer[Pos++] = ch;
         x >>= 7;
     }
     ch = x;
-//    putc (ch, file);
+    //    putc (ch, file);
     pBuffer[Pos++] = ch;
     return Pos;
 }
@@ -176,21 +172,19 @@ int Ioa_WriteAigerEncode( unsigned char * pBuffer, int Pos, unsigned x )
   SeeAlso     []
 
 ***********************************************************************/
-void Ioa_WriteAigerEncodeStr( Vec_Str_t * vStr, unsigned x )
-{
+void Ioa_WriteAigerEncodeStr(Vec_Str_t* vStr, unsigned x) {
     unsigned char ch;
-    while (x & ~0x7f)
-    {
+    while (x & ~0x7f) {
         ch = (x & 0x7f) | 0x80;
-//        putc (ch, file);
-//        pBuffer[Pos++] = ch;
-        Vec_StrPush( vStr, ch );
+        //        putc (ch, file);
+        //        pBuffer[Pos++] = ch;
+        Vec_StrPush(vStr, ch);
         x >>= 7;
     }
     ch = x;
-//    putc (ch, file);
-//    pBuffer[Pos++] = ch;
-    Vec_StrPush( vStr, ch );
+    //    putc (ch, file);
+    //    pBuffer[Pos++] = ch;
+    Vec_StrPush(vStr, ch);
 }
 
 /**Function*************************************************************
@@ -204,21 +198,18 @@ void Ioa_WriteAigerEncodeStr( Vec_Str_t * vStr, unsigned x )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Int_t * Ioa_WriteAigerLiterals( Aig_Man_t * pMan )
-{
-    Vec_Int_t * vLits;
-    Aig_Obj_t * pObj, * pDriver;
+Vec_Int_t* Ioa_WriteAigerLiterals(Aig_Man_t* pMan) {
+    Vec_Int_t* vLits;
+    Aig_Obj_t *pObj, *pDriver;
     int i;
-    vLits = Vec_IntAlloc( Aig_ManCoNum(pMan) );
-    Aig_ManForEachLiSeq( pMan, pObj, i )
-    {
+    vLits = Vec_IntAlloc(Aig_ManCoNum(pMan));
+    Aig_ManForEachLiSeq(pMan, pObj, i) {
         pDriver = Aig_ObjFanin0(pObj);
-        Vec_IntPush( vLits, Ioa_ObjMakeLit( Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0) ) );
+        Vec_IntPush(vLits, Ioa_ObjMakeLit(Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0)));
     }
-    Aig_ManForEachPoSeq( pMan, pObj, i )
-    {
+    Aig_ManForEachPoSeq(pMan, pObj, i) {
         pDriver = Aig_ObjFanin0(pObj);
-        Vec_IntPush( vLits, Ioa_ObjMakeLit( Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0) ) );
+        Vec_IntPush(vLits, Ioa_ObjMakeLit(Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0)));
     }
     return vLits;
 }
@@ -234,25 +225,23 @@ Vec_Int_t * Ioa_WriteAigerLiterals( Aig_Man_t * pMan )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Str_t * Ioa_WriteEncodeLiterals( Vec_Int_t * vLits )
-{
-    Vec_Str_t * vBinary;
+Vec_Str_t* Ioa_WriteEncodeLiterals(Vec_Int_t* vLits) {
+    Vec_Str_t* vBinary;
     int Pos = 0, Lit, LitPrev, Diff, i;
-    vBinary = Vec_StrAlloc( 2 * Vec_IntSize(vLits) );
-    LitPrev = Vec_IntEntry( vLits, 0 );
-    Pos = Ioa_WriteAigerEncode( (unsigned char *)Vec_StrArray(vBinary), Pos, LitPrev ); 
-    Vec_IntForEachEntryStart( vLits, Lit, i, 1 )
-    {
+    vBinary = Vec_StrAlloc(2 * Vec_IntSize(vLits));
+    LitPrev = Vec_IntEntry(vLits, 0);
+    Pos = Ioa_WriteAigerEncode((unsigned char*)Vec_StrArray(vBinary), Pos, LitPrev);
+    Vec_IntForEachEntryStart(vLits, Lit, i, 1) {
         Diff = Lit - LitPrev;
-        Diff = (Lit < LitPrev)? -Diff : Diff;
+        Diff = (Lit < LitPrev) ? -Diff : Diff;
         Diff = (Diff << 1) | (int)(Lit < LitPrev);
-        Pos = Ioa_WriteAigerEncode( (unsigned char *)Vec_StrArray(vBinary), Pos, Diff );
+        Pos = Ioa_WriteAigerEncode((unsigned char*)Vec_StrArray(vBinary), Pos, Diff);
         LitPrev = Lit;
-        if ( Pos + 10 > vBinary->nCap )
-            Vec_StrGrow( vBinary, vBinary->nCap+1 );
+        if (Pos + 10 > vBinary->nCap)
+            Vec_StrGrow(vBinary, vBinary->nCap + 1);
     }
     vBinary->nSize = Pos;
-/*
+    /*
     // verify
     {
         extern Vec_Int_t * Ioa_WriteDecodeLiterals( char ** ppPos, int nEntries );
@@ -283,21 +272,20 @@ Vec_Str_t * Ioa_WriteEncodeLiterals( Vec_Int_t * vLits )
   SeeAlso     []
 
 ***********************************************************************/
-Vec_Str_t * Ioa_WriteAigerIntoMemoryStr( Aig_Man_t * pMan )
-{
-    Vec_Str_t * vBuffer;
-    Aig_Obj_t * pObj, * pDriver;
-    int nNodes, i, uLit, uLit0, uLit1; 
+Vec_Str_t* Ioa_WriteAigerIntoMemoryStr(Aig_Man_t* pMan) {
+    Vec_Str_t* vBuffer;
+    Aig_Obj_t *pObj, *pDriver;
+    int nNodes, i, uLit, uLit0, uLit1;
     // set the node numbers to be used in the output file
     nNodes = 0;
-    Ioa_ObjSetAigerNum( Aig_ManConst1(pMan), nNodes++ );
-    Aig_ManForEachCi( pMan, pObj, i )
-        Ioa_ObjSetAigerNum( pObj, nNodes++ );
-    Aig_ManForEachNode( pMan, pObj, i )
-        Ioa_ObjSetAigerNum( pObj, nNodes++ );
+    Ioa_ObjSetAigerNum(Aig_ManConst1(pMan), nNodes++);
+    Aig_ManForEachCi(pMan, pObj, i)
+        Ioa_ObjSetAigerNum(pObj, nNodes++);
+    Aig_ManForEachNode(pMan, pObj, i)
+        Ioa_ObjSetAigerNum(pObj, nNodes++);
 
     // write the header "M I L O A" where M = I + L + A
-/*
+    /*
     fprintf( pFile, "aig%s %u %u %u %u %u\n", 
         fCompact? "2" : "",
         Aig_ManCiNum(pMan) + Aig_ManNodeNum(pMan), 
@@ -306,57 +294,53 @@ Vec_Str_t * Ioa_WriteAigerIntoMemoryStr( Aig_Man_t * pMan )
         Aig_ManCoNum(pMan) - Aig_ManRegNum(pMan),
         Aig_ManNodeNum(pMan) );
 */
-    vBuffer = Vec_StrAlloc( 3*Aig_ManObjNum(pMan) );
-    Vec_StrPrintStr( vBuffer, "aig " );
-    Vec_StrPrintNum( vBuffer, Aig_ManCiNum(pMan) + Aig_ManNodeNum(pMan) );
-    Vec_StrPrintStr( vBuffer, " " );
-    Vec_StrPrintNum( vBuffer, Aig_ManCiNum(pMan) - Aig_ManRegNum(pMan) );
-    Vec_StrPrintStr( vBuffer, " " );
-    Vec_StrPrintNum( vBuffer, Aig_ManRegNum(pMan) );
-    Vec_StrPrintStr( vBuffer, " " );
-    Vec_StrPrintNum( vBuffer, Aig_ManCoNum(pMan) - Aig_ManRegNum(pMan) );
-    Vec_StrPrintStr( vBuffer, " " );
-    Vec_StrPrintNum( vBuffer, Aig_ManNodeNum(pMan) );
-    Vec_StrPrintStr( vBuffer, "\n" );
+    vBuffer = Vec_StrAlloc(3 * Aig_ManObjNum(pMan));
+    Vec_StrPrintStr(vBuffer, "aig ");
+    Vec_StrPrintNum(vBuffer, Aig_ManCiNum(pMan) + Aig_ManNodeNum(pMan));
+    Vec_StrPrintStr(vBuffer, " ");
+    Vec_StrPrintNum(vBuffer, Aig_ManCiNum(pMan) - Aig_ManRegNum(pMan));
+    Vec_StrPrintStr(vBuffer, " ");
+    Vec_StrPrintNum(vBuffer, Aig_ManRegNum(pMan));
+    Vec_StrPrintStr(vBuffer, " ");
+    Vec_StrPrintNum(vBuffer, Aig_ManCoNum(pMan) - Aig_ManRegNum(pMan));
+    Vec_StrPrintStr(vBuffer, " ");
+    Vec_StrPrintNum(vBuffer, Aig_ManNodeNum(pMan));
+    Vec_StrPrintStr(vBuffer, "\n");
 
     // write latch drivers
-    Aig_ManForEachLiSeq( pMan, pObj, i )
-    {
+    Aig_ManForEachLiSeq(pMan, pObj, i) {
         pDriver = Aig_ObjFanin0(pObj);
-        uLit    = Ioa_ObjMakeLit( Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0) );
-//        fprintf( pFile, "%u\n", uLit );
-        Vec_StrPrintNum( vBuffer, uLit );
-        Vec_StrPrintStr( vBuffer, "\n" );
+        uLit = Ioa_ObjMakeLit(Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0));
+        //        fprintf( pFile, "%u\n", uLit );
+        Vec_StrPrintNum(vBuffer, uLit);
+        Vec_StrPrintStr(vBuffer, "\n");
     }
 
     // write PO drivers
-    Aig_ManForEachPoSeq( pMan, pObj, i )
-    {
+    Aig_ManForEachPoSeq(pMan, pObj, i) {
         pDriver = Aig_ObjFanin0(pObj);
-        uLit    = Ioa_ObjMakeLit( Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0) );
-//        fprintf( pFile, "%u\n", uLit );
-        Vec_StrPrintNum( vBuffer, uLit );
-        Vec_StrPrintStr( vBuffer, "\n" );
+        uLit = Ioa_ObjMakeLit(Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0));
+        //        fprintf( pFile, "%u\n", uLit );
+        Vec_StrPrintNum(vBuffer, uLit);
+        Vec_StrPrintStr(vBuffer, "\n");
     }
     // write the nodes into the buffer
-    Aig_ManForEachNode( pMan, pObj, i )
-    {
-        uLit  = Ioa_ObjMakeLit( Ioa_ObjAigerNum(pObj), 0 );
-        uLit0 = Ioa_ObjMakeLit( Ioa_ObjAigerNum(Aig_ObjFanin0(pObj)), Aig_ObjFaninC0(pObj) );
-        uLit1 = Ioa_ObjMakeLit( Ioa_ObjAigerNum(Aig_ObjFanin1(pObj)), Aig_ObjFaninC1(pObj) );
-        assert( uLit0 != uLit1 );
-        if ( uLit0 > uLit1 )
-        {
+    Aig_ManForEachNode(pMan, pObj, i) {
+        uLit = Ioa_ObjMakeLit(Ioa_ObjAigerNum(pObj), 0);
+        uLit0 = Ioa_ObjMakeLit(Ioa_ObjAigerNum(Aig_ObjFanin0(pObj)), Aig_ObjFaninC0(pObj));
+        uLit1 = Ioa_ObjMakeLit(Ioa_ObjAigerNum(Aig_ObjFanin1(pObj)), Aig_ObjFaninC1(pObj));
+        assert(uLit0 != uLit1);
+        if (uLit0 > uLit1) {
             int Temp = uLit0;
             uLit0 = uLit1;
             uLit1 = Temp;
         }
-//        Pos = Ioa_WriteAigerEncode( pBuffer, Pos, uLit  - uLit1 );
-//        Pos = Ioa_WriteAigerEncode( pBuffer, Pos, uLit1 - uLit0 );
-        Ioa_WriteAigerEncodeStr( vBuffer, uLit  - uLit1 );
-        Ioa_WriteAigerEncodeStr( vBuffer, uLit1 - uLit0 );
+        //        Pos = Ioa_WriteAigerEncode( pBuffer, Pos, uLit  - uLit1 );
+        //        Pos = Ioa_WriteAigerEncode( pBuffer, Pos, uLit1 - uLit0 );
+        Ioa_WriteAigerEncodeStr(vBuffer, uLit - uLit1);
+        Ioa_WriteAigerEncodeStr(vBuffer, uLit1 - uLit0);
     }
-    Vec_StrPrintStr( vBuffer, "c" );
+    Vec_StrPrintStr(vBuffer, "c");
     return vBuffer;
 }
 
@@ -373,21 +357,19 @@ Vec_Str_t * Ioa_WriteAigerIntoMemoryStr( Aig_Man_t * pMan )
   SeeAlso     []
 
 ***********************************************************************/
-char * Ioa_WriteAigerIntoMemory( Aig_Man_t * pMan, int * pnSize )
-{
-    char * pBuffer;
-    Vec_Str_t * vBuffer;
-    vBuffer = Ioa_WriteAigerIntoMemoryStr( pMan );
-    if ( pMan->pName )
-    {
-        Vec_StrPrintStr( vBuffer, "n" );
-        Vec_StrPrintStr( vBuffer, pMan->pName );
-        Vec_StrPush( vBuffer, 0 );
+char* Ioa_WriteAigerIntoMemory(Aig_Man_t* pMan, int* pnSize) {
+    char* pBuffer;
+    Vec_Str_t* vBuffer;
+    vBuffer = Ioa_WriteAigerIntoMemoryStr(pMan);
+    if (pMan->pName) {
+        Vec_StrPrintStr(vBuffer, "n");
+        Vec_StrPrintStr(vBuffer, pMan->pName);
+        Vec_StrPush(vBuffer, 0);
     }
     // prepare the return values
-    *pnSize = Vec_StrSize( vBuffer );
-    pBuffer = Vec_StrReleaseArray( vBuffer );
-    Vec_StrFree( vBuffer );
+    *pnSize = Vec_StrSize(vBuffer);
+    pBuffer = Vec_StrReleaseArray(vBuffer);
+    Vec_StrFree(vBuffer);
     return pBuffer;
 }
 
@@ -402,34 +384,31 @@ char * Ioa_WriteAigerIntoMemory( Aig_Man_t * pMan, int * pnSize )
   SeeAlso     []
 
 ***********************************************************************/
-void Ioa_WriteAigerBufferTest( Aig_Man_t * pMan, char * pFileName, int fWriteSymbols, int fCompact )
-{
-    FILE * pFile;
-    char * pBuffer;
+void Ioa_WriteAigerBufferTest(Aig_Man_t* pMan, char* pFileName, int fWriteSymbols, int fCompact) {
+    FILE* pFile;
+    char* pBuffer;
     int nSize;
-    if ( Aig_ManCoNum(pMan) == 0 )
-    {
-        printf( "AIG cannot be written because it has no POs.\n" );
+    if (Aig_ManCoNum(pMan) == 0) {
+        printf("AIG cannot be written because it has no POs.\n");
         return;
     }
     // start the output stream
-    pFile = fopen( pFileName, "wb" );
-    if ( pFile == NULL )
-    {
-        fprintf( stdout, "Ioa_WriteAiger(): Cannot open the output file \"%s\".\n", pFileName );
+    pFile = fopen(pFileName, "wb");
+    if (pFile == NULL) {
+        fprintf(stdout, "Ioa_WriteAiger(): Cannot open the output file \"%s\".\n", pFileName);
         return;
     }
     // write the buffer
-    pBuffer = Ioa_WriteAigerIntoMemory( pMan, &nSize );
-    fwrite( pBuffer, 1, nSize, pFile );
-    ABC_FREE( pBuffer );
+    pBuffer = Ioa_WriteAigerIntoMemory(pMan, &nSize);
+    fwrite(pBuffer, 1, nSize, pFile);
+    ABC_FREE(pBuffer);
     // write the comment
-//    fprintf( pFile, "c" );
-//    if ( pMan->pName )
-//        fprintf( pFile, "n%s%c", pMan->pName, '\0' );
-    fprintf( pFile, "\nThis file was produced by the IOA package in ABC on %s\n", Ioa_TimeStamp() );
-    fprintf( pFile, "For information about AIGER format, refer to %s\n", "http://fmv.jku.at/aiger" );
-    fclose( pFile );
+    //    fprintf( pFile, "c" );
+    //    if ( pMan->pName )
+    //        fprintf( pFile, "n%s%c", pMan->pName, '\0' );
+    fprintf(pFile, "\nThis file was produced by the IOA package in ABC on %s\n", Ioa_TimeStamp());
+    fprintf(pFile, "For information about AIGER format, refer to %s\n", "http://fmv.jku.at/aiger");
+    fclose(pFile);
 }
 
 /**Function*************************************************************
@@ -443,30 +422,27 @@ void Ioa_WriteAigerBufferTest( Aig_Man_t * pMan, char * pFileName, int fWriteSym
   SeeAlso     []
 
 ***********************************************************************/
-void Ioa_WriteAiger( Aig_Man_t * pMan, char * pFileName, int fWriteSymbols, int fCompact )
-{
-//    Bar_Progress_t * pProgress;
-    FILE * pFile;
-    Aig_Obj_t * pObj, * pDriver;
+void Ioa_WriteAiger(Aig_Man_t* pMan, char* pFileName, int fWriteSymbols, int fCompact) {
+    //    Bar_Progress_t * pProgress;
+    FILE* pFile;
+    Aig_Obj_t *pObj, *pDriver;
     int i, nNodes, nBufferSize, Pos;
-    unsigned char * pBuffer;
+    unsigned char* pBuffer;
     unsigned uLit0, uLit1, uLit;
 
-    if ( Aig_ManCoNum(pMan) == 0 )
-    {
-        printf( "AIG cannot be written because it has no POs.\n" );
+    if (Aig_ManCoNum(pMan) == 0) {
+        printf("AIG cannot be written because it has no POs.\n");
         return;
     }
 
-//    assert( Aig_ManIsStrash(pMan) );
+    //    assert( Aig_ManIsStrash(pMan) );
     // start the output stream
-    pFile = fopen( pFileName, "wb" );
-    if ( pFile == NULL )
-    {
-        fprintf( stdout, "Ioa_WriteAiger(): Cannot open the output file \"%s\".\n", pFileName );
+    pFile = fopen(pFileName, "wb");
+    if (pFile == NULL) {
+        fprintf(stdout, "Ioa_WriteAiger(): Cannot open the output file \"%s\".\n", pFileName);
         return;
     }
-/*
+    /*
     Aig_ManForEachLatch( pMan, pObj, i )
         if ( !Aig_LatchIsInit0(pObj) )
         {
@@ -476,90 +452,82 @@ void Ioa_WriteAiger( Aig_Man_t * pMan, char * pFileName, int fWriteSymbols, int 
 */
     // set the node numbers to be used in the output file
     nNodes = 0;
-    Ioa_ObjSetAigerNum( Aig_ManConst1(pMan), nNodes++ );
-    Aig_ManForEachCi( pMan, pObj, i )
-        Ioa_ObjSetAigerNum( pObj, nNodes++ );
-    Aig_ManForEachNode( pMan, pObj, i )
-        Ioa_ObjSetAigerNum( pObj, nNodes++ );
+    Ioa_ObjSetAigerNum(Aig_ManConst1(pMan), nNodes++);
+    Aig_ManForEachCi(pMan, pObj, i)
+        Ioa_ObjSetAigerNum(pObj, nNodes++);
+    Aig_ManForEachNode(pMan, pObj, i)
+        Ioa_ObjSetAigerNum(pObj, nNodes++);
 
     // write the header "M I L O A" where M = I + L + A
-    fprintf( pFile, "aig%s %u %u %u %u %u", 
-        fCompact? "2" : "",
-        Aig_ManCiNum(pMan) + Aig_ManNodeNum(pMan), 
-        Aig_ManCiNum(pMan) - Aig_ManRegNum(pMan),
-        Aig_ManRegNum(pMan),
-        Aig_ManConstrNum(pMan) ? 0 : Aig_ManCoNum(pMan) - Aig_ManRegNum(pMan),
-        Aig_ManNodeNum(pMan) );
+    fprintf(pFile, "aig%s %u %u %u %u %u",
+            fCompact ? "2" : "",
+            Aig_ManCiNum(pMan) + Aig_ManNodeNum(pMan),
+            Aig_ManCiNum(pMan) - Aig_ManRegNum(pMan),
+            Aig_ManRegNum(pMan),
+            Aig_ManConstrNum(pMan) ? 0 : Aig_ManCoNum(pMan) - Aig_ManRegNum(pMan),
+            Aig_ManNodeNum(pMan));
     // write the extended header "B C J F"
-    if ( Aig_ManConstrNum(pMan) )
-        fprintf( pFile, " %u %u", Aig_ManCoNum(pMan) - Aig_ManRegNum(pMan) - Aig_ManConstrNum(pMan), Aig_ManConstrNum(pMan) );
-    fprintf( pFile, "\n" ); 
+    if (Aig_ManConstrNum(pMan))
+        fprintf(pFile, " %u %u", Aig_ManCoNum(pMan) - Aig_ManRegNum(pMan) - Aig_ManConstrNum(pMan), Aig_ManConstrNum(pMan));
+    fprintf(pFile, "\n");
 
     // if the driver node is a constant, we need to complement the literal below
     // because, in the AIGER format, literal 0/1 is represented as number 0/1
     // while, in ABC, constant 1 node has number 0 and so literal 0/1 will be 1/0
 
-    Aig_ManInvertConstraints( pMan );
-    if ( !fCompact ) 
-    {
+    Aig_ManInvertConstraints(pMan);
+    if (!fCompact) {
         // write latch drivers
-        Aig_ManForEachLiSeq( pMan, pObj, i )
-        {
+        Aig_ManForEachLiSeq(pMan, pObj, i) {
             pDriver = Aig_ObjFanin0(pObj);
-            fprintf( pFile, "%u\n", Ioa_ObjMakeLit( Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0) ) );
+            fprintf(pFile, "%u\n", Ioa_ObjMakeLit(Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0)));
         }
 
         // write PO drivers
-        Aig_ManForEachPoSeq( pMan, pObj, i )
-        {
+        Aig_ManForEachPoSeq(pMan, pObj, i) {
             pDriver = Aig_ObjFanin0(pObj);
-            fprintf( pFile, "%u\n", Ioa_ObjMakeLit( Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0) ) );
+            fprintf(pFile, "%u\n", Ioa_ObjMakeLit(Ioa_ObjAigerNum(pDriver), Aig_ObjFaninC0(pObj) ^ (Ioa_ObjAigerNum(pDriver) == 0)));
         }
+    } else {
+        Vec_Int_t* vLits = Ioa_WriteAigerLiterals(pMan);
+        Vec_Str_t* vBinary = Ioa_WriteEncodeLiterals(vLits);
+        fwrite(Vec_StrArray(vBinary), 1, Vec_StrSize(vBinary), pFile);
+        Vec_StrFree(vBinary);
+        Vec_IntFree(vLits);
     }
-    else
-    {
-        Vec_Int_t * vLits = Ioa_WriteAigerLiterals( pMan );
-        Vec_Str_t * vBinary = Ioa_WriteEncodeLiterals( vLits );
-        fwrite( Vec_StrArray(vBinary), 1, Vec_StrSize(vBinary), pFile );
-        Vec_StrFree( vBinary );
-        Vec_IntFree( vLits );
-    }
-    Aig_ManInvertConstraints( pMan );
+    Aig_ManInvertConstraints(pMan);
 
     // write the nodes into the buffer
     Pos = 0;
     nBufferSize = 6 * Aig_ManNodeNum(pMan) + 100; // skeptically assuming 3 chars per one AIG edge
-    pBuffer = ABC_ALLOC( unsigned char, nBufferSize );
-//    pProgress = Bar_ProgressStart( stdout, Aig_ManObjNumMax(pMan) );
-    Aig_ManForEachNode( pMan, pObj, i )
-    {
-//        Bar_ProgressUpdate( pProgress, i, NULL );
-        uLit  = Ioa_ObjMakeLit( Ioa_ObjAigerNum(pObj), 0 );
-        uLit0 = Ioa_ObjMakeLit( Ioa_ObjAigerNum(Aig_ObjFanin0(pObj)), Aig_ObjFaninC0(pObj) );
-        uLit1 = Ioa_ObjMakeLit( Ioa_ObjAigerNum(Aig_ObjFanin1(pObj)), Aig_ObjFaninC1(pObj) );
-        assert( uLit0 != uLit1 );
-        if ( uLit0 > uLit1 )
-        {
+    pBuffer = ABC_ALLOC(unsigned char, nBufferSize);
+    //    pProgress = Bar_ProgressStart( stdout, Aig_ManObjNumMax(pMan) );
+    Aig_ManForEachNode(pMan, pObj, i) {
+        //        Bar_ProgressUpdate( pProgress, i, NULL );
+        uLit = Ioa_ObjMakeLit(Ioa_ObjAigerNum(pObj), 0);
+        uLit0 = Ioa_ObjMakeLit(Ioa_ObjAigerNum(Aig_ObjFanin0(pObj)), Aig_ObjFaninC0(pObj));
+        uLit1 = Ioa_ObjMakeLit(Ioa_ObjAigerNum(Aig_ObjFanin1(pObj)), Aig_ObjFaninC1(pObj));
+        assert(uLit0 != uLit1);
+        if (uLit0 > uLit1) {
             int Temp = uLit0;
             uLit0 = uLit1;
             uLit1 = Temp;
         }
-        Pos = Ioa_WriteAigerEncode( pBuffer, Pos, uLit  - uLit1 );
-        Pos = Ioa_WriteAigerEncode( pBuffer, Pos, uLit1 - uLit0 );
-        if ( Pos > nBufferSize - 10 )
-        {
-            printf( "Ioa_WriteAiger(): AIGER generation has failed because the allocated buffer is too small.\n" );
-            fclose( pFile );
+        Pos = Ioa_WriteAigerEncode(pBuffer, Pos, uLit - uLit1);
+        Pos = Ioa_WriteAigerEncode(pBuffer, Pos, uLit1 - uLit0);
+        if (Pos > nBufferSize - 10) {
+            printf("Ioa_WriteAiger(): AIGER generation has failed because the allocated buffer is too small.\n");
+            fclose(pFile);
             return;
         }
     }
-    assert( Pos < nBufferSize );
-//    Bar_ProgressStop( pProgress );
+    assert(Pos < nBufferSize);
+    //    Bar_ProgressStop( pProgress );
 
     // write the buffer
-    fwrite( pBuffer, 1, Pos, pFile );
-    ABC_FREE( pBuffer );
-/*
+    fwrite(pBuffer, 1, Pos, pFile);
+    ABC_FREE(pBuffer);
+    /*
     // write the symbol table
     if ( fWriteSymbols )
     {
@@ -582,18 +550,16 @@ void Ioa_WriteAiger( Aig_Man_t * pMan, char * pFileName, int fWriteSymbols, int 
     }
 */
     // write the comment
-    fprintf( pFile, "c" );
-    if ( pMan->pName )
-        fprintf( pFile, "n%s%c", pMan->pName, '\0' );
-    fprintf( pFile, "\nThis file was produced by the IOA package in ABC on %s\n", Ioa_TimeStamp() );
-    fprintf( pFile, "For information about AIGER format, refer to %s\n", "http://fmv.jku.at/aiger" );
-    fclose( pFile );
+    fprintf(pFile, "c");
+    if (pMan->pName)
+        fprintf(pFile, "n%s%c", pMan->pName, '\0');
+    fprintf(pFile, "\nThis file was produced by the IOA package in ABC on %s\n", Ioa_TimeStamp());
+    fprintf(pFile, "For information about AIGER format, refer to %s\n", "http://fmv.jku.at/aiger");
+    fclose(pFile);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

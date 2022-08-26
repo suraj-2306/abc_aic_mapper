@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -40,24 +39,23 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Map_Cut_t * Map_CutAlloc( Map_Man_t * p )
-{
-    Map_Cut_t * pCut;
-    Map_Match_t * pMatch;
-    pCut = (Map_Cut_t *)Extra_MmFixedEntryFetch( p->mmCuts );
-    memset( pCut, 0, sizeof(Map_Cut_t) );
+Map_Cut_t* Map_CutAlloc(Map_Man_t* p) {
+    Map_Cut_t* pCut;
+    Map_Match_t* pMatch;
+    pCut = (Map_Cut_t*)Extra_MmFixedEntryFetch(p->mmCuts);
+    memset(pCut, 0, sizeof(Map_Cut_t));
 
     pMatch = pCut->M;
-    pMatch->AreaFlow       = MAP_FLOAT_LARGE; // unassigned
-    pMatch->tArrive.Rise   = MAP_FLOAT_LARGE; // unassigned
-    pMatch->tArrive.Fall   = MAP_FLOAT_LARGE; // unassigned
-    pMatch->tArrive.Worst  = MAP_FLOAT_LARGE; // unassigned
+    pMatch->AreaFlow = MAP_FLOAT_LARGE;      // unassigned
+    pMatch->tArrive.Rise = MAP_FLOAT_LARGE;  // unassigned
+    pMatch->tArrive.Fall = MAP_FLOAT_LARGE;  // unassigned
+    pMatch->tArrive.Worst = MAP_FLOAT_LARGE; // unassigned
 
     pMatch = pCut->M + 1;
-    pMatch->AreaFlow       = MAP_FLOAT_LARGE; // unassigned
-    pMatch->tArrive.Rise   = MAP_FLOAT_LARGE; // unassigned
-    pMatch->tArrive.Fall   = MAP_FLOAT_LARGE; // unassigned
-    pMatch->tArrive.Worst  = MAP_FLOAT_LARGE; // unassigned
+    pMatch->AreaFlow = MAP_FLOAT_LARGE;      // unassigned
+    pMatch->tArrive.Rise = MAP_FLOAT_LARGE;  // unassigned
+    pMatch->tArrive.Fall = MAP_FLOAT_LARGE;  // unassigned
+    pMatch->tArrive.Worst = MAP_FLOAT_LARGE; // unassigned
     return pCut;
 }
 
@@ -72,10 +70,9 @@ Map_Cut_t * Map_CutAlloc( Map_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_CutFree( Map_Man_t * p, Map_Cut_t * pCut )
-{
-    if ( pCut )
-    Extra_MmFixedEntryRecycle( p->mmCuts, (char *)pCut );
+void Map_CutFree(Map_Man_t* p, Map_Cut_t* pCut) {
+    if (pCut)
+        Extra_MmFixedEntryRecycle(p->mmCuts, (char*)pCut);
 }
 
 /**Function*************************************************************
@@ -89,16 +86,14 @@ void Map_CutFree( Map_Man_t * p, Map_Cut_t * pCut )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_CutPrint( Map_Man_t * p, Map_Node_t * pRoot, Map_Cut_t * pCut, int fPhase )
-{
+void Map_CutPrint(Map_Man_t* p, Map_Node_t* pRoot, Map_Cut_t* pCut, int fPhase) {
     int i;
-    printf( "CUT:  Delay = (%4.2f, %4.2f). Area = %4.2f. Nodes = %d -> {", 
-        pCut->M[fPhase].tArrive.Rise, pCut->M[fPhase].tArrive.Fall, pCut->M[fPhase].AreaFlow, pRoot->Num );
-    for ( i = 0; i < pCut->nLeaves; i++ )
-        printf( " %d", pCut->ppLeaves[i]->Num );
-    printf( " } \n" );
+    printf("CUT:  Delay = (%4.2f, %4.2f). Area = %4.2f. Nodes = %d -> {",
+           pCut->M[fPhase].tArrive.Rise, pCut->M[fPhase].tArrive.Fall, pCut->M[fPhase].AreaFlow, pRoot->Num);
+    for (i = 0; i < pCut->nLeaves; i++)
+        printf(" %d", pCut->ppLeaves[i]->Num);
+    printf(" } \n");
 }
-
 
 /**function*************************************************************
 
@@ -111,9 +106,8 @@ void Map_CutPrint( Map_Man_t * p, Map_Node_t * pRoot, Map_Cut_t * pCut, int fPha
   seealso     []
 
 ***********************************************************************/
-float Map_CutGetRootArea( Map_Cut_t * pCut, int fPhase )
-{
-    assert( pCut->M[fPhase].pSuperBest );
+float Map_CutGetRootArea(Map_Cut_t* pCut, int fPhase) {
+    assert(pCut->M[fPhase].pSuperBest);
     return pCut->M[fPhase].pSuperBest->Area;
 }
 
@@ -128,10 +122,9 @@ float Map_CutGetRootArea( Map_Cut_t * pCut, int fPhase )
   seealso     []
 
 ***********************************************************************/
-int Map_CutGetLeafPhase( Map_Cut_t * pCut, int fPhase, int iLeaf )
-{
-    assert( pCut->M[fPhase].pSuperBest );
-    return (( pCut->M[fPhase].uPhaseBest & (1<<iLeaf) ) == 0);
+int Map_CutGetLeafPhase(Map_Cut_t* pCut, int fPhase, int iLeaf) {
+    assert(pCut->M[fPhase].pSuperBest);
+    return ((pCut->M[fPhase].uPhaseBest & (1 << iLeaf)) == 0);
 }
 
 /**function*************************************************************
@@ -145,10 +138,9 @@ int Map_CutGetLeafPhase( Map_Cut_t * pCut, int fPhase, int iLeaf )
   seealso     []
 
 ***********************************************************************/
-int Map_NodeGetLeafPhase( Map_Node_t * pNode, int fPhase, int iLeaf )
-{
-    assert( pNode->pCutBest[fPhase]->M[fPhase].pSuperBest );
-    return (( pNode->pCutBest[fPhase]->M[fPhase].uPhaseBest & (1<<iLeaf) ) == 0);
+int Map_NodeGetLeafPhase(Map_Node_t* pNode, int fPhase, int iLeaf) {
+    assert(pNode->pCutBest[fPhase]->M[fPhase].pSuperBest);
+    return ((pNode->pCutBest[fPhase]->M[fPhase].uPhaseBest & (1 << iLeaf)) == 0);
 }
 
 /**Function*************************************************************
@@ -162,19 +154,18 @@ int Map_NodeGetLeafPhase( Map_Node_t * pNode, int fPhase, int iLeaf )
   SeeAlso     []
 
 ***********************************************************************/
-Map_Cut_t * Map_CutListAppend( Map_Cut_t * pSetAll, Map_Cut_t * pSets )
-{
-    Map_Cut_t * pPrev = NULL; // Suppress "might be used uninitialized"
-    Map_Cut_t * pTemp;
-    if ( pSetAll == NULL )
+Map_Cut_t* Map_CutListAppend(Map_Cut_t* pSetAll, Map_Cut_t* pSets) {
+    Map_Cut_t* pPrev = NULL; // Suppress "might be used uninitialized"
+    Map_Cut_t* pTemp;
+    if (pSetAll == NULL)
         return pSets;
-    if ( pSets == NULL )
+    if (pSets == NULL)
         return pSetAll;
     // find the last one
-    for ( pTemp = pSets; pTemp; pTemp = pTemp->pNext )
+    for (pTemp = pSets; pTemp; pTemp = pTemp->pNext)
         pPrev = pTemp;
     // append all the end of the current set
-    assert( pPrev->pNext == NULL );
+    assert(pPrev->pNext == NULL);
     pPrev->pNext = pSetAll;
     return pSets;
 }
@@ -190,14 +181,13 @@ Map_Cut_t * Map_CutListAppend( Map_Cut_t * pSetAll, Map_Cut_t * pSets )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_CutListRecycle( Map_Man_t * p, Map_Cut_t * pSetList, Map_Cut_t * pSave )
-{
-    Map_Cut_t * pNext, * pTemp;
-    for ( pTemp = pSetList, pNext = pTemp? pTemp->pNext : NULL; 
-          pTemp; 
-          pTemp = pNext, pNext = pNext? pNext->pNext : NULL )
-        if ( pTemp != pSave )
-            Extra_MmFixedEntryRecycle( p->mmCuts, (char *)pTemp );
+void Map_CutListRecycle(Map_Man_t* p, Map_Cut_t* pSetList, Map_Cut_t* pSave) {
+    Map_Cut_t *pNext, *pTemp;
+    for (pTemp = pSetList, pNext = pTemp ? pTemp->pNext : NULL;
+         pTemp;
+         pTemp = pNext, pNext = pNext ? pNext->pNext : NULL)
+        if (pTemp != pSave)
+            Extra_MmFixedEntryRecycle(p->mmCuts, (char*)pTemp);
 }
 
 /**Function*************************************************************
@@ -211,11 +201,11 @@ void Map_CutListRecycle( Map_Man_t * p, Map_Cut_t * pSetList, Map_Cut_t * pSave 
   SeeAlso     []
 
 ***********************************************************************/
-int Map_CutListCount( Map_Cut_t * pSets )
-{
-    Map_Cut_t * pTemp;
+int Map_CutListCount(Map_Cut_t* pSets) {
+    Map_Cut_t* pTemp;
     int i;
-    for ( i = 0, pTemp = pSets; pTemp; pTemp = pTemp->pNext, i++ );
+    for (i = 0, pTemp = pSets; pTemp; pTemp = pTemp->pNext, i++)
+        ;
     return i;
 }
 
@@ -269,11 +259,8 @@ void Map_CutInsertFanouts( Map_Node_t * pNode, Map_Cut_t * pCut, int fPhase )
 
 #endif
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

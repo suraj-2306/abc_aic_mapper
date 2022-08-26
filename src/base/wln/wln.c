@@ -46,6 +46,4 @@ ABC_NAMESPACE_IMPL_START
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

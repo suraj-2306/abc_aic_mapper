@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 #ifdef MAP_ALLOCATE_FANOUT
 
 ////////////////////////////////////////////////////////////////////////
@@ -42,47 +41,39 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeAddFaninFanout( Map_Node_t * pFanin, Map_Node_t * pFanout )
-{
-    Map_Node_t * pPivot;
+void Map_NodeAddFaninFanout(Map_Node_t* pFanin, Map_Node_t* pFanout) {
+    Map_Node_t* pPivot;
 
     // pFanins is a fanin of pFanout
-    assert( !Map_IsComplement(pFanin) );
-    assert( !Map_IsComplement(pFanout) );
-    assert( Map_Regular(pFanout->p1) == pFanin || Map_Regular(pFanout->p2) == pFanin );
+    assert(!Map_IsComplement(pFanin));
+    assert(!Map_IsComplement(pFanout));
+    assert(Map_Regular(pFanout->p1) == pFanin || Map_Regular(pFanout->p2) == pFanin);
 
     pPivot = pFanin->pFanPivot;
-    if ( pPivot == NULL )
-    {
+    if (pPivot == NULL) {
         pFanin->pFanPivot = pFanout;
         return;
     }
 
-    if ( Map_Regular(pPivot->p1) == pFanin )
-    {
-        if ( Map_Regular(pFanout->p1) == pFanin )
-        {
+    if (Map_Regular(pPivot->p1) == pFanin) {
+        if (Map_Regular(pFanout->p1) == pFanin) {
             pFanout->pFanFanin1 = pPivot->pFanFanin1;
-            pPivot->pFanFanin1  = pFanout;
-        }
-        else // if ( Map_Regular(pFanout->p2) == pFanin )
+            pPivot->pFanFanin1 = pFanout;
+        } else // if ( Map_Regular(pFanout->p2) == pFanin )
         {
             pFanout->pFanFanin2 = pPivot->pFanFanin1;
-            pPivot->pFanFanin1  = pFanout;
+            pPivot->pFanFanin1 = pFanout;
         }
-    }
-    else // if ( Map_Regular(pPivot->p2) == pFanin )
+    } else // if ( Map_Regular(pPivot->p2) == pFanin )
     {
-        assert( Map_Regular(pPivot->p2) == pFanin );
-        if ( Map_Regular(pFanout->p1) == pFanin )
-        {
+        assert(Map_Regular(pPivot->p2) == pFanin);
+        if (Map_Regular(pFanout->p1) == pFanin) {
             pFanout->pFanFanin1 = pPivot->pFanFanin2;
-            pPivot->pFanFanin2  = pFanout;
-        }
-        else // if ( Map_Regular(pFanout->p2) == pFanin )
+            pPivot->pFanFanin2 = pFanout;
+        } else // if ( Map_Regular(pFanout->p2) == pFanin )
         {
             pFanout->pFanFanin2 = pPivot->pFanFanin2;
-            pPivot->pFanFanin2  = pFanout;
+            pPivot->pFanFanin2 = pFanout;
         }
     }
 }
@@ -98,20 +89,18 @@ void Map_NodeAddFaninFanout( Map_Node_t * pFanin, Map_Node_t * pFanout )
   SeeAlso     []
 
 ***********************************************************************/
-void Map_NodeRemoveFaninFanout( Map_Node_t * pFanin, Map_Node_t * pFanoutToRemove )
-{
-    Map_Node_t * pFanout, * pFanout2, ** ppFanList;
+void Map_NodeRemoveFaninFanout(Map_Node_t* pFanin, Map_Node_t* pFanoutToRemove) {
+    Map_Node_t *pFanout, *pFanout2, **ppFanList;
     // start the linked list of fanouts
-    ppFanList = &pFanin->pFanPivot; 
+    ppFanList = &pFanin->pFanPivot;
     // go through the fanouts
-    Map_NodeForEachFanoutSafe( pFanin, pFanout, pFanout2 )
-    {
+    Map_NodeForEachFanoutSafe(pFanin, pFanout, pFanout2) {
         // skip the fanout-to-remove
-        if ( pFanout == pFanoutToRemove )
+        if (pFanout == pFanoutToRemove)
             continue;
         // add useful fanouts to the list
         *ppFanList = pFanout;
-        ppFanList = Map_NodeReadNextFanoutPlace( pFanin, pFanout );
+        ppFanList = Map_NodeReadNextFanoutPlace(pFanin, pFanout);
     }
     *ppFanList = NULL;
 }
@@ -127,11 +116,10 @@ void Map_NodeRemoveFaninFanout( Map_Node_t * pFanin, Map_Node_t * pFanoutToRemov
   SeeAlso     []
 
 ***********************************************************************/
-int Map_NodeGetFanoutNum( Map_Node_t * pNode )
-{
-    Map_Node_t * pFanout;
+int Map_NodeGetFanoutNum(Map_Node_t* pNode) {
+    Map_Node_t* pFanout;
     int Counter = 0;
-    Map_NodeForEachFanout( pNode, pFanout )
+    Map_NodeForEachFanout(pNode, pFanout)
         Counter++;
     return Counter;
 }
@@ -143,4 +131,3 @@ int Map_NodeGetFanoutNum( Map_Node_t * pNode )
 #endif
 
 ABC_NAMESPACE_IMPL_END
-

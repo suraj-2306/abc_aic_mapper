@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -41,13 +40,12 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-float Fpga_TimeCutComputeArrival( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
-{
+float Fpga_TimeCutComputeArrival(Fpga_Man_t* pMan, Fpga_Cut_t* pCut) {
     int i;
     float tArrival;
     tArrival = -FPGA_FLOAT_LARGE;
-    for ( i = 0; i < pCut->nLeaves; i++ )
-        if ( tArrival < pCut->ppLeaves[i]->pCutBest->tArrival )
+    for (i = 0; i < pCut->nLeaves; i++)
+        if (tArrival < pCut->ppLeaves[i]->pCutBest->tArrival)
             tArrival = pCut->ppLeaves[i]->pCutBest->tArrival;
     tArrival += pMan->pLutLib->pLutDelays[(int)pCut->nLeaves][0];
     return tArrival;
@@ -66,13 +64,12 @@ float Fpga_TimeCutComputeArrival( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
   SeeAlso     []
 
 ***********************************************************************/
-float Fpga_TimeCutComputeArrival_rec( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
-{
+float Fpga_TimeCutComputeArrival_rec(Fpga_Man_t* pMan, Fpga_Cut_t* pCut) {
     int i;
-    for ( i = 0; i < pCut->nLeaves; i++ )
-        if ( pCut->ppLeaves[i]->nRefs == 0 )
-            Fpga_TimeCutComputeArrival_rec( pMan, pCut->ppLeaves[i]->pCutBest );
-    return Fpga_TimeCutComputeArrival( pMan, pCut );
+    for (i = 0; i < pCut->nLeaves; i++)
+        if (pCut->ppLeaves[i]->nRefs == 0)
+            Fpga_TimeCutComputeArrival_rec(pMan, pCut->ppLeaves[i]->pCutBest);
+    return Fpga_TimeCutComputeArrival(pMan, pCut);
 }
 
 /**Function*************************************************************
@@ -86,38 +83,31 @@ float Fpga_TimeCutComputeArrival_rec( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
   SeeAlso     []
 
 ***********************************************************************/
-float Fpga_TimeComputeArrivalMax( Fpga_Man_t * p )
-{
+float Fpga_TimeComputeArrivalMax(Fpga_Man_t* p) {
     float fRequired;
     int i;
-    if ( p->fLatchPaths && p->nLatches == 0 )
-    {
-        printf( "Delay optimization of latch path is not performed because there is no latches.\n" );
+    if (p->fLatchPaths && p->nLatches == 0) {
+        printf("Delay optimization of latch path is not performed because there is no latches.\n");
         p->fLatchPaths = 0;
     }
     // get the critical PO arrival time
     fRequired = -FPGA_FLOAT_LARGE;
-    if ( p->fLatchPaths )
-    {
-        for ( i = p->nOutputs - p->nLatches; i < p->nOutputs; i++ )
-        {
-            if ( Fpga_NodeIsConst(p->pOutputs[i]) )
+    if (p->fLatchPaths) {
+        for (i = p->nOutputs - p->nLatches; i < p->nOutputs; i++) {
+            if (Fpga_NodeIsConst(p->pOutputs[i]))
                 continue;
-            fRequired = FPGA_MAX( fRequired, Fpga_Regular(p->pOutputs[i])->pCutBest->tArrival );
-//            printf( " %5.1f", Fpga_Regular(p->pOutputs[i])->pCutBest->tArrival );
+            fRequired = FPGA_MAX(fRequired, Fpga_Regular(p->pOutputs[i])->pCutBest->tArrival);
+            //            printf( " %5.1f", Fpga_Regular(p->pOutputs[i])->pCutBest->tArrival );
         }
-//        printf( "Required latches = %5.1f\n", fRequired );
-    }
-    else
-    {
-        for ( i = 0; i < p->nOutputs; i++ )
-        {
-            if ( Fpga_NodeIsConst(p->pOutputs[i]) )
+        //        printf( "Required latches = %5.1f\n", fRequired );
+    } else {
+        for (i = 0; i < p->nOutputs; i++) {
+            if (Fpga_NodeIsConst(p->pOutputs[i]))
                 continue;
-            fRequired = FPGA_MAX( fRequired, Fpga_Regular(p->pOutputs[i])->pCutBest->tArrival );
-//            printf( " %5.1f", Fpga_Regular(p->pOutputs[i])->pCutBest->tArrival );
+            fRequired = FPGA_MAX(fRequired, Fpga_Regular(p->pOutputs[i])->pCutBest->tArrival);
+            //            printf( " %5.1f", Fpga_Regular(p->pOutputs[i])->pCutBest->tArrival );
         }
-//        printf( "Required outputs = %5.1f\n", fRequired );
+        //        printf( "Required outputs = %5.1f\n", fRequired );
     }
     return fRequired;
 }
@@ -133,25 +123,20 @@ float Fpga_TimeComputeArrivalMax( Fpga_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_TimeComputeRequiredGlobal( Fpga_Man_t * p, int fFirstTime )
-{
-    p->fRequiredGlo = Fpga_TimeComputeArrivalMax( p );
+void Fpga_TimeComputeRequiredGlobal(Fpga_Man_t* p, int fFirstTime) {
+    p->fRequiredGlo = Fpga_TimeComputeArrivalMax(p);
     // update the required times according to the target
-    if ( p->DelayTarget != -1 )
-    {
-        if ( p->fRequiredGlo > p->DelayTarget + p->fEpsilon )
-        {
-            if ( fFirstTime )
-                printf( "Cannot meet the target required times (%4.2f). Mapping continues anyway.\n", p->DelayTarget );
-        }
-        else if ( p->fRequiredGlo < p->DelayTarget - p->fEpsilon )
-        {
-            if ( fFirstTime )
-                printf( "Relaxing the required times from (%4.2f) to the target (%4.2f).\n", p->fRequiredGlo, p->DelayTarget );
+    if (p->DelayTarget != -1) {
+        if (p->fRequiredGlo > p->DelayTarget + p->fEpsilon) {
+            if (fFirstTime)
+                printf("Cannot meet the target required times (%4.2f). Mapping continues anyway.\n", p->DelayTarget);
+        } else if (p->fRequiredGlo < p->DelayTarget - p->fEpsilon) {
+            if (fFirstTime)
+                printf("Relaxing the required times from (%4.2f) to the target (%4.2f).\n", p->fRequiredGlo, p->DelayTarget);
             p->fRequiredGlo = p->DelayTarget;
         }
     }
-    Fpga_TimeComputeRequired( p, p->fRequiredGlo );
+    Fpga_TimeComputeRequired(p, p->fRequiredGlo);
 }
 
 /**Function*************************************************************
@@ -165,22 +150,21 @@ void Fpga_TimeComputeRequiredGlobal( Fpga_Man_t * p, int fFirstTime )
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_TimeComputeRequired( Fpga_Man_t * p, float fRequired )
-{
+void Fpga_TimeComputeRequired(Fpga_Man_t* p, float fRequired) {
     int i;
     // clean the required times and the fanout counts for all nodes
-    for ( i = 0; i < p->vAnds->nSize; i++ )
+    for (i = 0; i < p->vAnds->nSize; i++)
         p->vAnds->pArray[i]->tRequired = FPGA_FLOAT_LARGE;
     // set the required times for the POs
-    if ( p->fLatchPaths )
-        for ( i = p->nOutputs - p->nLatches; i < p->nOutputs; i++ )
+    if (p->fLatchPaths)
+        for (i = p->nOutputs - p->nLatches; i < p->nOutputs; i++)
             Fpga_Regular(p->pOutputs[i])->tRequired = fRequired;
     else
-        for ( i = 0; i < p->nOutputs; i++ )
+        for (i = 0; i < p->nOutputs; i++)
             Fpga_Regular(p->pOutputs[i])->tRequired = fRequired;
     // collect nodes reachable from POs in the DFS order through the best cuts
-    Fpga_TimePropagateRequired( p, p->vMapping );
-/*
+    Fpga_TimePropagateRequired(p, p->vMapping);
+    /*
     {
         int Counter = 0;
         for ( i = 0; i < p->vAnds->nSize; i++ )
@@ -202,34 +186,29 @@ void Fpga_TimeComputeRequired( Fpga_Man_t * p, float fRequired )
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_TimePropagateRequired( Fpga_Man_t * p, Fpga_NodeVec_t * vNodes )
-{
-    Fpga_Node_t * pNode, * pChild;
+void Fpga_TimePropagateRequired(Fpga_Man_t* p, Fpga_NodeVec_t* vNodes) {
+    Fpga_Node_t *pNode, *pChild;
     float fRequired;
     int i, k;
 
     // sorts the nodes in the decreasing order of levels
-//    Fpga_MappingSortByLevel( p, vNodes, 0 );
+    //    Fpga_MappingSortByLevel( p, vNodes, 0 );
     // the nodes area already sorted in Fpga_MappingSetRefsAndArea()
 
     // go through the nodes in the reverse topological order
-    for ( k = 0; k < vNodes->nSize; k++ )
-    {
+    for (k = 0; k < vNodes->nSize; k++) {
         pNode = vNodes->pArray[k];
-        if ( !Fpga_NodeIsAnd(pNode) )
+        if (!Fpga_NodeIsAnd(pNode))
             continue;
         // get the required time for children
         fRequired = pNode->tRequired - p->pLutLib->pLutDelays[(int)pNode->pCutBest->nLeaves][0];
         // update the required time of the children
-        for ( i = 0; i < pNode->pCutBest->nLeaves; i++ )
-        {
+        for (i = 0; i < pNode->pCutBest->nLeaves; i++) {
             pChild = pNode->pCutBest->ppLeaves[i];
-            pChild->tRequired = FPGA_MIN( pChild->tRequired, fRequired );
+            pChild->tRequired = FPGA_MIN(pChild->tRequired, fRequired);
         }
     }
 }
-
-
 
 /**Function*************************************************************
 
@@ -242,26 +221,21 @@ void Fpga_TimePropagateRequired( Fpga_Man_t * p, Fpga_NodeVec_t * vNodes )
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_TimePropagateArrival( Fpga_Man_t * p )
-{
-    Fpga_Node_t * pNode;
-    Fpga_Cut_t * pCut;
+void Fpga_TimePropagateArrival(Fpga_Man_t* p) {
+    Fpga_Node_t* pNode;
+    Fpga_Cut_t* pCut;
     int i;
 
     // clean the required times and the fanout counts for all nodes
-    for ( i = 0; i < p->vAnds->nSize; i++ )
-    {
+    for (i = 0; i < p->vAnds->nSize; i++) {
         pNode = p->vAnds->pArray[i];
-        for ( pCut = pNode->pCuts->pNext; pCut; pCut = pCut->pNext )
-            pCut->tArrival = Fpga_TimeCutComputeArrival( p, pCut );
+        for (pCut = pNode->pCuts->pNext; pCut; pCut = pCut->pNext)
+            pCut->tArrival = Fpga_TimeCutComputeArrival(p, pCut);
     }
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -19,7 +19,7 @@
 #define _BSD_SOURCE
 
 #ifndef WIN32
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 #include "base/main/main.h"
@@ -29,18 +29,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static int Mio_CommandReadLiberty( Abc_Frame_t * pAbc, int argc, char **argv );
-static int Mio_CommandReadGenlib( Abc_Frame_t * pAbc, int argc, char **argv );
-static int Mio_CommandWriteGenlib( Abc_Frame_t * pAbc, int argc, char **argv );
-static int Mio_CommandPrintGenlib( Abc_Frame_t * pAbc, int argc, char **argv );
-static int Mio_CommandReadProfile( Abc_Frame_t * pAbc, int argc, char **argv );
-static int Mio_CommandWriteProfile( Abc_Frame_t * pAbc, int argc, char **argv );
-static int Mio_CommandPrintProfile( Abc_Frame_t * pAbc, int argc, char **argv );
+static int Mio_CommandReadLiberty(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Mio_CommandReadGenlib(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Mio_CommandWriteGenlib(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Mio_CommandPrintGenlib(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Mio_CommandReadProfile(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Mio_CommandWriteProfile(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Mio_CommandPrintProfile(Abc_Frame_t* pAbc, int argc, char** argv);
 
 /*
 // internal version of genlib library
@@ -83,21 +82,20 @@ static char * pMcncGenlib[25] = {
   SeeAlso     []
 
 ***********************************************************************/
-void Mio_Init( Abc_Frame_t * pAbc )
-{
-//    Cmd_CommandAdd( pAbc, "SC mapping", "read_liberty",   Mio_CommandReadLiberty,  0 ); 
+void Mio_Init(Abc_Frame_t* pAbc) {
+    //    Cmd_CommandAdd( pAbc, "SC mapping", "read_liberty",   Mio_CommandReadLiberty,  0 );
 
-    Cmd_CommandAdd( pAbc, "SC mapping", "read_genlib",    Mio_CommandReadGenlib,  0 ); 
-    Cmd_CommandAdd( pAbc, "SC mapping", "write_genlib",   Mio_CommandWriteGenlib, 0 ); 
-    Cmd_CommandAdd( pAbc, "SC mapping", "print_genlib",   Mio_CommandPrintGenlib, 0 ); 
+    Cmd_CommandAdd(pAbc, "SC mapping", "read_genlib", Mio_CommandReadGenlib, 0);
+    Cmd_CommandAdd(pAbc, "SC mapping", "write_genlib", Mio_CommandWriteGenlib, 0);
+    Cmd_CommandAdd(pAbc, "SC mapping", "print_genlib", Mio_CommandPrintGenlib, 0);
 
-    Cmd_CommandAdd( pAbc, "SC mapping", "read_profile",   Mio_CommandReadProfile,  0 ); 
-    Cmd_CommandAdd( pAbc, "SC mapping", "write_profile",  Mio_CommandWriteProfile, 0 ); 
-    Cmd_CommandAdd( pAbc, "SC mapping", "print_profile",  Mio_CommandPrintProfile, 0 ); 
+    Cmd_CommandAdd(pAbc, "SC mapping", "read_profile", Mio_CommandReadProfile, 0);
+    Cmd_CommandAdd(pAbc, "SC mapping", "write_profile", Mio_CommandWriteProfile, 0);
+    Cmd_CommandAdd(pAbc, "SC mapping", "print_profile", Mio_CommandPrintProfile, 0);
 
-    Cmd_CommandAdd( pAbc, "SC mapping", "read_library",   Mio_CommandReadGenlib,  0 ); 
-    Cmd_CommandAdd( pAbc, "SC mapping", "write_library",  Mio_CommandWriteGenlib, 0 ); 
-    Cmd_CommandAdd( pAbc, "SC mapping", "print_library",  Mio_CommandPrintGenlib, 0 ); 
+    Cmd_CommandAdd(pAbc, "SC mapping", "read_library", Mio_CommandReadGenlib, 0);
+    Cmd_CommandAdd(pAbc, "SC mapping", "write_library", Mio_CommandWriteGenlib, 0);
+    Cmd_CommandAdd(pAbc, "SC mapping", "print_library", Mio_CommandPrintGenlib, 0);
 }
 
 /**Function*************************************************************
@@ -111,10 +109,9 @@ void Mio_Init( Abc_Frame_t * pAbc )
   SeeAlso     []
 
 ***********************************************************************/
-void Mio_End( Abc_Frame_t * pAbc )
-{
-    Mio_LibraryDelete( (Mio_Library_t *)Abc_FrameReadLibGen() );
-    Amap_LibFree( (Amap_Lib_t *)Abc_FrameReadLibGen2() );
+void Mio_End(Abc_Frame_t* pAbc) {
+    Mio_LibraryDelete((Mio_Library_t*)Abc_FrameReadLibGen());
+    Amap_LibFree((Amap_Lib_t*)Abc_FrameReadLibGen2());
 }
 
 /**Function*************************************************************
@@ -128,50 +125,46 @@ void Mio_End( Abc_Frame_t * pAbc )
   SeeAlso     []
 
 ***********************************************************************/
-void Mio_UpdateGenlib( Mio_Library_t * pLib )
-{
+void Mio_UpdateGenlib(Mio_Library_t* pLib) {
     // free the current superlib because it depends on the old Mio library
-    if ( Abc_FrameReadLibSuper() )
-    {
-        Map_SuperLibFree( (Map_SuperLib_t *)Abc_FrameReadLibSuper() );
-        Abc_FrameSetLibSuper( NULL );
+    if (Abc_FrameReadLibSuper()) {
+        Map_SuperLibFree((Map_SuperLib_t*)Abc_FrameReadLibSuper());
+        Abc_FrameSetLibSuper(NULL);
     }
 
     // replace the current library
-    Mio_LibraryDelete( (Mio_Library_t *)Abc_FrameReadLibGen() );
-    Abc_FrameSetLibGen( pLib );
+    Mio_LibraryDelete((Mio_Library_t*)Abc_FrameReadLibGen());
+    Abc_FrameSetLibGen(pLib);
 
     // replace the current library
-    Amap_LibFree( (Amap_Lib_t *)Abc_FrameReadLibGen2() );
-    Abc_FrameSetLibGen2( NULL );
+    Amap_LibFree((Amap_Lib_t*)Abc_FrameReadLibGen2());
+    Abc_FrameSetLibGen2(NULL);
 }
-int Mio_UpdateGenlib2( Vec_Str_t * vStr, Vec_Str_t * vStr2, char * pFileName, int fVerbose )
-{
-    Mio_Library_t * pLib;
+int Mio_UpdateGenlib2(Vec_Str_t* vStr, Vec_Str_t* vStr2, char* pFileName, int fVerbose) {
+    Mio_Library_t* pLib;
     // set the new network
-    pLib = Mio_LibraryRead( pFileName, Vec_StrArray(vStr), NULL, fVerbose );  
-    if ( pLib == NULL )
+    pLib = Mio_LibraryRead(pFileName, Vec_StrArray(vStr), NULL, fVerbose);
+    if (pLib == NULL)
         return 0;
 
     // free the current superlib because it depends on the old Mio library
-    if ( Abc_FrameReadLibSuper() )
-    {
-        Map_SuperLibFree( (Map_SuperLib_t *)Abc_FrameReadLibSuper() );
-        Abc_FrameSetLibSuper( NULL );
+    if (Abc_FrameReadLibSuper()) {
+        Map_SuperLibFree((Map_SuperLib_t*)Abc_FrameReadLibSuper());
+        Abc_FrameSetLibSuper(NULL);
     }
 
     // replace the current library
-    Mio_LibraryDelete( (Mio_Library_t *)Abc_FrameReadLibGen() );
-    Abc_FrameSetLibGen( pLib );
+    Mio_LibraryDelete((Mio_Library_t*)Abc_FrameReadLibGen());
+    Abc_FrameSetLibGen(pLib);
 
     // set the new network
-    pLib = (Mio_Library_t *)Amap_LibReadAndPrepare( pFileName, Vec_StrArray(vStr2), 0, 0 );  
-    if ( pLib == NULL )
+    pLib = (Mio_Library_t*)Amap_LibReadAndPrepare(pFileName, Vec_StrArray(vStr2), 0, 0);
+    if (pLib == NULL)
         return 0;
 
     // replace the current library
-    Amap_LibFree( (Amap_Lib_t *)Abc_FrameReadLibGen2() );
-    Abc_FrameSetLibGen2( pLib );
+    Amap_LibFree((Amap_Lib_t*)Abc_FrameReadLibGen2());
+    Abc_FrameSetLibGen2(pLib);
     return 1;
 }
 
@@ -186,13 +179,12 @@ int Mio_UpdateGenlib2( Vec_Str_t * vStr, Vec_Str_t * vStr2, char * pFileName, in
   SeeAlso     []
 
 ***********************************************************************/
-int Mio_CommandReadLiberty( Abc_Frame_t * pAbc, int argc, char **argv )
-{
+int Mio_CommandReadLiberty(Abc_Frame_t* pAbc, int argc, char** argv) {
     int fUseFileInterface = 0;
     char Command[1000];
-    FILE * pFile;
-    FILE * pOut, * pErr;
-    char * pFileName;
+    FILE* pFile;
+    FILE *pOut, *pErr;
+    char* pFileName;
     int fVerbose;
     int c;
 
@@ -202,10 +194,8 @@ int Mio_CommandReadLiberty( Abc_Frame_t * pAbc, int argc, char **argv )
     // set the defaults
     fVerbose = 0;
     Extra_UtilGetoptReset();
-    while ( (c = Extra_UtilGetopt(argc, argv, "vh")) != EOF ) 
-    {
-        switch (c) 
-        {
+    while ((c = Extra_UtilGetopt(argc, argv, "vh")) != EOF) {
+        switch (c) {
             case 'v':
                 fVerbose ^= 1;
                 break;
@@ -217,54 +207,50 @@ int Mio_CommandReadLiberty( Abc_Frame_t * pAbc, int argc, char **argv )
         }
     }
 
-    if ( argc != globalUtilOptind + 1 )
+    if (argc != globalUtilOptind + 1)
         goto usage;
 
     // get the input file name
     pFileName = argv[globalUtilOptind];
-    if ( (pFile = Io_FileOpen( pFileName, "open_path", "r", 0 )) == NULL )
-    {
-        fprintf( pErr, "Cannot open input file \"%s\". ", pFileName );
-        if ( (pFileName = Extra_FileGetSimilarName( pFileName, ".genlib", ".lib", ".scl", ".g", NULL )) )
-            fprintf( pErr, "Did you mean \"%s\"?", pFileName );
-        fprintf( pErr, "\n" );
+    if ((pFile = Io_FileOpen(pFileName, "open_path", "r", 0)) == NULL) {
+        fprintf(pErr, "Cannot open input file \"%s\". ", pFileName);
+        if ((pFileName = Extra_FileGetSimilarName(pFileName, ".genlib", ".lib", ".scl", ".g", NULL)))
+            fprintf(pErr, "Did you mean \"%s\"?", pFileName);
+        fprintf(pErr, "\n");
         return 1;
     }
-    fclose( pFile );
+    fclose(pFile);
 
-    if ( fUseFileInterface )
-    {
-        if ( !Amap_LibertyParse( pFileName, fVerbose ) )
+    if (fUseFileInterface) {
+        if (!Amap_LibertyParse(pFileName, fVerbose))
             return 0;
-        assert( strlen(pFileName) < 900 );
-        sprintf( Command, "read_genlib %s", Extra_FileNameGenericAppend(pFileName, ".genlib") );
-        Cmd_CommandExecute( pAbc, Command );
-    }
-    else
-    {
-        Vec_Str_t * vStr, * vStr2;
+        assert(strlen(pFileName) < 900);
+        sprintf(Command, "read_genlib %s", Extra_FileNameGenericAppend(pFileName, ".genlib"));
+        Cmd_CommandExecute(pAbc, Command);
+    } else {
+        Vec_Str_t *vStr, *vStr2;
         int RetValue;
-        vStr = Amap_LibertyParseStr( pFileName, fVerbose );
-        if ( vStr == NULL )
+        vStr = Amap_LibertyParseStr(pFileName, fVerbose);
+        if (vStr == NULL)
             return 0;
         vStr2 = Vec_StrDup(vStr);
-        RetValue = Mio_UpdateGenlib2( vStr, vStr2, pFileName, fVerbose );
-        Vec_StrFree( vStr );
-        Vec_StrFree( vStr2 );
-        if ( !RetValue )
-            printf( "Reading library has filed.\n" );
+        RetValue = Mio_UpdateGenlib2(vStr, vStr2, pFileName, fVerbose);
+        Vec_StrFree(vStr);
+        Vec_StrFree(vStr2);
+        if (!RetValue)
+            printf("Reading library has filed.\n");
     }
     return 0;
 
 usage:
-    fprintf( pErr, "usage: read_liberty [-vh]\n");
-    fprintf( pErr, "\t         read standard cell library in Liberty format\n" );  
-    fprintf( pErr, "\t         (if the library contains more than one gate\n" );  
-    fprintf( pErr, "\t         with the same Boolean function, only the gate\n" );  
-    fprintf( pErr, "\t         with the smallest area will be used)\n" );  
-    fprintf( pErr, "\t-v     : toggle verbose printout [default = %s]\n", fVerbose? "yes": "no" );
-    fprintf( pErr, "\t-h     : enable verbose output\n");
-    return 1;       
+    fprintf(pErr, "usage: read_liberty [-vh]\n");
+    fprintf(pErr, "\t         read standard cell library in Liberty format\n");
+    fprintf(pErr, "\t         (if the library contains more than one gate\n");
+    fprintf(pErr, "\t         with the same Boolean function, only the gate\n");
+    fprintf(pErr, "\t         with the smallest area will be used)\n");
+    fprintf(pErr, "\t-v     : toggle verbose printout [default = %s]\n", fVerbose ? "yes" : "no");
+    fprintf(pErr, "\t-h     : enable verbose output\n");
+    return 1;
 }
 
 /**Function*************************************************************
@@ -278,14 +264,13 @@ usage:
   SeeAlso     []
 
 ***********************************************************************/
-int Mio_CommandReadGenlib( Abc_Frame_t * pAbc, int argc, char **argv )
-{
-    FILE * pFile;
-    FILE * pOut, * pErr;
-    Mio_Library_t * pLib;
-    Amap_Lib_t * pLib2;
-    char * pFileName;
-    char * pExcludeFile = NULL;
+int Mio_CommandReadGenlib(Abc_Frame_t* pAbc, int argc, char** argv) {
+    FILE* pFile;
+    FILE *pOut, *pErr;
+    Mio_Library_t* pLib;
+    Amap_Lib_t* pLib2;
+    char* pFileName;
+    char* pExcludeFile = NULL;
     double WireDelay = 0.0;
     int fShortNames = 0;
     int c, fVerbose = 1;
@@ -293,25 +278,21 @@ int Mio_CommandReadGenlib( Abc_Frame_t * pAbc, int argc, char **argv )
     pOut = Abc_FrameReadOut(pAbc);
     pErr = Abc_FrameReadErr(pAbc);
     Extra_UtilGetoptReset();
-    while ( (c = Extra_UtilGetopt(argc, argv, "WEnvh")) != EOF ) 
-    {
-        switch (c) 
-        {
+    while ((c = Extra_UtilGetopt(argc, argv, "WEnvh")) != EOF) {
+        switch (c) {
             case 'W':
-                if ( globalUtilOptind >= argc )
-                {
-                    Abc_Print( -1, "Command line switch \"-W\" should be followed by a floating point number.\n" );
+                if (globalUtilOptind >= argc) {
+                    Abc_Print(-1, "Command line switch \"-W\" should be followed by a floating point number.\n");
                     goto usage;
                 }
                 WireDelay = (float)atof(argv[globalUtilOptind]);
                 globalUtilOptind++;
-                if ( WireDelay <= 0.0 ) 
+                if (WireDelay <= 0.0)
                     goto usage;
                 break;
             case 'E':
-                if ( globalUtilOptind >= argc )
-                {
-                    Abc_Print( -1, "Command line switch \"-E\" should be followed by a file name.\n" );
+                if (globalUtilOptind >= argc) {
+                    Abc_Print(-1, "Command line switch \"-E\" should be followed by a file name.\n");
                     goto usage;
                 }
                 pExcludeFile = argv[globalUtilOptind];
@@ -330,66 +311,62 @@ int Mio_CommandReadGenlib( Abc_Frame_t * pAbc, int argc, char **argv )
                 goto usage;
         }
     }
-    if ( argc != globalUtilOptind + 1 )
-    {
+    if (argc != globalUtilOptind + 1) {
         goto usage;
     }
 
     // get the input file name
     pFileName = argv[globalUtilOptind];
-    if ( (pFile = Io_FileOpen( pFileName, "open_path", "r", 0 )) == NULL )
-    {
-        fprintf( pErr, "Cannot open input file \"%s\". ", pFileName );
-        if ( (pFileName = Extra_FileGetSimilarName( pFileName, ".genlib", ".lib", ".scl", ".g", NULL )) )
-            fprintf( pErr, "Did you mean \"%s\"?", pFileName );
-        fprintf( pErr, "\n" );
+    if ((pFile = Io_FileOpen(pFileName, "open_path", "r", 0)) == NULL) {
+        fprintf(pErr, "Cannot open input file \"%s\". ", pFileName);
+        if ((pFileName = Extra_FileGetSimilarName(pFileName, ".genlib", ".lib", ".scl", ".g", NULL)))
+            fprintf(pErr, "Did you mean \"%s\"?", pFileName);
+        fprintf(pErr, "\n");
         return 1;
     }
-    fclose( pFile );
+    fclose(pFile);
 
     // set the new network
-    pLib = Mio_LibraryRead( pFileName, NULL, pExcludeFile, fVerbose );  
-    if ( pLib == NULL )
-    {
-        fprintf( pErr, "Reading genlib library has failed.\n" );
+    pLib = Mio_LibraryRead(pFileName, NULL, pExcludeFile, fVerbose);
+    if (pLib == NULL) {
+        fprintf(pErr, "Reading genlib library has failed.\n");
         return 1;
     }
-    if ( fVerbose )
-        printf( "Entered genlib library with %d gates from file \"%s\".\n", Mio_LibraryReadGateNum(pLib), pFileName );
+    if (fVerbose)
+        printf("Entered genlib library with %d gates from file \"%s\".\n", Mio_LibraryReadGateNum(pLib), pFileName);
 
     // convert the library if needed
-    if ( fShortNames )
-        Mio_LibraryShortNames( pLib );
+    if (fShortNames)
+        Mio_LibraryShortNames(pLib);
 
     // add the fixed number (wire delay) to all delays in the library
-    if ( WireDelay != 0.0 )
-        Mio_LibraryShiftDelay( pLib, WireDelay );
+    if (WireDelay != 0.0)
+        Mio_LibraryShiftDelay(pLib, WireDelay);
 
     // prepare libraries
-    Mio_UpdateGenlib( pLib );
+    Mio_UpdateGenlib(pLib);
 
     // replace the current library
-    pLib2 = Amap_LibReadAndPrepare( pFileName, NULL, 0, 0 );  
-    if ( pLib2 == NULL )
-    {
-        fprintf( pErr, "Reading second genlib library has failed.\n" );
+    pLib2 = Amap_LibReadAndPrepare(pFileName, NULL, 0, 0);
+    if (pLib2 == NULL) {
+        fprintf(pErr, "Reading second genlib library has failed.\n");
         return 1;
     }
-    Abc_FrameSetLibGen2( pLib2 );
+    Abc_FrameSetLibGen2(pLib2);
     return 0;
 
 usage:
-    fprintf( pErr, "usage: read_genlib [-W float] [-E filename] [-nvh]\n");
-    fprintf( pErr, "\t           read the library from a genlib file\n" );  
-    fprintf( pErr, "\t           (if the library contains more than one gate\n" );  
-    fprintf( pErr, "\t           with the same Boolean function, only the gate\n" );  
-    fprintf( pErr, "\t           with the smallest area will be used)\n" );  
-    fprintf( pErr, "\t-W float : wire delay (added to pin-to-pin gate delays) [default = %g]\n", WireDelay );  
-    fprintf( pErr, "\t-E file :  the file name with gates to be excluded [default = none]\n" );
-    fprintf( pErr, "\t-n       : toggle replacing gate/pin names by short strings [default = %s]\n", fShortNames? "yes": "no" );
-    fprintf( pErr, "\t-v       : toggle verbose printout [default = %s]\n", fVerbose? "yes": "no" );
-    fprintf( pErr, "\t-h       : enable verbose output\n");
-    return 1;       
+    fprintf(pErr, "usage: read_genlib [-W float] [-E filename] [-nvh]\n");
+    fprintf(pErr, "\t           read the library from a genlib file\n");
+    fprintf(pErr, "\t           (if the library contains more than one gate\n");
+    fprintf(pErr, "\t           with the same Boolean function, only the gate\n");
+    fprintf(pErr, "\t           with the smallest area will be used)\n");
+    fprintf(pErr, "\t-W float : wire delay (added to pin-to-pin gate delays) [default = %g]\n", WireDelay);
+    fprintf(pErr, "\t-E file :  the file name with gates to be excluded [default = none]\n");
+    fprintf(pErr, "\t-n       : toggle replacing gate/pin names by short strings [default = %s]\n", fShortNames ? "yes" : "no");
+    fprintf(pErr, "\t-v       : toggle verbose printout [default = %s]\n", fVerbose ? "yes" : "no");
+    fprintf(pErr, "\t-h       : enable verbose output\n");
+    return 1;
 }
 
 /**Function*************************************************************
@@ -403,10 +380,9 @@ usage:
   SeeAlso     []
 
 ***********************************************************************/
-int Mio_CommandWriteGenlib( Abc_Frame_t * pAbc, int argc, char **argv )
-{
-    FILE * pOut, * pErr, * pFile;
-    char * pFileName;
+int Mio_CommandWriteGenlib(Abc_Frame_t* pAbc, int argc, char** argv) {
+    FILE *pOut, *pErr, *pFile;
+    char* pFileName;
     int fSelected = 0;
     int fVerilog = 0;
     int fVerbose = 0;
@@ -416,10 +392,8 @@ int Mio_CommandWriteGenlib( Abc_Frame_t * pAbc, int argc, char **argv )
     pErr = Abc_FrameReadErr(pAbc);
 
     Extra_UtilGetoptReset();
-    while ( (c = Extra_UtilGetopt(argc, argv, "agvh")) != EOF ) 
-    {
-        switch (c) 
-        {
+    while ((c = Extra_UtilGetopt(argc, argv, "agvh")) != EOF) {
+        switch (c) {
             case 'a':
                 fSelected ^= 1;
                 break;
@@ -436,41 +410,38 @@ int Mio_CommandWriteGenlib( Abc_Frame_t * pAbc, int argc, char **argv )
                 goto usage;
         }
     }
-    if ( Abc_FrameReadLibGen() == NULL )
-    {
-        printf( "Library is not available.\n" );
+    if (Abc_FrameReadLibGen() == NULL) {
+        printf("Library is not available.\n");
         return 1;
     }
-    if ( argc != globalUtilOptind + 1 )
-    {
-        printf( "The file name is not given.\n" );
+    if (argc != globalUtilOptind + 1) {
+        printf("The file name is not given.\n");
         return 1;
     }
 
     pFileName = argv[globalUtilOptind];
-    pFile = fopen( pFileName, "w" );
-    if ( pFile == NULL )
-    {
-        printf( "Error! Cannot open file \"%s\" for writing the library.\n", pFileName );
+    pFile = fopen(pFileName, "w");
+    if (pFile == NULL) {
+        printf("Error! Cannot open file \"%s\" for writing the library.\n", pFileName);
         return 1;
     }
-    if ( fVerilog )
-        Mio_WriteLibraryVerilog( pFile, (Mio_Library_t *)Abc_FrameReadLibGen(), 0, 0, fSelected );
+    if (fVerilog)
+        Mio_WriteLibraryVerilog(pFile, (Mio_Library_t*)Abc_FrameReadLibGen(), 0, 0, fSelected);
     else
-        Mio_WriteLibrary( pFile, (Mio_Library_t *)Abc_FrameReadLibGen(), 0, 0, fSelected );
-    fclose( pFile );
-    printf( "The current genlib library is written into file \"%s\".\n", pFileName );
+        Mio_WriteLibrary(pFile, (Mio_Library_t*)Abc_FrameReadLibGen(), 0, 0, fSelected);
+    fclose(pFile);
+    printf("The current genlib library is written into file \"%s\".\n", pFileName);
     return 0;
 
 usage:
-    fprintf( pErr, "\nusage: write_genlib [-agvh] <file>\n");
-    fprintf( pErr, "\t          writes the current genlib library into a file\n" );  
-    fprintf( pErr, "\t-a      : toggles writing min-area gates [default = %s]\n", fSelected? "yes" : "no" );
-    fprintf( pErr, "\t-g      : toggles writing the library in Verilog [default = %s]\n", fVerilog? "yes" : "no" );
-    fprintf( pErr, "\t-v      : toggles enabling of verbose output [default = %s]\n", fVerbose? "yes" : "no" );
-    fprintf( pErr, "\t-h      : print the command usage\n");
-    fprintf( pErr, "\t<file>  : optional file name to write the library\n");
-    return 1;       
+    fprintf(pErr, "\nusage: write_genlib [-agvh] <file>\n");
+    fprintf(pErr, "\t          writes the current genlib library into a file\n");
+    fprintf(pErr, "\t-a      : toggles writing min-area gates [default = %s]\n", fSelected ? "yes" : "no");
+    fprintf(pErr, "\t-g      : toggles writing the library in Verilog [default = %s]\n", fVerilog ? "yes" : "no");
+    fprintf(pErr, "\t-v      : toggles enabling of verbose output [default = %s]\n", fVerbose ? "yes" : "no");
+    fprintf(pErr, "\t-h      : print the command usage\n");
+    fprintf(pErr, "\t<file>  : optional file name to write the library\n");
+    return 1;
 }
 
 /**Function*************************************************************
@@ -484,9 +455,8 @@ usage:
   SeeAlso     []
 
 ***********************************************************************/
-int Mio_CommandPrintGenlib( Abc_Frame_t * pAbc, int argc, char **argv )
-{
-    FILE * pOut, * pErr;
+int Mio_CommandPrintGenlib(Abc_Frame_t* pAbc, int argc, char** argv) {
+    FILE *pOut, *pErr;
     int fShort = 0;
     int fSelected = 0;
     int fVerbose = 0;
@@ -497,10 +467,8 @@ int Mio_CommandPrintGenlib( Abc_Frame_t * pAbc, int argc, char **argv )
 
     // set the defaults
     Extra_UtilGetoptReset();
-    while ( (c = Extra_UtilGetopt(argc, argv, "savh")) != EOF ) 
-    {
-        switch (c) 
-        {
+    while ((c = Extra_UtilGetopt(argc, argv, "savh")) != EOF) {
+        switch (c) {
             case 's':
                 fShort ^= 1;
                 break;
@@ -517,24 +485,22 @@ int Mio_CommandPrintGenlib( Abc_Frame_t * pAbc, int argc, char **argv )
                 goto usage;
         }
     }
-    if ( Abc_FrameReadLibGen() == NULL )
-    {
-        printf( "Library is not available.\n" );
+    if (Abc_FrameReadLibGen() == NULL) {
+        printf("Library is not available.\n");
         return 1;
     }
-    Mio_WriteLibrary( stdout, (Mio_Library_t *)Abc_FrameReadLibGen(), 0, fShort, fSelected );
+    Mio_WriteLibrary(stdout, (Mio_Library_t*)Abc_FrameReadLibGen(), 0, fShort, fSelected);
     return 0;
 
 usage:
-    fprintf( pErr, "\nusage: print_genlib [-savh]\n");
-    fprintf( pErr, "\t          print the current genlib library\n" );  
-    fprintf( pErr, "\t-s      : toggles writing short form [default = %s]\n", fShort? "yes" : "no" );
-    fprintf( pErr, "\t-a      : toggles writing min-area gates [default = %s]\n", fSelected? "yes" : "no" );
-    fprintf( pErr, "\t-v      : toggles enabling of verbose output [default = %s]\n", fVerbose? "yes" : "no" );
-    fprintf( pErr, "\t-h      : print the command usage\n");
-    return 1;       
+    fprintf(pErr, "\nusage: print_genlib [-savh]\n");
+    fprintf(pErr, "\t          print the current genlib library\n");
+    fprintf(pErr, "\t-s      : toggles writing short form [default = %s]\n", fShort ? "yes" : "no");
+    fprintf(pErr, "\t-a      : toggles writing min-area gates [default = %s]\n", fSelected ? "yes" : "no");
+    fprintf(pErr, "\t-v      : toggles enabling of verbose output [default = %s]\n", fVerbose ? "yes" : "no");
+    fprintf(pErr, "\t-h      : print the command usage\n");
+    return 1;
 }
-
 
 /**Function*************************************************************
 
@@ -547,11 +513,10 @@ usage:
   SeeAlso     []
 
 ***********************************************************************/
-int Mio_CommandReadProfile( Abc_Frame_t * pAbc, int argc, char **argv )
-{
-    FILE * pFile, * pOut, * pErr;
-    Mio_Library_t * pLib;
-    char * pFileName;
+int Mio_CommandReadProfile(Abc_Frame_t* pAbc, int argc, char** argv) {
+    FILE *pFile, *pOut, *pErr;
+    Mio_Library_t* pLib;
+    char* pFileName;
     int c;
 
     pOut = Abc_FrameReadOut(pAbc);
@@ -559,10 +524,8 @@ int Mio_CommandReadProfile( Abc_Frame_t * pAbc, int argc, char **argv )
 
     // set the defaults
     Extra_UtilGetoptReset();
-    while ( (c = Extra_UtilGetopt(argc, argv, "h")) != EOF ) 
-    {
-        switch (c) 
-        {
+    while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+        switch (c) {
             case 'h':
                 goto usage;
                 break;
@@ -570,40 +533,37 @@ int Mio_CommandReadProfile( Abc_Frame_t * pAbc, int argc, char **argv )
                 goto usage;
         }
     }
-    if ( argc != globalUtilOptind + 1 )
-    {
+    if (argc != globalUtilOptind + 1) {
         goto usage;
     }
 
-    pLib = (Mio_Library_t *)Abc_FrameReadLibGen();
-    if ( pLib == NULL )
-    {
-        fprintf( pErr, "There is no Genlib library entered.\n" );
+    pLib = (Mio_Library_t*)Abc_FrameReadLibGen();
+    if (pLib == NULL) {
+        fprintf(pErr, "There is no Genlib library entered.\n");
         return 1;
     }
 
     // get the input file name
     pFileName = argv[globalUtilOptind];
-    if ( (pFile = Io_FileOpen( pFileName, "open_path", "r", 0 )) == NULL )
-    {
-        fprintf( pErr, "Cannot open input file \"%s\". ", pFileName );
-        if ( (pFileName = Extra_FileGetSimilarName( pFileName, ".profile", NULL, NULL, NULL, NULL )) )
-            fprintf( pErr, "Did you mean \"%s\"?", pFileName );
-        fprintf( pErr, "\n" );
+    if ((pFile = Io_FileOpen(pFileName, "open_path", "r", 0)) == NULL) {
+        fprintf(pErr, "Cannot open input file \"%s\". ", pFileName);
+        if ((pFileName = Extra_FileGetSimilarName(pFileName, ".profile", NULL, NULL, NULL, NULL)))
+            fprintf(pErr, "Did you mean \"%s\"?", pFileName);
+        fprintf(pErr, "\n");
         return 1;
     }
 
     // set the new network
-    Mio_LibraryReadProfile( pFile, pLib );
-    fclose( pFile );
+    Mio_LibraryReadProfile(pFile, pLib);
+    fclose(pFile);
     return 0;
 
 usage:
-    fprintf( pErr, "usage: read_profile [-h] <file>\n");
-    fprintf( pErr, "\t          read a gate profile from a profile file\n" );  
-    fprintf( pErr, "\t-h      : enable verbose output\n");
-    fprintf( pErr, "\t<file>  : file name to read the profile\n");
-    return 1;       
+    fprintf(pErr, "usage: read_profile [-h] <file>\n");
+    fprintf(pErr, "\t          read a gate profile from a profile file\n");
+    fprintf(pErr, "\t-h      : enable verbose output\n");
+    fprintf(pErr, "\t<file>  : file name to read the profile\n");
+    return 1;
 }
 
 /**Function*************************************************************
@@ -617,20 +577,17 @@ usage:
   SeeAlso     []
 
 ***********************************************************************/
-int Mio_CommandWriteProfile( Abc_Frame_t * pAbc, int argc, char **argv )
-{
-    FILE * pOut, * pErr, * pFile;
-    char * pFileName;
+int Mio_CommandWriteProfile(Abc_Frame_t* pAbc, int argc, char** argv) {
+    FILE *pOut, *pErr, *pFile;
+    char* pFileName;
     int c;
 
     pOut = Abc_FrameReadOut(pAbc);
     pErr = Abc_FrameReadErr(pAbc);
 
     Extra_UtilGetoptReset();
-    while ( (c = Extra_UtilGetopt(argc, argv, "h")) != EOF ) 
-    {
-        switch (c) 
-        {
+    while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+        switch (c) {
             case 'h':
                 goto usage;
                 break;
@@ -638,35 +595,32 @@ int Mio_CommandWriteProfile( Abc_Frame_t * pAbc, int argc, char **argv )
                 goto usage;
         }
     }
-    if ( Abc_FrameReadLibGen() == NULL )
-    {
-        printf( "Library is not available.\n" );
+    if (Abc_FrameReadLibGen() == NULL) {
+        printf("Library is not available.\n");
         return 1;
     }
-    if ( argc != globalUtilOptind + 1 )
-    {
-        printf( "The file name is not given.\n" );
+    if (argc != globalUtilOptind + 1) {
+        printf("The file name is not given.\n");
         return 1;
     }
 
     pFileName = argv[globalUtilOptind];
-    pFile = fopen( pFileName, "w" );
-    if ( pFile == NULL )
-    {
-        printf( "Error! Cannot open file \"%s\" for writing the library.\n", pFileName );
+    pFile = fopen(pFileName, "w");
+    if (pFile == NULL) {
+        printf("Error! Cannot open file \"%s\" for writing the library.\n", pFileName);
         return 1;
     }
-    Mio_LibraryWriteProfile( pFile, (Mio_Library_t *)Abc_FrameReadLibGen() );
-    fclose( pFile );
-    printf( "The current profile is written into file \"%s\".\n", pFileName );
+    Mio_LibraryWriteProfile(pFile, (Mio_Library_t*)Abc_FrameReadLibGen());
+    fclose(pFile);
+    printf("The current profile is written into file \"%s\".\n", pFileName);
     return 0;
 
 usage:
-    fprintf( pErr, "\nusage: write_profile [-h] <file>\n");
-    fprintf( pErr, "\t          writes the current profile into a file\n" );  
-    fprintf( pErr, "\t-h      : print the command usage\n");
-    fprintf( pErr, "\t<file>  : file name to write the profile\n");
-    return 1;       
+    fprintf(pErr, "\nusage: write_profile [-h] <file>\n");
+    fprintf(pErr, "\t          writes the current profile into a file\n");
+    fprintf(pErr, "\t-h      : print the command usage\n");
+    fprintf(pErr, "\t<file>  : file name to write the profile\n");
+    return 1;
 }
 
 /**Function*************************************************************
@@ -680,9 +634,8 @@ usage:
   SeeAlso     []
 
 ***********************************************************************/
-int Mio_CommandPrintProfile( Abc_Frame_t * pAbc, int argc, char **argv )
-{
-    FILE * pOut, * pErr;
+int Mio_CommandPrintProfile(Abc_Frame_t* pAbc, int argc, char** argv) {
+    FILE *pOut, *pErr;
     int fShort = 0;
     int fSelected = 0;
     int fVerbose = 0;
@@ -693,10 +646,8 @@ int Mio_CommandPrintProfile( Abc_Frame_t * pAbc, int argc, char **argv )
 
     // set the defaults
     Extra_UtilGetoptReset();
-    while ( (c = Extra_UtilGetopt(argc, argv, "savh")) != EOF ) 
-    {
-        switch (c) 
-        {
+    while ((c = Extra_UtilGetopt(argc, argv, "savh")) != EOF) {
+        switch (c) {
             case 's':
                 fShort ^= 1;
                 break;
@@ -713,24 +664,21 @@ int Mio_CommandPrintProfile( Abc_Frame_t * pAbc, int argc, char **argv )
                 goto usage;
         }
     }
-    if ( Abc_FrameReadLibGen() == NULL )
-    {
-        printf( "Library is not available.\n" );
+    if (Abc_FrameReadLibGen() == NULL) {
+        printf("Library is not available.\n");
         return 1;
     }
-    Mio_LibraryWriteProfile( stdout, (Mio_Library_t *)Abc_FrameReadLibGen() );
+    Mio_LibraryWriteProfile(stdout, (Mio_Library_t*)Abc_FrameReadLibGen());
     return 0;
 
 usage:
-    fprintf( pErr, "\nusage: print_profile [-h]\n");
-    fprintf( pErr, "\t          print the current gate profile\n" );  
-    fprintf( pErr, "\t-h      : print the command usage\n");
-    return 1;       
+    fprintf(pErr, "\nusage: print_profile [-h]\n");
+    fprintf(pErr, "\t          print the current gate profile\n");
+    fprintf(pErr, "\t-h      : print the command usage\n");
+    return 1;
 }
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

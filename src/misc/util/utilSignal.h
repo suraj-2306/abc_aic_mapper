@@ -17,9 +17,9 @@
   Revision    [$Id: utilSignal.h,v 1.00 2011/02/01 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
+
 #ifndef ABC__misc__util__utilSignal_h
-#define ABC__misc__util__utilSignal_h
+#    define ABC__misc__util__utilSignal_h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
@@ -45,9 +45,9 @@ ABC_NAMESPACE_HEADER_START
 
 /*=== utilSignal.c ==========================================================*/
 
-extern int       Util_SignalTmpFile(const char* prefix, const char* suffix, char** out_name);
-extern void      Util_SignalTmpFileRemove(const char* fname, int fLeave);
-extern int       Util_SignalSystem(const char* cmd);
+extern int Util_SignalTmpFile(const char* prefix, const char* suffix, char** out_name);
+extern void Util_SignalTmpFileRemove(const char* fname, int fLeave);
+extern int Util_SignalSystem(const char* cmd);
 
 ABC_NAMESPACE_HEADER_END
 

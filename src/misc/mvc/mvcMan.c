@@ -21,7 +21,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -41,15 +40,14 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Manager_t * Mvc_ManagerStart()
-{
-    Mvc_Manager_t * p;
-    p = ABC_ALLOC( Mvc_Manager_t, 1 );
-    memset( p, 0, sizeof(Mvc_Manager_t) );
-    p->pMan1 = Extra_MmFixedStart( sizeof(Mvc_Cube_t)                              );
-    p->pMan2 = Extra_MmFixedStart( sizeof(Mvc_Cube_t) +     sizeof(Mvc_CubeWord_t) );
-    p->pMan4 = Extra_MmFixedStart( sizeof(Mvc_Cube_t) + 3 * sizeof(Mvc_CubeWord_t) );
-    p->pManC = Extra_MmFixedStart( sizeof(Mvc_Cover_t) );
+Mvc_Manager_t* Mvc_ManagerStart() {
+    Mvc_Manager_t* p;
+    p = ABC_ALLOC(Mvc_Manager_t, 1);
+    memset(p, 0, sizeof(Mvc_Manager_t));
+    p->pMan1 = Extra_MmFixedStart(sizeof(Mvc_Cube_t));
+    p->pMan2 = Extra_MmFixedStart(sizeof(Mvc_Cube_t) + sizeof(Mvc_CubeWord_t));
+    p->pMan4 = Extra_MmFixedStart(sizeof(Mvc_Cube_t) + 3 * sizeof(Mvc_CubeWord_t));
+    p->pManC = Extra_MmFixedStart(sizeof(Mvc_Cover_t));
     return p;
 }
 
@@ -64,19 +62,16 @@ Mvc_Manager_t * Mvc_ManagerStart()
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_ManagerFree( Mvc_Manager_t * p )
-{
-    Extra_MmFixedStop( p->pMan1 );
-    Extra_MmFixedStop( p->pMan2 );
-    Extra_MmFixedStop( p->pMan4 );
-    Extra_MmFixedStop( p->pManC );
-    ABC_FREE( p );
+void Mvc_ManagerFree(Mvc_Manager_t* p) {
+    Extra_MmFixedStop(p->pMan1);
+    Extra_MmFixedStop(p->pMan2);
+    Extra_MmFixedStop(p->pMan4);
+    Extra_MmFixedStop(p->pManC);
+    ABC_FREE(p);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

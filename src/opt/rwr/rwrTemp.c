@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -34,7 +33,7 @@ static int pPerm[13719];
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
- 
+
 /**Function*************************************************************
 
   Synopsis    []
@@ -46,17 +45,16 @@ static int pPerm[13719];
   SeeAlso     []
 
 ***********************************************************************/
-int Rwr_TempCompare( int * pNum1, int * pNum2 )
-{
+int Rwr_TempCompare(int* pNum1, int* pNum2) {
     int Freq1 = pFreqs[*pNum1];
     int Freq2 = pFreqs[*pNum2];
-    if ( Freq1 < Freq2 )
+    if (Freq1 < Freq2)
         return 1;
-    if ( Freq1 > Freq2 )
+    if (Freq1 > Freq2)
         return -1;
-    return 0; 
+    return 0;
 }
- 
+
 /**Function*************************************************************
 
   Synopsis    []
@@ -68,59 +66,52 @@ int Rwr_TempCompare( int * pNum1, int * pNum2 )
   SeeAlso     []
 
 ***********************************************************************/
-void Rwr_Temp()
-{
+void Rwr_Temp() {
     char Buffer[32];
     int nFuncs = 13719;
     int nEntries = 100;
     unsigned uTruth;
     int i, k;
-    FILE * pFile;
+    FILE* pFile;
 
-    pFile = fopen( "nnclass_stats5.txt", "r" );
-    for ( i = 0; i < 13719; i++ )
-    {
-        int RetValue = fscanf( pFile, "%s%d", Buffer, &pFreqs[i] );
-        Extra_ReadHexadecimal( &uTruth, Buffer+2, 5 );
+    pFile = fopen("nnclass_stats5.txt", "r");
+    for (i = 0; i < 13719; i++) {
+        int RetValue = fscanf(pFile, "%s%d", Buffer, &pFreqs[i]);
+        Extra_ReadHexadecimal(&uTruth, Buffer + 2, 5);
         pTruths[i] = uTruth;
     }
-    fclose( pFile );
+    fclose(pFile);
 
-    for ( i = 0; i < 13719; i++ )
+    for (i = 0; i < 13719; i++)
         pPerm[i] = i;
 
-    qsort( (void *)pPerm, (size_t)13719, sizeof(int), 
-            (int (*)(const void *, const void *)) Rwr_TempCompare );
+    qsort((void*)pPerm, (size_t)13719, sizeof(int),
+          (int (*)(const void*, const void*))Rwr_TempCompare);
 
+    pFile = fopen("5npn_100.blif", "w");
+    fprintf(pFile, "# Most frequent NPN classes of 5 vars.\n");
+    fprintf(pFile, ".model 5npn\n");
+    fprintf(pFile, ".inputs a b c d e\n");
+    fprintf(pFile, ".outputs");
+    for (i = 0; i < nEntries; i++)
+        fprintf(pFile, " %02d", i);
+    fprintf(pFile, "\n");
 
-    pFile = fopen( "5npn_100.blif", "w" );
-    fprintf( pFile, "# Most frequent NPN classes of 5 vars.\n" );
-    fprintf( pFile, ".model 5npn\n" );
-    fprintf( pFile, ".inputs a b c d e\n" );
-    fprintf( pFile, ".outputs" );
-    for ( i = 0; i < nEntries; i++ )
-        fprintf( pFile, " %02d", i );
-    fprintf( pFile, "\n" );
-
-    for ( i = 0; i < nEntries; i++ )
-    {
-        fprintf( pFile, ".names a b c d e %02d\n", i );
+    for (i = 0; i < nEntries; i++) {
+        fprintf(pFile, ".names a b c d e %02d\n", i);
         uTruth = pTruths[pPerm[i]];
-        for ( k = 0; k < 32; k++ )
-            if ( uTruth & (1 << k) )
-            {
-                Extra_PrintBinary( pFile, (unsigned *)&k, 5 );
-                fprintf( pFile, " 1\n" );
+        for (k = 0; k < 32; k++)
+            if (uTruth & (1 << k)) {
+                Extra_PrintBinary(pFile, (unsigned*)&k, 5);
+                fprintf(pFile, " 1\n");
             }
     }
-    fprintf( pFile, ".end\n" );
-    fclose( pFile );
+    fprintf(pFile, ".end\n");
+    fclose(pFile);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

@@ -15,9 +15,9 @@
 ABC_NAMESPACE_HEADER_START
 
 struct clause {
-    unsigned f_learnt    : 1;
-    unsigned f_mark      : 1;
-    unsigned f_reallocd  : 1;
+    unsigned f_learnt : 1;
+    unsigned f_mark : 1;
+    unsigned f_reallocd : 1;
     unsigned f_deletable : 1;
     unsigned lbd : 28;
     unsigned size;
@@ -30,10 +30,9 @@ struct clause {
 //===------------------------------------------------------------------------===
 // Clause API
 //===------------------------------------------------------------------------===
-static inline int clause_compare(const void *p1, const void *p2)
-{
-    const struct clause *c1 = (const struct clause *)p1;
-    const struct clause *c2 = (const struct clause *)p2;
+static inline int clause_compare(const void* p1, const void* p2) {
+    const struct clause* c1 = (const struct clause*)p1;
+    const struct clause* c2 = (const struct clause*)p2;
 
     if (c1->size > 2 && c2->size == 2)
         return 1;
@@ -50,8 +49,7 @@ static inline int clause_compare(const void *p1, const void *p2)
     return c1->data[c1->size].act < c2->data[c2->size].act;
 }
 
-static inline void clause_print(struct clause *clause)
-{
+static inline void clause_print(struct clause* clause) {
     unsigned i;
     printf("{ ");
     for (i = 0; i < clause->size; i++)
@@ -59,8 +57,7 @@ static inline void clause_print(struct clause *clause)
     printf("}\n");
 }
 
-static inline void clause_dump(FILE *file, struct clause *clause, int no_zero_var) 
-{
+static inline void clause_dump(FILE* file, struct clause* clause, int no_zero_var) {
     unsigned i;
     for (i = 0; i < clause->size; i++) {
         int var = (clause->data[i].lit >> 1);

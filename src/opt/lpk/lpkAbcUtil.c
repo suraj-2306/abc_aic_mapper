@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,11 +41,10 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Lpk_Fun_t * Lpk_FunAlloc( int nVars )
-{
-    Lpk_Fun_t * p;
-    p = (Lpk_Fun_t *)ABC_ALLOC( char, sizeof(Lpk_Fun_t) + sizeof(unsigned) * Kit_TruthWordNum(nVars) * 3 );
-    memset( p, 0, sizeof(Lpk_Fun_t) );
+Lpk_Fun_t* Lpk_FunAlloc(int nVars) {
+    Lpk_Fun_t* p;
+    p = (Lpk_Fun_t*)ABC_ALLOC(char, sizeof(Lpk_Fun_t) + sizeof(unsigned) * Kit_TruthWordNum(nVars) * 3);
+    memset(p, 0, sizeof(Lpk_Fun_t));
     return p;
 }
 
@@ -61,9 +59,8 @@ Lpk_Fun_t * Lpk_FunAlloc( int nVars )
   SeeAlso     []
 
 ***********************************************************************/
-void Lpk_FunFree( Lpk_Fun_t * p )
-{
-    ABC_FREE( p );
+void Lpk_FunFree(Lpk_Fun_t* p) {
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -77,26 +74,24 @@ void Lpk_FunFree( Lpk_Fun_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Lpk_Fun_t * Lpk_FunCreate( Abc_Ntk_t * pNtk, Vec_Ptr_t * vLeaves, unsigned * pTruth, int nLutK, int AreaLim, int DelayLim )
-{
-    Lpk_Fun_t * p;
-    Abc_Obj_t * pNode;
+Lpk_Fun_t* Lpk_FunCreate(Abc_Ntk_t* pNtk, Vec_Ptr_t* vLeaves, unsigned* pTruth, int nLutK, int AreaLim, int DelayLim) {
+    Lpk_Fun_t* p;
+    Abc_Obj_t* pNode;
     int i;
-    p = Lpk_FunAlloc( Vec_PtrSize(vLeaves) );
+    p = Lpk_FunAlloc(Vec_PtrSize(vLeaves));
     p->Id = Vec_PtrSize(vLeaves);
     p->vNodes = vLeaves;
     p->nVars = Vec_PtrSize(vLeaves);
     p->nLutK = nLutK;
     p->nAreaLim = AreaLim;
     p->nDelayLim = DelayLim;
-    p->uSupp = Kit_TruthSupport( pTruth, p->nVars );
-    Kit_TruthCopy( Lpk_FunTruth(p,0), pTruth, p->nVars );
-    Vec_PtrForEachEntry( Abc_Obj_t *, vLeaves, pNode, i )
-    {
+    p->uSupp = Kit_TruthSupport(pTruth, p->nVars);
+    Kit_TruthCopy(Lpk_FunTruth(p, 0), pTruth, p->nVars);
+    Vec_PtrForEachEntry(Abc_Obj_t*, vLeaves, pNode, i) {
         p->pFanins[i] = i;
         p->pDelays[i] = pNode->Level;
     }
-    Vec_PtrPush( p->vNodes, p );
+    Vec_PtrPush(p->vNodes, p);
     return p;
 }
 
@@ -111,21 +106,20 @@ Lpk_Fun_t * Lpk_FunCreate( Abc_Ntk_t * pNtk, Vec_Ptr_t * vLeaves, unsigned * pTr
   SeeAlso     []
 
 ***********************************************************************/
-Lpk_Fun_t * Lpk_FunDup( Lpk_Fun_t * p, unsigned * pTruth )
-{
-    Lpk_Fun_t * pNew;
-    pNew = Lpk_FunAlloc( p->nVars );
+Lpk_Fun_t* Lpk_FunDup(Lpk_Fun_t* p, unsigned* pTruth) {
+    Lpk_Fun_t* pNew;
+    pNew = Lpk_FunAlloc(p->nVars);
     pNew->Id = Vec_PtrSize(p->vNodes);
     pNew->vNodes = p->vNodes;
     pNew->nVars = p->nVars;
     pNew->nLutK = p->nLutK;
     pNew->nAreaLim = p->nAreaLim;
     pNew->nDelayLim = p->nDelayLim;
-    pNew->uSupp = Kit_TruthSupport( pTruth, p->nVars );
-    Kit_TruthCopy( Lpk_FunTruth(pNew,0), pTruth, p->nVars );
-    memcpy( pNew->pFanins, p->pFanins, 16 );
-    memcpy( pNew->pDelays, p->pDelays, sizeof(int)*16 );
-    Vec_PtrPush( p->vNodes, pNew );
+    pNew->uSupp = Kit_TruthSupport(pTruth, p->nVars);
+    Kit_TruthCopy(Lpk_FunTruth(pNew, 0), pTruth, p->nVars);
+    memcpy(pNew->pFanins, p->pFanins, 16);
+    memcpy(pNew->pDelays, p->pDelays, sizeof(int) * 16);
+    Vec_PtrPush(p->vNodes, pNew);
     return pNew;
 }
 
@@ -140,24 +134,22 @@ Lpk_Fun_t * Lpk_FunDup( Lpk_Fun_t * p, unsigned * pTruth )
   SeeAlso     []
 
 ***********************************************************************/
-int Lpk_FunSuppMinimize( Lpk_Fun_t * p )
-{
+int Lpk_FunSuppMinimize(Lpk_Fun_t* p) {
     int i, k, nVarsNew;
     // compress the truth table
-    if ( p->uSupp == Kit_BitMask(p->nVars) )
+    if (p->uSupp == Kit_BitMask(p->nVars))
         return 0;
     // invalidate support info
     p->fSupports = 0;
-//Extra_PrintBinary( stdout, &p->uSupp, p->nVars ); printf( "\n" );
+    //Extra_PrintBinary( stdout, &p->uSupp, p->nVars ); printf( "\n" );
     // minimize support
     nVarsNew = Kit_WordCountOnes(p->uSupp);
-    Kit_TruthShrink( Lpk_FunTruth(p, 1), Lpk_FunTruth(p, 0), nVarsNew, p->nVars, p->uSupp, 1 );
+    Kit_TruthShrink(Lpk_FunTruth(p, 1), Lpk_FunTruth(p, 0), nVarsNew, p->nVars, p->uSupp, 1);
     k = 0;
-    Lpk_SuppForEachVar( p->uSupp, i )
-    {
+    Lpk_SuppForEachVar(p->uSupp, i) {
         p->pFanins[k] = p->pFanins[i];
         p->pDelays[k] = p->pDelays[i];
-/*
+        /*
         if ( p->fSupports )
         {
             p->puSupps[2*k+0] = p->puSupps[2*i+0];
@@ -166,7 +158,7 @@ int Lpk_FunSuppMinimize( Lpk_Fun_t * p )
 */
         k++;
     }
-    assert( k == nVarsNew );
+    assert(k == nVarsNew);
     p->nVars = k;
     p->uSupp = Kit_BitMask(p->nVars);
     return 1;
@@ -183,20 +175,18 @@ int Lpk_FunSuppMinimize( Lpk_Fun_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Lpk_FunComputeCofSupps( Lpk_Fun_t * p )
-{
-    unsigned * pTruth  = Lpk_FunTruth( p, 0 );
-    unsigned * pTruth0 = Lpk_FunTruth( p, 1 );
-    unsigned * pTruth1 = Lpk_FunTruth( p, 2 );
+void Lpk_FunComputeCofSupps(Lpk_Fun_t* p) {
+    unsigned* pTruth = Lpk_FunTruth(p, 0);
+    unsigned* pTruth0 = Lpk_FunTruth(p, 1);
+    unsigned* pTruth1 = Lpk_FunTruth(p, 2);
     int Var;
-    assert( p->fSupports == 0 );
-//    Lpk_SuppForEachVar( p->uSupp, Var )
-    for ( Var = 0; Var < (int)p->nVars; Var++ )
-    {
-        Kit_TruthCofactor0New( pTruth0, pTruth, p->nVars, Var );
-        Kit_TruthCofactor1New( pTruth1, pTruth, p->nVars, Var );
-        p->puSupps[2*Var+0] = Kit_TruthSupport( pTruth0, p->nVars );
-        p->puSupps[2*Var+1] = Kit_TruthSupport( pTruth1, p->nVars );
+    assert(p->fSupports == 0);
+    //    Lpk_SuppForEachVar( p->uSupp, Var )
+    for (Var = 0; Var < (int)p->nVars; Var++) {
+        Kit_TruthCofactor0New(pTruth0, pTruth, p->nVars, Var);
+        Kit_TruthCofactor1New(pTruth1, pTruth, p->nVars, Var);
+        p->puSupps[2 * Var + 0] = Kit_TruthSupport(pTruth0, p->nVars);
+        p->puSupps[2 * Var + 1] = Kit_TruthSupport(pTruth1, p->nVars);
     }
     p->fSupports = 1;
 }
@@ -212,12 +202,12 @@ void Lpk_FunComputeCofSupps( Lpk_Fun_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Lpk_SuppDelay( unsigned uSupp, int * pDelays )
-{
+int Lpk_SuppDelay(unsigned uSupp, int* pDelays) {
     int Delay, Var;
     Delay = 0;
-    Lpk_SuppForEachVar( uSupp, Var )
-        Delay = Abc_MaxInt( Delay, pDelays[Var] );
+    Lpk_SuppForEachVar(uSupp, Var)
+        Delay
+        = Abc_MaxInt(Delay, pDelays[Var]);
     return Delay + 1;
 }
 
@@ -232,11 +222,11 @@ int Lpk_SuppDelay( unsigned uSupp, int * pDelays )
   SeeAlso     []
 
 ***********************************************************************/
-int Lpk_SuppToVars( unsigned uBoundSet, char * pVars )
-{
+int Lpk_SuppToVars(unsigned uBoundSet, char* pVars) {
     int i, nVars = 0;
-    Lpk_SuppForEachVar( uBoundSet, i )
-        pVars[nVars++] = i;
+    Lpk_SuppForEachVar(uBoundSet, i)
+        pVars[nVars++]
+        = i;
     return nVars;
 }
 
@@ -244,6 +234,4 @@ int Lpk_SuppToVars( unsigned uBoundSet, char * pVars )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

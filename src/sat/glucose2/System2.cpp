@@ -22,8 +22,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #if defined(__linux__)
 
-#include <stdio.h>
-#include <stdlib.h>
+#    include <stdio.h>
+#    include <stdlib.h>
 
 ABC_NAMESPACE_IMPL_START
 
@@ -32,11 +32,10 @@ using namespace Gluco2;
 // TODO: split the memory reading functions into two: one for reading high-watermark of RSS, and
 // one for reading the current virtual memory size.
 
-static inline int memReadStat(int field)
-{
-    char  name[256];
+static inline int memReadStat(int field) {
+    char name[256];
     pid_t pid = getpid();
-    int   value;
+    int value;
 
     sprintf(name, "/proc/%d/statm", pid);
     FILE* in = fopen(name, "rb");
@@ -49,10 +48,8 @@ static inline int memReadStat(int field)
     return value;
 }
 
-
-static inline int memReadPeak(void)
-{
-    char  name[256];
+static inline int memReadPeak(void) {
+    char name[256];
     pid_t pid = getpid();
 
     sprintf(name, "/proc/%d/status", pid);
@@ -69,10 +66,11 @@ static inline int memReadPeak(void)
     return peak_kb;
 }
 
-double Gluco2::memUsed() { return (double)memReadStat(0) * (double)getpagesize() / (1024*1024); }
-double Gluco2::memUsedPeak() { 
+double Gluco2::memUsed() { return (double)memReadStat(0) * (double)getpagesize() / (1024 * 1024); }
+double Gluco2::memUsedPeak() {
     double peak = memReadPeak() / 1024;
-    return peak == 0 ? memUsed() : peak; }
+    return peak == 0 ? memUsed() : peak;
+}
 
 ABC_NAMESPACE_IMPL_END
 
@@ -85,21 +83,23 @@ using namespace Gluco2;
 double Gluco2::memUsed(void) {
     struct rusage ru;
     getrusage(RUSAGE_SELF, &ru);
-    return (double)ru.ru_maxrss / 1024; }
+    return (double)ru.ru_maxrss / 1024;
+}
 double Gluco2::memUsedPeak(void) { return memUsed(); }
 
 ABC_NAMESPACE_IMPL_END
 
 #elif defined(__APPLE__)
 
-#include <malloc/malloc.h>
+#    include <malloc/malloc.h>
 
 ABC_NAMESPACE_IMPL_START
 
 double Gluco2::memUsed(void) {
     malloc_statistics_t t;
     malloc_zone_statistics(NULL, &t);
-    return (double)t.max_size_in_use / (1024*1024); }
+    return (double)t.max_size_in_use / (1024 * 1024);
+}
 
 ABC_NAMESPACE_IMPL_END
 
@@ -107,10 +107,10 @@ ABC_NAMESPACE_IMPL_END
 
 ABC_NAMESPACE_IMPL_START
 
-double Gluco2::memUsed() { 
-    return 0; }
+double Gluco2::memUsed() {
+    return 0;
+}
 
 ABC_NAMESPACE_IMPL_END
 
 #endif
-

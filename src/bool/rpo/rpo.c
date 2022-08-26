@@ -26,22 +26,19 @@
 #include "misc/util/abc_global.h"
 #include "misc/vec/vec.h"
 
-
 ABC_NAMESPACE_IMPL_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-
 typedef struct Rpo_Man_t_ Rpo_Man_t;
 
 struct Rpo_Man_t_ {
-    unsigned * target;
+    unsigned* target;
     int nVars;
 
-    Literal_t ** literals;
+    Literal_t** literals;
     int nLits;
     int nLitsMax;
 
@@ -49,9 +46,7 @@ struct Rpo_Man_t_ {
     int nLCIElems;
 
     int thresholdMax;
-
 };
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -172,7 +167,6 @@ void Rpo_PrintEdge(Rpo_LCI_Edge_t* edge) {
 
  ***********************************************************************/
 Literal_t* Rpo_Factorize(unsigned* target, int nVars, int nThreshold, int verbose) {
-
     int nLitCap = nVars * 2;
     int nLit = 0;
     int w;
@@ -222,7 +216,6 @@ Literal_t* Rpo_Factorize(unsigned* target, int nVars, int nThreshold, int verbos
     ABC_FREE(vecLit);
 
     return result;
-
 }
 
 Literal_t* Rpo_Recursion(unsigned* target, Literal_t** vecLit, int nLit, int nLitCount, int nVars, int* thresholdCount, int thresholdMax, int verbose) {
@@ -327,7 +320,6 @@ Literal_t* Rpo_Recursion(unsigned* target, Literal_t** vecLit, int nLit, int nLi
     if (verbose) {
         Abc_Print(-2, "%d edges created.\n", edgeCount);
     }
-
 
     //traverse the edges, grouping new Literal Clusters
     do {

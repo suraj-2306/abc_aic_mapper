@@ -60,22 +60,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Structure declarations                                                    */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -89,21 +84,17 @@ static char rcsid[] DD_UNUSED = "$Id: cuddSolve.c,v 1.12 2004/08/13 18:04:51 fab
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticStart*************************************************************/
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -122,24 +113,23 @@ static char rcsid[] DD_UNUSED = "$Id: cuddSolve.c,v 1.12 2004/08/13 18:04:51 fab
   SeeAlso     [Cudd_VerifySol]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_SolveEqn(
-  DdManager *  bdd,
-  DdNode * F /* the left-hand side of the equation */,
-  DdNode * Y /* the cube of the y variables */,
-  DdNode ** G /* the array of solutions (return parameter) */,
-  int ** yIndex /* index of y variables */,
-  int  n /* numbers of unknowns */)
-{
-    DdNode *res;
-    int *temp;
+    DdManager* bdd,
+    DdNode* F /* the left-hand side of the equation */,
+    DdNode* Y /* the cube of the y variables */,
+    DdNode** G /* the array of solutions (return parameter) */,
+    int** yIndex /* index of y variables */,
+    int n /* numbers of unknowns */) {
+    DdNode* res;
+    int* temp;
 
     *yIndex = temp = ABC_ALLOC(int, n);
     if (temp == NULL) {
         bdd->errorCode = CUDD_MEMORY_OUT;
-        (void) fprintf(bdd->out,
-                       "Cudd_SolveEqn: Out of memory for yIndex\n");
-        return(NULL);
+        (void)fprintf(bdd->out,
+                      "Cudd_SolveEqn: Out of memory for yIndex\n");
+        return (NULL);
     }
 
     do {
@@ -147,10 +137,9 @@ Cudd_SolveEqn(
         res = cuddSolveEqnRecur(bdd, F, Y, G, n, temp, 0);
     } while (bdd->reordered == 1);
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_SolveEqn */
-
 
 /**Function********************************************************************
 
@@ -165,15 +154,14 @@ Cudd_SolveEqn(
   SeeAlso     [Cudd_SolveEqn]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_VerifySol(
-  DdManager *  bdd,
-  DdNode * F /* the left-hand side of the equation */,
-  DdNode ** G /* the array of solutions */,
-  int * yIndex /* index of y variables */,
-  int  n /* numbers of unknowns */)
-{
-    DdNode *res;
+    DdManager* bdd,
+    DdNode* F /* the left-hand side of the equation */,
+    DdNode** G /* the array of solutions */,
+    int* yIndex /* index of y variables */,
+    int n /* numbers of unknowns */) {
+    DdNode* res;
 
     do {
         bdd->reordered = 0;
@@ -182,15 +170,13 @@ Cudd_VerifySol(
 
     ABC_FREE(yIndex);
 
-    return(res);
+    return (res);
 
 } /* end of Cudd_VerifySol */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -206,18 +192,17 @@ Cudd_VerifySol(
   SeeAlso     [Cudd_SolveEqn, Cudd_VerifySol]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddSolveEqnRecur(
-  DdManager * bdd,
-  DdNode * F /* the left-hand side of the equation */,
-  DdNode * Y /* the cube of remaining y variables */,
-  DdNode ** G /* the array of solutions */,
-  int  n /* number of unknowns */,
-  int * yIndex /* array holding the y variable indices */,
-  int  i /* level of recursion */)
-{
+    DdManager* bdd,
+    DdNode* F /* the left-hand side of the equation */,
+    DdNode* Y /* the cube of remaining y variables */,
+    DdNode** G /* the array of solutions */,
+    int n /* number of unknowns */,
+    int* yIndex /* array holding the y variable indices */,
+    int i /* level of recursion */) {
     DdNode *Fn, *Fm1, *Fv, *Fvbar, *T, *w, *nextY, *one;
-    DdNodePtr *variables;
+    DdNodePtr* variables;
 
     int j;
 
@@ -240,15 +225,15 @@ cuddSolveEqnRecur(
         Fm1 = Cudd_Not(Fm1);
         cuddRef(Fm1);
     } else {
-        return(NULL);
+        return (NULL);
     }
 
-    Fn = cuddSolveEqnRecur(bdd, Fm1, nextY, G, n, yIndex, i+1);
+    Fn = cuddSolveEqnRecur(bdd, Fm1, nextY, G, n, yIndex, i + 1);
     if (Fn) {
         cuddRef(Fn);
     } else {
         Cudd_RecursiveDeref(bdd, Fm1);
-        return(NULL);
+        return (NULL);
     }
 
     Fv = cuddCofactorRecur(bdd, F, variables[yIndex[i]]);
@@ -257,7 +242,7 @@ cuddSolveEqnRecur(
     } else {
         Cudd_RecursiveDeref(bdd, Fm1);
         Cudd_RecursiveDeref(bdd, Fn);
-        return(NULL);
+        return (NULL);
     }
 
     Fvbar = cuddCofactorRecur(bdd, F, Cudd_Not(variables[yIndex[i]]));
@@ -267,7 +252,7 @@ cuddSolveEqnRecur(
         Cudd_RecursiveDeref(bdd, Fm1);
         Cudd_RecursiveDeref(bdd, Fn);
         Cudd_RecursiveDeref(bdd, Fv);
-        return(NULL);
+        return (NULL);
     }
 
     /* Build i-th component of the solution. */
@@ -279,11 +264,11 @@ cuddSolveEqnRecur(
         Cudd_RecursiveDeref(bdd, Fn);
         Cudd_RecursiveDeref(bdd, Fv);
         Cudd_RecursiveDeref(bdd, Fvbar);
-        return(NULL);
+        return (NULL);
     }
 
     T = cuddBddRestrictRecur(bdd, w, Cudd_Not(Fm1));
-    if(T) {
+    if (T) {
         cuddRef(T);
     } else {
         Cudd_RecursiveDeref(bdd, Fm1);
@@ -291,35 +276,34 @@ cuddSolveEqnRecur(
         Cudd_RecursiveDeref(bdd, Fv);
         Cudd_RecursiveDeref(bdd, Fvbar);
         Cudd_RecursiveDeref(bdd, w);
-        return(NULL);
+        return (NULL);
     }
 
-    Cudd_RecursiveDeref(bdd,Fm1);
-    Cudd_RecursiveDeref(bdd,w);
-    Cudd_RecursiveDeref(bdd,Fv);
-    Cudd_RecursiveDeref(bdd,Fvbar);
+    Cudd_RecursiveDeref(bdd, Fm1);
+    Cudd_RecursiveDeref(bdd, w);
+    Cudd_RecursiveDeref(bdd, Fv);
+    Cudd_RecursiveDeref(bdd, Fvbar);
 
     /* Substitute components of solution already found into solution. */
-    for (j = n-1; j > i; j--) {
-        w = cuddBddComposeRecur(bdd,T, G[j], variables[yIndex[j]]);
-        if(w) {
+    for (j = n - 1; j > i; j--) {
+        w = cuddBddComposeRecur(bdd, T, G[j], variables[yIndex[j]]);
+        if (w) {
             cuddRef(w);
         } else {
             Cudd_RecursiveDeref(bdd, Fn);
             Cudd_RecursiveDeref(bdd, T);
-            return(NULL);
+            return (NULL);
         }
-        Cudd_RecursiveDeref(bdd,T);
+        Cudd_RecursiveDeref(bdd, T);
         T = w;
     }
     G[i] = T;
 
     Cudd_Deref(Fn);
 
-    return(Fn);
+    return (Fn);
 
 } /* end of cuddSolveEqnRecur */
-
 
 /**Function********************************************************************
 
@@ -332,43 +316,38 @@ cuddSolveEqnRecur(
   SeeAlso     [Cudd_VerifySol]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddVerifySol(
-  DdManager * bdd,
-  DdNode * F /* the left-hand side of the equation */,
-  DdNode ** G /* the array of solutions */,
-  int * yIndex /* array holding the y variable indices */,
-  int  n /* number of unknowns */)
-{
+    DdManager* bdd,
+    DdNode* F /* the left-hand side of the equation */,
+    DdNode** G /* the array of solutions */,
+    int* yIndex /* array holding the y variable indices */,
+    int n /* number of unknowns */) {
     DdNode *w, *R;
 
     int j;
 
     R = F;
     cuddRef(R);
-    for(j = n - 1; j >= 0; j--) {
-         w = Cudd_bddCompose(bdd, R, G[j], yIndex[j]);
+    for (j = n - 1; j >= 0; j--) {
+        w = Cudd_bddCompose(bdd, R, G[j], yIndex[j]);
         if (w) {
             cuddRef(w);
         } else {
-            return(NULL); 
+            return (NULL);
         }
-        Cudd_RecursiveDeref(bdd,R);
+        Cudd_RecursiveDeref(bdd, R);
         R = w;
     }
 
     cuddDeref(R);
 
-    return(R);
+    return (R);
 
 } /* end of cuddVerifySol */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-
 ABC_NAMESPACE_IMPL_END
-
-

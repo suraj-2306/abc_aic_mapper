@@ -19,14 +19,14 @@
 
 ***********************************************************************/
 #ifndef ABC__sat__xSAT__xsatMemory_h
-#define ABC__sat__xSAT__xsatMemory_h
+#    define ABC__sat__xSAT__xsatMemory_h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
 ////////////////////////////////////////////////////////////////////////
-#include "misc/util/abc_global.h"
+#    include "misc/util/abc_global.h"
 
-#include "xsatClause.h"
+#    include "xsatClause.h"
 
 ABC_NAMESPACE_HEADER_START
 
@@ -34,12 +34,11 @@ ABC_NAMESPACE_HEADER_START
 ///                    STRUCTURE DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 typedef struct xSAT_Mem_t_ xSAT_Mem_t;
-struct xSAT_Mem_t_
-{
-    unsigned   nSize;
-    unsigned   nCap;
-    unsigned   nWasted;
-    unsigned * pData;
+struct xSAT_Mem_t_ {
+    unsigned nSize;
+    unsigned nCap;
+    unsigned nWasted;
+    unsigned* pData;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -56,9 +55,8 @@ struct xSAT_Mem_t_
   SeeAlso     []
 
 ***********************************************************************/
-static inline xSAT_Clause_t *  xSAT_MemClauseHand( xSAT_Mem_t * p, int h )
-{
-    return h != 0xFFFFFFFF ? ( xSAT_Clause_t * )( p->pData + h ) : NULL;
+static inline xSAT_Clause_t* xSAT_MemClauseHand(xSAT_Mem_t* p, int h) {
+    return h != 0xFFFFFFFF ? (xSAT_Clause_t*)(p->pData + h) : NULL;
 }
 
 /**Function*************************************************************
@@ -72,19 +70,17 @@ static inline xSAT_Clause_t *  xSAT_MemClauseHand( xSAT_Mem_t * p, int h )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void xSAT_MemGrow( xSAT_Mem_t * p, unsigned nCap )
-{
+static inline void xSAT_MemGrow(xSAT_Mem_t* p, unsigned nCap) {
     unsigned nPrevCap = p->nCap;
-    if ( p->nCap >= nCap )
+    if (p->nCap >= nCap)
         return;
-    while (p->nCap < nCap)
-    {
-        unsigned delta = ( ( p->nCap >> 1 ) + ( p->nCap >> 3 ) + 2 ) & ~1;
+    while (p->nCap < nCap) {
+        unsigned delta = ((p->nCap >> 1) + (p->nCap >> 3) + 2) & ~1;
         p->nCap += delta;
         assert(p->nCap >= nPrevCap);
     }
     assert(p->nCap > 0);
-    p->pData = ABC_REALLOC( unsigned, p->pData, p->nCap );
+    p->pData = ABC_REALLOC(unsigned, p->pData, p->nCap);
 }
 
 /**Function*************************************************************
@@ -98,12 +94,11 @@ static inline void xSAT_MemGrow( xSAT_Mem_t * p, unsigned nCap )
   SeeAlso     []
 
 ***********************************************************************/
-static inline xSAT_Mem_t * xSAT_MemAlloc( int nCap )
-{
-    xSAT_Mem_t * p;
-    p = ABC_CALLOC( xSAT_Mem_t, 1 );
+static inline xSAT_Mem_t* xSAT_MemAlloc(int nCap) {
+    xSAT_Mem_t* p;
+    p = ABC_CALLOC(xSAT_Mem_t, 1);
     if (nCap <= 0)
-        nCap = 1024*1024;
+        nCap = 1024 * 1024;
 
     xSAT_MemGrow(p, nCap);
     return p;
@@ -120,8 +115,7 @@ static inline xSAT_Mem_t * xSAT_MemAlloc( int nCap )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void xSAT_MemRestart( xSAT_Mem_t * p )
-{
+static inline void xSAT_MemRestart(xSAT_Mem_t* p) {
     p->nSize = 0;
     p->nWasted = 0;
 }
@@ -137,10 +131,9 @@ static inline void xSAT_MemRestart( xSAT_Mem_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void xSAT_MemFree( xSAT_Mem_t * p )
-{
-    ABC_FREE( p->pData );
-    ABC_FREE( p );
+static inline void xSAT_MemFree(xSAT_Mem_t* p) {
+    ABC_FREE(p->pData);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -154,11 +147,10 @@ static inline void xSAT_MemFree( xSAT_Mem_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline unsigned xSAT_MemAppend( xSAT_Mem_t * p, int nSize )
-{
+static inline unsigned xSAT_MemAppend(xSAT_Mem_t* p, int nSize) {
     unsigned nPrevSize;
     assert(nSize > 0);
-    xSAT_MemGrow( p, p->nSize + nSize );
+    xSAT_MemGrow(p, p->nSize + nSize);
     nPrevSize = p->nSize;
     p->nSize += nSize;
     assert(p->nSize > nPrevSize);
@@ -176,9 +168,8 @@ static inline unsigned xSAT_MemAppend( xSAT_Mem_t * p, int nSize )
   SeeAlso     []
 
 ***********************************************************************/
-static inline unsigned xSAT_MemCRef( xSAT_Mem_t * p, unsigned * pC )
-{
-    return ( unsigned )( pC - &(p->pData[0]) );
+static inline unsigned xSAT_MemCRef(xSAT_Mem_t* p, unsigned* pC) {
+    return (unsigned)(pC - &(p->pData[0]));
 }
 
 /**Function*************************************************************
@@ -192,8 +183,7 @@ static inline unsigned xSAT_MemCRef( xSAT_Mem_t * p, unsigned * pC )
   SeeAlso     []
 
 ***********************************************************************/
-static inline unsigned xSAT_MemCap( xSAT_Mem_t * p )
-{
+static inline unsigned xSAT_MemCap(xSAT_Mem_t* p) {
     return p->nCap;
 }
 
@@ -208,8 +198,7 @@ static inline unsigned xSAT_MemCap( xSAT_Mem_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline unsigned xSAT_MemWastedCap( xSAT_Mem_t * p )
-{
+static inline unsigned xSAT_MemWastedCap(xSAT_Mem_t* p) {
     return p->nWasted;
 }
 

@@ -22,13 +22,12 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
 #define GIA_SAT_SHIFT 12
-#define GIA_ROOT_MASK 
+#define GIA_ROOT_MASK
 #define GIA_PATH00_MASK
 #define GIA_PATH10_MASK
 #define GIA_PATH20_MASK
@@ -38,14 +37,12 @@ ABC_NAMESPACE_IMPL_START
 #define GIA_PATH20_MASK
 #define GIA_PATH30_MASK
 
-static inline int Gia_SatObjIsRoot( Gia_Obj_t * p )      { return 0; }
-static inline int Gia_SatObjXorRoot( Gia_Obj_t * p )     { return 0; }
+static inline int Gia_SatObjIsRoot(Gia_Obj_t* p) { return 0; }
+static inline int Gia_SatObjXorRoot(Gia_Obj_t* p) { return 0; }
 
-
-static inline int Gia_SatObjIsAssigned( Gia_Obj_t * p )  { return 0; }
-static inline int Gia_SatObjIsHeld( Gia_Obj_t * p )      { return 0; }
-static inline int Gia_SatObjValue( Gia_Obj_t * p )       { return 0; }
-
+static inline int Gia_SatObjIsAssigned(Gia_Obj_t* p) { return 0; }
+static inline int Gia_SatObjIsHeld(Gia_Obj_t* p) { return 0; }
+static inline int Gia_SatObjValue(Gia_Obj_t* p) { return 0; }
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -62,13 +59,12 @@ static inline int Gia_SatObjValue( Gia_Obj_t * p )       { return 0; }
   SeeAlso     []
 
 ***********************************************************************/
-int Gia_SatPathCheckCutSat_rec( Gia_Obj_t * p, int fCompl )
-{
-    if ( Gia_SatObjIsRoot(p) )
+int Gia_SatPathCheckCutSat_rec(Gia_Obj_t* p, int fCompl) {
+    if (Gia_SatObjIsRoot(p))
         return Gia_ObjIsAssigned(p) && Gia_SatObjValue(p) == fCompl;
-    if ( Gia_SatObjPath0(p) && !Gia_SatPathCheckCutSat_rec( Gia_ObjFanin0(p), fCompl ^ Gia_ObjFaninC0(p) ) )
+    if (Gia_SatObjPath0(p) && !Gia_SatPathCheckCutSat_rec(Gia_ObjFanin0(p), fCompl ^ Gia_ObjFaninC0(p)))
         return 0;
-    if ( Gia_SatObjPath1(p) && !Gia_SatPathCheckCutSat_rec( Gia_ObjFanin1(p), fCompl ^ Gia_ObjFaninC1(p) ) )
+    if (Gia_SatObjPath1(p) && !Gia_SatPathCheckCutSat_rec(Gia_ObjFanin1(p), fCompl ^ Gia_ObjFaninC1(p)))
         return 0;
     return 1;
 }
@@ -84,12 +80,11 @@ int Gia_SatPathCheckCutSat_rec( Gia_Obj_t * p, int fCompl )
   SeeAlso     []
 
 ***********************************************************************/
-int Gia_SatPathCheckCutSat( Gia_Obj_t * p )
-{
+int Gia_SatPathCheckCutSat(Gia_Obj_t* p) {
     int RetValue;
-    assert( Gia_SatObjIsRoot(p) );
+    assert(Gia_SatObjIsRoot(p));
     Gia_SatObjXorRoot(p);
-    RetValue = Gia_SatPathCheckCutSat_rec( p );
+    RetValue = Gia_SatPathCheckCutSat_rec(p);
     Gia_SatObjXorRoot(p);
     return RetValue;
 }
@@ -105,8 +100,7 @@ int Gia_SatPathCheckCutSat( Gia_Obj_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Gia_SatPathUnbind_rec( Gia_Obj_t * p )
-{
+int Gia_SatPathUnbind_rec(Gia_Obj_t* p) {
 }
 
 /**Function*************************************************************
@@ -120,25 +114,18 @@ int Gia_SatPathUnbind_rec( Gia_Obj_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Gia_SatPathStart_rec( Gia_Obj_t * p, int fDiffs, int fCompl )
-{
-    if ( Gia_SatObjIsRoot(p) )
+int Gia_SatPathStart_rec(Gia_Obj_t* p, int fDiffs, int fCompl) {
+    if (Gia_SatObjIsRoot(p))
         return fDiffs && (!Gia_ObjIsAssigned(p) || Gia_SatObjValue(p) != fCompl);
-    if ( fCompl == 0 )
-    {
-        if ( Gia_SatPathStart_rec( Gia_ObjFanin0(p), fDiffs + !Gia_SatObjPath0(p), fCompl ^ Gia_ObjFaninC0(p) ) &&
-             Gia_SatPathStart_rec( Gia_ObjFanin1(p), fDiffs + !Gia_SatObjPath1(p), fCompl ^ Gia_ObjFaninC1(p) ) )
+    if (fCompl == 0) {
+        if (Gia_SatPathStart_rec(Gia_ObjFanin0(p), fDiffs + !Gia_SatObjPath0(p), fCompl ^ Gia_ObjFaninC0(p)) && Gia_SatPathStart_rec(Gia_ObjFanin1(p), fDiffs + !Gia_SatObjPath1(p), fCompl ^ Gia_ObjFaninC1(p)))
             return Gia_ObjSetDraftPath0(p) + Gia_ObjSetDraftPath1(p);
-    }
-    else
-    {
-        if ( Gia_SatPathStart_rec( Gia_ObjFanin0(p), fDiffs + !Gia_SatObjPath0(p), fCompl ^ Gia_ObjFaninC0(p) ) )
-        {
+    } else {
+        if (Gia_SatPathStart_rec(Gia_ObjFanin0(p), fDiffs + !Gia_SatObjPath0(p), fCompl ^ Gia_ObjFaninC0(p))) {
             Gia_ObjUnsetDraftPath1(p);
             return Gia_ObjSetDraftPath0(p);
         }
-        if ( Gia_SatPathStart_rec( Gia_ObjFanin1(p), fDiffs + !Gia_SatObjPath1(p), fCompl ^ Gia_ObjFaninC1(p) ) )
-        {
+        if (Gia_SatPathStart_rec(Gia_ObjFanin1(p), fDiffs + !Gia_SatObjPath1(p), fCompl ^ Gia_ObjFaninC1(p))) {
             Gia_ObjUnsetDraftPath0(p);
             return Gia_ObjSetDraftPath1(p);
         }
@@ -157,12 +144,11 @@ int Gia_SatPathStart_rec( Gia_Obj_t * p, int fDiffs, int fCompl )
   SeeAlso     []
 
 ***********************************************************************/
-int Gia_SatPathStart( Gia_Obj_t * p )
-{
+int Gia_SatPathStart(Gia_Obj_t* p) {
     int RetValue;
-    assert( Gia_SatObjIsRoot(p) );
+    assert(Gia_SatObjIsRoot(p));
     Gia_SatObjXorRoot(p);
-    RetValue = Gia_SatPathStart_rec( p, 0, 0 );
+    RetValue = Gia_SatPathStart_rec(p, 0, 0);
     Gia_SatObjXorRoot(p);
     return RetValue;
 }
@@ -171,6 +157,4 @@ int Gia_SatPathStart( Gia_Obj_t * p )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

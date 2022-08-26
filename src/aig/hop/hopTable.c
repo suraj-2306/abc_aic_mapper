@@ -22,14 +22,12 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
 // hashing the node
-static unsigned long Hop_Hash( Hop_Obj_t * pObj, int TableSize ) 
-{
+static unsigned long Hop_Hash(Hop_Obj_t* pObj, int TableSize) {
     unsigned long Key = Hop_ObjIsExor(pObj) * 1699;
     Key ^= Hop_ObjFanin0(pObj)->Id * 7937;
     Key ^= Hop_ObjFanin1(pObj)->Id * 2971;
@@ -39,24 +37,23 @@ static unsigned long Hop_Hash( Hop_Obj_t * pObj, int TableSize )
 }
 
 // returns the place where this node is stored (or should be stored)
-static Hop_Obj_t ** Hop_TableFind( Hop_Man_t * p, Hop_Obj_t * pObj )
-{
-    Hop_Obj_t ** ppEntry;
-    assert( Hop_ObjChild0(pObj) && Hop_ObjChild1(pObj) );
-    assert( Hop_ObjFanin0(pObj)->Id < Hop_ObjFanin1(pObj)->Id );
-    for ( ppEntry = p->pTable + Hop_Hash(pObj, p->nTableSize); *ppEntry; ppEntry = &(*ppEntry)->pNext )
-        if ( *ppEntry == pObj )
+static Hop_Obj_t** Hop_TableFind(Hop_Man_t* p, Hop_Obj_t* pObj) {
+    Hop_Obj_t** ppEntry;
+    assert(Hop_ObjChild0(pObj) && Hop_ObjChild1(pObj));
+    assert(Hop_ObjFanin0(pObj)->Id < Hop_ObjFanin1(pObj)->Id);
+    for (ppEntry = p->pTable + Hop_Hash(pObj, p->nTableSize); *ppEntry; ppEntry = &(*ppEntry)->pNext)
+        if (*ppEntry == pObj)
             return ppEntry;
-    assert( *ppEntry == NULL );
+    assert(*ppEntry == NULL);
     return ppEntry;
 }
 
-static void         Hop_TableResize( Hop_Man_t * p );
+static void Hop_TableResize(Hop_Man_t* p);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
 ////////////////////////////////////////////////////////////////////////
- 
+
 /**Function*************************************************************
 
   Synopsis    [Checks if a node with the given attributes is in the hash table.]
@@ -68,19 +65,15 @@ static void         Hop_TableResize( Hop_Man_t * p );
   SeeAlso     []
 
 ***********************************************************************/
-Hop_Obj_t * Hop_TableLookup( Hop_Man_t * p, Hop_Obj_t * pGhost )
-{
-    Hop_Obj_t * pEntry;
-    assert( !Hop_IsComplement(pGhost) );
-    assert( Hop_ObjChild0(pGhost) && Hop_ObjChild1(pGhost) );
-    assert( Hop_ObjFanin0(pGhost)->Id < Hop_ObjFanin1(pGhost)->Id );
-    if ( p->fRefCount && (!Hop_ObjRefs(Hop_ObjFanin0(pGhost)) || !Hop_ObjRefs(Hop_ObjFanin1(pGhost))) )
+Hop_Obj_t* Hop_TableLookup(Hop_Man_t* p, Hop_Obj_t* pGhost) {
+    Hop_Obj_t* pEntry;
+    assert(!Hop_IsComplement(pGhost));
+    assert(Hop_ObjChild0(pGhost) && Hop_ObjChild1(pGhost));
+    assert(Hop_ObjFanin0(pGhost)->Id < Hop_ObjFanin1(pGhost)->Id);
+    if (p->fRefCount && (!Hop_ObjRefs(Hop_ObjFanin0(pGhost)) || !Hop_ObjRefs(Hop_ObjFanin1(pGhost))))
         return NULL;
-    for ( pEntry = p->pTable[Hop_Hash(pGhost, p->nTableSize)]; pEntry; pEntry = pEntry->pNext )
-    {
-        if ( Hop_ObjChild0(pEntry) == Hop_ObjChild0(pGhost) && 
-             Hop_ObjChild1(pEntry) == Hop_ObjChild1(pGhost) && 
-             Hop_ObjType(pEntry) == Hop_ObjType(pGhost) )
+    for (pEntry = p->pTable[Hop_Hash(pGhost, p->nTableSize)]; pEntry; pEntry = pEntry->pNext) {
+        if (Hop_ObjChild0(pEntry) == Hop_ObjChild0(pGhost) && Hop_ObjChild1(pEntry) == Hop_ObjChild1(pGhost) && Hop_ObjType(pEntry) == Hop_ObjType(pGhost))
             return pEntry;
     }
     return NULL;
@@ -97,15 +90,14 @@ Hop_Obj_t * Hop_TableLookup( Hop_Man_t * p, Hop_Obj_t * pGhost )
   SeeAlso     []
 
 ***********************************************************************/
-void Hop_TableInsert( Hop_Man_t * p, Hop_Obj_t * pObj )
-{
-    Hop_Obj_t ** ppPlace;
-    assert( !Hop_IsComplement(pObj) );
-    assert( Hop_TableLookup(p, pObj) == NULL );
-    if ( (pObj->Id & 0xFF) == 0 && 2 * p->nTableSize < Hop_ManNodeNum(p) )
-        Hop_TableResize( p );
-    ppPlace = Hop_TableFind( p, pObj );
-    assert( *ppPlace == NULL );
+void Hop_TableInsert(Hop_Man_t* p, Hop_Obj_t* pObj) {
+    Hop_Obj_t** ppPlace;
+    assert(!Hop_IsComplement(pObj));
+    assert(Hop_TableLookup(p, pObj) == NULL);
+    if ((pObj->Id & 0xFF) == 0 && 2 * p->nTableSize < Hop_ManNodeNum(p))
+        Hop_TableResize(p);
+    ppPlace = Hop_TableFind(p, pObj);
+    assert(*ppPlace == NULL);
     *ppPlace = pObj;
 }
 
@@ -120,12 +112,11 @@ void Hop_TableInsert( Hop_Man_t * p, Hop_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-void Hop_TableDelete( Hop_Man_t * p, Hop_Obj_t * pObj )
-{
-    Hop_Obj_t ** ppPlace;
-    assert( !Hop_IsComplement(pObj) );
-    ppPlace = Hop_TableFind( p, pObj );
-    assert( *ppPlace == pObj ); // node should be in the table
+void Hop_TableDelete(Hop_Man_t* p, Hop_Obj_t* pObj) {
+    Hop_Obj_t** ppPlace;
+    assert(!Hop_IsComplement(pObj));
+    ppPlace = Hop_TableFind(p, pObj);
+    assert(*ppPlace == pObj); // node should be in the table
     // remove the node
     *ppPlace = pObj->pNext;
     pObj->pNext = NULL;
@@ -142,12 +133,11 @@ void Hop_TableDelete( Hop_Man_t * p, Hop_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-int Hop_TableCountEntries( Hop_Man_t * p )
-{
-    Hop_Obj_t * pEntry;
+int Hop_TableCountEntries(Hop_Man_t* p) {
+    Hop_Obj_t* pEntry;
     int i, Counter = 0;
-    for ( i = 0; i < p->nTableSize; i++ )
-        for ( pEntry = p->pTable[i]; pEntry; pEntry = pEntry->pNext )
+    for (i = 0; i < p->nTableSize; i++)
+        for (pEntry = p->pTable[i]; pEntry; pEntry = pEntry->pNext)
             Counter++;
     return Counter;
 }
@@ -163,39 +153,37 @@ int Hop_TableCountEntries( Hop_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Hop_TableResize( Hop_Man_t * p )
-{
-    Hop_Obj_t * pEntry, * pNext;
-    Hop_Obj_t ** pTableOld, ** ppPlace;
+void Hop_TableResize(Hop_Man_t* p) {
+    Hop_Obj_t *pEntry, *pNext;
+    Hop_Obj_t **pTableOld, **ppPlace;
     int nTableSizeOld, Counter, nEntries, i;
     abctime clk;
-clk = Abc_Clock();
+    clk = Abc_Clock();
     // save the old table
     pTableOld = p->pTable;
     nTableSizeOld = p->nTableSize;
     // get the new table
-    p->nTableSize = Abc_PrimeCudd( 2 * Hop_ManNodeNum(p) ); 
-    p->pTable = ABC_ALLOC( Hop_Obj_t *, p->nTableSize );
-    memset( p->pTable, 0, sizeof(Hop_Obj_t *) * p->nTableSize );
+    p->nTableSize = Abc_PrimeCudd(2 * Hop_ManNodeNum(p));
+    p->pTable = ABC_ALLOC(Hop_Obj_t*, p->nTableSize);
+    memset(p->pTable, 0, sizeof(Hop_Obj_t*) * p->nTableSize);
     // rehash the entries from the old table
     Counter = 0;
-    for ( i = 0; i < nTableSizeOld; i++ )
-    for ( pEntry = pTableOld[i], pNext = pEntry? pEntry->pNext : NULL; pEntry; pEntry = pNext, pNext = pEntry? pEntry->pNext : NULL )
-    {
-        // get the place where this entry goes in the table 
-        ppPlace = Hop_TableFind( p, pEntry );
-        assert( *ppPlace == NULL ); // should not be there
-        // add the entry to the list
-        *ppPlace = pEntry;
-        pEntry->pNext = NULL;
-        Counter++;
-    }
+    for (i = 0; i < nTableSizeOld; i++)
+        for (pEntry = pTableOld[i], pNext = pEntry ? pEntry->pNext : NULL; pEntry; pEntry = pNext, pNext = pEntry ? pEntry->pNext : NULL) {
+            // get the place where this entry goes in the table
+            ppPlace = Hop_TableFind(p, pEntry);
+            assert(*ppPlace == NULL); // should not be there
+            // add the entry to the list
+            *ppPlace = pEntry;
+            pEntry->pNext = NULL;
+            Counter++;
+        }
     nEntries = Hop_ManNodeNum(p);
-    assert( Counter == nEntries );
-//    printf( "Increasing the structural table size from %6d to %6d. ", nTableSizeOld, p->nTableSize );
-//    ABC_PRT( "Time", Abc_Clock() - clk );
+    assert(Counter == nEntries);
+    //    printf( "Increasing the structural table size from %6d to %6d. ", nTableSizeOld, p->nTableSize );
+    //    ABC_PRT( "Time", Abc_Clock() - clk );
     // replace the table and the parameters
-    ABC_FREE( pTableOld );
+    ABC_FREE(pTableOld);
 }
 
 /**Function********************************************************************
@@ -209,17 +197,15 @@ clk = Abc_Clock();
   SeeAlso     []
 
 ******************************************************************************/
-void Hop_TableProfile( Hop_Man_t * p )
-{
-    Hop_Obj_t * pEntry;
+void Hop_TableProfile(Hop_Man_t* p) {
+    Hop_Obj_t* pEntry;
     int i, Counter;
-    for ( i = 0; i < p->nTableSize; i++ )
-    {
+    for (i = 0; i < p->nTableSize; i++) {
         Counter = 0;
-        for ( pEntry = p->pTable[i]; pEntry; pEntry = pEntry->pNext )
+        for (pEntry = p->pTable[i]; pEntry; pEntry = pEntry->pNext)
             Counter++;
-        if ( Counter ) 
-            printf( "%d ", Counter );
+        if (Counter)
+            printf("%d ", Counter);
     }
 }
 
@@ -227,6 +213,4 @@ void Hop_TableProfile( Hop_Man_t * p )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

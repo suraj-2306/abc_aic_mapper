@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -42,17 +41,16 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-void Fsim_ManSetDefaultParamsSim( Fsim_ParSim_t * p )
-{
-    memset( p, 0, sizeof(Fsim_ParSim_t) );
+void Fsim_ManSetDefaultParamsSim(Fsim_ParSim_t* p) {
+    memset(p, 0, sizeof(Fsim_ParSim_t));
     // user-controlled parameters
-    p->nWords       =   8;    // the number of machine words
-    p->nIters       =  32;    // the number of timeframes
-    p->TimeLimit    =  60;    // time limit in seconds
-    p->fCheckMiter  =   0;    // check if miter outputs are non-zero 
-    p->fVerbose     =   1;    // enables verbose output
+    p->nWords = 8;      // the number of machine words
+    p->nIters = 32;     // the number of timeframes
+    p->TimeLimit = 60;  // time limit in seconds
+    p->fCheckMiter = 0; // check if miter outputs are non-zero
+    p->fVerbose = 1;    // enables verbose output
     // internal parameters
-    p->fCompressAig =   0;    // compresses internal data
+    p->fCompressAig = 0; // compresses internal data
 }
 
 /**Function*************************************************************
@@ -66,23 +64,20 @@ void Fsim_ManSetDefaultParamsSim( Fsim_ParSim_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Fsim_ManSetDefaultParamsSwitch( Fsim_ParSwitch_t * p )
-{
-    memset( p, 0, sizeof(Fsim_ParSwitch_t) );
+void Fsim_ManSetDefaultParamsSwitch(Fsim_ParSwitch_t* p) {
+    memset(p, 0, sizeof(Fsim_ParSwitch_t));
     // user-controlled parameters
-    p->nWords       =   1;    // the number of machine words
-    p->nIters       =  48;    // the number of timeframes
-    p->nPref        =  16;    // the number of first timeframes to skip
-    p->nRandPiNum   =   0;    // PI trans prob (0=1/2; 1=1/4; 2=1/8, etc)
-    p->fProbOne     =   1;    // collect probability of one
-    p->fProbTrans   =   1;    // collect probatility of switching
-    p->fVerbose     =   1;    // enables verbose output
+    p->nWords = 1;     // the number of machine words
+    p->nIters = 48;    // the number of timeframes
+    p->nPref = 16;     // the number of first timeframes to skip
+    p->nRandPiNum = 0; // PI trans prob (0=1/2; 1=1/4; 2=1/8, etc)
+    p->fProbOne = 1;   // collect probability of one
+    p->fProbTrans = 1; // collect probatility of switching
+    p->fVerbose = 1;   // enables verbose output
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

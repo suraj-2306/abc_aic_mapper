@@ -19,30 +19,26 @@
 ***********************************************************************/
 
 #ifndef ABC__aig__ioa__ioa_h
-#define ABC__aig__ioa__ioa_h
-
+#    define ABC__aig__ioa__ioa_h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
 ////////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#    include <stdio.h>
+#    include <stdlib.h>
+#    include <string.h>
+#    include <assert.h>
 
-#include "misc/vec/vec.h"
+#    include "misc/vec/vec.h"
 //#include "bar.h"
-#include "aig/aig/aig.h"
+#    include "aig/aig/aig.h"
 
 ////////////////////////////////////////////////////////////////////////
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
-
-
 ABC_NAMESPACE_HEADER_START
- 
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
@@ -61,27 +57,22 @@ ABC_NAMESPACE_HEADER_START
 ////////////////////////////////////////////////////////////////////////
 
 /*=== ioaReadAig.c ========================================================*/
-extern Aig_Man_t *    Ioa_ReadAigerFromMemory( char * pContents, int nFileSize, int fCheck );
-extern Aig_Man_t *    Ioa_ReadAiger( char * pFileName, int fCheck );
+extern Aig_Man_t* Ioa_ReadAigerFromMemory(char* pContents, int nFileSize, int fCheck);
+extern Aig_Man_t* Ioa_ReadAiger(char* pFileName, int fCheck);
 /*=== ioaWriteAig.c =======================================================*/
-extern Vec_Str_t *    Ioa_WriteAigerIntoMemoryStr( Aig_Man_t * pMan );
-extern char *         Ioa_WriteAigerIntoMemory( Aig_Man_t * pMan, int * pnSize );
-extern void           Ioa_WriteAiger( Aig_Man_t * pMan, char * pFileName, int fWriteSymbols, int fCompact );
+extern Vec_Str_t* Ioa_WriteAigerIntoMemoryStr(Aig_Man_t* pMan);
+extern char* Ioa_WriteAigerIntoMemory(Aig_Man_t* pMan, int* pnSize);
+extern void Ioa_WriteAiger(Aig_Man_t* pMan, char* pFileName, int fWriteSymbols, int fCompact);
 /*=== ioaUtil.c =======================================================*/
-extern int            Ioa_FileSize( char * pFileName );
-extern char *         Ioa_FileNameGeneric( char * FileName );
-extern char *         Ioa_FileNameGenericAppend( char * pBase, char * pSuffix );
-extern char *         Ioa_TimeStamp();
-
-
+extern int Ioa_FileSize(char* pFileName);
+extern char* Ioa_FileNameGeneric(char* FileName);
+extern char* Ioa_FileNameGenericAppend(char* pBase, char* pSuffix);
+extern char* Ioa_TimeStamp();
 
 ABC_NAMESPACE_HEADER_END
-
-
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

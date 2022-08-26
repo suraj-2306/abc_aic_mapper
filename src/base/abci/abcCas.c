@@ -21,11 +21,10 @@
 #include "base/abc/abc.h"
 
 #ifdef ABC_USE_CUDD
-#include "bdd/extrab/extraBdd.h"
+#    include "bdd/extrab/extraBdd.h"
 #endif
 
 ABC_NAMESPACE_IMPL_START
-
 
 /* 
     This LUT cascade synthesis algorithm is described in the paper:
@@ -40,7 +39,7 @@ ABC_NAMESPACE_IMPL_START
 
 #ifdef ABC_USE_CUDD
 
-extern int Abc_CascadeExperiment( char * pFileGeneric, DdManager * dd, DdNode ** pOutputs, int nInputs, int nOutputs, int nLutSize, int fCheck, int fVerbose );
+extern int Abc_CascadeExperiment(char* pFileGeneric, DdManager* dd, DdNode** pOutputs, int nInputs, int nOutputs, int nLutSize, int fCheck, int fVerbose);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -57,57 +56,54 @@ extern int Abc_CascadeExperiment( char * pFileGeneric, DdManager * dd, DdNode **
   SeeAlso     []
 
 ***********************************************************************/
-Abc_Ntk_t * Abc_NtkCascade( Abc_Ntk_t * pNtk, int nLutSize, int fCheck, int fVerbose )
-{
-    DdManager * dd;
-    DdNode ** ppOutputs;
-    Abc_Ntk_t * pNtkNew;
-    Abc_Obj_t * pNode;
-    char * pFileGeneric;
+Abc_Ntk_t* Abc_NtkCascade(Abc_Ntk_t* pNtk, int nLutSize, int fCheck, int fVerbose) {
+    DdManager* dd;
+    DdNode** ppOutputs;
+    Abc_Ntk_t* pNtkNew;
+    Abc_Obj_t* pNode;
+    char* pFileGeneric;
     int fBddSizeMax = 500000;
     int i, fReorder = 1;
     abctime clk = Abc_Clock();
 
-    assert( Abc_NtkIsStrash(pNtk) );
+    assert(Abc_NtkIsStrash(pNtk));
     // compute the global BDDs
-    if ( Abc_NtkBuildGlobalBdds(pNtk, fBddSizeMax, 1, fReorder, 0, fVerbose) == NULL )
+    if (Abc_NtkBuildGlobalBdds(pNtk, fBddSizeMax, 1, fReorder, 0, fVerbose) == NULL)
         return NULL;
 
-    if ( fVerbose )
-    {
-        DdManager * dd = (DdManager *)Abc_NtkGlobalBddMan( pNtk );
-        printf( "Shared BDD size = %6d nodes.  ", Cudd_ReadKeys(dd) - Cudd_ReadDead(dd) );
-        ABC_PRT( "BDD construction time", Abc_Clock() - clk );
+    if (fVerbose) {
+        DdManager* dd = (DdManager*)Abc_NtkGlobalBddMan(pNtk);
+        printf("Shared BDD size = %6d nodes.  ", Cudd_ReadKeys(dd) - Cudd_ReadDead(dd));
+        ABC_PRT("BDD construction time", Abc_Clock() - clk);
     }
 
     // collect global BDDs
-    dd = (DdManager *)Abc_NtkGlobalBddMan( pNtk );
-    ppOutputs = ABC_ALLOC( DdNode *, Abc_NtkCoNum(pNtk) );
-    Abc_NtkForEachCo( pNtk, pNode, i )
-        ppOutputs[i] = (DdNode *)Abc_ObjGlobalBdd(pNode);
+    dd = (DdManager*)Abc_NtkGlobalBddMan(pNtk);
+    ppOutputs = ABC_ALLOC(DdNode*, Abc_NtkCoNum(pNtk));
+    Abc_NtkForEachCo(pNtk, pNode, i)
+        ppOutputs[i]
+        = (DdNode*)Abc_ObjGlobalBdd(pNode);
 
     // call the decomposition
-    pFileGeneric = Extra_FileNameGeneric( pNtk->pSpec );
-    if ( !Abc_CascadeExperiment( pFileGeneric, dd, ppOutputs, Abc_NtkCiNum(pNtk), Abc_NtkCoNum(pNtk), nLutSize, fCheck, fVerbose ) )
-    {
+    pFileGeneric = Extra_FileNameGeneric(pNtk->pSpec);
+    if (!Abc_CascadeExperiment(pFileGeneric, dd, ppOutputs, Abc_NtkCiNum(pNtk), Abc_NtkCoNum(pNtk), nLutSize, fCheck, fVerbose)) {
         // the LUT size is too small
     }
 
     // for now, duplicate the network
-    pNtkNew = Abc_NtkDup( pNtk );
+    pNtkNew = Abc_NtkDup(pNtk);
 
     // cleanup
-    Abc_NtkFreeGlobalBdds( pNtk, 1 );
-    ABC_FREE( ppOutputs );
-    ABC_FREE( pFileGeneric );
+    Abc_NtkFreeGlobalBdds(pNtk, 1);
+    ABC_FREE(ppOutputs);
+    ABC_FREE(pFileGeneric);
 
-//    if ( pNtk->pExdc )
-//        pNtkNew->pExdc = Abc_NtkDup( pNtk->pExdc );
+    //    if ( pNtk->pExdc )
+    //        pNtkNew->pExdc = Abc_NtkDup( pNtk->pExdc );
     // make sure that everything is okay
-    if ( !Abc_NtkCheck( pNtkNew ) )
-    {
-        printf( "Abc_NtkCollapse: The network check has failed.\n" );
-        Abc_NtkDelete( pNtkNew );
+    if (!Abc_NtkCheck(pNtkNew)) {
+        printf("Abc_NtkCollapse: The network check has failed.\n");
+        Abc_NtkDelete(pNtkNew);
         return NULL;
     }
     return pNtkNew;
@@ -115,7 +111,7 @@ Abc_Ntk_t * Abc_NtkCascade( Abc_Ntk_t * pNtk, int nLutSize, int fCheck, int fVer
 
 #else
 
-Abc_Ntk_t * Abc_NtkCascade( Abc_Ntk_t * pNtk, int nLutSize, int fCheck, int fVerbose ) { return NULL; }
+Abc_Ntk_t* Abc_NtkCascade(Abc_Ntk_t* pNtk, int nLutSize, int fCheck, int fVerbose) { return NULL; }
 
 #endif
 
@@ -123,6 +119,4 @@ Abc_Ntk_t * Abc_NtkCascade( Abc_Ntk_t * pNtk, int nLutSize, int fCheck, int fVer
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

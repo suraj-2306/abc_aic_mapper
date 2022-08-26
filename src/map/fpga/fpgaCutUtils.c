@@ -20,7 +20,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -40,11 +39,10 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-Fpga_Cut_t * Fpga_CutAlloc( Fpga_Man_t * p )
-{
-    Fpga_Cut_t * pCut;
-    pCut = (Fpga_Cut_t *)Extra_MmFixedEntryFetch( p->mmCuts );
-    memset( pCut, 0, sizeof(Fpga_Cut_t) );
+Fpga_Cut_t* Fpga_CutAlloc(Fpga_Man_t* p) {
+    Fpga_Cut_t* pCut;
+    pCut = (Fpga_Cut_t*)Extra_MmFixedEntryFetch(p->mmCuts);
+    memset(pCut, 0, sizeof(Fpga_Cut_t));
     return pCut;
 }
 
@@ -59,14 +57,13 @@ Fpga_Cut_t * Fpga_CutAlloc( Fpga_Man_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-Fpga_Cut_t * Fpga_CutDup( Fpga_Man_t * p, Fpga_Cut_t * pCutOld )
-{
-    Fpga_Cut_t * pCutNew;
+Fpga_Cut_t* Fpga_CutDup(Fpga_Man_t* p, Fpga_Cut_t* pCutOld) {
+    Fpga_Cut_t* pCutNew;
     int i;
-    pCutNew = Fpga_CutAlloc( p );
-    pCutNew->pRoot   = pCutOld->pRoot;
+    pCutNew = Fpga_CutAlloc(p);
+    pCutNew->pRoot = pCutOld->pRoot;
     pCutNew->nLeaves = pCutOld->nLeaves;
-    for ( i = 0; i < pCutOld->nLeaves; i++ )
+    for (i = 0; i < pCutOld->nLeaves; i++)
         pCutNew->ppLeaves[i] = pCutOld->ppLeaves[i];
     return pCutNew;
 }
@@ -82,10 +79,9 @@ Fpga_Cut_t * Fpga_CutDup( Fpga_Man_t * p, Fpga_Cut_t * pCutOld )
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_CutFree( Fpga_Man_t * p, Fpga_Cut_t * pCut )
-{
-    if ( pCut )
-    Extra_MmFixedEntryRecycle( p->mmCuts, (char *)pCut );
+void Fpga_CutFree(Fpga_Man_t* p, Fpga_Cut_t* pCut) {
+    if (pCut)
+        Extra_MmFixedEntryRecycle(p->mmCuts, (char*)pCut);
 }
 
 /**Function*************************************************************
@@ -99,14 +95,13 @@ void Fpga_CutFree( Fpga_Man_t * p, Fpga_Cut_t * pCut )
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_CutPrint( Fpga_Man_t * p, Fpga_Node_t * pRoot, Fpga_Cut_t * pCut )
-{
+void Fpga_CutPrint(Fpga_Man_t* p, Fpga_Node_t* pRoot, Fpga_Cut_t* pCut) {
     int i;
-    printf( "CUT:  Delay = %4.2f. Area = %4.2f. Nodes = %d -> {", 
-        pCut->tArrival, pCut->aFlow, pRoot->Num );
-    for ( i = 0; i < pCut->nLeaves; i++ )
-        printf( " %d", pCut->ppLeaves[i]->Num );
-    printf( " } \n" );
+    printf("CUT:  Delay = %4.2f. Area = %4.2f. Nodes = %d -> {",
+           pCut->tArrival, pCut->aFlow, pRoot->Num);
+    for (i = 0; i < pCut->nLeaves; i++)
+        printf(" %d", pCut->ppLeaves[i]->Num);
+    printf(" } \n");
 }
 
 /**Function*************************************************************
@@ -120,17 +115,15 @@ void Fpga_CutPrint( Fpga_Man_t * p, Fpga_Node_t * pRoot, Fpga_Cut_t * pCut )
   SeeAlso     []
 
 ***********************************************************************/
-Fpga_Cut_t * Fpga_CutCreateSimple( Fpga_Man_t * p, Fpga_Node_t * pNode )
-{
-    Fpga_Cut_t * pCut;
-    pCut = Fpga_CutAlloc( p );
-    pCut->pRoot       = pNode;
-    pCut->nLeaves     = 1;
+Fpga_Cut_t* Fpga_CutCreateSimple(Fpga_Man_t* p, Fpga_Node_t* pNode) {
+    Fpga_Cut_t* pCut;
+    pCut = Fpga_CutAlloc(p);
+    pCut->pRoot = pNode;
+    pCut->nLeaves = 1;
     pCut->ppLeaves[0] = pNode;
     pCut->uSign = FPGA_SEQ_SIGN(pCut->ppLeaves[0]);
     return pCut;
 }
-
 
 /**function*************************************************************
 
@@ -143,8 +136,7 @@ Fpga_Cut_t * Fpga_CutCreateSimple( Fpga_Man_t * p, Fpga_Node_t * pNode )
   seealso     []
 
 ***********************************************************************/
-float Fpga_CutGetRootArea( Fpga_Man_t * p, Fpga_Cut_t * pCut )
-{
+float Fpga_CutGetRootArea(Fpga_Man_t* p, Fpga_Cut_t* pCut) {
     return p->pLutLib->pLutAreas[(int)pCut->nLeaves];
 }
 
@@ -159,19 +151,18 @@ float Fpga_CutGetRootArea( Fpga_Man_t * p, Fpga_Cut_t * pCut )
   SeeAlso     []
 
 ***********************************************************************/
-Fpga_Cut_t * Fpga_CutListAppend( Fpga_Cut_t * pSetAll, Fpga_Cut_t * pSets )
-{
-    Fpga_Cut_t * pPrev = NULL; // Suppress "might be used uninitialized"
-    Fpga_Cut_t * pTemp;
-    if ( pSetAll == NULL )
+Fpga_Cut_t* Fpga_CutListAppend(Fpga_Cut_t* pSetAll, Fpga_Cut_t* pSets) {
+    Fpga_Cut_t* pPrev = NULL; // Suppress "might be used uninitialized"
+    Fpga_Cut_t* pTemp;
+    if (pSetAll == NULL)
         return pSets;
-    if ( pSets == NULL )
+    if (pSets == NULL)
         return pSetAll;
     // find the last one
-    for ( pTemp = pSets; pTemp; pTemp = pTemp->pNext )
+    for (pTemp = pSets; pTemp; pTemp = pTemp->pNext)
         pPrev = pTemp;
     // append all the end of the current set
-    assert( pPrev->pNext == NULL );
+    assert(pPrev->pNext == NULL);
     pPrev->pNext = pSetAll;
     return pSets;
 }
@@ -187,14 +178,13 @@ Fpga_Cut_t * Fpga_CutListAppend( Fpga_Cut_t * pSetAll, Fpga_Cut_t * pSets )
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_CutListRecycle( Fpga_Man_t * p, Fpga_Cut_t * pSetList, Fpga_Cut_t * pSave )
-{
-    Fpga_Cut_t * pNext, * pTemp;
-    for ( pTemp = pSetList, pNext = pTemp? pTemp->pNext : NULL; 
-          pTemp; 
-          pTemp = pNext, pNext = pNext? pNext->pNext : NULL )
-        if ( pTemp != pSave )
-            Extra_MmFixedEntryRecycle( p->mmCuts, (char *)pTemp );
+void Fpga_CutListRecycle(Fpga_Man_t* p, Fpga_Cut_t* pSetList, Fpga_Cut_t* pSave) {
+    Fpga_Cut_t *pNext, *pTemp;
+    for (pTemp = pSetList, pNext = pTemp ? pTemp->pNext : NULL;
+         pTemp;
+         pTemp = pNext, pNext = pNext ? pNext->pNext : NULL)
+        if (pTemp != pSave)
+            Extra_MmFixedEntryRecycle(p->mmCuts, (char*)pTemp);
 }
 
 /**Function*************************************************************
@@ -208,11 +198,11 @@ void Fpga_CutListRecycle( Fpga_Man_t * p, Fpga_Cut_t * pSetList, Fpga_Cut_t * pS
   SeeAlso     []
 
 ***********************************************************************/
-int Fpga_CutListCount( Fpga_Cut_t * pSets )
-{
-    Fpga_Cut_t * pTemp;
+int Fpga_CutListCount(Fpga_Cut_t* pSets) {
+    Fpga_Cut_t* pTemp;
     int i;
-    for ( i = 0, pTemp = pSets; pTemp; pTemp = pTemp->pNext, i++ );
+    for (i = 0, pTemp = pSets; pTemp; pTemp = pTemp->pNext, i++)
+        ;
     return i;
 }
 
@@ -276,29 +266,26 @@ void Fpga_CutInsertFanouts( Fpga_Man_t * p, Fpga_Node_t * pNode, Fpga_Cut_t * pC
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_CutGetParameters( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
-{
-    Fpga_Cut_t * pFaninCut;
+void Fpga_CutGetParameters(Fpga_Man_t* pMan, Fpga_Cut_t* pCut) {
+    Fpga_Cut_t* pFaninCut;
     int i;
     pCut->tArrival = -FPGA_FLOAT_LARGE;
-    pCut->aFlow    = pMan->pLutLib->pLutAreas[(int)pCut->nLeaves];
-    for ( i = 0; i < pCut->nLeaves; i++ )
-    {
+    pCut->aFlow = pMan->pLutLib->pLutAreas[(int)pCut->nLeaves];
+    for (i = 0; i < pCut->nLeaves; i++) {
         pFaninCut = pCut->ppLeaves[i]->pCutBest;
-        if ( pCut->tArrival < pFaninCut->tArrival )
-             pCut->tArrival = pFaninCut->tArrival;
+        if (pCut->tArrival < pFaninCut->tArrival)
+            pCut->tArrival = pFaninCut->tArrival;
         // if the fanout count is not set, assume it to be 1
-        if ( pCut->ppLeaves[i]->nRefs == 0 )
+        if (pCut->ppLeaves[i]->nRefs == 0)
             pCut->aFlow += pFaninCut->aFlow;
         else
-//            pCut->aFlow += pFaninCut->aFlow / pCut->ppLeaves[i]->nRefs;
+            //            pCut->aFlow += pFaninCut->aFlow / pCut->ppLeaves[i]->nRefs;
             pCut->aFlow += pFaninCut->aFlow / pCut->ppLeaves[i]->aEstFanouts;
     }
-    // use the first pin to compute the delay of the LUT 
+    // use the first pin to compute the delay of the LUT
     // (this mapper does not support the variable pin delay model)
     pCut->tArrival += pMan->pLutLib->pLutDelays[(int)pCut->nLeaves][0];
 }
-
 
 /**function*************************************************************
 
@@ -311,17 +298,15 @@ void Fpga_CutGetParameters( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
   seealso     []
 
 ***********************************************************************/
-float Fpga_CutGetAreaFlow( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
-{
-    Fpga_Cut_t * pCutFanin;
+float Fpga_CutGetAreaFlow(Fpga_Man_t* pMan, Fpga_Cut_t* pCut) {
+    Fpga_Cut_t* pCutFanin;
     int i;
     pCut->aFlow = pMan->pLutLib->pLutAreas[(int)pCut->nLeaves];
-    for ( i = 0; i < pCut->nLeaves; i++ )
-    {
+    for (i = 0; i < pCut->nLeaves; i++) {
         // get the cut implementing this phase of the fanin
-        pCutFanin  = pCut->ppLeaves[i]->pCutBest;   
-        assert( pCutFanin );
-        pCut->aFlow  += pCutFanin->aFlow / pCut->ppLeaves[i]->nRefs;
+        pCutFanin = pCut->ppLeaves[i]->pCutBest;
+        assert(pCutFanin);
+        pCut->aFlow += pCutFanin->aFlow / pCut->ppLeaves[i]->nRefs;
     }
     return pCut->aFlow;
 }
@@ -337,14 +322,13 @@ float Fpga_CutGetAreaFlow( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
   seealso     []
 
 ***********************************************************************/
-float Fpga_CutGetAreaRefed( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
-{
+float Fpga_CutGetAreaRefed(Fpga_Man_t* pMan, Fpga_Cut_t* pCut) {
     float aResult, aResult2;
-    if ( pCut->nLeaves == 1 )
+    if (pCut->nLeaves == 1)
         return 0;
-    aResult  = Fpga_CutDeref( pMan, NULL, pCut, 0 );
-    aResult2 = Fpga_CutRef( pMan, NULL, pCut, 0 );
-    assert( Fpga_FloatEqual( pMan, aResult, aResult2 ) );
+    aResult = Fpga_CutDeref(pMan, NULL, pCut, 0);
+    aResult2 = Fpga_CutRef(pMan, NULL, pCut, 0);
+    assert(Fpga_FloatEqual(pMan, aResult, aResult2));
     return aResult;
 }
 
@@ -359,14 +343,13 @@ float Fpga_CutGetAreaRefed( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
   seealso     []
 
 ***********************************************************************/
-float Fpga_CutGetAreaDerefed( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
-{
+float Fpga_CutGetAreaDerefed(Fpga_Man_t* pMan, Fpga_Cut_t* pCut) {
     float aResult, aResult2;
-    if ( pCut->nLeaves == 1 )
+    if (pCut->nLeaves == 1)
         return 0;
-    aResult2 = Fpga_CutRef( pMan, NULL, pCut, 0 );
-    aResult  = Fpga_CutDeref( pMan, NULL, pCut, 0 );
-    assert( Fpga_FloatEqual( pMan, aResult, aResult2 ) );
+    aResult2 = Fpga_CutRef(pMan, NULL, pCut, 0);
+    aResult = Fpga_CutDeref(pMan, NULL, pCut, 0);
+    assert(Fpga_FloatEqual(pMan, aResult, aResult2));
     return aResult;
 }
 
@@ -381,28 +364,26 @@ float Fpga_CutGetAreaDerefed( Fpga_Man_t * pMan, Fpga_Cut_t * pCut )
   seealso     []
 
 ***********************************************************************/
-float Fpga_CutRef( Fpga_Man_t * pMan, Fpga_Node_t * pNode, Fpga_Cut_t * pCut, int fFanouts )
-{
-    Fpga_Node_t * pNodeChild;
+float Fpga_CutRef(Fpga_Man_t* pMan, Fpga_Node_t* pNode, Fpga_Cut_t* pCut, int fFanouts) {
+    Fpga_Node_t* pNodeChild;
     float aArea;
     int i;
 
     // deref the fanouts
-//    if ( fFanouts ) 
-//        Fpga_CutInsertFanouts( pMan, pNode, pCut );
+    //    if ( fFanouts )
+    //        Fpga_CutInsertFanouts( pMan, pNode, pCut );
 
     // start the area of this cut
     aArea = pMan->pLutLib->pLutAreas[(int)pCut->nLeaves];
     // go through the children
-    for ( i = 0; i < pCut->nLeaves; i++ )
-    {
+    for (i = 0; i < pCut->nLeaves; i++) {
         pNodeChild = pCut->ppLeaves[i];
-        assert( pNodeChild->nRefs >= 0 );
-        if ( pNodeChild->nRefs++ > 0 )  
+        assert(pNodeChild->nRefs >= 0);
+        if (pNodeChild->nRefs++ > 0)
             continue;
-        if ( !Fpga_NodeIsAnd(pNodeChild) ) 
+        if (!Fpga_NodeIsAnd(pNodeChild))
             continue;
-        aArea += Fpga_CutRef( pMan, pNodeChild, pNodeChild->pCutBest, fFanouts );
+        aArea += Fpga_CutRef(pMan, pNodeChild, pNodeChild->pCutBest, fFanouts);
     }
     return aArea;
 }
@@ -418,32 +399,29 @@ float Fpga_CutRef( Fpga_Man_t * pMan, Fpga_Node_t * pNode, Fpga_Cut_t * pCut, in
   seealso     []
 
 ***********************************************************************/
-float Fpga_CutDeref( Fpga_Man_t * pMan, Fpga_Node_t * pNode, Fpga_Cut_t * pCut, int fFanouts )
-{
-    Fpga_Node_t * pNodeChild;
+float Fpga_CutDeref(Fpga_Man_t* pMan, Fpga_Node_t* pNode, Fpga_Cut_t* pCut, int fFanouts) {
+    Fpga_Node_t* pNodeChild;
     float aArea;
     int i;
 
     // deref the fanouts
-//    if ( fFanouts ) 
-//        Fpga_CutRemoveFanouts( pMan, pNode, pCut );
+    //    if ( fFanouts )
+    //        Fpga_CutRemoveFanouts( pMan, pNode, pCut );
 
     // start the area of this cut
     aArea = pMan->pLutLib->pLutAreas[(int)pCut->nLeaves];
     // go through the children
-    for ( i = 0; i < pCut->nLeaves; i++ )
-    {
+    for (i = 0; i < pCut->nLeaves; i++) {
         pNodeChild = pCut->ppLeaves[i];
-        assert( pNodeChild->nRefs > 0 );
-        if ( --pNodeChild->nRefs > 0 )  
+        assert(pNodeChild->nRefs > 0);
+        if (--pNodeChild->nRefs > 0)
             continue;
-        if ( !Fpga_NodeIsAnd(pNodeChild) ) 
+        if (!Fpga_NodeIsAnd(pNodeChild))
             continue;
-        aArea += Fpga_CutDeref( pMan, pNodeChild, pNodeChild->pCutBest, fFanouts );
+        aArea += Fpga_CutDeref(pMan, pNodeChild, pNodeChild->pCutBest, fFanouts);
     }
     return aArea;
 }
-
 
 /**Function*************************************************************
 
@@ -456,14 +434,12 @@ float Fpga_CutDeref( Fpga_Man_t * pMan, Fpga_Node_t * pNode, Fpga_Cut_t * pCut, 
   SeeAlso     []
 
 ***********************************************************************/
-void Fpga_MappingSetUsedCuts( Fpga_Man_t * pMan )
-{
+void Fpga_MappingSetUsedCuts(Fpga_Man_t* pMan) {
     int i;
-    for ( i = 0; i < pMan->vNodesAll->nSize; i++ )
-        if ( pMan->vNodesAll->pArray[i]->pCutOld )
-        {
+    for (i = 0; i < pMan->vNodesAll->nSize; i++)
+        if (pMan->vNodesAll->pArray[i]->pCutOld) {
             pMan->vNodesAll->pArray[i]->pCutBest = pMan->vNodesAll->pArray[i]->pCutOld;
-            pMan->vNodesAll->pArray[i]->pCutOld  = NULL;
+            pMan->vNodesAll->pArray[i]->pCutOld = NULL;
         }
 }
 
@@ -471,6 +447,4 @@ void Fpga_MappingSetUsedCuts( Fpga_Man_t * pMan )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

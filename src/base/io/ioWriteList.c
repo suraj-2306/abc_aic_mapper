@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 /*
 -------- Original Message --------
 Subject: Re: abc release and retiming
@@ -81,8 +80,8 @@ v_10_s1    >    v_4 ([v_10_s1__v_4] = 1), v_8 ([v_10_s1__v_8] = 1).
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static void Io_WriteListEdge( FILE * pFile, Abc_Obj_t * pObj );
-static void Io_WriteListHost( FILE * pFile, Abc_Ntk_t * pNtk );
+static void Io_WriteListEdge(FILE* pFile, Abc_Obj_t* pObj);
+static void Io_WriteListHost(FILE* pFile, Abc_Ntk_t* pNtk);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -99,46 +98,44 @@ static void Io_WriteListHost( FILE * pFile, Abc_Ntk_t * pNtk );
   SeeAlso     []
 
 ***********************************************************************/
-void Io_WriteList( Abc_Ntk_t * pNtk, char * pFileName, int fUseHost )
-{
-    FILE * pFile;
-    Abc_Obj_t * pObj;
+void Io_WriteList(Abc_Ntk_t* pNtk, char* pFileName, int fUseHost) {
+    FILE* pFile;
+    Abc_Obj_t* pObj;
     int i;
 
-//    assert( Abc_NtkIsSeq(pNtk)  );
+    //    assert( Abc_NtkIsSeq(pNtk)  );
 
     // start the output stream
-    pFile = fopen( pFileName, "w" );
-    if ( pFile == NULL )
-    {
-        fprintf( stdout, "Io_WriteList(): Cannot open the output file \"%s\".\n", pFileName );
+    pFile = fopen(pFileName, "w");
+    if (pFile == NULL) {
+        fprintf(stdout, "Io_WriteList(): Cannot open the output file \"%s\".\n", pFileName);
         return;
     }
 
-    fprintf( pFile, "# Adjacency list for sequential AIG \"%s\"\n", pNtk->pName );
-    fprintf( pFile, "# written by ABC on %s\n", Extra_TimeStamp() );
+    fprintf(pFile, "# Adjacency list for sequential AIG \"%s\"\n", pNtk->pName);
+    fprintf(pFile, "# written by ABC on %s\n", Extra_TimeStamp());
 
     // write the constant node
-    if ( Abc_ObjFanoutNum( Abc_AigConst1(pNtk) ) > 0 )
-        Io_WriteListEdge( pFile, Abc_AigConst1(pNtk) );
+    if (Abc_ObjFanoutNum(Abc_AigConst1(pNtk)) > 0)
+        Io_WriteListEdge(pFile, Abc_AigConst1(pNtk));
 
     // write the PI edges
-    Abc_NtkForEachPi( pNtk, pObj, i )
-        Io_WriteListEdge( pFile, pObj );
+    Abc_NtkForEachPi(pNtk, pObj, i)
+        Io_WriteListEdge(pFile, pObj);
 
     // write the internal nodes
-    Abc_AigForEachAnd( pNtk, pObj, i )
-        Io_WriteListEdge( pFile, pObj );
+    Abc_AigForEachAnd(pNtk, pObj, i)
+        Io_WriteListEdge(pFile, pObj);
 
     // write the host node
-    if ( fUseHost )
-        Io_WriteListHost( pFile, pNtk );
+    if (fUseHost)
+        Io_WriteListHost(pFile, pNtk);
     else
-        Abc_NtkForEachPo( pNtk, pObj, i )
-            Io_WriteListEdge( pFile, pObj );
+        Abc_NtkForEachPo(pNtk, pObj, i)
+            Io_WriteListEdge(pFile, pObj);
 
-    fprintf( pFile, "\n" );
-    fclose( pFile );
+    fprintf(pFile, "\n");
+    fclose(pFile);
 }
 
 /**Function*************************************************************
@@ -152,22 +149,20 @@ void Io_WriteList( Abc_Ntk_t * pNtk, char * pFileName, int fUseHost )
   SeeAlso     []
 
 ***********************************************************************/
-void Io_WriteListEdge( FILE * pFile, Abc_Obj_t * pObj )
-{
-    Abc_Obj_t * pFanout;
+void Io_WriteListEdge(FILE* pFile, Abc_Obj_t* pObj) {
+    Abc_Obj_t* pFanout;
     int i;
-    fprintf( pFile, "%-10s >    ", Abc_ObjName(pObj) );
-    Abc_ObjForEachFanout( pObj, pFanout, i )
-    {
-        fprintf( pFile, " %s", Abc_ObjName(pFanout) );
-        fprintf( pFile, " ([%s_to_", Abc_ObjName(pObj) );
-//        fprintf( pFile, "%s] = %d)", Abc_ObjName(pFanout), Seq_ObjFanoutL(pObj, pFanout) );
-        fprintf( pFile, "%s] = %d)", Abc_ObjName(pFanout), 0 );
-        if ( i != Abc_ObjFanoutNum(pObj) - 1 )
-            fprintf( pFile, "," );
+    fprintf(pFile, "%-10s >    ", Abc_ObjName(pObj));
+    Abc_ObjForEachFanout(pObj, pFanout, i) {
+        fprintf(pFile, " %s", Abc_ObjName(pFanout));
+        fprintf(pFile, " ([%s_to_", Abc_ObjName(pObj));
+        //        fprintf( pFile, "%s] = %d)", Abc_ObjName(pFanout), Seq_ObjFanoutL(pObj, pFanout) );
+        fprintf(pFile, "%s] = %d)", Abc_ObjName(pFanout), 0);
+        if (i != Abc_ObjFanoutNum(pObj) - 1)
+            fprintf(pFile, ",");
     }
-    fprintf( pFile, "." );
-    fprintf( pFile, "\n" );
+    fprintf(pFile, ".");
+    fprintf(pFile, "\n");
 }
 
 /**Function*************************************************************
@@ -181,31 +176,27 @@ void Io_WriteListEdge( FILE * pFile, Abc_Obj_t * pObj )
   SeeAlso     []
 
 ***********************************************************************/
-void Io_WriteListHost( FILE * pFile, Abc_Ntk_t * pNtk )
-{
-    Abc_Obj_t * pObj;
+void Io_WriteListHost(FILE* pFile, Abc_Ntk_t* pNtk) {
+    Abc_Obj_t* pObj;
     int i;
 
-    Abc_NtkForEachPo( pNtk, pObj, i )
-    {
-        fprintf( pFile, "%-10s >    ", Abc_ObjName(pObj) );
-        fprintf( pFile, " %s ([%s_to_%s] = %d)", "HOST", Abc_ObjName(pObj), "HOST", 0 );
-        fprintf( pFile, "." );
-        fprintf( pFile, "\n" );
+    Abc_NtkForEachPo(pNtk, pObj, i) {
+        fprintf(pFile, "%-10s >    ", Abc_ObjName(pObj));
+        fprintf(pFile, " %s ([%s_to_%s] = %d)", "HOST", Abc_ObjName(pObj), "HOST", 0);
+        fprintf(pFile, ".");
+        fprintf(pFile, "\n");
     }
 
-    fprintf( pFile, "%-10s >    ", "HOST" );
-    Abc_NtkForEachPi( pNtk, pObj, i )
-    {
-        fprintf( pFile, " %s", Abc_ObjName(pObj) );
-        fprintf( pFile, " ([%s_to_%s] = %d)", "HOST", Abc_ObjName(pObj), 0 );
-        if ( i != Abc_NtkPiNum(pNtk) - 1 )
-            fprintf( pFile, "," );
+    fprintf(pFile, "%-10s >    ", "HOST");
+    Abc_NtkForEachPi(pNtk, pObj, i) {
+        fprintf(pFile, " %s", Abc_ObjName(pObj));
+        fprintf(pFile, " ([%s_to_%s] = %d)", "HOST", Abc_ObjName(pObj), 0);
+        if (i != Abc_NtkPiNum(pNtk) - 1)
+            fprintf(pFile, ",");
     }
-    fprintf( pFile, "." );
-    fprintf( pFile, "\n" );
+    fprintf(pFile, ".");
+    fprintf(pFile, "\n");
 }
-
 
 /**Function*************************************************************
 
@@ -218,23 +209,21 @@ void Io_WriteListHost( FILE * pFile, Abc_Ntk_t * pNtk )
   SeeAlso     []
 
 ***********************************************************************/
-void Io_WriteCellNet( Abc_Ntk_t * pNtk, char * pFileName )
-{
-    FILE * pFile;
-    Abc_Obj_t * pObj, * pFanout;
+void Io_WriteCellNet(Abc_Ntk_t* pNtk, char* pFileName) {
+    FILE* pFile;
+    Abc_Obj_t *pObj, *pFanout;
     int i, k;
 
-    assert( Abc_NtkIsLogic(pNtk)  );
+    assert(Abc_NtkIsLogic(pNtk));
 
     // start the output stream
-    pFile = fopen( pFileName, "w" );
-    if ( pFile == NULL )
-    {
-        fprintf( stdout, "Io_WriteCellNet(): Cannot open the output file \"%s\".\n", pFileName );
+    pFile = fopen(pFileName, "w");
+    if (pFile == NULL) {
+        fprintf(stdout, "Io_WriteCellNet(): Cannot open the output file \"%s\".\n", pFileName);
         return;
     }
 
-    fprintf( pFile, "# CellNet file for network \"%s\" written by ABC on %s\n", pNtk->pName, Extra_TimeStamp() );
+    fprintf(pFile, "# CellNet file for network \"%s\" written by ABC on %s\n", pNtk->pName, Extra_TimeStamp());
 
     // the only tricky part with writing is handling latches:
     // each latch comes with (a) single-input latch-input node, (b) latch proper, (c) single-input latch-output node
@@ -242,52 +231,47 @@ void Io_WriteCellNet( Abc_Ntk_t * pNtk, char * pFileName )
     // (this ID is used for both the cell and the net driven by that cell)
 
     // write the PIs
-    Abc_NtkForEachPi( pNtk, pObj, i )
-        fprintf( pFile, "cell %d is 0\n", pObj->Id );
+    Abc_NtkForEachPi(pNtk, pObj, i)
+        fprintf(pFile, "cell %d is 0\n", pObj->Id);
     // write the POs
-    Abc_NtkForEachPo( pNtk, pObj, i )
-        fprintf( pFile, "cell %d is 1\n", pObj->Id );
+    Abc_NtkForEachPo(pNtk, pObj, i)
+        fprintf(pFile, "cell %d is 1\n", pObj->Id);
     // write the latches (use the ID of latch input)
-    Abc_NtkForEachLatch( pNtk, pObj, i )
-        fprintf( pFile, "cell %d is 2\n", Abc_ObjFanin0(pObj)->Id );
+    Abc_NtkForEachLatch(pNtk, pObj, i)
+        fprintf(pFile, "cell %d is 2\n", Abc_ObjFanin0(pObj)->Id);
     // write the logic nodes
-    Abc_NtkForEachNode( pNtk, pObj, i )
-        fprintf( pFile, "cell %d is %d\n", pObj->Id, 3+Abc_ObjFaninNum(pObj) );
+    Abc_NtkForEachNode(pNtk, pObj, i)
+        fprintf(pFile, "cell %d is %d\n", pObj->Id, 3 + Abc_ObjFaninNum(pObj));
 
     // write the nets driven by PIs
-    Abc_NtkForEachPi( pNtk, pObj, i )
-    {
-        fprintf( pFile, "net %d  %d 0", pObj->Id, pObj->Id );
-        Abc_ObjForEachFanout( pObj, pFanout, k )
-            fprintf( pFile, "  %d %d", pFanout->Id, 1 + Abc_ObjFanoutFaninNum(pFanout, pObj) );
-        fprintf( pFile, "\n" );
+    Abc_NtkForEachPi(pNtk, pObj, i) {
+        fprintf(pFile, "net %d  %d 0", pObj->Id, pObj->Id);
+        Abc_ObjForEachFanout(pObj, pFanout, k)
+            fprintf(pFile, "  %d %d", pFanout->Id, 1 + Abc_ObjFanoutFaninNum(pFanout, pObj));
+        fprintf(pFile, "\n");
     }
     // write the nets driven by latches
-    Abc_NtkForEachLatch( pNtk, pObj, i )
-    {
-        fprintf( pFile, "net %d  %d 0", Abc_ObjFanin0(pObj)->Id, Abc_ObjFanin0(pObj)->Id );
+    Abc_NtkForEachLatch(pNtk, pObj, i) {
+        fprintf(pFile, "net %d  %d 0", Abc_ObjFanin0(pObj)->Id, Abc_ObjFanin0(pObj)->Id);
         pObj = Abc_ObjFanout0(pObj);
-        Abc_ObjForEachFanout( pObj, pFanout, k )
-            fprintf( pFile, "  %d %d", pFanout->Id, 1 + Abc_ObjFanoutFaninNum(pFanout, pObj) );
-        fprintf( pFile, "\n" );
+        Abc_ObjForEachFanout(pObj, pFanout, k)
+            fprintf(pFile, "  %d %d", pFanout->Id, 1 + Abc_ObjFanoutFaninNum(pFanout, pObj));
+        fprintf(pFile, "\n");
     }
     // write the nets driven by nodes
-    Abc_NtkForEachNode( pNtk, pObj, i )
-    {
-        fprintf( pFile, "net %d  %d 0", pObj->Id, pObj->Id );
-        Abc_ObjForEachFanout( pObj, pFanout, k )
-            fprintf( pFile, "  %d %d", pFanout->Id, 1 + Abc_ObjFanoutFaninNum(pFanout, pObj) );
-        fprintf( pFile, "\n" );
+    Abc_NtkForEachNode(pNtk, pObj, i) {
+        fprintf(pFile, "net %d  %d 0", pObj->Id, pObj->Id);
+        Abc_ObjForEachFanout(pObj, pFanout, k)
+            fprintf(pFile, "  %d %d", pFanout->Id, 1 + Abc_ObjFanoutFaninNum(pFanout, pObj));
+        fprintf(pFile, "\n");
     }
 
-    fprintf( pFile, "\n" );
-    fclose( pFile );
+    fprintf(pFile, "\n");
+    fclose(pFile);
 }
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

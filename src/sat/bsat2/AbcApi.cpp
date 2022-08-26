@@ -43,17 +43,14 @@ using namespace Minisat;
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_CallMiniSat22( Cnf_Dat_t * p )
-{
+int Abc_CallMiniSat22(Cnf_Dat_t* p) {
     Solver S;
     int Result = -1;
     return Result;
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-
 
 ABC_NAMESPACE_IMPL_END

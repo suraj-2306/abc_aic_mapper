@@ -23,11 +23,10 @@
 
 #include "sat/glucose2/AbcGlucose2.h"
 
-
 ABC_NAMESPACE_HEADER_START
 
-extern void Glucose2_Init( Abc_Frame_t *pAbc );
-extern void Glucose2_End( Abc_Frame_t * pAbc );
+extern void Glucose2_Init(Abc_Frame_t* pAbc);
+extern void Glucose2_End(Abc_Frame_t* pAbc);
 
 ABC_NAMESPACE_HEADER_END
 
@@ -37,7 +36,7 @@ ABC_NAMESPACE_IMPL_START
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static int Abc_CommandGlucose( Abc_Frame_t * pAbc, int argc, char ** argv );
+static int Abc_CommandGlucose(Abc_Frame_t* pAbc, int argc, char** argv);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -55,13 +54,11 @@ static int Abc_CommandGlucose( Abc_Frame_t * pAbc, int argc, char ** argv );
 
 ***********************************************************************/
 
-void Glucose2_Init(Abc_Frame_t *pAbc)
-{
-    Cmd_CommandAdd( pAbc, "ABC9", "&glucose2",  Abc_CommandGlucose,  0 );
+void Glucose2_Init(Abc_Frame_t* pAbc) {
+    Cmd_CommandAdd(pAbc, "ABC9", "&glucose2", Abc_CommandGlucose, 0);
 }
 
-void Glucose2_End( Abc_Frame_t * pAbc )
-{
+void Glucose2_End(Abc_Frame_t* pAbc) {
 }
 
 /**Function*************************************************************
@@ -75,28 +72,24 @@ void Glucose2_End( Abc_Frame_t * pAbc )
   SeeAlso     []
 
 ***********************************************************************/
-int Abc_CommandGlucose( Abc_Frame_t * pAbc, int argc, char ** argv )
-{
-    int c       = 0;
-    int pre     = 1;
-    int verb    = 0;
+int Abc_CommandGlucose(Abc_Frame_t* pAbc, int argc, char** argv) {
+    int c = 0;
+    int pre = 1;
+    int verb = 0;
     int nConfls = 0;
 
     Glucose2_Pars pPars;
     Extra_UtilGetoptReset();
-    while ( ( c = Extra_UtilGetopt( argc, argv, "Cpvh" ) ) != EOF )
-    {
-        switch ( c )
-        {
+    while ((c = Extra_UtilGetopt(argc, argv, "Cpvh")) != EOF) {
+        switch (c) {
             case 'C':
-                if ( globalUtilOptind >= argc )
-                {
-                    Abc_Print( -1, "Command line switch \"-C\" should be followed by an integer.\n" );
+                if (globalUtilOptind >= argc) {
+                    Abc_Print(-1, "Command line switch \"-C\" should be followed by an integer.\n");
                     goto usage;
                 }
                 nConfls = atoi(argv[globalUtilOptind]);
                 globalUtilOptind++;
-                if ( nConfls < 0 )
+                if (nConfls < 0)
                     goto usage;
                 break;
             case 'p':
@@ -112,33 +105,31 @@ int Abc_CommandGlucose( Abc_Frame_t * pAbc, int argc, char ** argv )
         }
     }
 
-    pPars = Glucose_CreatePars(pre,verb,0,nConfls);
+    pPars = Glucose_CreatePars(pre, verb, 0, nConfls);
 
-    if ( argc == globalUtilOptind + 1 )
-    {
-        Glucose2_SolveCnf( argv[globalUtilOptind], &pPars );
+    if (argc == globalUtilOptind + 1) {
+        Glucose2_SolveCnf(argv[globalUtilOptind], &pPars);
         return 0;
     }
 
-    if ( pAbc->pGia == NULL )
-    {
-        Abc_Print( -1, "Abc_CommandGlucose(): There is no AIG.\n" );
+    if (pAbc->pGia == NULL) {
+        Abc_Print(-1, "Abc_CommandGlucose(): There is no AIG.\n");
         return 1;
     }
-    
-    if ( Glucose2_SolveAig( pAbc->pGia, &pPars ) == 10 )
-        Abc_FrameReplaceCex( pAbc, &pAbc->pGia->pCexComb );
+
+    if (Glucose2_SolveAig(pAbc->pGia, &pPars) == 10)
+        Abc_FrameReplaceCex(pAbc, &pAbc->pGia->pCexComb);
 
     return 0;
-    
+
 usage:
-    Abc_Print( -2, "usage: &glucose2 [-C num] [-pvh] <file.cnf>\n" );
-    Abc_Print( -2, "\t             run Glucose 3.0 by Gilles Audemard and Laurent Simon\n" );
-    Abc_Print( -2, "\t-C num     : conflict limit [default = %d]\n",  nConfls );
-    Abc_Print( -2, "\t-p         : enable preprocessing [default = %d]\n",pre);
-    Abc_Print( -2, "\t-v         : verbosity [default = %d]\n",verb);
-    Abc_Print( -2, "\t-h         : print the command usage\n");
-    Abc_Print( -2, "\t<file.cnf> : (optional) CNF file to solve\n");
+    Abc_Print(-2, "usage: &glucose2 [-C num] [-pvh] <file.cnf>\n");
+    Abc_Print(-2, "\t             run Glucose 3.0 by Gilles Audemard and Laurent Simon\n");
+    Abc_Print(-2, "\t-C num     : conflict limit [default = %d]\n", nConfls);
+    Abc_Print(-2, "\t-p         : enable preprocessing [default = %d]\n", pre);
+    Abc_Print(-2, "\t-v         : verbosity [default = %d]\n", verb);
+    Abc_Print(-2, "\t-h         : print the command usage\n");
+    Abc_Print(-2, "\t<file.cnf> : (optional) CNF file to solve\n");
     return 1;
 }
 

@@ -12,11 +12,9 @@
 #include "misc/util/abc_global.h"
 ABC_NAMESPACE_HEADER_START
 
-static inline void select_sort(void **data, unsigned size,
-                   int (*comp_fn)(const void *, const void *))
-{
+static inline void select_sort(void** data, unsigned size, int (*comp_fn)(const void*, const void*)) {
     unsigned i, j, i_best;
-    void *temp;
+    void* temp;
 
     for (i = 0; i < (size - 1); i++) {
         i_best = i;
@@ -30,14 +28,12 @@ static inline void select_sort(void **data, unsigned size,
     }
 }
 
-static void satoko_sort(void **data, unsigned size,
-            int (*comp_fn)(const void *, const void *))
-{
+static void satoko_sort(void** data, unsigned size, int (*comp_fn)(const void*, const void*)) {
     if (size <= 15)
         select_sort(data, size, comp_fn);
     else {
-        void *pivot = data[size / 2];
-        void *temp;
+        void* pivot = data[size / 2];
+        void* temp;
         unsigned j = size;
         int i = -1;
 
@@ -49,15 +45,15 @@ static void satoko_sort(void **data, unsigned size,
                 j--;
             } while (comp_fn(pivot, data[j]));
 
-            if ((unsigned) i >= j)
+            if ((unsigned)i >= j)
                 break;
 
             temp = data[i];
             data[i] = data[j];
             data[j] = temp;
         }
-        satoko_sort(data, (unsigned) i, comp_fn);
-        satoko_sort(data + i, (size - (unsigned) i), comp_fn);
+        satoko_sort(data, (unsigned)i, comp_fn);
+        satoko_sort(data + i, (size - (unsigned)i), comp_fn);
     }
 }
 

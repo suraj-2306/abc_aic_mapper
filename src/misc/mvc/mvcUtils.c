@@ -20,25 +20,21 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
 static int bit_count[256] = {
-  0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,
-  1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
-  1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
-  2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
-  1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,
-  2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
-  2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,
-  3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,4,5,5,6,5,6,6,7,5,6,6,7,6,7,7,8
-};
+    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8};
 
-
-static void Mvc_CoverCopyColumn( Mvc_Cover_t * pCoverOld, Mvc_Cover_t * pCoverNew, int iColOld, int iColNew );
-
+static void Mvc_CoverCopyColumn(Mvc_Cover_t* pCoverOld, Mvc_Cover_t* pCoverNew, int iColOld, int iColNew);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -55,14 +51,13 @@ static void Mvc_CoverCopyColumn( Mvc_Cover_t * pCoverOld, Mvc_Cover_t * pCoverNe
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverSupport( Mvc_Cover_t * pCover, Mvc_Cube_t * pSupp )
-{
-    Mvc_Cube_t * pCube;
+void Mvc_CoverSupport(Mvc_Cover_t* pCover, Mvc_Cube_t* pSupp) {
+    Mvc_Cube_t* pCube;
     // clean the support
-    Mvc_CubeBitClean( pSupp );
+    Mvc_CubeBitClean(pSupp);
     // collect the support
-    Mvc_CoverForEachCube( pCover, pCube )
-        Mvc_CubeBitOr( pSupp, pSupp, pCube );
+    Mvc_CoverForEachCube(pCover, pCube)
+        Mvc_CubeBitOr(pSupp, pSupp, pCube);
 }
 
 /**Function*************************************************************
@@ -76,14 +71,13 @@ void Mvc_CoverSupport( Mvc_Cover_t * pCover, Mvc_Cube_t * pSupp )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverSupportAnd( Mvc_Cover_t * pCover, Mvc_Cube_t * pSupp )
-{
-    Mvc_Cube_t * pCube;
+void Mvc_CoverSupportAnd(Mvc_Cover_t* pCover, Mvc_Cube_t* pSupp) {
+    Mvc_Cube_t* pCube;
     // clean the support
-    Mvc_CubeBitFill( pSupp );
+    Mvc_CubeBitFill(pSupp);
     // collect the support
-    Mvc_CoverForEachCube( pCover, pCube )
-        Mvc_CubeBitAnd( pSupp, pSupp, pCube );
+    Mvc_CoverForEachCube(pCover, pCube)
+        Mvc_CubeBitAnd(pSupp, pSupp, pCube);
 }
 
 /**Function*************************************************************
@@ -97,22 +91,20 @@ void Mvc_CoverSupportAnd( Mvc_Cover_t * pCover, Mvc_Cube_t * pSupp )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverSupportSizeBinary( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pSupp;
+int Mvc_CoverSupportSizeBinary(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pSupp;
     int Counter, i, v0, v1;
     // compute the support
-    pSupp = Mvc_CubeAlloc( pCover );
-    Mvc_CoverSupportAnd( pCover, pSupp );
-    Counter = pCover->nBits/2;
-    for ( i = 0; i < pCover->nBits/2; i++ )
-    {
-        v0 = Mvc_CubeBitValue( pSupp, 2*i   );
-        v1 = Mvc_CubeBitValue( pSupp, 2*i+1 );
-        if ( v0 && v1 )
+    pSupp = Mvc_CubeAlloc(pCover);
+    Mvc_CoverSupportAnd(pCover, pSupp);
+    Counter = pCover->nBits / 2;
+    for (i = 0; i < pCover->nBits / 2; i++) {
+        v0 = Mvc_CubeBitValue(pSupp, 2 * i);
+        v1 = Mvc_CubeBitValue(pSupp, 2 * i + 1);
+        if (v0 && v1)
             Counter--;
     }
-    Mvc_CubeFree( pCover, pSupp );
+    Mvc_CubeFree(pCover, pSupp);
     return Counter;
 }
 
@@ -127,17 +119,16 @@ int Mvc_CoverSupportSizeBinary( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverSupportVarBelongs( Mvc_Cover_t * pCover, int iVar )
-{
-    Mvc_Cube_t * pSupp;
+int Mvc_CoverSupportVarBelongs(Mvc_Cover_t* pCover, int iVar) {
+    Mvc_Cube_t* pSupp;
     int RetValue, v0, v1;
     // compute the support
-    pSupp = Mvc_CubeAlloc( pCover );
-    Mvc_CoverSupportAnd( pCover, pSupp );
-    v0 = Mvc_CubeBitValue( pSupp, 2*iVar   );
-    v1 = Mvc_CubeBitValue( pSupp, 2*iVar+1 );
-    RetValue = (int)( !v0 || !v1 );
-    Mvc_CubeFree( pCover, pSupp );
+    pSupp = Mvc_CubeAlloc(pCover);
+    Mvc_CoverSupportAnd(pCover, pSupp);
+    v0 = Mvc_CubeBitValue(pSupp, 2 * iVar);
+    v1 = Mvc_CubeBitValue(pSupp, 2 * iVar + 1);
+    RetValue = (int)(!v0 || !v1);
+    Mvc_CubeFree(pCover, pSupp);
     return RetValue;
 }
 
@@ -152,14 +143,13 @@ int Mvc_CoverSupportVarBelongs( Mvc_Cover_t * pCover, int iVar )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverCommonCube( Mvc_Cover_t * pCover, Mvc_Cube_t * pComCube )
-{
-    Mvc_Cube_t * pCube;
+void Mvc_CoverCommonCube(Mvc_Cover_t* pCover, Mvc_Cube_t* pComCube) {
+    Mvc_Cube_t* pCube;
     // clean the support
-    Mvc_CubeBitFill( pComCube );
+    Mvc_CubeBitFill(pComCube);
     // collect the support
-    Mvc_CoverForEachCube( pCover, pCube )
-        Mvc_CubeBitAnd( pComCube, pComCube, pCube );
+    Mvc_CoverForEachCube(pCover, pCube)
+        Mvc_CubeBitAnd(pComCube, pComCube, pCube);
 }
 
 /**Function*************************************************************
@@ -173,14 +163,13 @@ void Mvc_CoverCommonCube( Mvc_Cover_t * pCover, Mvc_Cube_t * pComCube )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverIsCubeFree( Mvc_Cover_t * pCover )
-{
+int Mvc_CoverIsCubeFree(Mvc_Cover_t* pCover) {
     int Result;
     // get the common cube
-    Mvc_CoverAllocateMask( pCover );
-    Mvc_CoverCommonCube( pCover, pCover->pMask );
+    Mvc_CoverAllocateMask(pCover);
+    Mvc_CoverCommonCube(pCover, pCover->pMask);
     // check whether the common cube is empty
-    Mvc_CubeBitEmpty( Result, pCover->pMask );
+    Mvc_CubeBitEmpty(Result, pCover->pMask);
     return Result;
 }
 
@@ -195,15 +184,14 @@ int Mvc_CoverIsCubeFree( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverMakeCubeFree( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
+void Mvc_CoverMakeCubeFree(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
     // get the common cube
-    Mvc_CoverAllocateMask( pCover );
-    Mvc_CoverCommonCube( pCover, pCover->pMask );
+    Mvc_CoverAllocateMask(pCover);
+    Mvc_CoverCommonCube(pCover, pCover->pMask);
     // remove this cube from the cubes in the cover
-    Mvc_CoverForEachCube( pCover, pCube )
-        Mvc_CubeBitSharp( pCube, pCube, pCover->pMask );
+    Mvc_CoverForEachCube(pCover, pCube)
+        Mvc_CubeBitSharp(pCube, pCube, pCover->pMask);
 }
 
 /**Function*************************************************************
@@ -217,21 +205,19 @@ void Mvc_CoverMakeCubeFree( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cover_t * Mvc_CoverCommonCubeCover( Mvc_Cover_t * pCover )
-{
-    Mvc_Cover_t * pRes;
-    Mvc_Cube_t * pCube;
+Mvc_Cover_t* Mvc_CoverCommonCubeCover(Mvc_Cover_t* pCover) {
+    Mvc_Cover_t* pRes;
+    Mvc_Cube_t* pCube;
     // create the new cover
-    pRes = Mvc_CoverClone( pCover );
+    pRes = Mvc_CoverClone(pCover);
     // get the new cube
-    pCube = Mvc_CubeAlloc( pRes );
+    pCube = Mvc_CubeAlloc(pRes);
     // get the common cube
-    Mvc_CoverCommonCube( pCover, pCube );
+    Mvc_CoverCommonCube(pCover, pCube);
     // add the cube to the cover
-    Mvc_CoverAddCubeTail( pRes, pCube );
+    Mvc_CoverAddCubeTail(pRes, pCube);
     return pRes;
 }
-
 
 /**Function*************************************************************
 
@@ -244,17 +230,16 @@ Mvc_Cover_t * Mvc_CoverCommonCubeCover( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverCheckSuppContainment( Mvc_Cover_t * pCover1, Mvc_Cover_t * pCover2 )
-{
+int Mvc_CoverCheckSuppContainment(Mvc_Cover_t* pCover1, Mvc_Cover_t* pCover2) {
     int Result;
-    assert( pCover1->nBits == pCover2->nBits );
+    assert(pCover1->nBits == pCover2->nBits);
     // set the supports
-    Mvc_CoverAllocateMask( pCover1 );
-    Mvc_CoverSupport( pCover1, pCover1->pMask );
-    Mvc_CoverAllocateMask( pCover2 );
-    Mvc_CoverSupport( pCover2, pCover2->pMask );
+    Mvc_CoverAllocateMask(pCover1);
+    Mvc_CoverSupport(pCover1, pCover1->pMask);
+    Mvc_CoverAllocateMask(pCover2);
+    Mvc_CoverSupport(pCover2, pCover2->pMask);
     // check the containment
-    Mvc_CubeBitNotImpl( Result, pCover2->pMask, pCover1->pMask );
+    Mvc_CubeBitNotImpl(Result, pCover2->pMask, pCover1->pMask);
     return !Result;
 }
 
@@ -269,27 +254,25 @@ int Mvc_CoverCheckSuppContainment( Mvc_Cover_t * pCover1, Mvc_Cover_t * pCover2 
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverSetCubeSizes( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
-    unsigned char * pByte, * pByteStart, * pByteStop;
+int Mvc_CoverSetCubeSizes(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
+    unsigned char *pByte, *pByteStart, *pByteStop;
     int nBytes, nOnes;
 
     // get the number of unsigned chars in the cube's bit strings
     nBytes = pCover->nBits / (8 * sizeof(unsigned char)) + (int)(pCover->nBits % (8 * sizeof(unsigned char)) > 0);
     // iterate through the cubes
-    Mvc_CoverForEachCube( pCover, pCube )
-    {
+    Mvc_CoverForEachCube(pCover, pCube) {
         // clean the counter of ones
         nOnes = 0;
         // set the starting and stopping positions
-        pByteStart = (unsigned char *)pCube->pData;
-        pByteStop  = pByteStart + nBytes;
+        pByteStart = (unsigned char*)pCube->pData;
+        pByteStop = pByteStart + nBytes;
         // iterate through the positions
-        for ( pByte = pByteStart; pByte < pByteStop; pByte++ )
+        for (pByte = pByteStart; pByte < pByteStop; pByte++)
             nOnes += bit_count[*pByte];
         // set the nOnes
-        Mvc_CubeSetSize( pCube, nOnes );
+        Mvc_CubeSetSize(pCube, nOnes);
     }
     return 1;
 }
@@ -305,9 +288,8 @@ int Mvc_CoverSetCubeSizes( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverGetCubeSize( Mvc_Cube_t * pCube )
-{
-    unsigned char * pByte, * pByteStart, * pByteStop;
+int Mvc_CoverGetCubeSize(Mvc_Cube_t* pCube) {
+    unsigned char *pByte, *pByteStart, *pByteStop;
     int nOnes, nBytes, nBits;
     // get the number of unsigned chars in the cube's bit strings
     nBits = (pCube->iLast + 1) * sizeof(Mvc_CubeWord_t) * 8 - pCube->nUnused;
@@ -315,10 +297,10 @@ int Mvc_CoverGetCubeSize( Mvc_Cube_t * pCube )
     // clean the counter of ones
     nOnes = 0;
     // set the starting and stopping positions
-    pByteStart = (unsigned char *)pCube->pData;
-    pByteStop  = pByteStart + nBytes;
+    pByteStart = (unsigned char*)pCube->pData;
+    pByteStop = pByteStart + nBytes;
     // iterate through the positions
-    for ( pByte = pByteStart; pByte < pByteStop; pByte++ )
+    for (pByte = pByteStart; pByte < pByteStop; pByte++)
         nOnes += bit_count[*pByte];
     return nOnes;
 }
@@ -339,44 +321,40 @@ int Mvc_CoverGetCubeSize( Mvc_Cube_t * pCube )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_CoverCountCubePairDiffs( Mvc_Cover_t * pCover, unsigned char pDiffs[] )
-{
-    Mvc_Cube_t * pCube1;
-    Mvc_Cube_t * pCube2;
-    Mvc_Cube_t * pMask;
-    unsigned char * pByte, * pByteStart, * pByteStop;
+int Mvc_CoverCountCubePairDiffs(Mvc_Cover_t* pCover, unsigned char pDiffs[]) {
+    Mvc_Cube_t* pCube1;
+    Mvc_Cube_t* pCube2;
+    Mvc_Cube_t* pMask;
+    unsigned char *pByte, *pByteStart, *pByteStop;
     int nBytes, nOnes;
     int nCubePairs;
 
     // allocate a temporary mask
-    pMask = Mvc_CubeAlloc( pCover );
+    pMask = Mvc_CubeAlloc(pCover);
     // get the number of unsigned chars in the cube's bit strings
     nBytes = pCover->nBits / (8 * sizeof(unsigned char)) + (int)(pCover->nBits % (8 * sizeof(unsigned char)) > 0);
     // iterate through the cubes
     nCubePairs = 0;
-    Mvc_CoverForEachCube( pCover, pCube1 )
-    {
-        Mvc_CoverForEachCubeStart( Mvc_CubeReadNext(pCube1), pCube2 )
-        {
+    Mvc_CoverForEachCube(pCover, pCube1) {
+        Mvc_CoverForEachCubeStart(Mvc_CubeReadNext(pCube1), pCube2) {
             // find the bit-wise exor of cubes
-            Mvc_CubeBitExor( pMask, pCube1, pCube2 );
+            Mvc_CubeBitExor(pMask, pCube1, pCube2);
             // set the starting and stopping positions
-            pByteStart = (unsigned char *)pMask->pData;
-            pByteStop  = pByteStart + nBytes;
+            pByteStart = (unsigned char*)pMask->pData;
+            pByteStop = pByteStart + nBytes;
             // clean the counter of ones
             nOnes = 0;
             // iterate through the positions
-            for ( pByte = pByteStart; pByte < pByteStop; pByte++ )
+            for (pByte = pByteStart; pByte < pByteStop; pByte++)
                 nOnes += bit_count[*pByte];
             // set the nOnes
             pDiffs[nCubePairs++] = nOnes;
         }
     }
     // deallocate the mask
-    Mvc_CubeFree( pCover, pMask );
+    Mvc_CubeFree(pCover, pMask);
     return 1;
 }
-
 
 /**Function*************************************************************
 
@@ -397,28 +375,25 @@ int Mvc_CoverCountCubePairDiffs( Mvc_Cover_t * pCover, unsigned char pDiffs[] )
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cover_t * Mvc_CoverRemap( Mvc_Cover_t * p, int * pVarsRem, int nVarsRem )
-{
-    Mvc_Cover_t * pCover;
-    Mvc_Cube_t * pCube, * pCubeCopy;
+Mvc_Cover_t* Mvc_CoverRemap(Mvc_Cover_t* p, int* pVarsRem, int nVarsRem) {
+    Mvc_Cover_t* pCover;
+    Mvc_Cube_t *pCube, *pCubeCopy;
     int i;
     // clone the cover
-    pCover = Mvc_CoverAlloc( p->pMem, nVarsRem );
+    pCover = Mvc_CoverAlloc(p->pMem, nVarsRem);
     // copy the cube list
-    Mvc_CoverForEachCube( p, pCube )
-    {
-        pCubeCopy = Mvc_CubeAlloc( pCover );
+    Mvc_CoverForEachCube(p, pCube) {
+        pCubeCopy = Mvc_CubeAlloc(pCover);
         //Mvc_CubeBitClean( pCubeCopy );   //changed by wjiang
-        Mvc_CubeBitFill( pCubeCopy );      //changed by wjiang
-        Mvc_CoverAddCubeTail( pCover, pCubeCopy );
+        Mvc_CubeBitFill(pCubeCopy); //changed by wjiang
+        Mvc_CoverAddCubeTail(pCover, pCubeCopy);
     }
     // copy the corresponding columns
-    for ( i = 0; i < nVarsRem; i++ )
-    {
-        if (pVarsRem[i] < 0) 
-            continue;     //added by wjiang
-        assert( pVarsRem[i] >= 0 && pVarsRem[i] < p->nBits );
-        Mvc_CoverCopyColumn( p, pCover, pVarsRem[i], i );
+    for (i = 0; i < nVarsRem; i++) {
+        if (pVarsRem[i] < 0)
+            continue; //added by wjiang
+        assert(pVarsRem[i] >= 0 && pVarsRem[i] < p->nBits);
+        Mvc_CoverCopyColumn(p, pCover, pVarsRem[i], i);
     }
     return pCover;
 }
@@ -437,29 +412,26 @@ Mvc_Cover_t * Mvc_CoverRemap( Mvc_Cover_t * p, int * pVarsRem, int nVarsRem )
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverCopyColumn( Mvc_Cover_t * pCoverOld, Mvc_Cover_t * pCoverNew, 
-                         int iColOld, int iColNew )
-{
-    Mvc_Cube_t * pCubeOld, * pCubeNew;
+void Mvc_CoverCopyColumn(Mvc_Cover_t* pCoverOld, Mvc_Cover_t* pCoverNew, int iColOld, int iColNew) {
+    Mvc_Cube_t *pCubeOld, *pCubeNew;
     int iWordOld, iWordNew, iBitOld, iBitNew;
 
-    assert( Mvc_CoverReadCubeNum(pCoverOld) == Mvc_CoverReadCubeNum(pCoverNew) );
+    assert(Mvc_CoverReadCubeNum(pCoverOld) == Mvc_CoverReadCubeNum(pCoverNew));
 
     // get the place of the old and new columns
     iWordOld = Mvc_CubeWhichWord(iColOld);
-    iBitOld  = Mvc_CubeWhichBit(iColOld);
+    iBitOld = Mvc_CubeWhichBit(iColOld);
     iWordNew = Mvc_CubeWhichWord(iColNew);
-    iBitNew  = Mvc_CubeWhichBit(iColNew);
+    iBitNew = Mvc_CubeWhichBit(iColNew);
 
     // go through the cubes of both covers
     pCubeNew = Mvc_CoverReadCubeHead(pCoverNew);
-    Mvc_CoverForEachCube( pCoverOld, pCubeOld )
-    {
-        if ( pCubeOld->pData[iWordOld] & (1<<iBitOld) )
-            pCubeNew->pData[iWordNew] |= (1<<iBitNew);
+    Mvc_CoverForEachCube(pCoverOld, pCubeOld) {
+        if (pCubeOld->pData[iWordOld] & (1 << iBitOld))
+            pCubeNew->pData[iWordNew] |= (1 << iBitNew);
         else
-            pCubeNew->pData[iWordNew] &= ~(1<<iBitNew);  // added by wjiang
-        pCubeNew = Mvc_CubeReadNext( pCubeNew );
+            pCubeNew->pData[iWordNew] &= ~(1 << iBitNew); // added by wjiang
+        pCubeNew = Mvc_CubeReadNext(pCubeNew);
     }
 }
 
@@ -474,12 +446,11 @@ void Mvc_CoverCopyColumn( Mvc_Cover_t * pCoverOld, Mvc_Cover_t * pCoverNew,
   SeeAlso     []
 
 ***********************************************************************/
-void Mvc_CoverInverse( Mvc_Cover_t * pCover )
-{
-    Mvc_Cube_t * pCube;
+void Mvc_CoverInverse(Mvc_Cover_t* pCover) {
+    Mvc_Cube_t* pCube;
     // complement the cubes
-    Mvc_CoverForEachCube( pCover, pCube )
-        Mvc_CubeBitNot( pCube );
+    Mvc_CoverForEachCube(pCover, pCube)
+        Mvc_CubeBitNot(pCube);
 }
 
 /**Function*************************************************************
@@ -493,14 +464,13 @@ void Mvc_CoverInverse( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cover_t * Mvc_CoverRemoveDontCareLits( Mvc_Cover_t * pCover )
-{
-    Mvc_Cover_t * pCoverNew;
-    Mvc_Cube_t * pCube;
+Mvc_Cover_t* Mvc_CoverRemoveDontCareLits(Mvc_Cover_t* pCover) {
+    Mvc_Cover_t* pCoverNew;
+    Mvc_Cube_t* pCube;
 
-    pCoverNew = Mvc_CoverDup( pCover );
-    Mvc_CoverForEachCube( pCoverNew, pCube )
-        Mvc_CubeBitRemoveDcs( pCube );
+    pCoverNew = Mvc_CoverDup(pCover);
+    Mvc_CoverForEachCube(pCoverNew, pCube)
+        Mvc_CubeBitRemoveDcs(pCube);
     return pCoverNew;
 }
 
@@ -515,20 +485,17 @@ Mvc_Cover_t * Mvc_CoverRemoveDontCareLits( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cover_t * Mvc_CoverCofactor( Mvc_Cover_t * p, int iValue, int iValueOther )
-{
-    Mvc_Cover_t * pCover;
-    Mvc_Cube_t * pCube, * pCubeCopy;
+Mvc_Cover_t* Mvc_CoverCofactor(Mvc_Cover_t* p, int iValue, int iValueOther) {
+    Mvc_Cover_t* pCover;
+    Mvc_Cube_t *pCube, *pCubeCopy;
     // clone the cover
-    pCover = Mvc_CoverClone( p );
+    pCover = Mvc_CoverClone(p);
     // copy the cube list
-    Mvc_CoverForEachCube( p, pCube )
-        if ( Mvc_CubeBitValue( pCube, iValue ) )
-        {
-            pCubeCopy = Mvc_CubeDup( pCover, pCube );
-            Mvc_CoverAddCubeTail( pCover, pCubeCopy );
-            Mvc_CubeBitInsert( pCubeCopy, iValueOther );
-        }
+    Mvc_CoverForEachCube(p, pCube) if (Mvc_CubeBitValue(pCube, iValue)) {
+        pCubeCopy = Mvc_CubeDup(pCover, pCube);
+        Mvc_CoverAddCubeTail(pCover, pCubeCopy);
+        Mvc_CubeBitInsert(pCubeCopy, iValueOther);
+    }
     return pCover;
 }
 
@@ -543,47 +510,45 @@ Mvc_Cover_t * Mvc_CoverCofactor( Mvc_Cover_t * p, int iValue, int iValueOther )
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cover_t * Mvc_CoverFlipVar( Mvc_Cover_t * p, int iValue0, int iValue1 )
-{
-    Mvc_Cover_t * pCover;
-    Mvc_Cube_t * pCube, * pCubeCopy;
+Mvc_Cover_t* Mvc_CoverFlipVar(Mvc_Cover_t* p, int iValue0, int iValue1) {
+    Mvc_Cover_t* pCover;
+    Mvc_Cube_t *pCube, *pCubeCopy;
     int Value0, Value1, Temp;
 
-    assert( iValue0 + 1 == iValue1 ); // should be adjacent
+    assert(iValue0 + 1 == iValue1); // should be adjacent
 
     // clone the cover
-    pCover = Mvc_CoverClone( p );
+    pCover = Mvc_CoverClone(p);
     // copy the cube list
-    Mvc_CoverForEachCube( p, pCube )
-    {
-        pCubeCopy = Mvc_CubeDup( pCover, pCube );
-        Mvc_CoverAddCubeTail( pCover, pCubeCopy );
+    Mvc_CoverForEachCube(p, pCube) {
+        pCubeCopy = Mvc_CubeDup(pCover, pCube);
+        Mvc_CoverAddCubeTail(pCover, pCubeCopy);
 
         // get the bits
-        Value0 = Mvc_CubeBitValue( pCubeCopy, iValue0 );
-        Value1 = Mvc_CubeBitValue( pCubeCopy, iValue1 );
+        Value0 = Mvc_CubeBitValue(pCubeCopy, iValue0);
+        Value1 = Mvc_CubeBitValue(pCubeCopy, iValue1);
 
         // if both bits are one, nothing to swap
-        if ( Value0 && Value1 )
+        if (Value0 && Value1)
             continue;
         // cannot be both zero because they belong to the same var
-        assert( Value0 || Value1 ); 
+        assert(Value0 || Value1);
 
         // swap the bits
-        Temp   = Value0;
+        Temp = Value0;
         Value0 = Value1;
         Value1 = Temp;
 
         // set the bits after the swap
-        if ( Value0 )
-            Mvc_CubeBitInsert( pCubeCopy, iValue0 );
+        if (Value0)
+            Mvc_CubeBitInsert(pCubeCopy, iValue0);
         else
-            Mvc_CubeBitRemove( pCubeCopy, iValue0 );
+            Mvc_CubeBitRemove(pCubeCopy, iValue0);
 
-        if ( Value1 )
-            Mvc_CubeBitInsert( pCubeCopy, iValue1 );
+        if (Value1)
+            Mvc_CubeBitInsert(pCubeCopy, iValue1);
         else
-            Mvc_CubeBitRemove( pCubeCopy, iValue1 );
+            Mvc_CubeBitRemove(pCubeCopy, iValue1);
     }
     return pCover;
 }
@@ -603,50 +568,51 @@ Mvc_Cover_t * Mvc_CoverFlipVar( Mvc_Cover_t * p, int iValue0, int iValue1 )
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cover_t * Mvc_CoverUnivQuantify( Mvc_Cover_t * p, 
-    int iValueA0, int iValueA1, int iValueB0, int iValueB1 )
-{
-    Mvc_Cover_t * pCover;
-    Mvc_Cube_t * pCube, * pCubeCopy;
+Mvc_Cover_t* Mvc_CoverUnivQuantify(Mvc_Cover_t* p,
+                                   int iValueA0,
+                                   int iValueA1,
+                                   int iValueB0,
+                                   int iValueB1) {
+    Mvc_Cover_t* pCover;
+    Mvc_Cube_t *pCube, *pCubeCopy;
     int ValueA0, ValueA1, ValueB0, ValueB1;
 
     // clone the cover
-    pCover = Mvc_CoverClone( p );
+    pCover = Mvc_CoverClone(p);
     // copy the cube list
-    Mvc_CoverForEachCube( p, pCube )
-    {
+    Mvc_CoverForEachCube(p, pCube) {
         // get the bits
-        ValueA0 = Mvc_CubeBitValue( pCube, iValueA0 );
-        ValueA1 = Mvc_CubeBitValue( pCube, iValueA1 );
-        ValueB0 = Mvc_CubeBitValue( pCube, iValueB0 );
-        ValueB1 = Mvc_CubeBitValue( pCube, iValueB1 );
+        ValueA0 = Mvc_CubeBitValue(pCube, iValueA0);
+        ValueA1 = Mvc_CubeBitValue(pCube, iValueA1);
+        ValueB0 = Mvc_CubeBitValue(pCube, iValueB0);
+        ValueB1 = Mvc_CubeBitValue(pCube, iValueB1);
 
         // cannot be both zero because they belong to the same var
-        assert( ValueA0 || ValueA1 ); 
-        assert( ValueB0 || ValueB1 ); 
+        assert(ValueA0 || ValueA1);
+        assert(ValueB0 || ValueB1);
 
         // if the values of this var are different, do not add the cube
-        if ( ValueA0 != ValueB0 && ValueA1 != ValueB1 )
+        if (ValueA0 != ValueB0 && ValueA1 != ValueB1)
             continue;
 
         // create the cube
-        pCubeCopy = Mvc_CubeDup( pCover, pCube );
-        Mvc_CoverAddCubeTail( pCover, pCubeCopy );
+        pCubeCopy = Mvc_CubeDup(pCover, pCube);
+        Mvc_CoverAddCubeTail(pCover, pCubeCopy);
 
         // insert 1's into for the first var, if both have this value
-        if ( ValueA0 && ValueB0 )
-            Mvc_CubeBitInsert( pCubeCopy, iValueA0 );
+        if (ValueA0 && ValueB0)
+            Mvc_CubeBitInsert(pCubeCopy, iValueA0);
         else
-            Mvc_CubeBitRemove( pCubeCopy, iValueA0 );
+            Mvc_CubeBitRemove(pCubeCopy, iValueA0);
 
-        if ( ValueA1 && ValueB1 )
-            Mvc_CubeBitInsert( pCubeCopy, iValueA1 );
+        if (ValueA1 && ValueB1)
+            Mvc_CubeBitInsert(pCubeCopy, iValueA1);
         else
-            Mvc_CubeBitRemove( pCubeCopy, iValueA1 );
-            
+            Mvc_CubeBitRemove(pCubeCopy, iValueA1);
+
         // insert 1's into for the second var (the cover does not depend on it)
-        Mvc_CubeBitInsert( pCubeCopy, iValueB0 );
-        Mvc_CubeBitInsert( pCubeCopy, iValueB1 );
+        Mvc_CubeBitInsert(pCubeCopy, iValueB0);
+        Mvc_CubeBitInsert(pCubeCopy, iValueB1);
     }
     return pCover;
 }
@@ -801,29 +767,26 @@ Mvc_Cover_t * Mvc_CoverCreateExpanded( Mvc_Cover_t * pCover, Vm_VarMap_t * pVmNe
   SeeAlso     []
 
 ***********************************************************************/
-Mvc_Cover_t * Mvc_CoverTranspose( Mvc_Cover_t * pCover )
-{
-    Mvc_Cover_t * pRes;
-    Mvc_Cube_t * pCubeRes, * pCube;
+Mvc_Cover_t* Mvc_CoverTranspose(Mvc_Cover_t* pCover) {
+    Mvc_Cover_t* pRes;
+    Mvc_Cube_t *pCubeRes, *pCube;
     int nWord, nBit, i, iCube;
 
-    pRes = Mvc_CoverAlloc( pCover->pMem, Mvc_CoverReadCubeNum(pCover) );
-    for ( i = 0; i < pCover->nBits; i++ )
-    {
+    pRes = Mvc_CoverAlloc(pCover->pMem, Mvc_CoverReadCubeNum(pCover));
+    for (i = 0; i < pCover->nBits; i++) {
         // get the word and bit of this literal
         nWord = Mvc_CubeWhichWord(i);
-        nBit  = Mvc_CubeWhichBit(i);
+        nBit = Mvc_CubeWhichBit(i);
         // get the transposed cube
-        pCubeRes = Mvc_CubeAlloc( pRes );
-        Mvc_CubeBitClean( pCubeRes );
+        pCubeRes = Mvc_CubeAlloc(pRes);
+        Mvc_CubeBitClean(pCubeRes);
         iCube = 0;
-        Mvc_CoverForEachCube( pCover, pCube )
-        {
-            if ( pCube->pData[nWord] & (1<<nBit) )
-                Mvc_CubeBitInsert( pCubeRes, iCube );
+        Mvc_CoverForEachCube(pCover, pCube) {
+            if (pCube->pData[nWord] & (1 << nBit))
+                Mvc_CubeBitInsert(pCubeRes, iCube);
             iCube++;
         }
-        Mvc_CoverAddCubeTail( pRes, pCubeRes ); 
+        Mvc_CoverAddCubeTail(pRes, pCubeRes);
     }
     return pRes;
 }
@@ -839,35 +802,28 @@ Mvc_Cover_t * Mvc_CoverTranspose( Mvc_Cover_t * pCover )
   SeeAlso     []
 
 ***********************************************************************/
-int Mvc_UtilsCheckUnusedZeros( Mvc_Cover_t * pCover )
-{
+int Mvc_UtilsCheckUnusedZeros(Mvc_Cover_t* pCover) {
     unsigned Unsigned;
-    Mvc_Cube_t * pCube;
+    Mvc_Cube_t* pCube;
     int nCubes;
 
     nCubes = 0;
-    Mvc_CoverForEachCube( pCover, pCube )
-    {
-        if ( pCube->nUnused == 0 )
+    Mvc_CoverForEachCube(pCover, pCube) {
+        if (pCube->nUnused == 0)
             continue;
 
-        Unsigned = ( pCube->pData[pCube->iLast] & 
-                    (BITS_FULL << (32-pCube->nUnused)) );
-        if( Unsigned )
-        {
-            printf( "Cube %2d out of %2d contains dirty bits.\n", nCubes, 
-                Mvc_CoverReadCubeNum(pCover) );
+        Unsigned = (pCube->pData[pCube->iLast] & (BITS_FULL << (32 - pCube->nUnused)));
+        if (Unsigned) {
+            printf("Cube %2d out of %2d contains dirty bits.\n", nCubes,
+                   Mvc_CoverReadCubeNum(pCover));
         }
         nCubes++;
     }
     return 1;
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

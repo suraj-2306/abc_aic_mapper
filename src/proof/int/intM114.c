@@ -22,7 +22,6 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
@@ -43,149 +42,136 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-sat_solver * Inter_ManDeriveSatSolver( 
-    Aig_Man_t * pInter, Cnf_Dat_t * pCnfInter, 
-    Aig_Man_t * pAig, Cnf_Dat_t * pCnfAig, 
-    Aig_Man_t * pFrames, Cnf_Dat_t * pCnfFrames, 
-    Vec_Int_t * vVarsAB, int fUseBackward )
-{
-    sat_solver * pSat;
-    Aig_Obj_t * pObj, * pObj2;
+sat_solver* Inter_ManDeriveSatSolver(
+    Aig_Man_t* pInter,
+    Cnf_Dat_t* pCnfInter,
+    Aig_Man_t* pAig,
+    Cnf_Dat_t* pCnfAig,
+    Aig_Man_t* pFrames,
+    Cnf_Dat_t* pCnfFrames,
+    Vec_Int_t* vVarsAB,
+    int fUseBackward) {
+    sat_solver* pSat;
+    Aig_Obj_t *pObj, *pObj2;
     int i, Lits[2];
 
-//Aig_ManDumpBlif( pInter,  "out_inter.blif", NULL, NULL );
-//Aig_ManDumpBlif( pAig,    "out_aig.blif", NULL, NULL );
-//Aig_ManDumpBlif( pFrames, "out_frames.blif", NULL, NULL );
+    //Aig_ManDumpBlif( pInter,  "out_inter.blif", NULL, NULL );
+    //Aig_ManDumpBlif( pAig,    "out_aig.blif", NULL, NULL );
+    //Aig_ManDumpBlif( pFrames, "out_frames.blif", NULL, NULL );
 
     // sanity checks
-    assert( Aig_ManRegNum(pInter) == 0 );
-    assert( Aig_ManRegNum(pAig) > 0 );
-    assert( Aig_ManRegNum(pFrames) == 0 );
-    assert( Aig_ManCoNum(pInter) == 1 );
-    assert( Aig_ManCoNum(pFrames) == fUseBackward? Saig_ManRegNum(pAig) : 1 );
-    assert( fUseBackward || Aig_ManCiNum(pInter) == Aig_ManRegNum(pAig) );
-//    assert( (Aig_ManCiNum(pFrames) - Aig_ManRegNum(pAig)) % Saig_ManPiNum(pAig) == 0 );
+    assert(Aig_ManRegNum(pInter) == 0);
+    assert(Aig_ManRegNum(pAig) > 0);
+    assert(Aig_ManRegNum(pFrames) == 0);
+    assert(Aig_ManCoNum(pInter) == 1);
+    assert(Aig_ManCoNum(pFrames) == fUseBackward ? Saig_ManRegNum(pAig) : 1);
+    assert(fUseBackward || Aig_ManCiNum(pInter) == Aig_ManRegNum(pAig));
+    //    assert( (Aig_ManCiNum(pFrames) - Aig_ManRegNum(pAig)) % Saig_ManPiNum(pAig) == 0 );
 
     // prepare CNFs
-    Cnf_DataLift( pCnfAig,   pCnfFrames->nVars );
-    Cnf_DataLift( pCnfInter, pCnfFrames->nVars + pCnfAig->nVars );
+    Cnf_DataLift(pCnfAig, pCnfFrames->nVars);
+    Cnf_DataLift(pCnfInter, pCnfFrames->nVars + pCnfAig->nVars);
 
     // start the solver
     pSat = sat_solver_new();
-    sat_solver_store_alloc( pSat );
-    sat_solver_setnvars( pSat, pCnfInter->nVars + pCnfAig->nVars + pCnfFrames->nVars );
+    sat_solver_store_alloc(pSat);
+    sat_solver_setnvars(pSat, pCnfInter->nVars + pCnfAig->nVars + pCnfFrames->nVars);
 
     // add clauses of A
     // interpolant
-    for ( i = 0; i < pCnfInter->nClauses; i++ )
-    {
-        if ( !sat_solver_addclause( pSat, pCnfInter->pClauses[i], pCnfInter->pClauses[i+1] ) )
-        {
-            sat_solver_delete( pSat );
+    for (i = 0; i < pCnfInter->nClauses; i++) {
+        if (!sat_solver_addclause(pSat, pCnfInter->pClauses[i], pCnfInter->pClauses[i + 1])) {
+            sat_solver_delete(pSat);
             // return clauses to the original state
-            Cnf_DataLift( pCnfAig, -pCnfFrames->nVars );
-            Cnf_DataLift( pCnfInter, -pCnfFrames->nVars -pCnfAig->nVars );
+            Cnf_DataLift(pCnfAig, -pCnfFrames->nVars);
+            Cnf_DataLift(pCnfInter, -pCnfFrames->nVars - pCnfAig->nVars);
             return NULL;
         }
     }
     // connector clauses
-    if ( fUseBackward )
-    {
-        Saig_ManForEachLi( pAig, pObj2, i )
-        {
-            if ( Saig_ManRegNum(pAig) == Aig_ManCiNum(pInter) )
-                pObj = Aig_ManCi( pInter, i );
-            else
-            {
-                assert( Aig_ManCiNum(pAig) == Aig_ManCiNum(pInter) );
-                pObj = Aig_ManCi( pInter, Aig_ManCiNum(pAig)-Saig_ManRegNum(pAig) + i );
+    if (fUseBackward) {
+        Saig_ManForEachLi(pAig, pObj2, i) {
+            if (Saig_ManRegNum(pAig) == Aig_ManCiNum(pInter))
+                pObj = Aig_ManCi(pInter, i);
+            else {
+                assert(Aig_ManCiNum(pAig) == Aig_ManCiNum(pInter));
+                pObj = Aig_ManCi(pInter, Aig_ManCiNum(pAig) - Saig_ManRegNum(pAig) + i);
             }
 
-            Lits[0] = toLitCond( pCnfInter->pVarNums[pObj->Id], 0 );
-            Lits[1] = toLitCond( pCnfAig->pVarNums[pObj2->Id], 1 );
-            if ( !sat_solver_addclause( pSat, Lits, Lits+2 ) )
-                assert( 0 );
-            Lits[0] = toLitCond( pCnfInter->pVarNums[pObj->Id], 1 );
-            Lits[1] = toLitCond( pCnfAig->pVarNums[pObj2->Id], 0 );
-            if ( !sat_solver_addclause( pSat, Lits, Lits+2 ) )
-                assert( 0 );
+            Lits[0] = toLitCond(pCnfInter->pVarNums[pObj->Id], 0);
+            Lits[1] = toLitCond(pCnfAig->pVarNums[pObj2->Id], 1);
+            if (!sat_solver_addclause(pSat, Lits, Lits + 2))
+                assert(0);
+            Lits[0] = toLitCond(pCnfInter->pVarNums[pObj->Id], 1);
+            Lits[1] = toLitCond(pCnfAig->pVarNums[pObj2->Id], 0);
+            if (!sat_solver_addclause(pSat, Lits, Lits + 2))
+                assert(0);
         }
-    }
-    else
-    {
-        Aig_ManForEachCi( pInter, pObj, i )
-        {
-            pObj2 = Saig_ManLo( pAig, i );
+    } else {
+        Aig_ManForEachCi(pInter, pObj, i) {
+            pObj2 = Saig_ManLo(pAig, i);
 
-            Lits[0] = toLitCond( pCnfInter->pVarNums[pObj->Id], 0 );
-            Lits[1] = toLitCond( pCnfAig->pVarNums[pObj2->Id], 1 );
-            if ( !sat_solver_addclause( pSat, Lits, Lits+2 ) )
-                assert( 0 );
-            Lits[0] = toLitCond( pCnfInter->pVarNums[pObj->Id], 1 );
-            Lits[1] = toLitCond( pCnfAig->pVarNums[pObj2->Id], 0 );
-            if ( !sat_solver_addclause( pSat, Lits, Lits+2 ) )
-                assert( 0 );
+            Lits[0] = toLitCond(pCnfInter->pVarNums[pObj->Id], 0);
+            Lits[1] = toLitCond(pCnfAig->pVarNums[pObj2->Id], 1);
+            if (!sat_solver_addclause(pSat, Lits, Lits + 2))
+                assert(0);
+            Lits[0] = toLitCond(pCnfInter->pVarNums[pObj->Id], 1);
+            Lits[1] = toLitCond(pCnfAig->pVarNums[pObj2->Id], 0);
+            if (!sat_solver_addclause(pSat, Lits, Lits + 2))
+                assert(0);
         }
     }
     // one timeframe
-    for ( i = 0; i < pCnfAig->nClauses; i++ )
-    {
-        if ( !sat_solver_addclause( pSat, pCnfAig->pClauses[i], pCnfAig->pClauses[i+1] ) )
-            assert( 0 );
+    for (i = 0; i < pCnfAig->nClauses; i++) {
+        if (!sat_solver_addclause(pSat, pCnfAig->pClauses[i], pCnfAig->pClauses[i + 1]))
+            assert(0);
     }
     // connector clauses
-    Vec_IntClear( vVarsAB );
-    if ( fUseBackward )
-    {
-        Aig_ManForEachCo( pFrames, pObj, i )
-        {
-            assert( pCnfFrames->pVarNums[pObj->Id] >= 0 );
-            Vec_IntPush( vVarsAB, pCnfFrames->pVarNums[pObj->Id] );
+    Vec_IntClear(vVarsAB);
+    if (fUseBackward) {
+        Aig_ManForEachCo(pFrames, pObj, i) {
+            assert(pCnfFrames->pVarNums[pObj->Id] >= 0);
+            Vec_IntPush(vVarsAB, pCnfFrames->pVarNums[pObj->Id]);
 
-            pObj2 = Saig_ManLo( pAig, i );
-            Lits[0] = toLitCond( pCnfFrames->pVarNums[pObj->Id], 0 );
-            Lits[1] = toLitCond( pCnfAig->pVarNums[pObj2->Id], 1 );
-            if ( !sat_solver_addclause( pSat, Lits, Lits+2 ) )
-                assert( 0 );
-            Lits[0] = toLitCond( pCnfFrames->pVarNums[pObj->Id], 1 );
-            Lits[1] = toLitCond( pCnfAig->pVarNums[pObj2->Id], 0 );
-            if ( !sat_solver_addclause( pSat, Lits, Lits+2 ) )
-                assert( 0 );
+            pObj2 = Saig_ManLo(pAig, i);
+            Lits[0] = toLitCond(pCnfFrames->pVarNums[pObj->Id], 0);
+            Lits[1] = toLitCond(pCnfAig->pVarNums[pObj2->Id], 1);
+            if (!sat_solver_addclause(pSat, Lits, Lits + 2))
+                assert(0);
+            Lits[0] = toLitCond(pCnfFrames->pVarNums[pObj->Id], 1);
+            Lits[1] = toLitCond(pCnfAig->pVarNums[pObj2->Id], 0);
+            if (!sat_solver_addclause(pSat, Lits, Lits + 2))
+                assert(0);
         }
-    }
-    else
-    {
-        Aig_ManForEachCi( pFrames, pObj, i )
-        {
-            if ( i == Aig_ManRegNum(pAig) )
+    } else {
+        Aig_ManForEachCi(pFrames, pObj, i) {
+            if (i == Aig_ManRegNum(pAig))
                 break;
-            Vec_IntPush( vVarsAB, pCnfFrames->pVarNums[pObj->Id] );
+            Vec_IntPush(vVarsAB, pCnfFrames->pVarNums[pObj->Id]);
 
-            pObj2 = Saig_ManLi( pAig, i );
-            Lits[0] = toLitCond( pCnfFrames->pVarNums[pObj->Id], 0 );
-            Lits[1] = toLitCond( pCnfAig->pVarNums[pObj2->Id], 1 );
-            if ( !sat_solver_addclause( pSat, Lits, Lits+2 ) )
-                assert( 0 );
-            Lits[0] = toLitCond( pCnfFrames->pVarNums[pObj->Id], 1 );
-            Lits[1] = toLitCond( pCnfAig->pVarNums[pObj2->Id], 0 );
-            if ( !sat_solver_addclause( pSat, Lits, Lits+2 ) )
-                assert( 0 );
+            pObj2 = Saig_ManLi(pAig, i);
+            Lits[0] = toLitCond(pCnfFrames->pVarNums[pObj->Id], 0);
+            Lits[1] = toLitCond(pCnfAig->pVarNums[pObj2->Id], 1);
+            if (!sat_solver_addclause(pSat, Lits, Lits + 2))
+                assert(0);
+            Lits[0] = toLitCond(pCnfFrames->pVarNums[pObj->Id], 1);
+            Lits[1] = toLitCond(pCnfAig->pVarNums[pObj2->Id], 0);
+            if (!sat_solver_addclause(pSat, Lits, Lits + 2))
+                assert(0);
         }
     }
     // add clauses of B
-    sat_solver_store_mark_clauses_a( pSat );
-    for ( i = 0; i < pCnfFrames->nClauses; i++ )
-    {
-        if ( !sat_solver_addclause( pSat, pCnfFrames->pClauses[i], pCnfFrames->pClauses[i+1] ) )
-        {
+    sat_solver_store_mark_clauses_a(pSat);
+    for (i = 0; i < pCnfFrames->nClauses; i++) {
+        if (!sat_solver_addclause(pSat, pCnfFrames->pClauses[i], pCnfFrames->pClauses[i + 1])) {
             pSat->fSolved = 1;
             break;
         }
     }
-    sat_solver_store_mark_roots( pSat );
+    sat_solver_store_mark_roots(pSat);
     // return clauses to the original state
-    Cnf_DataLift( pCnfAig, -pCnfFrames->nVars );
-    Cnf_DataLift( pCnfInter, -pCnfFrames->nVars -pCnfAig->nVars );
+    Cnf_DataLift(pCnfAig, -pCnfFrames->nVars);
+    Cnf_DataLift(pCnfInter, -pCnfFrames->nVars - pCnfAig->nVars);
     return pSat;
 }
 
@@ -200,64 +186,58 @@ sat_solver * Inter_ManDeriveSatSolver(
   SeeAlso     []
 
 ***********************************************************************/
-int Inter_ManPerformOneStep( Inter_Man_t * p, int fUseBias, int fUseBackward, abctime nTimeNewOut )
-{
-    sat_solver * pSat;
-    void * pSatCnf = NULL;
-    Inta_Man_t * pManInterA; 
-//    Intb_Man_t * pManInterB; 
-    int * pGlobalVars;
+int Inter_ManPerformOneStep(Inter_Man_t* p, int fUseBias, int fUseBackward, abctime nTimeNewOut) {
+    sat_solver* pSat;
+    void* pSatCnf = NULL;
+    Inta_Man_t* pManInterA;
+    //    Intb_Man_t * pManInterB;
+    int* pGlobalVars;
     int status, RetValue;
     int i, Var;
     abctime clk;
-//    assert( p->pInterNew == NULL );
+    //    assert( p->pInterNew == NULL );
 
     // derive the SAT solver
-    pSat = Inter_ManDeriveSatSolver( p->pInter, p->pCnfInter, p->pAigTrans, p->pCnfAig, p->pFrames, p->pCnfFrames, p->vVarsAB, fUseBackward );
-    if ( pSat == NULL )
-    {
+    pSat = Inter_ManDeriveSatSolver(p->pInter, p->pCnfInter, p->pAigTrans, p->pCnfAig, p->pFrames, p->pCnfFrames, p->vVarsAB, fUseBackward);
+    if (pSat == NULL) {
         p->pInterNew = NULL;
         return 1;
     }
 
     // set runtime limit
-    if ( nTimeNewOut )
-        sat_solver_set_runtime_limit( pSat, nTimeNewOut );
+    if (nTimeNewOut)
+        sat_solver_set_runtime_limit(pSat, nTimeNewOut);
 
     // collect global variables
-    pGlobalVars = ABC_CALLOC( int, sat_solver_nvars(pSat) );
-    Vec_IntForEachEntry( p->vVarsAB, Var, i )
-        pGlobalVars[Var] = 1;
-    pSat->pGlobalVars = fUseBias? pGlobalVars : NULL;
+    pGlobalVars = ABC_CALLOC(int, sat_solver_nvars(pSat));
+    Vec_IntForEachEntry(p->vVarsAB, Var, i)
+        pGlobalVars[Var]
+        = 1;
+    pSat->pGlobalVars = fUseBias ? pGlobalVars : NULL;
 
     // solve the problem
-clk = Abc_Clock();
-    status = sat_solver_solve( pSat, NULL, NULL, (ABC_INT64_T)p->nConfLimit, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+    clk = Abc_Clock();
+    status = sat_solver_solve(pSat, NULL, NULL, (ABC_INT64_T)p->nConfLimit, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
     p->nConfCur = pSat->stats.conflicts;
-p->timeSat += Abc_Clock() - clk;
+    p->timeSat += Abc_Clock() - clk;
 
     pSat->pGlobalVars = NULL;
-    ABC_FREE( pGlobalVars );
-    if ( status == l_False )
-    {
-        pSatCnf = sat_solver_store_release( pSat );
+    ABC_FREE(pGlobalVars);
+    if (status == l_False) {
+        pSatCnf = sat_solver_store_release(pSat);
         RetValue = 1;
-    }
-    else if ( status == l_True )
-    {
+    } else if (status == l_True) {
         RetValue = 0;
-    } 
-    else
-    {
+    } else {
         RetValue = -1;
     }
-    sat_solver_delete( pSat );
-    if ( pSatCnf == NULL )
+    sat_solver_delete(pSat);
+    if (pSatCnf == NULL)
         return RetValue;
 
     // create the resulting manager
-clk = Abc_Clock();
-/*
+    clk = Abc_Clock();
+    /*
     if ( !fUseIp )
     {
         pManInterA = Inta_ManAlloc();
@@ -304,12 +284,12 @@ clk = Abc_Clock();
 */
 
     pManInterA = Inta_ManAlloc();
-    p->pInterNew = (Aig_Man_t *)Inta_ManInterpolate( pManInterA, (Sto_Man_t *)pSatCnf, nTimeNewOut, p->vVarsAB, 0 );
-    Inta_ManFree( pManInterA );
+    p->pInterNew = (Aig_Man_t*)Inta_ManInterpolate(pManInterA, (Sto_Man_t*)pSatCnf, nTimeNewOut, p->vVarsAB, 0);
+    Inta_ManFree(pManInterA);
 
-p->timeInt += Abc_Clock() - clk;
-    Sto_ManFree( (Sto_Man_t *)pSatCnf );
-    if ( p->pInterNew == NULL )
+    p->timeInt += Abc_Clock() - clk;
+    Sto_ManFree((Sto_Man_t*)pSatCnf);
+    if (p->pInterNew == NULL)
         RetValue = -1;
     return RetValue;
 }
@@ -318,6 +298,4 @@ p->timeInt += Abc_Clock() - clk;
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

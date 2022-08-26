@@ -22,13 +22,12 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
 ////////////////////////////////////////////////////////////////////////
 
-static int Msat_IntVecSortCompare1( int * pp1, int * pp2 );
-static int Msat_IntVecSortCompare2( int * pp1, int * pp2 );
+static int Msat_IntVecSortCompare1(int* pp1, int* pp2);
+static int Msat_IntVecSortCompare2(int* pp1, int* pp2);
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -45,15 +44,14 @@ static int Msat_IntVecSortCompare2( int * pp1, int * pp2 );
   SeeAlso     []
 
 ***********************************************************************/
-Msat_IntVec_t * Msat_IntVecAlloc( int nCap )
-{
-    Msat_IntVec_t * p;
-    p = ABC_ALLOC( Msat_IntVec_t, 1 );
-    if ( nCap > 0 && nCap < 16 )
+Msat_IntVec_t* Msat_IntVecAlloc(int nCap) {
+    Msat_IntVec_t* p;
+    p = ABC_ALLOC(Msat_IntVec_t, 1);
+    if (nCap > 0 && nCap < 16)
         nCap = 16;
-    p->nSize  = 0;
-    p->nCap   = nCap;
-    p->pArray = p->nCap? ABC_ALLOC( int, p->nCap ) : NULL;
+    p->nSize = 0;
+    p->nCap = nCap;
+    p->pArray = p->nCap ? ABC_ALLOC(int, p->nCap) : NULL;
     return p;
 }
 
@@ -68,12 +66,11 @@ Msat_IntVec_t * Msat_IntVecAlloc( int nCap )
   SeeAlso     []
 
 ***********************************************************************/
-Msat_IntVec_t * Msat_IntVecAllocArray( int * pArray, int nSize )
-{
-    Msat_IntVec_t * p;
-    p = ABC_ALLOC( Msat_IntVec_t, 1 );
-    p->nSize  = nSize;
-    p->nCap   = nSize;
+Msat_IntVec_t* Msat_IntVecAllocArray(int* pArray, int nSize) {
+    Msat_IntVec_t* p;
+    p = ABC_ALLOC(Msat_IntVec_t, 1);
+    p->nSize = nSize;
+    p->nCap = nSize;
     p->pArray = pArray;
     return p;
 }
@@ -89,14 +86,13 @@ Msat_IntVec_t * Msat_IntVecAllocArray( int * pArray, int nSize )
   SeeAlso     []
 
 ***********************************************************************/
-Msat_IntVec_t * Msat_IntVecAllocArrayCopy( int * pArray, int nSize )
-{
-    Msat_IntVec_t * p;
-    p = ABC_ALLOC( Msat_IntVec_t, 1 );
-    p->nSize  = nSize;
-    p->nCap   = nSize;
-    p->pArray = ABC_ALLOC( int, nSize );
-    memcpy( p->pArray, pArray, sizeof(int) * nSize );
+Msat_IntVec_t* Msat_IntVecAllocArrayCopy(int* pArray, int nSize) {
+    Msat_IntVec_t* p;
+    p = ABC_ALLOC(Msat_IntVec_t, 1);
+    p->nSize = nSize;
+    p->nCap = nSize;
+    p->pArray = ABC_ALLOC(int, nSize);
+    memcpy(p->pArray, pArray, sizeof(int) * nSize);
     return p;
 }
 
@@ -111,14 +107,13 @@ Msat_IntVec_t * Msat_IntVecAllocArrayCopy( int * pArray, int nSize )
   SeeAlso     []
 
 ***********************************************************************/
-Msat_IntVec_t * Msat_IntVecDup( Msat_IntVec_t * pVec )
-{
-    Msat_IntVec_t * p;
-    p = ABC_ALLOC( Msat_IntVec_t, 1 );
-    p->nSize  = pVec->nSize;
-    p->nCap   = pVec->nCap;
-    p->pArray = p->nCap? ABC_ALLOC( int, p->nCap ) : NULL;
-    memcpy( p->pArray, pVec->pArray, sizeof(int) * pVec->nSize );
+Msat_IntVec_t* Msat_IntVecDup(Msat_IntVec_t* pVec) {
+    Msat_IntVec_t* p;
+    p = ABC_ALLOC(Msat_IntVec_t, 1);
+    p->nSize = pVec->nSize;
+    p->nCap = pVec->nCap;
+    p->pArray = p->nCap ? ABC_ALLOC(int, p->nCap) : NULL;
+    memcpy(p->pArray, pVec->pArray, sizeof(int) * pVec->nSize);
     return p;
 }
 
@@ -133,15 +128,14 @@ Msat_IntVec_t * Msat_IntVecDup( Msat_IntVec_t * pVec )
   SeeAlso     []
 
 ***********************************************************************/
-Msat_IntVec_t * Msat_IntVecDupArray( Msat_IntVec_t * pVec )
-{
-    Msat_IntVec_t * p;
-    p = ABC_ALLOC( Msat_IntVec_t, 1 );
-    p->nSize  = pVec->nSize;
-    p->nCap   = pVec->nCap;
+Msat_IntVec_t* Msat_IntVecDupArray(Msat_IntVec_t* pVec) {
+    Msat_IntVec_t* p;
+    p = ABC_ALLOC(Msat_IntVec_t, 1);
+    p->nSize = pVec->nSize;
+    p->nCap = pVec->nCap;
     p->pArray = pVec->pArray;
-    pVec->nSize  = 0;
-    pVec->nCap   = 0;
+    pVec->nSize = 0;
+    pVec->nCap = 0;
     pVec->pArray = NULL;
     return p;
 }
@@ -157,10 +151,9 @@ Msat_IntVec_t * Msat_IntVecDupArray( Msat_IntVec_t * pVec )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_IntVecFree( Msat_IntVec_t * p )
-{
-    ABC_FREE( p->pArray );
-    ABC_FREE( p );
+void Msat_IntVecFree(Msat_IntVec_t* p) {
+    ABC_FREE(p->pArray);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -174,12 +167,11 @@ void Msat_IntVecFree( Msat_IntVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_IntVecFill( Msat_IntVec_t * p, int nSize, int Entry )
-{
+void Msat_IntVecFill(Msat_IntVec_t* p, int nSize, int Entry) {
     int i;
-    Msat_IntVecGrow( p, nSize );
+    Msat_IntVecGrow(p, nSize);
     p->nSize = nSize;
-    for ( i = 0; i < p->nSize; i++ )
+    for (i = 0; i < p->nSize; i++)
         p->pArray[i] = Entry;
 }
 
@@ -194,9 +186,8 @@ void Msat_IntVecFill( Msat_IntVec_t * p, int nSize, int Entry )
   SeeAlso     []
 
 ***********************************************************************/
-int * Msat_IntVecReleaseArray( Msat_IntVec_t * p )
-{
-    int * pArray = p->pArray;
+int* Msat_IntVecReleaseArray(Msat_IntVec_t* p) {
+    int* pArray = p->pArray;
     p->nCap = 0;
     p->nSize = 0;
     p->pArray = NULL;
@@ -214,8 +205,7 @@ int * Msat_IntVecReleaseArray( Msat_IntVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int * Msat_IntVecReadArray( Msat_IntVec_t * p )
-{
+int* Msat_IntVecReadArray(Msat_IntVec_t* p) {
     return p->pArray;
 }
 
@@ -230,8 +220,7 @@ int * Msat_IntVecReadArray( Msat_IntVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_IntVecReadSize( Msat_IntVec_t * p )
-{
+int Msat_IntVecReadSize(Msat_IntVec_t* p) {
     return p->nSize;
 }
 
@@ -246,9 +235,8 @@ int Msat_IntVecReadSize( Msat_IntVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_IntVecReadEntry( Msat_IntVec_t * p, int i )
-{
-    assert( i >= 0 && i < p->nSize );
+int Msat_IntVecReadEntry(Msat_IntVec_t* p, int i) {
+    assert(i >= 0 && i < p->nSize);
     return p->pArray[i];
 }
 
@@ -263,9 +251,8 @@ int Msat_IntVecReadEntry( Msat_IntVec_t * p, int i )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_IntVecWriteEntry( Msat_IntVec_t * p, int i, int Entry )
-{
-    assert( i >= 0 && i < p->nSize );
+void Msat_IntVecWriteEntry(Msat_IntVec_t* p, int i, int Entry) {
+    assert(i >= 0 && i < p->nSize);
     p->pArray[i] = Entry;
 }
 
@@ -280,9 +267,8 @@ void Msat_IntVecWriteEntry( Msat_IntVec_t * p, int i, int Entry )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_IntVecReadEntryLast( Msat_IntVec_t * p )
-{
-    return p->pArray[p->nSize-1];
+int Msat_IntVecReadEntryLast(Msat_IntVec_t* p) {
+    return p->pArray[p->nSize - 1];
 }
 
 /**Function*************************************************************
@@ -296,12 +282,11 @@ int Msat_IntVecReadEntryLast( Msat_IntVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_IntVecGrow( Msat_IntVec_t * p, int nCapMin )
-{
-    if ( p->nCap >= nCapMin )
+void Msat_IntVecGrow(Msat_IntVec_t* p, int nCapMin) {
+    if (p->nCap >= nCapMin)
         return;
-    p->pArray = ABC_REALLOC( int, p->pArray, nCapMin ); 
-    p->nCap   = nCapMin;
+    p->pArray = ABC_REALLOC(int, p->pArray, nCapMin);
+    p->nCap = nCapMin;
 }
 
 /**Function*************************************************************
@@ -315,9 +300,8 @@ void Msat_IntVecGrow( Msat_IntVec_t * p, int nCapMin )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_IntVecShrink( Msat_IntVec_t * p, int nSizeNew )
-{
-    assert( p->nSize >= nSizeNew );
+void Msat_IntVecShrink(Msat_IntVec_t* p, int nSizeNew) {
+    assert(p->nSize >= nSizeNew);
     p->nSize = nSizeNew;
 }
 
@@ -332,8 +316,7 @@ void Msat_IntVecShrink( Msat_IntVec_t * p, int nSizeNew )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_IntVecClear( Msat_IntVec_t * p )
-{
+void Msat_IntVecClear(Msat_IntVec_t* p) {
     p->nSize = 0;
 }
 
@@ -348,14 +331,12 @@ void Msat_IntVecClear( Msat_IntVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_IntVecPush( Msat_IntVec_t * p, int Entry )
-{
-    if ( p->nSize == p->nCap )
-    {
-        if ( p->nCap < 16 )
-            Msat_IntVecGrow( p, 16 );
+void Msat_IntVecPush(Msat_IntVec_t* p, int Entry) {
+    if (p->nSize == p->nCap) {
+        if (p->nCap < 16)
+            Msat_IntVecGrow(p, 16);
         else
-            Msat_IntVecGrow( p, 2 * p->nCap );
+            Msat_IntVecGrow(p, 2 * p->nCap);
     }
     p->pArray[p->nSize++] = Entry;
 }
@@ -371,13 +352,12 @@ void Msat_IntVecPush( Msat_IntVec_t * p, int Entry )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_IntVecPushUnique( Msat_IntVec_t * p, int Entry )
-{
+int Msat_IntVecPushUnique(Msat_IntVec_t* p, int Entry) {
     int i;
-    for ( i = 0; i < p->nSize; i++ )
-        if ( p->pArray[i] == Entry )
+    for (i = 0; i < p->nSize; i++)
+        if (p->pArray[i] == Entry)
             return 1;
-    Msat_IntVecPush( p, Entry );
+    Msat_IntVecPush(p, Entry);
     return 0;
 }
 
@@ -392,24 +372,20 @@ int Msat_IntVecPushUnique( Msat_IntVec_t * p, int Entry )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_IntVecPushUniqueOrder( Msat_IntVec_t * p, int Entry, int fIncrease )
-{
+void Msat_IntVecPushUniqueOrder(Msat_IntVec_t* p, int Entry, int fIncrease) {
     int Entry1, Entry2;
     int i;
-    Msat_IntVecPushUnique( p, Entry );
+    Msat_IntVecPushUnique(p, Entry);
     // find the p of the node
-    for ( i = p->nSize-1; i > 0; i-- )
-    {
-        Entry1 = p->pArray[i  ];
-        Entry2 = p->pArray[i-1];
-        if (( fIncrease && Entry1 >= Entry2) ||
-            (!fIncrease && Entry1 <= Entry2) )
+    for (i = p->nSize - 1; i > 0; i--) {
+        Entry1 = p->pArray[i];
+        Entry2 = p->pArray[i - 1];
+        if ((fIncrease && Entry1 >= Entry2) || (!fIncrease && Entry1 <= Entry2))
             break;
-        p->pArray[i  ] = Entry2;
-        p->pArray[i-1] = Entry1;
+        p->pArray[i] = Entry2;
+        p->pArray[i - 1] = Entry1;
     }
 }
-
 
 /**Function*************************************************************
 
@@ -422,9 +398,8 @@ void Msat_IntVecPushUniqueOrder( Msat_IntVec_t * p, int Entry, int fIncrease )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_IntVecPop( Msat_IntVec_t * p )
-{
-    assert( p->nSize > 0 );
+int Msat_IntVecPop(Msat_IntVec_t* p) {
+    assert(p->nSize > 0);
     return p->pArray[--p->nSize];
 }
 
@@ -439,14 +414,13 @@ int Msat_IntVecPop( Msat_IntVec_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-void Msat_IntVecSort( Msat_IntVec_t * p, int fReverse )
-{
-    if ( fReverse ) 
-        qsort( (void *)p->pArray, (size_t)p->nSize, sizeof(int), 
-                (int (*)(const void *, const void *)) Msat_IntVecSortCompare2 );
+void Msat_IntVecSort(Msat_IntVec_t* p, int fReverse) {
+    if (fReverse)
+        qsort((void*)p->pArray, (size_t)p->nSize, sizeof(int),
+              (int (*)(const void*, const void*))Msat_IntVecSortCompare2);
     else
-        qsort( (void *)p->pArray, (size_t)p->nSize, sizeof(int), 
-                (int (*)(const void *, const void *)) Msat_IntVecSortCompare1 );
+        qsort((void*)p->pArray, (size_t)p->nSize, sizeof(int),
+              (int (*)(const void*, const void*))Msat_IntVecSortCompare1);
 }
 
 /**Function*************************************************************
@@ -460,12 +434,11 @@ void Msat_IntVecSort( Msat_IntVec_t * p, int fReverse )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_IntVecSortCompare1( int * pp1, int * pp2 )
-{
+int Msat_IntVecSortCompare1(int* pp1, int* pp2) {
     // for some reason commenting out lines (as shown) led to crashing of the release version
-    if ( *pp1 < *pp2 )
+    if (*pp1 < *pp2)
         return -1;
-    if ( *pp1 > *pp2 ) //
+    if (*pp1 > *pp2) //
         return 1;
     return 0; //
 }
@@ -481,12 +454,11 @@ int Msat_IntVecSortCompare1( int * pp1, int * pp2 )
   SeeAlso     []
 
 ***********************************************************************/
-int Msat_IntVecSortCompare2( int * pp1, int * pp2 )
-{
+int Msat_IntVecSortCompare2(int* pp1, int* pp2) {
     // for some reason commenting out lines (as shown) led to crashing of the release version
-    if ( *pp1 > *pp2 )
+    if (*pp1 > *pp2)
         return -1;
-    if ( *pp1 < *pp2 ) //
+    if (*pp1 < *pp2) //
         return 1;
     return 0; //
 }
@@ -495,6 +467,4 @@ int Msat_IntVecSortCompare2( int * pp1, int * pp2 )
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
 
-
 ABC_NAMESPACE_IMPL_END
-

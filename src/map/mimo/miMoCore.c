@@ -31,13 +31,12 @@ ABC_NAMESPACE_IMPL_START
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_Library_t * MiMo_LibStart(char *pName)
-{
-    MiMo_Library_t * pLib = ABC_ALLOC(MiMo_Library_t, 1);
+MiMo_Library_t* MiMo_LibStart(char* pName) {
+    MiMo_Library_t* pLib = ABC_ALLOC(MiMo_Library_t, 1);
     pLib->pName = Abc_UtilStrsav(pName);
     pLib->pCellList = NULL;
     pLib->pGates = Vec_PtrAlloc(8);
-    return pLib; 
+    return pLib;
 }
 
 /**Function*************************************************************
@@ -51,17 +50,15 @@ MiMo_Library_t * MiMo_LibStart(char *pName)
   SeeAlso     []
 
 ***********************************************************************/
-void MiMo_LibFree(MiMo_Library_t * pLib)
-{
+void MiMo_LibFree(MiMo_Library_t* pLib) {
     ABC_FREE(pLib->pName);
     int i;
-    MiMo_Gate_t * pGate;
+    MiMo_Gate_t* pGate;
     MiMo_LibForEachGate(pLib, pGate, i)
         MiMo_GateFree(pGate);
-    MiMo_Cell_t * pCell = pLib->pCellList;
-    while ( pCell )
-    {
-        MiMo_Cell_t * pCellNext = pCell->pNext;
+    MiMo_Cell_t* pCell = pLib->pCellList;
+    while (pCell) {
+        MiMo_Cell_t* pCellNext = pCell->pNext;
         MiMo_CellFree(pCell);
         pCell = pCellNext;
     }
@@ -79,24 +76,20 @@ void MiMo_LibFree(MiMo_Library_t * pLib)
   SeeAlso     []
 
 ***********************************************************************/
-void MiMo_GateFree(MiMo_Gate_t * pGate)
-{
+void MiMo_GateFree(MiMo_Gate_t* pGate) {
     int i;
-    MiMo_PinIn_t * pPinIn;
-    MiMo_PinOut_t * pPinOut;
- 
+    MiMo_PinIn_t* pPinIn;
+    MiMo_PinOut_t* pPinOut;
+
     ABC_FREE(pGate->pName);
-    MiMo_GateForEachPinIn(pGate, pPinIn, i)
-    {
+    MiMo_GateForEachPinIn(pGate, pPinIn, i) {
         ABC_FREE(pPinIn->pName);
         ABC_FREE(pPinIn);
     }
-    MiMo_GateForEachPinOut(pGate, pPinOut, i)
-    {
+    MiMo_GateForEachPinOut(pGate, pPinOut, i) {
         ABC_FREE(pPinOut->pName);
-        MiMo_PinDelay_t * pNext, * pPinDelay = pPinOut->pDelayList;
-        while(pPinDelay)
-        {
+        MiMo_PinDelay_t *pNext, *pPinDelay = pPinOut->pDelayList;
+        while (pPinDelay) {
             pNext = pPinDelay->pNext;
             ABC_FREE(pPinDelay);
             pPinDelay = pNext;
@@ -105,7 +98,6 @@ void MiMo_GateFree(MiMo_Gate_t * pGate)
     }
     ABC_FREE(pGate);
 }
-
 
 /**Function*************************************************************
 
@@ -118,9 +110,8 @@ void MiMo_GateFree(MiMo_Gate_t * pGate)
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_Gate_t * MiMo_LibCreateGate(MiMo_Library_t *pLib, char *pName)
-{
-    MiMo_Gate_t * pGate = ABC_ALLOC(MiMo_Gate_t, 1);
+MiMo_Gate_t* MiMo_LibCreateGate(MiMo_Library_t* pLib, char* pName) {
+    MiMo_Gate_t* pGate = ABC_ALLOC(MiMo_Gate_t, 1);
     pGate->pName = Abc_UtilStrsav(pName);
     pGate->Type = MIMO_GENERIC;
     pGate->MaxDelay = -1;
@@ -144,8 +135,7 @@ MiMo_Gate_t * MiMo_LibCreateGate(MiMo_Library_t *pLib, char *pName)
   SeeAlso     []
 
 ***********************************************************************/
-void MiMo_LibAddStandardGates(MiMo_Library_t *pLib)
-{
+void MiMo_LibAddStandardGates(MiMo_Library_t* pLib) {
     pLib->pGate1 = MiMo_LibCreateGate(pLib, "gateConst1");
     pLib->pGate1->Type = MIMO_SPECIAL;
     pLib->pGate1->GateCount = 0;
@@ -172,11 +162,10 @@ void MiMo_LibAddStandardGates(MiMo_Library_t *pLib)
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_PinIn_t * MiMo_GateCreatePinIn(MiMo_Gate_t *pGate, char *pName)
-{
-    if ( MiMo_GateFindPinIn(pGate, pName) )
+MiMo_PinIn_t* MiMo_GateCreatePinIn(MiMo_Gate_t* pGate, char* pName) {
+    if (MiMo_GateFindPinIn(pGate, pName))
         return NULL;
-    MiMo_PinIn_t * pPinIn = ABC_ALLOC(MiMo_PinIn_t, 1);
+    MiMo_PinIn_t* pPinIn = ABC_ALLOC(MiMo_PinIn_t, 1);
     pPinIn->pName = Abc_UtilStrsav(pName);
     pPinIn->Id = Vec_PtrSize(pGate->pPinIns);
     Vec_PtrPush(pGate->pPinIns, pPinIn);
@@ -194,11 +183,10 @@ MiMo_PinIn_t * MiMo_GateCreatePinIn(MiMo_Gate_t *pGate, char *pName)
   SeeAlso     []
 
 ***********************************************************************/
-MiMo_PinOut_t * MiMo_GateCreatePinOut(MiMo_Gate_t *pGate, char *pName)
-{
-    if ( MiMo_GateFindPinOut(pGate, pName) )
+MiMo_PinOut_t* MiMo_GateCreatePinOut(MiMo_Gate_t* pGate, char* pName) {
+    if (MiMo_GateFindPinOut(pGate, pName))
         return NULL;
-    MiMo_PinOut_t * pPinOut = ABC_ALLOC(MiMo_PinOut_t, 1);
+    MiMo_PinOut_t* pPinOut = ABC_ALLOC(MiMo_PinOut_t, 1);
     pPinOut->pName = Abc_UtilStrsav(pName);
     pPinOut->pDelayList = NULL;
     pPinOut->Id = Vec_PtrSize(pGate->pPinOuts);

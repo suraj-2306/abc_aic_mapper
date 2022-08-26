@@ -17,19 +17,17 @@
   Revision    [$Id: vecBit.h,v 1.00 2005/06/20 00:00:00 alanmi Exp $]
 
 ***********************************************************************/
- 
-#ifndef ABC__misc__vec__vecBit_h
-#define ABC__misc__vec__vecBit_h
 
+#ifndef ABC__misc__vec__vecBit_h
+#    define ABC__misc__vec__vecBit_h
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
 ////////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>
+#    include <stdio.h>
 
 ABC_NAMESPACE_HEADER_START
-
 
 ////////////////////////////////////////////////////////////////////////
 ///                         PARAMETERS                               ///
@@ -39,28 +37,27 @@ ABC_NAMESPACE_HEADER_START
 ///                         BASIC TYPES                              ///
 ////////////////////////////////////////////////////////////////////////
 
-typedef struct Vec_Bit_t_       Vec_Bit_t;
-struct Vec_Bit_t_ 
-{
-    int              nCap;
-    int              nSize;
-    int *            pArray;
+typedef struct Vec_Bit_t_ Vec_Bit_t;
+struct Vec_Bit_t_ {
+    int nCap;
+    int nSize;
+    int* pArray;
 };
 
 ////////////////////////////////////////////////////////////////////////
 ///                      MACRO DEFINITIONS                           ///
 ////////////////////////////////////////////////////////////////////////
 
-#define Vec_BitForEachEntry( vVec, Entry, i )                                               \
-    for ( i = 0; (i < Vec_BitSize(vVec)) && (((Entry) = Vec_BitEntry(vVec, i)), 1); i++ )
-#define Vec_BitForEachEntryStart( vVec, Entry, i, Start )                                   \
-    for ( i = Start; (i < Vec_BitSize(vVec)) && (((Entry) = Vec_BitEntry(vVec, i)), 1); i++ )
-#define Vec_BitForEachEntryStop( vVec, Entry, i, Stop )                                   \
-    for ( i = 0; (i < Stop) && (((Entry) = Vec_BitEntry(vVec, i)), 1); i++ )
-#define Vec_BitForEachEntryStartStop( vVec, Entry, i, Start, Stop )                         \
-    for ( i = Start; (i < Stop) && (((Entry) = Vec_BitEntry(vVec, i)), 1); i++ )
-#define Vec_BitForEachEntryReverse( vVec, pEntry, i )                                       \
-    for ( i = Vec_BitSize(vVec) - 1; (i >= 0) && (((pEntry) = Vec_BitEntry(vVec, i)), 1); i-- )
+#    define Vec_BitForEachEntry(vVec, Entry, i) \
+        for (i = 0; (i < Vec_BitSize(vVec)) && (((Entry) = Vec_BitEntry(vVec, i)), 1); i++)
+#    define Vec_BitForEachEntryStart(vVec, Entry, i, Start) \
+        for (i = Start; (i < Vec_BitSize(vVec)) && (((Entry) = Vec_BitEntry(vVec, i)), 1); i++)
+#    define Vec_BitForEachEntryStop(vVec, Entry, i, Stop) \
+        for (i = 0; (i < Stop) && (((Entry) = Vec_BitEntry(vVec, i)), 1); i++)
+#    define Vec_BitForEachEntryStartStop(vVec, Entry, i, Start, Stop) \
+        for (i = Start; (i < Stop) && (((Entry) = Vec_BitEntry(vVec, i)), 1); i++)
+#    define Vec_BitForEachEntryReverse(vVec, pEntry, i) \
+        for (i = Vec_BitSize(vVec) - 1; (i >= 0) && (((pEntry) = Vec_BitEntry(vVec, i)), 1); i--)
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
@@ -77,14 +74,13 @@ struct Vec_Bit_t_
   SeeAlso     []
 
 ***********************************************************************/
-static inline Vec_Bit_t * Vec_BitAlloc( int nCap )
-{
-    Vec_Bit_t * p;
+static inline Vec_Bit_t* Vec_BitAlloc(int nCap) {
+    Vec_Bit_t* p;
     nCap = (nCap >> 5) + ((nCap & 31) > 0);
-    p = ABC_ALLOC( Vec_Bit_t, 1 );
-    p->nSize  = 0;
-    p->nCap   = nCap * 32;
-    p->pArray = nCap? ABC_ALLOC( int, nCap ) : NULL;
+    p = ABC_ALLOC(Vec_Bit_t, 1);
+    p->nSize = 0;
+    p->nCap = nCap * 32;
+    p->pArray = nCap ? ABC_ALLOC(int, nCap) : NULL;
     return p;
 }
 
@@ -99,13 +95,12 @@ static inline Vec_Bit_t * Vec_BitAlloc( int nCap )
   SeeAlso     []
 
 ***********************************************************************/
-static inline Vec_Bit_t * Vec_BitStart( int nSize )
-{
-    Vec_Bit_t * p;
+static inline Vec_Bit_t* Vec_BitStart(int nSize) {
+    Vec_Bit_t* p;
     nSize = (nSize >> 5) + ((nSize & 31) > 0);
-    p = Vec_BitAlloc( nSize * 32 );
+    p = Vec_BitAlloc(nSize * 32);
     p->nSize = nSize * 32;
-    memset( p->pArray, 0, sizeof(int) * (size_t)nSize );
+    memset(p->pArray, 0, sizeof(int) * (size_t)nSize);
     return p;
 }
 
@@ -120,13 +115,12 @@ static inline Vec_Bit_t * Vec_BitStart( int nSize )
   SeeAlso     []
 
 ***********************************************************************/
-static inline Vec_Bit_t * Vec_BitStartFull( int nSize )
-{
-    Vec_Bit_t * p;
+static inline Vec_Bit_t* Vec_BitStartFull(int nSize) {
+    Vec_Bit_t* p;
     nSize = (nSize >> 5) + ((nSize & 31) > 0);
-    p = Vec_BitAlloc( nSize * 32 );
+    p = Vec_BitAlloc(nSize * 32);
     p->nSize = nSize * 32;
-    memset( p->pArray, 0xff, sizeof(int) * (size_t)nSize );
+    memset(p->pArray, 0xff, sizeof(int) * (size_t)nSize);
     return p;
 }
 
@@ -141,15 +135,14 @@ static inline Vec_Bit_t * Vec_BitStartFull( int nSize )
   SeeAlso     []
 
 ***********************************************************************/
-static inline Vec_Bit_t * Vec_BitDup( Vec_Bit_t * pVec )
-{
-    Vec_Bit_t * p;
-    assert( (pVec->nSize & 31) == 0 );
-    p = ABC_ALLOC( Vec_Bit_t, 1 );
-    p->nSize  = pVec->nSize;
-    p->nCap   = pVec->nSize;
-    p->pArray = p->nCap? ABC_ALLOC( int, p->nCap >> 5 ) : NULL;
-    memcpy( p->pArray, pVec->pArray, sizeof(int) * (size_t)(p->nCap >> 5) );
+static inline Vec_Bit_t* Vec_BitDup(Vec_Bit_t* pVec) {
+    Vec_Bit_t* p;
+    assert((pVec->nSize & 31) == 0);
+    p = ABC_ALLOC(Vec_Bit_t, 1);
+    p->nSize = pVec->nSize;
+    p->nCap = pVec->nSize;
+    p->pArray = p->nCap ? ABC_ALLOC(int, p->nCap >> 5) : NULL;
+    memcpy(p->pArray, pVec->pArray, sizeof(int) * (size_t)(p->nCap >> 5));
     return p;
 }
 
@@ -164,10 +157,9 @@ static inline Vec_Bit_t * Vec_BitDup( Vec_Bit_t * pVec )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitFree( Vec_Bit_t * p )
-{
-    ABC_FREE( p->pArray );
-    ABC_FREE( p );
+static inline void Vec_BitFree(Vec_Bit_t* p) {
+    ABC_FREE(p->pArray);
+    ABC_FREE(p);
 }
 
 /**Function*************************************************************
@@ -181,12 +173,11 @@ static inline void Vec_BitFree( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitFreeP( Vec_Bit_t ** p )
-{
-    if ( *p == NULL )
+static inline void Vec_BitFreeP(Vec_Bit_t** p) {
+    if (*p == NULL)
         return;
-    ABC_FREE( (*p)->pArray );
-    ABC_FREE( (*p) );
+    ABC_FREE((*p)->pArray);
+    ABC_FREE((*p));
 }
 
 /**Function*************************************************************
@@ -200,9 +191,8 @@ static inline void Vec_BitFreeP( Vec_Bit_t ** p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int * Vec_BitReleaseArray( Vec_Bit_t * p )
-{
-    int * pArray = p->pArray;
+static inline int* Vec_BitReleaseArray(Vec_Bit_t* p) {
+    int* pArray = p->pArray;
     p->nCap = 0;
     p->nSize = 0;
     p->pArray = NULL;
@@ -220,8 +210,7 @@ static inline int * Vec_BitReleaseArray( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int * Vec_BitArray( Vec_Bit_t * p )
-{
+static inline int* Vec_BitArray(Vec_Bit_t* p) {
     return p->pArray;
 }
 
@@ -236,8 +225,7 @@ static inline int * Vec_BitArray( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Vec_BitSize( Vec_Bit_t * p )
-{
+static inline int Vec_BitSize(Vec_Bit_t* p) {
     return p->nSize;
 }
 
@@ -252,8 +240,7 @@ static inline int Vec_BitSize( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Vec_BitCap( Vec_Bit_t * p )
-{
+static inline int Vec_BitCap(Vec_Bit_t* p) {
     return p->nCap;
 }
 
@@ -268,8 +255,7 @@ static inline int Vec_BitCap( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline double Vec_BitMemory( Vec_Bit_t * p )
-{
+static inline double Vec_BitMemory(Vec_Bit_t* p) {
     return !p ? 0.0 : 1.0 * sizeof(int) * p->nCap + sizeof(Vec_Bit_t);
 }
 
@@ -284,9 +270,8 @@ static inline double Vec_BitMemory( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Vec_BitEntry( Vec_Bit_t * p, int i )
-{
-    assert( i >= 0 && i < p->nSize );
+static inline int Vec_BitEntry(Vec_Bit_t* p, int i) {
+    assert(i >= 0 && i < p->nSize);
     return (p->pArray[i >> 5] >> (i & 31)) & 1;
 }
 
@@ -301,20 +286,19 @@ static inline int Vec_BitEntry( Vec_Bit_t * p, int i )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitWriteEntry( Vec_Bit_t * p, int i, int Entry )
-{
-    assert( i >= 0 && i < p->nSize );
-    if ( Entry == 1 )
-        p->pArray[i >> 5] |=  (1 << (i & 31));
-    else if ( Entry == 0 )
+static inline void Vec_BitWriteEntry(Vec_Bit_t* p, int i, int Entry) {
+    assert(i >= 0 && i < p->nSize);
+    if (Entry == 1)
+        p->pArray[i >> 5] |= (1 << (i & 31));
+    else if (Entry == 0)
         p->pArray[i >> 5] &= ~(1 << (i & 31));
-    else assert(0);
+    else
+        assert(0);
 }
-static inline int Vec_BitAddEntry( Vec_Bit_t * p, int i )
-{
-    if ( Vec_BitEntry(p, i) )
+static inline int Vec_BitAddEntry(Vec_Bit_t* p, int i) {
+    if (Vec_BitEntry(p, i))
         return 1;
-    Vec_BitWriteEntry( p, i, 1 );
+    Vec_BitWriteEntry(p, i, 1);
     return 0;
 }
 
@@ -329,10 +313,9 @@ static inline int Vec_BitAddEntry( Vec_Bit_t * p, int i )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Vec_BitEntryLast( Vec_Bit_t * p )
-{
-    assert( p->nSize > 0 );
-    return Vec_BitEntry( p, p->nSize-1 );
+static inline int Vec_BitEntryLast(Vec_Bit_t* p) {
+    assert(p->nSize > 0);
+    return Vec_BitEntry(p, p->nSize - 1);
 }
 
 /**Function*************************************************************
@@ -346,14 +329,13 @@ static inline int Vec_BitEntryLast( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitGrow( Vec_Bit_t * p, int nCapMin )
-{
-    if ( p->nCap >= nCapMin )
+static inline void Vec_BitGrow(Vec_Bit_t* p, int nCapMin) {
+    if (p->nCap >= nCapMin)
         return;
     nCapMin = (nCapMin >> 5) + ((nCapMin & 31) > 0);
-    p->pArray = ABC_REALLOC( int, p->pArray, nCapMin ); 
-    assert( p->pArray );
-    p->nCap   = nCapMin * 32;
+    p->pArray = ABC_REALLOC(int, p->pArray, nCapMin);
+    assert(p->pArray);
+    p->nCap = nCapMin * 32;
 }
 
 /**Function*************************************************************
@@ -367,22 +349,18 @@ static inline void Vec_BitGrow( Vec_Bit_t * p, int nCapMin )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitFill( Vec_Bit_t * p, int nSize, int Fill )
-{
+static inline void Vec_BitFill(Vec_Bit_t* p, int nSize, int Fill) {
     int i;
-    Vec_BitGrow( p, nSize );
+    Vec_BitGrow(p, nSize);
     nSize = (nSize >> 5) + ((nSize & 31) > 0);
-    if ( Fill == 0 )
-    {
-        for ( i = 0; i < nSize; i++ )
+    if (Fill == 0) {
+        for (i = 0; i < nSize; i++)
             p->pArray[i] = 0;
-    }
-    else if ( Fill == 1 )
-    {
-        for ( i = 0; i < nSize; i++ )
+    } else if (Fill == 1) {
+        for (i = 0; i < nSize; i++)
             p->pArray[i] = ~0;
-    }
-    else assert( 0 );
+    } else
+        assert(0);
     p->nSize = nSize * 32;
 }
 
@@ -397,47 +375,41 @@ static inline void Vec_BitFill( Vec_Bit_t * p, int nSize, int Fill )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitFillExtra( Vec_Bit_t * p, int nSize, int Fill )
-{
+static inline void Vec_BitFillExtra(Vec_Bit_t* p, int nSize, int Fill) {
     int i;
-    if ( nSize <= p->nSize )
+    if (nSize <= p->nSize)
         return;
-    if ( nSize > 2 * p->nCap )
-        Vec_BitGrow( p, nSize );
-    else if ( nSize > p->nCap )
-        Vec_BitGrow( p, 2 * p->nCap );
+    if (nSize > 2 * p->nCap)
+        Vec_BitGrow(p, nSize);
+    else if (nSize > p->nCap)
+        Vec_BitGrow(p, 2 * p->nCap);
 
-    assert( p->nSize < nSize );
-    if ( (p->nSize >> 5) == (nSize >> 5) )
-    {
-        unsigned Mask = (~(~0 << (nSize-p->nSize)) << p->nSize);
-        if ( Fill == 1 )
+    assert(p->nSize < nSize);
+    if ((p->nSize >> 5) == (nSize >> 5)) {
+        unsigned Mask = (~(~0 << (nSize - p->nSize)) << p->nSize);
+        if (Fill == 1)
             p->pArray[nSize >> 5] |= Mask;
-        else if ( Fill == 0 )
+        else if (Fill == 0)
             p->pArray[nSize >> 5] &= ~Mask;
-        else assert( 0 );
-    }
-    else
-    {
+        else
+            assert(0);
+    } else {
         unsigned Mask1 = (p->nSize & 31) ? ~0 << (p->nSize & 31) : 0;
-        unsigned Mask2 = (nSize & 31)    ? ~(~0 << (nSize & 31)) : 0;
+        unsigned Mask2 = (nSize & 31) ? ~(~0 << (nSize & 31)) : 0;
         int w1 = (p->nSize >> 5);
         int w2 = (nSize >> 5);
-        if ( Fill == 1 )
-        {
+        if (Fill == 1) {
             p->pArray[w1] |= Mask1;
             p->pArray[w2] |= Mask2;
-            for ( i = w1 + 1; i < w2; i++ )
+            for (i = w1 + 1; i < w2; i++)
                 p->pArray[i] = ~0;
-        }
-        else if ( Fill == 0 )
-        {
+        } else if (Fill == 0) {
             p->pArray[w1] &= ~Mask1;
             p->pArray[w2] &= ~Mask2;
-            for ( i = w1 + 1; i < w2; i++ )
+            for (i = w1 + 1; i < w2; i++)
                 p->pArray[i] = 0;
-        }
-        else assert( 0 );
+        } else
+            assert(0);
     }
     p->nSize = nSize;
 }
@@ -453,10 +425,9 @@ static inline void Vec_BitFillExtra( Vec_Bit_t * p, int nSize, int Fill )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Vec_BitGetEntry( Vec_Bit_t * p, int i )
-{
-    Vec_BitFillExtra( p, i + 1, 0 );
-    return Vec_BitEntry( p, i );
+static inline int Vec_BitGetEntry(Vec_Bit_t* p, int i) {
+    Vec_BitFillExtra(p, i + 1, 0);
+    return Vec_BitEntry(p, i);
 }
 
 /**Function*************************************************************
@@ -470,10 +441,9 @@ static inline int Vec_BitGetEntry( Vec_Bit_t * p, int i )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitSetEntry( Vec_Bit_t * p, int i, int Entry )
-{
-    Vec_BitFillExtra( p, i + 1, 0 );
-    Vec_BitWriteEntry( p, i, Entry );
+static inline void Vec_BitSetEntry(Vec_Bit_t* p, int i, int Entry) {
+    Vec_BitFillExtra(p, i + 1, 0);
+    Vec_BitWriteEntry(p, i, Entry);
 }
 
 /**Function*************************************************************
@@ -487,9 +457,8 @@ static inline void Vec_BitSetEntry( Vec_Bit_t * p, int i, int Entry )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitShrink( Vec_Bit_t * p, int nSizeNew )
-{
-    assert( p->nSize >= nSizeNew );
+static inline void Vec_BitShrink(Vec_Bit_t* p, int nSizeNew) {
+    assert(p->nSize >= nSizeNew);
     p->nSize = nSizeNew;
 }
 
@@ -504,8 +473,7 @@ static inline void Vec_BitShrink( Vec_Bit_t * p, int nSizeNew )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitClear( Vec_Bit_t * p )
-{
+static inline void Vec_BitClear(Vec_Bit_t* p) {
     p->nSize = 0;
 }
 
@@ -520,20 +488,19 @@ static inline void Vec_BitClear( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitPush( Vec_Bit_t * p, int Entry )
-{
-    if ( p->nSize == p->nCap )
-    {
-        if ( p->nCap < 16 )
-            Vec_BitGrow( p, 16 );
+static inline void Vec_BitPush(Vec_Bit_t* p, int Entry) {
+    if (p->nSize == p->nCap) {
+        if (p->nCap < 16)
+            Vec_BitGrow(p, 16);
         else
-            Vec_BitGrow( p, 2 * p->nCap );
+            Vec_BitGrow(p, 2 * p->nCap);
     }
-    if ( Entry == 1 )
-        p->pArray[p->nSize >> 5] |=  (1 << (p->nSize & 31));
-    else if ( Entry == 0 )
+    if (Entry == 1)
+        p->pArray[p->nSize >> 5] |= (1 << (p->nSize & 31));
+    else if (Entry == 0)
         p->pArray[p->nSize >> 5] &= ~(1 << (p->nSize & 31));
-    else assert( 0 );
+    else
+        assert(0);
     p->nSize++;
 }
 
@@ -548,11 +515,10 @@ static inline void Vec_BitPush( Vec_Bit_t * p, int Entry )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Vec_BitPop( Vec_Bit_t * p )
-{
+static inline int Vec_BitPop(Vec_Bit_t* p) {
     int Entry;
-    assert( p->nSize > 0 );
-    Entry = Vec_BitEntryLast( p );
+    assert(p->nSize > 0);
+    Entry = Vec_BitEntryLast(p);
     p->nSize--;
     return Entry;
 }
@@ -568,13 +534,12 @@ static inline int Vec_BitPop( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Vec_BitCountWord( unsigned uWord )
-{
-    uWord = (uWord & 0x55555555) + ((uWord>>1) & 0x55555555);
-    uWord = (uWord & 0x33333333) + ((uWord>>2) & 0x33333333);
-    uWord = (uWord & 0x0F0F0F0F) + ((uWord>>4) & 0x0F0F0F0F);
-    uWord = (uWord & 0x00FF00FF) + ((uWord>>8) & 0x00FF00FF);
-    return  (uWord & 0x0000FFFF) + (uWord>>16);
+static inline int Vec_BitCountWord(unsigned uWord) {
+    uWord = (uWord & 0x55555555) + ((uWord >> 1) & 0x55555555);
+    uWord = (uWord & 0x33333333) + ((uWord >> 2) & 0x33333333);
+    uWord = (uWord & 0x0F0F0F0F) + ((uWord >> 4) & 0x0F0F0F0F);
+    uWord = (uWord & 0x00FF00FF) + ((uWord >> 8) & 0x00FF00FF);
+    return (uWord & 0x0000FFFF) + (uWord >> 16);
 }
 
 /**Function*************************************************************
@@ -588,22 +553,18 @@ static inline int Vec_BitCountWord( unsigned uWord )
   SeeAlso     []
 
 ***********************************************************************/
-static inline int Vec_BitCount( Vec_Bit_t * p ) 
-{
-    unsigned * pArray = (unsigned *)p->pArray;
+static inline int Vec_BitCount(Vec_Bit_t* p) {
+    unsigned* pArray = (unsigned*)p->pArray;
     int nWords = (p->nSize >> 5) + ((p->nSize & 31) > 0);
     int i, Counter = 0;
-    if ( p->nSize & 31 )
-    {
-        assert( nWords > 0 );
-        for ( i = 0; i < nWords-1; i++ )
-            Counter += Vec_BitCountWord( pArray[i] );
-        Counter += Vec_BitCountWord( pArray[i] & ~(~0 << (p->nSize & 31)) );
-    }
-    else
-    {
-        for ( i = 0; i < nWords; i++ )
-            Counter += Vec_BitCountWord( pArray[i] );
+    if (p->nSize & 31) {
+        assert(nWords > 0);
+        for (i = 0; i < nWords - 1; i++)
+            Counter += Vec_BitCountWord(pArray[i]);
+        Counter += Vec_BitCountWord(pArray[i] & ~(~0 << (p->nSize & 31)));
+    } else {
+        for (i = 0; i < nWords; i++)
+            Counter += Vec_BitCountWord(pArray[i]);
     }
     return Counter;
 }
@@ -619,12 +580,10 @@ static inline int Vec_BitCount( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitInvertEntry( Vec_Bit_t * p, int i )
-{
-    assert( i >= 0 && i < p->nSize );
+static inline void Vec_BitInvertEntry(Vec_Bit_t* p, int i) {
+    assert(i >= 0 && i < p->nSize);
     p->pArray[i >> 5] ^= (1 << (i & 31));
 }
-
 
 /**Function*************************************************************
 
@@ -637,10 +596,9 @@ static inline void Vec_BitInvertEntry( Vec_Bit_t * p, int i )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitReset( Vec_Bit_t * p ) 
-{
+static inline void Vec_BitReset(Vec_Bit_t* p) {
     int i, nWords = (p->nSize >> 5) + ((p->nSize & 31) > 0);
-    for ( i = 0; i < nWords; i++ )
+    for (i = 0; i < nWords; i++)
         p->pArray[i] = 0;
 }
 
@@ -655,14 +613,11 @@ static inline void Vec_BitReset( Vec_Bit_t * p )
   SeeAlso     []
 
 ***********************************************************************/
-static inline void Vec_BitInvert( Vec_Bit_t * p )
-{
+static inline void Vec_BitInvert(Vec_Bit_t* p) {
     int i, nWords = (p->nSize >> 5) + ((p->nSize & 31) > 0);
-    for ( i = 0; i < nWords; i++ )
-        p->pArray[i] = ~ p->pArray[i];
+    for (i = 0; i < nWords; i++)
+        p->pArray[i] = ~p->pArray[i];
 }
-
-
 
 ABC_NAMESPACE_HEADER_END
 
@@ -671,4 +626,3 @@ ABC_NAMESPACE_HEADER_END
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
-

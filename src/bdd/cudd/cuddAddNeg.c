@@ -58,23 +58,17 @@
 
 ABC_NAMESPACE_IMPL_START
 
-
-
-
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -84,11 +78,9 @@ ABC_NAMESPACE_IMPL_START
 static char rcsid[] DD_UNUSED = "$Id: cuddAddNeg.c,v 1.12 2009/02/20 02:14:58 fabio Exp $";
 #endif
 
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
-
 
 /**AutomaticStart*************************************************************/
 
@@ -96,9 +88,7 @@ static char rcsid[] DD_UNUSED = "$Id: cuddAddNeg.c,v 1.12 2009/02/20 02:14:58 fa
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
 /**AutomaticEnd***************************************************************/
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
@@ -116,20 +106,18 @@ static char rcsid[] DD_UNUSED = "$Id: cuddAddNeg.c,v 1.12 2009/02/20 02:14:58 fa
   SeeAlso     [Cudd_addCmpl]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_addNegate(
-  DdManager * dd,
-  DdNode * f)
-{
-    DdNode *res;
+    DdManager* dd,
+    DdNode* f) {
+    DdNode* res;
 
     do {
-        res = cuddAddNegateRecur(dd,f);
+        res = cuddAddNegateRecur(dd, f);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_addNegate */
-
 
 /**Function********************************************************************
 
@@ -144,27 +132,24 @@ Cudd_addNegate(
   SeeAlso     []
 
 ******************************************************************************/
-DdNode *
+DdNode*
 Cudd_addRoundOff(
-  DdManager * dd,
-  DdNode * f,
-  int  N)
-{
-    DdNode *res;
-    double trunc = pow(10.0,(double)N);
+    DdManager* dd,
+    DdNode* f,
+    int N) {
+    DdNode* res;
+    double trunc = pow(10.0, (double)N);
 
     do {
-        res = cuddAddRoundOffRecur(dd,f,trunc);
+        res = cuddAddRoundOffRecur(dd, f, trunc);
     } while (dd->reordered == 1);
-    return(res);
+    return (res);
 
 } /* end of Cudd_addRoundOff */
-
 
 /*---------------------------------------------------------------------------*/
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
-
 
 /**Function********************************************************************
 
@@ -176,55 +161,53 @@ Cudd_addRoundOff(
   SideEffects [None]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddAddNegateRecur(
-  DdManager * dd,
-  DdNode * f)
-{
+    DdManager* dd,
+    DdNode* f) {
     DdNode *res,
-            *fv, *fvn,
-            *T, *E;
+        *fv, *fvn,
+        *T, *E;
 
     statLine(dd);
     /* Check terminal cases. */
     if (cuddIsConstant(f)) {
-        res = cuddUniqueConst(dd,-cuddV(f));
-        return(res);
+        res = cuddUniqueConst(dd, -cuddV(f));
+        return (res);
     }
 
     /* Check cache */
-    res = cuddCacheLookup1(dd,Cudd_addNegate,f);
-    if (res != NULL) return(res);
+    res = cuddCacheLookup1(dd, Cudd_addNegate, f);
+    if (res != NULL) return (res);
 
     /* Recursive Step */
     fv = cuddT(f);
     fvn = cuddE(f);
-    T = cuddAddNegateRecur(dd,fv);
-    if (T == NULL) return(NULL);
+    T = cuddAddNegateRecur(dd, fv);
+    if (T == NULL) return (NULL);
     cuddRef(T);
 
-    E = cuddAddNegateRecur(dd,fvn);
+    E = cuddAddNegateRecur(dd, fvn);
     if (E == NULL) {
-        Cudd_RecursiveDeref(dd,T);
-        return(NULL);
+        Cudd_RecursiveDeref(dd, T);
+        return (NULL);
     }
     cuddRef(E);
-    res = (T == E) ? T : cuddUniqueInter(dd,(int)f->index,T,E);
+    res = (T == E) ? T : cuddUniqueInter(dd, (int)f->index, T, E);
     if (res == NULL) {
         Cudd_RecursiveDeref(dd, T);
         Cudd_RecursiveDeref(dd, E);
-        return(NULL);
+        return (NULL);
     }
     cuddDeref(T);
     cuddDeref(E);
 
     /* Store result. */
-    cuddCacheInsert1(dd,Cudd_addNegate,f,res);
+    cuddCacheInsert1(dd, Cudd_addNegate, f, res);
 
-    return(res);
+    return (res);
 
 } /* end of cuddAddNegateRecur */
-
 
 #ifdef USE_CASH_DUMMY
 /**Function********************************************************************
@@ -233,14 +216,12 @@ cuddAddNegateRecur(
               be casted to DD_CTFP.
 
 ******************************************************************************/
-static DdNode *
-Cudd_addRoundOff_dummy(DdManager * dd, DdNode * f) 
-{
-  assert(0);
-  return 0;
+static DdNode*
+Cudd_addRoundOff_dummy(DdManager* dd, DdNode* f) {
+    assert(0);
+    return 0;
 }
 #endif
-
 
 /**Function********************************************************************
 
@@ -252,58 +233,56 @@ Cudd_addRoundOff_dummy(DdManager * dd, DdNode * f)
   SideEffects [None]
 
 ******************************************************************************/
-DdNode *
+DdNode*
 cuddAddRoundOffRecur(
-  DdManager * dd,
-  DdNode * f,
-  double  trunc)
-{
-
+    DdManager* dd,
+    DdNode* f,
+    double trunc) {
     DdNode *res, *fv, *fvn, *T, *E;
     double n;
     DD_CTFP1 cacheOp;
 
     statLine(dd);
     if (cuddIsConstant(f)) {
-        n = ceil(cuddV(f)*trunc)/trunc;
-        res = cuddUniqueConst(dd,n);
-        return(res);
+        n = ceil(cuddV(f) * trunc) / trunc;
+        res = cuddUniqueConst(dd, n);
+        return (res);
     }
 #ifdef USE_CASH_DUMMY
-    cacheOp = (DD_CTFP1) Cudd_addRoundOff_dummy;
+    cacheOp = (DD_CTFP1)Cudd_addRoundOff_dummy;
 #else
-    cacheOp = (DD_CTFP1) Cudd_addRoundOff;
+    cacheOp = (DD_CTFP1)Cudd_addRoundOff;
 #endif
-    res = cuddCacheLookup1(dd,cacheOp,f);
+    res = cuddCacheLookup1(dd, cacheOp, f);
     if (res != NULL) {
-        return(res);
+        return (res);
     }
     /* Recursive Step */
     fv = cuddT(f);
     fvn = cuddE(f);
-    T = cuddAddRoundOffRecur(dd,fv,trunc);
+    T = cuddAddRoundOffRecur(dd, fv, trunc);
     if (T == NULL) {
-       return(NULL);
+        return (NULL);
     }
     cuddRef(T);
-    E = cuddAddRoundOffRecur(dd,fvn,trunc);
+    E = cuddAddRoundOffRecur(dd, fvn, trunc);
     if (E == NULL) {
-        Cudd_RecursiveDeref(dd,T);
-        return(NULL);
+        Cudd_RecursiveDeref(dd, T);
+        return (NULL);
     }
     cuddRef(E);
-    res = (T == E) ? T : cuddUniqueInter(dd,(int)f->index,T,E);
+    res = (T == E) ? T : cuddUniqueInter(dd, (int)f->index, T, E);
     if (res == NULL) {
-        Cudd_RecursiveDeref(dd,T);
-        Cudd_RecursiveDeref(dd,E);
-        return(NULL);
+        Cudd_RecursiveDeref(dd, T);
+        Cudd_RecursiveDeref(dd, E);
+        return (NULL);
     }
     cuddDeref(T);
     cuddDeref(E);
 
     /* Store result. */
-    cuddCacheInsert1(dd,cacheOp,f,res);
-    return(res);
+    cuddCacheInsert1(dd, cacheOp, f, res);
+    return (res);
 
 } /* end of cuddAddRoundOffRecur */
 
@@ -311,6 +290,4 @@ cuddAddRoundOffRecur(
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-
 ABC_NAMESPACE_IMPL_END
-
