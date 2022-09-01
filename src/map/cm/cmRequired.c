@@ -184,5 +184,31 @@ void Cm_ManCalcRequiredStructural(Cm_Man_t* p) {
 
     ABC_FREE(pArrival);
 }
+/**Function*************************************************************
 
+  Synopsis    [Updates the slack times required during area recovery]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_ManSetSlackTimes(Cm_Man_t* p) {
+    int i;
+    Cm_Obj_t* pObj;
+    Vec_Flt_t* vSlackTimes = Vec_FltAlloc(100);
+    double slackTimesSum = 0;
+    double slack;
+    float esp = p->pPars->Epsilon;
+    Cm_ManForEachObj(p, pObj, i) {
+        slack = pObj->Required + esp - pObj->BestCut.Arrival;
+        Vec_FltPush(vSlackTimes, slack);
+        slackTimesSum += vSlackTimes->pArray[i];
+    }
+    p->slackNodeMax = Vec_FltFindMax(vSlackTimes);
+    p->slackNodeMean = slackTimesSum / vSlackTimes->nSize;
+    Vec_FltFree(vSlackTimes);
+}
 ABC_NAMESPACE_IMPL_END

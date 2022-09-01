@@ -138,6 +138,7 @@ struct Cm_Par_t_ {
     float* pCoRequired;
     double AreaFactor;
     int fVerboseCSV;
+    int fAreaFlowHeuristic;
 };
 
 struct Cm_Man_t_ {
@@ -180,6 +181,10 @@ struct Cm_Man_t_ {
 
     //For the area metrics and calculation purposes
     Cm_ManAreaAnal_t* paAnal;
+
+    //For area flow optimization
+    double slackNodeMax;
+    double slackNodeMean;
 };
 
 struct Cm_ManAreaAnal_t_ {
@@ -421,6 +426,7 @@ extern void Cm_PrintAreaMetricsCSV(Cm_Man_t* pObj);
 extern void Cm_ManCalcVisibleRequired(Cm_Man_t* p);
 extern void Cm_ManSetInvisibleRequired(Cm_Man_t* p);
 extern void Cm_ManCalcRequiredStructural(Cm_Man_t* p);
+extern void Cm_ManSetSlackTimes(Cm_Man_t* p);
 /*=== cmSo.c =========================================================*/
 extern void Cm_ManInsertSos(Cm_Man_t* p);
 /*=== cmTest.c =======================================================*/

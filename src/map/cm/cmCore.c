@@ -66,6 +66,7 @@ void Cm_ManSetDefaultPars(Cm_Par_t* pPars) {
     pPars->AreaFactor = 0;
     pPars->nMaxCycleDetectionRecDepth = 5;
     pPars->fVerboseCSV = 0;
+    pPars->fAreaFlowHeuristic = 1;
 }
 
 /**Function*************************************************************
@@ -126,12 +127,14 @@ void Cm_ManAssignCones(Cm_Man_t* p) {
 
 ***********************************************************************/
 void Cm_ManRecoverArea(Cm_Man_t* p) {
+    Cm_Obj_t* pNodes[100];
     float* AicDelay = p->pPars->AicDelay;
     float* AicArea = p->pPars->AicArea;
     float eps = p->pPars->Epsilon;
     const int minDepth = p->pPars->MinSoHeight;
     const int maxDepth = p->pPars->nConeDepth;
     const int fCutBalancing = p->pPars->fCutBalancing;
+    double slackNode, slackFactor = 0;
     int enumerator;
     Cm_Obj_t* pObj;
     Cm_Cut_t tCut;
@@ -192,8 +195,15 @@ void Cm_ManRecoverArea(Cm_Man_t* p) {
                 pObj->BestCut.AreaFlow = bestAreaFlow / (pObj->nRefsEstimate);
             else
                 pObj->BestCut.AreaFlow = Cm_ManCutAreaFlow(p, &pObj->BestCut) / pObj->nRefsEstimate;
-            pObj->BestCut.Arrival = Cm_CutLatestLeafMoArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
 
+            pObj->BestCut.Arrival
+                = Cm_CutLatestLeafMoArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
+
+            if (!(pObj->fMark & CM_MARK_VISIBLE) && p->pPars->fAreaFlowHeuristic) {
+                slackNode = pObj->Required - pObj->BestCut.Arrival;
+                slackFactor = (1 + (slackNode - p->slackNodeMean) / p->slackNodeMax);
+                pObj->BestCut.AreaFlow = pObj->BestCut.AreaFlow * slackFactor;
+            }
             if (fCutBalancing && Cm_ManBalanceCut(p, pObj)) {
                 pObj->fRepr = 0;
                 Cm_Obj_t* pBest = pObj;
@@ -273,6 +283,7 @@ int Cm_ManPerformMapping(Cm_Man_t* p) {
     }
     if (nAreaRounds) {
         while (nAreaRounds) {
+            Cm_ManSetSlackTimes(p);
             Cm_ManRecoverArea(p);
             if (!p->pPars->fStructuralRequired) {
                 Cm_ManCalcVisibleRequired(p);
