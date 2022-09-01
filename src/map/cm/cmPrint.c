@@ -345,6 +345,7 @@ void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
     int i;
     // Counting the number of individual gates
     Cm_ManGetAreaMetrics(p);
+    char *tempDataLine = ABC_ALLOC(char, 1000), *tempIndexLine = ABC_ALLOC(char, 1000);
     char* gateInfoString = ABC_ALLOC(char, 100);
     char* cAreaMetricsFileName = ABC_ALLOC(char, 100);
     char* cAreaMetricsBaseName = ABC_ALLOC(char, 100);
@@ -352,8 +353,8 @@ void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
     sprintf(cAreaMetricsBaseName, "%s", "");
     sprintf(cAreaMetricsFileName, "%s", "");
 
-    sprintf(cAreaMetricsFileName, "%s_k%1.20fAreaMetrics.csv", p->pName, p->pPars->AreaFactor);
-    sprintf(cAreaMetricsBaseName, "%s_k%1.20f", p->pName, p->pPars->AreaFactor);
+    sprintf(cAreaMetricsBaseName, "%s_A%dp%dd%dS%db%dF%d", p->pName, p->pPars->nAreaRounds, p->pPars->fPriorityCuts, p->pPars->fDirectCuts, p->pPars->fStructuralRequired, p->pPars->fCutBalancing, p->pPars->fAreaFlowHeuristic);
+    sprintf(cAreaMetricsFileName, "%sAreaMetics.csv", cAreaMetricsBaseName);
     FILE* fpt;
 
     //Collecting the string which contains the usage of number of cones
@@ -363,11 +364,21 @@ void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
             sprintf(gateInfoString, "%s,", gateInfoString);
     }
 
+    sprintf(tempIndexLine, "Area_Factor,Gate_area,Gate_count,FileName,");
+    sprintf(tempDataLine, "%1.20f,%f,%d,%s,", p->pPars->AreaFactor, p->paAnal->CellAreaAll, p->paAnal->CellCountAll, cAreaMetricsBaseName);
+
+    Vec_StrAppend(p->indexLine, tempIndexLine);
+    Vec_StrAppend(p->dataLine, tempDataLine);
+
+    sprintf(tempIndexLine, "cone_2,cone_3,cone_4,cone_5,cone_6,");
+    sprintf(tempDataLine, "%s,", gateInfoString);
+
+    Vec_StrAppend(p->indexLine, tempIndexLine);
+    Vec_StrAppend(p->dataLine, tempDataLine);
+
     fpt = fopen(cAreaMetricsFileName, "w+");
-    fprintf(fpt, "Area_Factor,Gate_area,Gate_count,FileName,");
-    fprintf(fpt, "cone_2,cone_3,cone_4,cone_5,cone_6\n");
-    fprintf(fpt, "%1.20f,%f,%d,%s,", p->pPars->AreaFactor, p->paAnal->CellAreaAll, p->paAnal->CellCountAll, cAreaMetricsBaseName);
-    fprintf(fpt, "%s", gateInfoString);
+    fprintf(fpt, "%s", p->indexLine->pArray);
+    fprintf(fpt, "\n%s", p->dataLine->pArray);
     fclose(fpt);
 }
 

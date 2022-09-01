@@ -126,8 +126,7 @@ void Cm_ManAssignCones(Cm_Man_t* p) {
   SeeAlso     []
 
 ***********************************************************************/
-void Cm_ManRecoverArea(Cm_Man_t* p) {
-    Cm_Obj_t* pNodes[100];
+void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
     float* AicDelay = p->pPars->AicDelay;
     float* AicArea = p->pPars->AicArea;
     float eps = p->pPars->Epsilon;
@@ -200,8 +199,28 @@ void Cm_ManRecoverArea(Cm_Man_t* p) {
                 = Cm_CutLatestLeafMoArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
 
             if (!(pObj->fMark & CM_MARK_VISIBLE) && p->pPars->fAreaFlowHeuristic) {
+                char* tempDataLine = ABC_ALLOC(char, 1000);
+                char* tempIndexLine = ABC_ALLOC(char, 1000);
+
                 slackNode = pObj->Required - pObj->BestCut.Arrival;
+                // sprintf(p->indexLine, "%s slackNode%d,", p->indexLine, pObj->Id);
+                // sprintf(p->dataLine, "%s %4.4f,", p->dataLine, slackNode);
+                sprintf(tempIndexLine, "slackNode_%d,", pObj->Id);
+                sprintf(tempDataLine, "%4.4f,", slackNode);
+
+                Vec_StrAppend(p->indexLine, tempIndexLine);
+                Vec_StrAppend(p->dataLine, tempDataLine);
+
                 slackFactor = (1 + (slackNode - p->slackNodeMean) / p->slackNodeMax);
+
+                // sprintf(p->indexLine, "%s AreaFlow%d,", p->indexLine, pObj->Id);
+                // sprintf(p->dataLine, "%s %4.4f,", p->dataLine, pObj->BestCut.AreaFlow);
+                sprintf(tempIndexLine, "AreaFlow_%d,", pObj->Id);
+                sprintf(tempDataLine, "%4.4f,", pObj->BestCut.AreaFlow);
+
+                Vec_StrAppend(p->indexLine, tempIndexLine);
+                Vec_StrAppend(p->dataLine, tempDataLine);
+
                 pObj->BestCut.AreaFlow = pObj->BestCut.AreaFlow * slackFactor;
             }
             if (fCutBalancing && Cm_ManBalanceCut(p, pObj)) {
@@ -282,9 +301,10 @@ int Cm_ManPerformMapping(Cm_Man_t* p) {
             Cm_PrintBestCutStats(p);
     }
     if (nAreaRounds) {
-        while (nAreaRounds) {
+        int nAreaRoundsIter = 0;
+        while (nAreaRoundsIter < nAreaRounds) {
             Cm_ManSetSlackTimes(p);
-            Cm_ManRecoverArea(p);
+            Cm_ManRecoverArea(p, nAreaRoundsIter);
             if (!p->pPars->fStructuralRequired) {
                 Cm_ManCalcVisibleRequired(p);
                 Cm_ManSetInvisibleRequired(p);
@@ -296,7 +316,7 @@ int Cm_ManPerformMapping(Cm_Man_t* p) {
             }
             if (p->pPars->fVerbose)
                 Cm_PrintBestCutStats(p);
-            nAreaRounds--;
+            nAreaRoundsIter++;
         }
     } else
         Cm_ManCalcVisibleRequired(p);

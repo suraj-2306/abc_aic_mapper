@@ -34,6 +34,7 @@
 #    include "misc/util/abc_global.h"
 #    include "aig/hop/hop.h"
 #    include "misc/vec/vecInt.h"
+#    include "misc/vec/vecStr.h"
 
 #    include "cmMiMo.h"
 
@@ -185,6 +186,10 @@ struct Cm_Man_t_ {
     //For area flow optimization
     double slackNodeMax;
     double slackNodeMean;
+
+    //For printing purposes
+    Vec_Str_t* indexLine;
+    Vec_Str_t* dataLine;
 };
 
 struct Cm_ManAreaAnal_t_ {
