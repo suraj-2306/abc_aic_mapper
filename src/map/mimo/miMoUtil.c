@@ -235,46 +235,5 @@ with the architecture file of VTR]
   SeeAlso     []
 
 ***********************************************************************/
-char* MiMo_GateOutRenamer(MiMo_PinOut_t* pPinOutOld) {
-    MiMo_PinOut_t pPinOut = *pPinOutOld;
-    char pNewPinName[7] = {};
-    // Basically handling the case for two digit numbers. Caution: To work with 3
-    // digit numbers, you would have to change this function
-    assert(pPinOut.pName[5] != '\[');
-    if (pPinOutOld->pName[4] == '\0')
-        sprintf(pNewPinName, "out[%d]", pPinOutOld->pName[3] - 48);
-    else
-        sprintf(pNewPinName, "out[%d]",
-                (pPinOutOld->pName[3] - 48) * 10 + (pPinOutOld->pName[4] - 48));
-    pPinOut.pName = pNewPinName;
-    return pPinOut.pName;
-}
-/**Function*************************************************************
-
-  Synopsis    [Renames the input pins such that the blif file can be compatible
-with the architecture file of VTR]
-
-  Description [Converting ina[b] to in[a*4 + b]. Example: in1[3] is converted
-to in[7]]
-
-  SideEffects []
-
-  SeeAlso     []
-
-***********************************************************************/
-char* MiMo_GateInRenamer(MiMo_PinIn_t* pPinInOld) {
-    MiMo_PinIn_t pPinIn = *pPinInOld;
-    char pNewPinName[7] = {};
-    // TODO: Need to still implement a better mapping approach to handle NNC2 and NNC3 together
-    if (pPinInOld->pName[3] == '\[')
-        sprintf(pNewPinName, "in[%d]",
-                (pPinIn.pName[2] - 48) * 4 + (pPinIn.pName[4] - 48));
-    else
-        sprintf(pNewPinName, "in[%d]",
-                ((pPinIn.pName[2] - 48) * 10 + (pPinIn.pName[3] - 48)) * 4 + (pPinIn.pName[5] - 48));
-
-    pPinIn.pName = pNewPinName;
-    return pPinIn.pName;
-}
 
 ABC_NAMESPACE_IMPL_END
