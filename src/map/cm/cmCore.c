@@ -133,7 +133,9 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
     const int minDepth = p->pPars->MinSoHeight;
     const int maxDepth = p->pPars->nConeDepth;
     const int fCutBalancing = p->pPars->fCutBalancing;
-    double slackNode, slackFactor = 0;
+    double slackNode, slackFactor = 0, slackNodeSum = 0;
+    char* tempDataLine = ABC_ALLOC(char, 1000);
+    char* tempIndexLine = ABC_ALLOC(char, 1000);
     int enumerator;
     Cm_Obj_t* pObj;
     Cm_Cut_t tCut;
@@ -198,18 +200,17 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
             pObj->BestCut.Arrival
                 = Cm_CutLatestLeafMoArrival(&pObj->BestCut) + AicDelay[pObj->BestCut.Depth];
 
-            if (!(pObj->fMark & CM_MARK_VISIBLE) && p->pPars->fAreaFlowHeuristic) {
-                char* tempDataLine = ABC_ALLOC(char, 1000);
-                char* tempIndexLine = ABC_ALLOC(char, 1000);
+            slackNode = pObj->Required - pObj->BestCut.Arrival;
+            slackNodeSum += slackNode;
 
-                slackNode = pObj->Required - pObj->BestCut.Arrival;
+            if (!(pObj->fMark & CM_MARK_VISIBLE) && p->pPars->fAreaFlowHeuristic) {
                 // sprintf(p->indexLine, "%s slackNode%d,", p->indexLine, pObj->Id);
                 // sprintf(p->dataLine, "%s %4.4f,", p->dataLine, slackNode);
                 sprintf(tempIndexLine, "slackNode_%d,", pObj->Id);
                 sprintf(tempDataLine, "%4.4f,", slackNode);
 
-                Vec_StrAppend(p->indexLine, tempIndexLine);
-                Vec_StrAppend(p->dataLine, tempDataLine);
+                // Vec_StrAppend(p->indexLine, tempIndexLine);
+                // Vec_StrAppend(p->dataLine, tempDataLine);
 
                 slackFactor = (1 + (slackNode - p->slackNodeMean) / p->slackNodeMax);
 
@@ -218,8 +219,8 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                 sprintf(tempIndexLine, "AreaFlow_%d,", pObj->Id);
                 sprintf(tempDataLine, "%4.4f,", pObj->BestCut.AreaFlow);
 
-                Vec_StrAppend(p->indexLine, tempIndexLine);
-                Vec_StrAppend(p->dataLine, tempDataLine);
+                // Vec_StrAppend(p->indexLine, tempIndexLine);
+                // Vec_StrAppend(p->dataLine, tempDataLine);
 
                 pObj->BestCut.AreaFlow = pObj->BestCut.AreaFlow * slackFactor;
             }
@@ -244,6 +245,15 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
             }
         }
     }
+
+    // char* tempDataLine = ABC_ALLOC(char, 1000);
+    // char* tempIndexLine = ABC_ALLOC(char, 1000);
+
+    sprintf(tempIndexLine, "slackNodeSum_%d,", nAreaRoundsIter);
+    sprintf(tempDataLine, "%4.4f,", slackNodeSum);
+
+    Vec_StrAppend(p->indexLine, tempIndexLine);
+    Vec_StrAppend(p->dataLine, tempDataLine);
 }
 
 /**Function*************************************************************
