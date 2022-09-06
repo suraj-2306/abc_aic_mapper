@@ -166,11 +166,6 @@ Cm_Man_t* Cm_ManStart(Cm_Par_t* pPars) {
 
     p->dataLine = Vec_StrAlloc(1000);
     p->indexLine = Vec_StrAlloc(1000);
-    // p->dataLine = ABC_ALLOC(char, 1000);
-    // p->indexLine = ABC_ALLOC(char, 1000);
-
-    // sprintf(p->indexLine, "%s", "");
-    // sprintf(p->dataLine, "%s", "");
 
     return p;
 }

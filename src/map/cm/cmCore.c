@@ -252,8 +252,8 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
     sprintf(tempIndexLine, "slackNodeSum_%d,", nAreaRoundsIter);
     sprintf(tempDataLine, "%4.4f,", slackNodeSum);
 
-    Vec_StrAppend(p->indexLine, tempIndexLine);
-    Vec_StrAppend(p->dataLine, tempDataLine);
+    Vec_StrPrintF(p->indexLine, tempIndexLine);
+    Vec_StrPrintF(p->dataLine, tempDataLine);
 }
 
 /**Function*************************************************************

@@ -367,18 +367,19 @@ void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
     sprintf(tempIndexLine, "Area_Factor,Gate_area,Gate_count,FileName,");
     sprintf(tempDataLine, "%1.20f,%f,%d,%s,", p->pPars->AreaFactor, p->paAnal->CellAreaAll, p->paAnal->CellCountAll, cAreaMetricsBaseName);
 
-    Vec_StrAppend(p->indexLine, tempIndexLine);
-    Vec_StrAppend(p->dataLine, tempDataLine);
+    Vec_StrPrintF(p->indexLine, tempIndexLine);
+    Vec_StrPrintF(p->dataLine, tempDataLine);
 
     sprintf(tempIndexLine, "cone_2,cone_3,cone_4,cone_5,cone_6,");
     sprintf(tempDataLine, "%s,", gateInfoString);
 
-    Vec_StrAppend(p->indexLine, tempIndexLine);
-    Vec_StrAppend(p->dataLine, tempDataLine);
+    Vec_StrPrintF(p->indexLine, tempIndexLine);
+    Vec_StrPrintF(p->dataLine, tempDataLine);
 
     fpt = fopen(cAreaMetricsFileName, "w+");
     fprintf(fpt, "%s", p->indexLine->pArray);
-    fprintf(fpt, "\n%s", p->dataLine->pArray);
+    fprintf(fpt, "\n");
+    fprintf(fpt, "%s", p->dataLine->pArray);
     fclose(fpt);
 }
 
