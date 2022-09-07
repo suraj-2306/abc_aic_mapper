@@ -1,5 +1,0 @@
-/home/suraj/abc_aic_mapper/BuilDir/CMakeFiles/rebuild_cache.dir
-/home/suraj/abc_aic_mapper/BuilDir/CMakeFiles/edit_cache.dir
-/home/suraj/abc_aic_mapper/BuilDir/CMakeFiles/libabc-pic.dir
-/home/suraj/abc_aic_mapper/BuilDir/CMakeFiles/abc.dir
-/home/suraj/abc_aic_mapper/BuilDir/CMakeFiles/libabc.dir
