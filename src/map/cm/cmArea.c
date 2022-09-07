@@ -295,8 +295,12 @@ float Cm_ManMinimizeCutAreaFlowPriority3(Cm_Man_t* p, Cm_Obj_t** pNodes, float l
 
 ***********************************************************************/
 float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t* p, Cm_Obj_t** pNodes, float latestArrival, Cm_Cut_t* pCut) {
+    int iter = 0;
     short depth = pCut->Depth;
     const int maxNodeSize = (2 << depth);
+    double slackNodeMaxUnit = 0, slackNodeMax = 0, slackNodeSum = 0, areaFactor = 1;
+    Vec_Flt_t* vslackNode = Vec_FltAlloc(10);
+    float slackNodeIter;
     float eps = p->pPars->Epsilon;
     float af[maxNodeSize];
     // count number of occurences in iTemp
@@ -308,7 +312,22 @@ float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t* p, Cm_Obj_t** pNodes, float late
             pNodes[i]->iTemp++;
     for (int i = 1; i < (2 << depth); i++)
         if (pNodes[i]) {
-            af[i] = (pNodes[i]->BestCut.AreaFlow / pNodes[i]->iTemp);
+            Vec_FltPush(vslackNode, pNodes[i]->Required - pNodes[i]->BestCut.Arrival);
+        }
+
+    slackNodeMaxUnit = Vec_FltFindMax(vslackNode);
+    slackNodeMax = vslackNode->nSize * slackNodeMaxUnit;
+
+    Vec_FltForEachEntry(vslackNode, slackNodeIter, iter) {
+        slackNodeSum += slackNodeIter;
+    }
+
+    if (p->pPars->fAreaFlowHeuristicLocal)
+        areaFactor = (1 + ((slackNodeSum - slackNodeMax / 2) / slackNodeMax));
+
+    for (int i = 1; i < (2 << depth); i++)
+        if (pNodes[i]) {
+            af[i] = (pNodes[i]->BestCut.AreaFlow / pNodes[i]->iTemp) * areaFactor;
         }
     // iterate now bottom up through the cone to optimize area flow
     // nodes are replaced by parent if area flow is [locally] decreased

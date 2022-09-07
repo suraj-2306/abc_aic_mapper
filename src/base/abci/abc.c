@@ -17938,7 +17938,7 @@ static int Abc_CommandCm(Abc_Frame_t* pAbc, int argc, char** argv) {
     Cm_ManSetDefaultPars(pPars);
     int c;
     Extra_UtilGetoptReset();
-    while ((c = Extra_UtilGetopt(argc, argv, "DAarcHEWbtvwpdSsRThkVF")) != EOF) {
+    while ((c = Extra_UtilGetopt(argc, argv, "DAarcHEWbtvwpdSsRThkVgl")) != EOF) {
         switch (c) {
             case 'D':
                 if (globalUtilOptind >= argc) {
@@ -18068,10 +18068,12 @@ static int Abc_CommandCm(Abc_Frame_t* pAbc, int argc, char** argv) {
                 break;
              case 'V':
                 pPars->fVerboseCSV^=1;
-              
                 break;   
-             case 'F':
-                pPars->fAreaFlowHeuristic^= 1;
+             case 'g':
+                pPars->fAreaFlowHeuristicGlobal^= 1;
+                break;
+             case 'l':
+                pPars->fAreaFlowHeuristicLocal^= 1;
                 break;
              default:
                 goto usage;
@@ -18166,7 +18168,8 @@ usage:;
     Abc_Print(-2, "\t-w        toggle very verbose output [default = %s]\n", pPars->fVeryVerbose ? "yes" : "no");
     Abc_Print(-2, "\t-t        run extra validity checks [default = %s]\n", pPars->fExtraValidityChecks ? "yes" : "no");
     Abc_Print(-2, "\t-k        define the AreaFactor [default = %f]\n",pPars->AreaFactor);
-    Abc_Print(-2, "\t-F        toggle the usage of the new area flow reduction heuristic [default = %s]\n",pPars->fAreaFlowHeuristic?"yes":"no");
+    Abc_Print(-2, "\t-F        toggle the usage of the global area flow reduction heuristic [default = %s]\n",pPars->fAreaFlowHeuristicGlobal?"yes":"no");
+    Abc_Print(-2, "\t-F        toggle the usage of the local area flow reduction heuristic [default = %s]\n",pPars->fAreaFlowHeuristicLocal?"yes":"no");
     Abc_Print(-2, "\t-h        print the command usage\n");
     Abc_Print(-2, "\t-V        toggle the usage of Log files for printing statistics\n");
     return 1;

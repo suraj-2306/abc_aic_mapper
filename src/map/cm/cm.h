@@ -139,7 +139,8 @@ struct Cm_Par_t_ {
     float* pCoRequired;
     double AreaFactor;
     int fVerboseCSV;
-    int fAreaFlowHeuristic;
+    int fAreaFlowHeuristicGlobal;
+    int fAreaFlowHeuristicLocal;
 };
 
 struct Cm_Man_t_ {

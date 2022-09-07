@@ -66,7 +66,8 @@ void Cm_ManSetDefaultPars(Cm_Par_t* pPars) {
     pPars->AreaFactor = 0;
     pPars->nMaxCycleDetectionRecDepth = 5;
     pPars->fVerboseCSV = 0;
-    pPars->fAreaFlowHeuristic = 1;
+    pPars->fAreaFlowHeuristicGlobal = 1;
+    pPars->fAreaFlowHeuristicLocal = 1;
 }
 
 /**Function*************************************************************
@@ -205,12 +206,12 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
             slackNode = pObj->Required - pObj->BestCut.Arrival;
             slackNodeSum += slackNode;
             Vec_FltWriteEntryGrow(p->prevSlackValue, enumerator, slackNode);
-            if (nAreaRoundsIter > 0 && p->pPars->fAreaFlowHeuristic) {
+            if (nAreaRoundsIter > 0 && p->pPars->fAreaFlowHeuristicGlobal) {
                 prevSlackNode = Vec_FltEntry(p->prevSlackValue, enumerator);
                 if (prevSlackNode > slackNode)
                     fAreaFlowHeuristicSlack = 1;
             }
-            if (nAreaRoundsIter == 0 && p->pPars->fAreaFlowHeuristic)
+            if (nAreaRoundsIter == 0 && p->pPars->fAreaFlowHeuristicGlobal)
                 fAreaFlowHeuristicSlack = 1;
 
             if (!(pObj->fMark & CM_MARK_VISIBLE) && fAreaFlowHeuristicSlack) {

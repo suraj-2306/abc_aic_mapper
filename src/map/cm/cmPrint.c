@@ -353,7 +353,7 @@ void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
     sprintf(cAreaMetricsBaseName, "%s", "");
     sprintf(cAreaMetricsFileName, "%s", "");
 
-    sprintf(cAreaMetricsBaseName, "%sA%d_p%dd%dS%db%dF%d", p->pName, p->pPars->nAreaRounds, p->pPars->fPriorityCuts, p->pPars->fDirectCuts, p->pPars->fStructuralRequired, p->pPars->fCutBalancing, p->pPars->fAreaFlowHeuristic);
+    sprintf(cAreaMetricsBaseName, "%sA%d_p%dd%dS%db%dg%dl%d", p->pName, p->pPars->nAreaRounds, p->pPars->fPriorityCuts, p->pPars->fDirectCuts, p->pPars->fStructuralRequired, p->pPars->fCutBalancing, p->pPars->fAreaFlowHeuristicGlobal, p->pPars->fAreaFlowHeuristicLocal);
     sprintf(cAreaMetricsFileName, "%sAreaMetics.csv", cAreaMetricsBaseName);
     FILE* fpt;
 
