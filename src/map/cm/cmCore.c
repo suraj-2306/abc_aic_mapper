@@ -210,7 +210,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                 if (prevSlackNode > slackNode)
                     fAreaFlowHeuristicSlack = 1;
             }
-            if (nAreaRoundsIter == 0)
+            if (nAreaRoundsIter == 0 && p->pPars->fAreaFlowHeuristic)
                 fAreaFlowHeuristicSlack = 1;
 
             if (!(pObj->fMark & CM_MARK_VISIBLE) && fAreaFlowHeuristicSlack) {
