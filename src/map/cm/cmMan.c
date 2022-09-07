@@ -167,6 +167,8 @@ Cm_Man_t* Cm_ManStart(Cm_Par_t* pPars) {
     p->dataLine = Vec_StrAlloc(1000);
     p->indexLine = Vec_StrAlloc(1000);
 
+    p->prevSlackValue = Vec_FltAlloc(1);
+
     return p;
 }
 

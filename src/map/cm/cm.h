@@ -182,6 +182,7 @@ struct Cm_Man_t_ {
 
     //For the area metrics and calculation purposes
     Cm_ManAreaAnal_t* paAnal;
+    Vec_Flt_t* prevSlackValue;
 
     //For area flow optimization
     double slackNodeMax;

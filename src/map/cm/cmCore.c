@@ -133,9 +133,10 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
     const int minDepth = p->pPars->MinSoHeight;
     const int maxDepth = p->pPars->nConeDepth;
     const int fCutBalancing = p->pPars->fCutBalancing;
-    double slackNode, slackFactor = 0, slackNodeSum = 0;
+    double slackNode, slackFactor = 0, slackNodeSum = 0, prevSlackNode;
     char* tempDataLine = ABC_ALLOC(char, 1000);
     char* tempIndexLine = ABC_ALLOC(char, 1000);
+    int fAreaFlowHeuristicSlack;
     int enumerator;
     Cm_Obj_t* pObj;
     Cm_Cut_t tCut;
@@ -171,6 +172,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
     } else {
         Cm_Obj_t* pNodes[(2 << maxDepth)];
         Cm_ManForEachNode(p, pObj, enumerator) {
+            fAreaFlowHeuristicSlack = 0;
             int fUpdate = 0;
             float bestAreaFlow = CM_FLOAT_LARGE;
             for (int d = minDepth; d <= maxDepth; d++) {
@@ -202,8 +204,16 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
 
             slackNode = pObj->Required - pObj->BestCut.Arrival;
             slackNodeSum += slackNode;
+            Vec_FltWriteEntryGrow(p->prevSlackValue, enumerator, slackNode);
+            if (nAreaRoundsIter > 0 && p->pPars->fAreaFlowHeuristic) {
+                prevSlackNode = Vec_FltEntry(p->prevSlackValue, enumerator);
+                if (prevSlackNode > slackNode)
+                    fAreaFlowHeuristicSlack = 1;
+            }
+            if (nAreaRoundsIter == 0)
+                fAreaFlowHeuristicSlack = 1;
 
-            if (!(pObj->fMark & CM_MARK_VISIBLE) && p->pPars->fAreaFlowHeuristic) {
+            if (!(pObj->fMark & CM_MARK_VISIBLE) && fAreaFlowHeuristicSlack) {
                 // sprintf(p->indexLine, "%s slackNode%d,", p->indexLine, pObj->Id);
                 // sprintf(p->dataLine, "%s %4.4f,", p->dataLine, slackNode);
                 sprintf(tempIndexLine, "slackNode_%d,", pObj->Id);

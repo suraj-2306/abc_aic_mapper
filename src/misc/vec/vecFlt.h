@@ -448,7 +448,32 @@ static inline void Vec_FltFill(Vec_Flt_t* p, int nSize, float Entry) {
         p->pArray[i] = Entry;
     p->nSize = nSize;
 }
+/**Function*************************************************************
 
+  Synopsis    [Grows the vector with given index and adds a entry.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+static inline void Vec_FltWriteEntryGrow(Vec_Flt_t* p, int i, float Entry) {
+    int nSize = i + 1;
+    // Vec_FltGrow(p, nSize);
+    // p->nSize = nSize;
+
+    if (nSize <= p->nSize)
+        return;
+    if (nSize > 2 * p->nCap)
+        Vec_FltGrow(p, nSize);
+    else if (nSize > p->nCap)
+        Vec_FltGrow(p, 2 * p->nCap);
+
+    p->pArray[i] = Entry;
+    p->nSize = nSize;
+}
 /**Function*************************************************************
 
   Synopsis    [Fills the vector with given number of entries.]
