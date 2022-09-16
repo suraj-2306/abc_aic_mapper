@@ -200,15 +200,19 @@ void Cm_ManSetSlackTimes(Cm_Man_t* p) {
     Cm_Obj_t* pObj;
     Vec_Flt_t* vSlackTimes = Vec_FltAlloc(100);
     double slackTimesSum = 0;
+    double slackTimesProduct = 1;
     double slack;
     float esp = p->pPars->Epsilon;
     Cm_ManForEachObj(p, pObj, i) {
         slack = pObj->Required + esp - pObj->BestCut.Arrival;
         Vec_FltPush(vSlackTimes, slack);
         slackTimesSum += vSlackTimes->pArray[i];
+        if (vSlackTimes->pArray[i] != 0)
+            slackTimesProduct += log(vSlackTimes->pArray[i]);
     }
     p->slackNodeMax = Vec_FltFindMax(vSlackTimes);
     p->slackNodeMean = slackTimesSum / vSlackTimes->nSize;
+    p->slackNodeGM = slackTimesProduct / vSlackTimes->nSize;
     Vec_FltFree(vSlackTimes);
 }
 ABC_NAMESPACE_IMPL_END

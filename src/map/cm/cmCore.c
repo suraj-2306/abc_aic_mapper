@@ -223,7 +223,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                 // Vec_StrAppend(p->indexLine, tempIndexLine);
                 // Vec_StrAppend(p->dataLine, tempDataLine);
 
-                slackFactor = (1 + (slackNode - p->slackNodeMean) / p->slackNodeMax);
+                slackFactor = (1 + (slackNode - p->slackNodeGM) / p->slackNodeMax);
 
                 // sprintf(p->indexLine, "%s AreaFlow%d,", p->indexLine, pObj->Id);
                 // sprintf(p->dataLine, "%s %4.4f,", p->dataLine, pObj->BestCut.AreaFlow);
