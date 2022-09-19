@@ -312,14 +312,15 @@ float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t* p, Cm_Obj_t** pNodes, float late
             pNodes[i]->iTemp++;
     for (int i = 1; i < (2 << depth); i++)
         if (pNodes[i]) {
-            Vec_FltPush(vslackNode, pNodes[i]->Required - pNodes[i]->BestCut.Arrival);
+            Vec_FltPush(vslackNode, pNodes[i]->Required - pNodes[i]->BestCut.Arrival - p->pPars->Epsilon);
         }
 
     slackNodeMaxUnit = Vec_FltFindMax(vslackNode);
     slackNodeMax = vslackNode->nSize * slackNodeMaxUnit;
 
     Vec_FltForEachEntry(vslackNode, slackNodeIter, iter) {
-        slackNodeSum += slackNodeIter;
+        if (slackNodeIter > 0)
+            slackNodeSum += slackNodeIter;
     }
 
     if (p->pPars->fAreaFlowHeuristicLocal)

@@ -279,7 +279,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
 
 ***********************************************************************/
 int Cm_ManPerformMapping(Cm_Man_t* p) {
-    // Cm_PrintAigStructure(p, 100);
+    Cm_PrintAigStructure(p, 100);
     Cm_Obj_t* pObj;
     Cm_Obj_t* pNodes[CM_MAX_FA_SIZE];
     int enumerator;
