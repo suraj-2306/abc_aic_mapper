@@ -315,6 +315,7 @@ float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t* p, Cm_Obj_t** pNodes, float late
             Vec_FltPush(vslackNode, pNodes[i]->Required - pNodes[i]->BestCut.Arrival - p->pPars->Epsilon);
         }
 
+    //To calculate the slack statistics
     slackNodeMaxUnit = Vec_FltFindMax(vslackNode);
     slackNodeMax = vslackNode->nSize * slackNodeMaxUnit;
 
@@ -323,9 +324,11 @@ float Cm_ManMinimizeCutAreaFlowDirect(Cm_Man_t* p, Cm_Obj_t** pNodes, float late
             slackNodeSum += slackNodeIter;
     }
 
+    //Dynamic area factor
     if (p->pPars->fAreaFlowHeuristicLocal)
         areaFactor = (1 + ((slackNodeSum - slackNodeMax / 2) / slackNodeMax));
 
+    //The area flow for each node is being modified
     for (int i = 1; i < (2 << depth); i++)
         if (pNodes[i]) {
             af[i] = (pNodes[i]->BestCut.AreaFlow / pNodes[i]->iTemp) * areaFactor;

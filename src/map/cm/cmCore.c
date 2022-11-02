@@ -215,23 +215,20 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                 fAreaFlowHeuristicSlack = 1;
 
             if (!(pObj->fMark & CM_MARK_VISIBLE) && fAreaFlowHeuristicSlack) {
-                // sprintf(p->indexLine, "%s slackNode%d,", p->indexLine, pObj->Id);
-                // sprintf(p->dataLine, "%s %4.4f,", p->dataLine, slackNode);
+                //This is for debugging purposes, i.e allows the user to actually view the slack of each node and the corresponding area flow
                 sprintf(tempIndexLine, "slackNode_%d,", pObj->Id);
                 sprintf(tempDataLine, "%4.4f,", slackNode);
 
-                // Vec_StrAppend(p->indexLine, tempIndexLine);
-                // Vec_StrAppend(p->dataLine, tempDataLine);
+                Vec_StrAppend(p->indexLine, tempIndexLine);
+                Vec_StrAppend(p->dataLine, tempDataLine);
 
                 slackFactor = (1 + (slackNode - p->slackNodeMean) / p->slackNodeMax);
 
-                // sprintf(p->indexLine, "%s AreaFlow%d,", p->indexLine, pObj->Id);
-                // sprintf(p->dataLine, "%s %4.4f,", p->dataLine, pObj->BestCut.AreaFlow);
                 sprintf(tempIndexLine, "AreaFlow_%d,", pObj->Id);
                 sprintf(tempDataLine, "%4.4f,", pObj->BestCut.AreaFlow);
 
-                // Vec_StrAppend(p->indexLine, tempIndexLine);
-                // Vec_StrAppend(p->dataLine, tempDataLine);
+                Vec_StrAppend(p->indexLine, tempIndexLine);
+                Vec_StrAppend(p->dataLine, tempDataLine);
 
                 pObj->BestCut.AreaFlow = pObj->BestCut.AreaFlow * slackFactor;
             }
@@ -257,9 +254,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
         }
     }
 
-    // char* tempDataLine = ABC_ALLOC(char, 1000);
-    // char* tempIndexLine = ABC_ALLOC(char, 1000);
-
+    //Calculates the sum of the slack of all nodes in the mapping. It was used to determine the change in pattern of overall remaining slack in each iteration
     sprintf(tempIndexLine, "slackNodeSum_%d,", nAreaRoundsIter);
     sprintf(tempDataLine, "%4.4f,", slackNodeSum);
 

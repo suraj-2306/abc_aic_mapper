@@ -332,7 +332,7 @@ void Cm_CalculateAreaMetrics(Cm_Man_t* p) {
 }
 /**Function*************************************************************
 
-  Synopsis    [Prints for the Area Information along with the AreaFactor chosen in a CSV file ]
+  Synopsis    [Prints a variety of information such as area flow, cell area, gate count etc.. to a csv file]
 
   Description []
                
