@@ -188,6 +188,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                     continue;
                 tCut.Depth = d;
                 float areaFlow = Cm_ManMinimizeCutAreaFlow(p, pNodes, requiredInputArrival, &tCut);
+                float coneOccupancy = Cm_ManGetConeOccupancy(p, pNodes, d);
                 if (areaFlow + eps < bestAreaFlow) {
                     fUpdate = 1;
                     Cm_CutCopy(&tCut, &pObj->BestCut);

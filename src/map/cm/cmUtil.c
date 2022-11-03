@@ -252,6 +252,28 @@ void Cm_ManGetAreaMetrics(Cm_Man_t* p) {
         p->paAnal->CellAreaAll += p->paAnal->CellArea[i];
     }
 }
+/**Function*************************************************************
+
+  Synopsis    [Calculation of area metrics]
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+float Cm_ManGetConeOccupancy(Cm_Man_t* p, Cm_Obj_t** pNodes, int depth) {
+    float coneOccupancy = 0;
+    int noOfNodes = 0;
+
+    for (int i = 1; i < (2 << depth); i++)
+        if (pNodes[i])
+            noOfNodes++;
+    double nopNodes = (2 << depth);
+    coneOccupancy = noOfNodes / nopNodes;
+    return coneOccupancy;
+}
 
 /**Function*************************************************************
 

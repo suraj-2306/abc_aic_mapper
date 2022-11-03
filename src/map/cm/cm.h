@@ -449,6 +449,7 @@ extern void Cm_ManSetCiArrival(Cm_Man_t* p);
 extern float Cm_ManLatestCoArrival(Cm_Man_t* p);
 extern float Cm_CutLeafAreaFlowSum(Cm_Cut_t* pCut);
 extern float Cm_ManCutAreaFlow(Cm_Man_t* p, Cm_Cut_t* pCut);
+extern float Cm_ManGetConeOccupancy(Cm_Man_t* p, Cm_Obj_t** pNodes, int depth);
 extern void Cm_CutCopy(Cm_Cut_t* pFrom, Cm_Cut_t* pTo);
 extern float Cm_ObjSoArrival(Cm_Obj_t* pObj, float* coneDelay);
 extern ABC_DLL void Cm_ManGetAreaMetrics(Cm_Man_t* p);
