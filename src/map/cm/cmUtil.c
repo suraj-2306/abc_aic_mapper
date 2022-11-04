@@ -254,7 +254,7 @@ void Cm_ManGetAreaMetrics(Cm_Man_t* p) {
 }
 /**Function*************************************************************
 
-  Synopsis    [Calculation of area metrics]
+  Synopsis    [Calculates the number of nodes which are present in the given cone of depth d]
 
   Description []
 
@@ -264,14 +264,12 @@ void Cm_ManGetAreaMetrics(Cm_Man_t* p) {
 
 ***********************************************************************/
 float Cm_ManGetConeOccupancy(Cm_Man_t* p, Cm_Obj_t** pNodes, int depth) {
-    float coneOccupancy = 0;
     int noOfNodes = 0;
-
     for (int i = 1; i < (2 << depth); i++)
         if (pNodes[i])
             noOfNodes++;
-    double nopNodes = (2 << depth);
-    coneOccupancy = noOfNodes / nopNodes;
+    double maxNoOfNodes = (2 << depth);
+    float coneOccupancy = noOfNodes / maxNoOfNodes;
     return coneOccupancy;
 }
 

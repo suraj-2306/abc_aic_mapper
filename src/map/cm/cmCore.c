@@ -189,6 +189,19 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                 tCut.Depth = d;
                 float areaFlow = Cm_ManMinimizeCutAreaFlow(p, pNodes, requiredInputArrival, &tCut);
                 float coneOccupancy = Cm_ManGetConeOccupancy(p, pNodes, d);
+
+                sprintf(tempIndexLine, "Node_%d_%d_co_%d,", pObj->Id,nAreaRoundsIter,d);
+                sprintf(tempDataLine, "%4.4f,", coneOccupancy);
+
+                Vec_StrAppend(p->indexLine, tempIndexLine);
+                Vec_StrAppend(p->dataLine, tempDataLine);
+
+                sprintf(tempIndexLine, "Node_%d_%d_af_%d,", pObj->Id,nAreaRoundsIter,d);
+                sprintf(tempDataLine, "%4.4f,", areaFlow);
+
+                Vec_StrAppend(p->indexLine, tempIndexLine);
+                Vec_StrAppend(p->dataLine, tempDataLine);
+
                 if (areaFlow + eps < bestAreaFlow) {
                     fUpdate = 1;
                     Cm_CutCopy(&tCut, &pObj->BestCut);
