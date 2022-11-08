@@ -176,6 +176,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
             fAreaFlowHeuristicSlack = 0;
             int fUpdate = 0;
             float bestAreaFlow = CM_FLOAT_LARGE;
+            float bestConeOccupancy = 0;
             for (int d = minDepth; d <= maxDepth; d++) {
                 pNodes[1] = pObj;
                 //This gives the maximum depth possible for the current node
@@ -190,13 +191,13 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                 float areaFlow = Cm_ManMinimizeCutAreaFlow(p, pNodes, requiredInputArrival, &tCut);
                 float coneOccupancy = Cm_ManGetConeOccupancy(p, pNodes, d);
 
-                sprintf(tempIndexLine, "Node_%d_%d_co_%d,", pObj->Id,nAreaRoundsIter,d);
+                sprintf(tempIndexLine, "Node_%d_%d_co_%d,", pObj->Id, nAreaRoundsIter, d);
                 sprintf(tempDataLine, "%4.4f,", coneOccupancy);
 
                 Vec_StrAppend(p->indexLine, tempIndexLine);
                 Vec_StrAppend(p->dataLine, tempDataLine);
 
-                sprintf(tempIndexLine, "Node_%d_%d_af_%d,", pObj->Id,nAreaRoundsIter,d);
+                sprintf(tempIndexLine, "Node_%d_%d_af_%d,", pObj->Id, nAreaRoundsIter, d);
                 sprintf(tempDataLine, "%4.4f,", areaFlow);
 
                 Vec_StrAppend(p->indexLine, tempIndexLine);
@@ -206,6 +207,12 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                     fUpdate = 1;
                     Cm_CutCopy(&tCut, &pObj->BestCut);
                     bestAreaFlow = areaFlow;
+                }
+                if (coneOccupancy > bestConeOccupancy) {
+                    fUpdate = 1;
+                    Cm_CutCopy(&tCut, &pObj->BestCut);
+                    bestAreaFlow = areaFlow;
+                    bestConeOccupancy = coneOccupancy;
                 }
             }
             if (fUpdate)
