@@ -174,7 +174,8 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
         Cm_Obj_t* pNodes[(2 << maxDepth)];
         Cm_ManForEachNode(p, pObj, enumerator) {
             fAreaFlowHeuristicSlack = 0;
-            int fUpdate = 0;
+            int fUpdateCO = 0;
+            int fUpdateAF = 0;
             float bestAreaFlow = CM_FLOAT_LARGE;
             float bestConeOccupancy = 0;
             for (int d = minDepth; d <= maxDepth; d++) {
@@ -204,18 +205,26 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                 Vec_StrAppend(p->dataLine, tempDataLine);
 
                 if (areaFlow + eps < bestAreaFlow) {
-                    fUpdate = 1;
-                    Cm_CutCopy(&tCut, &pObj->BestCut);
-                    bestAreaFlow = areaFlow;
+                    if (!fUpdateCO) {
+                        fUpdateAF = 1;
+                        Cm_CutCopy(&tCut, &pObj->BestCut);
+                        bestAreaFlow = areaFlow;
+                    } else {
+                        if (areaFlow + eps < 0.8 * bestAreaFlow) {
+                            fUpdateAF = 1;
+                            Cm_CutCopy(&tCut, &pObj->BestCut);
+                            bestAreaFlow = areaFlow;
+                        }
+                    }
                 }
                 if (coneOccupancy > bestConeOccupancy) {
-                    fUpdate = 1;
+                    fUpdateCO = 1;
                     Cm_CutCopy(&tCut, &pObj->BestCut);
                     bestAreaFlow = areaFlow;
                     bestConeOccupancy = coneOccupancy;
                 }
             }
-            if (fUpdate)
+            if (fUpdateAF || fUpdateCO)
                 //Add the slack part here when you get the better
                 pObj->BestCut.AreaFlow = bestAreaFlow / (pObj->nRefsEstimate);
             else
