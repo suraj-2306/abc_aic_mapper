@@ -17938,7 +17938,7 @@ static int Abc_CommandCm(Abc_Frame_t* pAbc, int argc, char** argv) {
     Cm_ManSetDefaultPars(pPars);
     int c;
     Extra_UtilGetoptReset();
-    while ((c = Extra_UtilGetopt(argc, argv, "DAarcHEWbtvwpdSsRThkVgl")) != EOF) {
+    while ((c = Extra_UtilGetopt(argc, argv, "DAarcHEWbtvwpdSsRThkVglo")) != EOF) {
         switch (c) {
             case 'D':
                 if (globalUtilOptind >= argc) {
@@ -18072,6 +18072,9 @@ static int Abc_CommandCm(Abc_Frame_t* pAbc, int argc, char** argv) {
              case 'g':
                 pPars->fAreaFlowHeuristicGlobal^= 1;
                 break;
+             case 'o':
+                pPars->fConeOccupancy^= 1;
+                break;
              case 'l':
                 pPars->fAreaFlowHeuristicLocal^= 1;
                 break;
@@ -18147,7 +18150,7 @@ static int Abc_CommandCm(Abc_Frame_t* pAbc, int argc, char** argv) {
 
 usage:;
     Cm_ManSetDefaultPars(pPars);
-    Abc_Print(-2, "usage cm [-DAarcHEW num] [-rTpsSbvwth]\n");
+    Abc_Print(-2, "usage cm [-DAarcHEW num] [-rTpsSbvwthlgo]\n");
     Abc_Print(-2, "\t          maps AIG to AIC\n");
     Abc_Print(-2, "\t-D num    set maximum cone depth [default = %d]\n", pPars->nConeDepth);
     Abc_Print(-2, "\t-T        toggle usage of 3-input gate cones [default = %s]\n", pPars->fThreeInputGates ? "yes" : "no");
@@ -18168,8 +18171,9 @@ usage:;
     Abc_Print(-2, "\t-w        toggle very verbose output [default = %s]\n", pPars->fVeryVerbose ? "yes" : "no");
     Abc_Print(-2, "\t-t        run extra validity checks [default = %s]\n", pPars->fExtraValidityChecks ? "yes" : "no");
     Abc_Print(-2, "\t-k        define the AreaFactor [default = %f]\n",pPars->AreaFactor);
-    Abc_Print(-2, "\t-F        toggle the usage of the global area flow reduction heuristic [default = %s]\n",pPars->fAreaFlowHeuristicGlobal?"yes":"no");
-    Abc_Print(-2, "\t-F        toggle the usage of the local area flow reduction heuristic [default = %s]\n",pPars->fAreaFlowHeuristicLocal?"yes":"no");
+    Abc_Print(-2, "\t-g        toggle the usage of the global area flow reduction heuristic [default = %s]\n",pPars->fAreaFlowHeuristicGlobal?"yes":"no");
+    Abc_Print(-2, "\t-l        toggle the usage of the local area flow reduction heuristic [default = %s]\n",pPars->fAreaFlowHeuristicLocal?"yes":"no");
+    Abc_Print(-2, "\t-o        toggle the usage of the cone occupancy method [default = %s]\n",pPars->fConeOccupancy?"yes":"no");
     Abc_Print(-2, "\t-h        print the command usage\n");
     Abc_Print(-2, "\t-V        toggle the usage of Log files for printing statistics\n");
     return 1;

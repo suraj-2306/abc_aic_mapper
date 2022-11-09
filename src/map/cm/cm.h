@@ -141,6 +141,7 @@ struct Cm_Par_t_ {
     int fVerboseCSV;
     int fAreaFlowHeuristicGlobal;
     int fAreaFlowHeuristicLocal;
+    int fConeOccupancy;
 };
 
 struct Cm_Man_t_ {

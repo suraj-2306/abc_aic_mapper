@@ -68,6 +68,7 @@ void Cm_ManSetDefaultPars(Cm_Par_t* pPars) {
     pPars->fVerboseCSV = 0;
     pPars->fAreaFlowHeuristicGlobal = 1;
     pPars->fAreaFlowHeuristicLocal = 1;
+    pPars->fConeOccupancy = 1;
 }
 
 /**Function*************************************************************
@@ -217,11 +218,13 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                         }
                     }
                 }
-                if (coneOccupancy > bestConeOccupancy) {
-                    fUpdateCO = 1;
-                    Cm_CutCopy(&tCut, &pObj->BestCut);
-                    bestAreaFlow = areaFlow;
-                    bestConeOccupancy = coneOccupancy;
+                if (p->pPars->fConeOccupancy) {
+                    if (coneOccupancy > bestConeOccupancy) {
+                        fUpdateCO = 1;
+                        Cm_CutCopy(&tCut, &pObj->BestCut);
+                        bestAreaFlow = areaFlow;
+                        bestConeOccupancy = coneOccupancy;
+                    }
                 }
             }
             if (fUpdateAF || fUpdateCO)
