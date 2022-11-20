@@ -247,6 +247,8 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
             if (nAreaRoundsIter == 0 && p->pPars->fAreaFlowHeuristicGlobal)
                 fAreaFlowHeuristicSlack = 1;
 
+            slackFactor = (1 + (slackNode - p->slackNodeMean) / p->slackNodeMax);
+
             if (!(pObj->fMark & CM_MARK_VISIBLE) && fAreaFlowHeuristicSlack) {
                 //This is for debugging purposes, i.e allows the user to actually view the slack of each node and the corresponding area flow
                 sprintf(tempIndexLine, "slackNode_%d,", pObj->Id);
@@ -254,8 +256,6 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
 
                 Vec_StrAppend(p->indexLine, tempIndexLine);
                 Vec_StrAppend(p->dataLine, tempDataLine);
-
-                slackFactor = (1 + (slackNode - p->slackNodeMean) / p->slackNodeMax);
 
                 sprintf(tempIndexLine, "AreaFlow_%d,", pObj->Id);
                 sprintf(tempDataLine, "%4.4f,", pObj->BestCut.AreaFlow);
