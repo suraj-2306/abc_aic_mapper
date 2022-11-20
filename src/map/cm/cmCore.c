@@ -274,7 +274,7 @@ void Cm_ManRecoverArea(Cm_Man_t* p, int nAreaRoundsIter) {
                     if (arrival < pObj->Required + eps) {
                         float af = (Cm_CutLeafAreaFlowSum(&pEq->BestCut) + AicArea[pEq->BestCut.Depth]) / pObj->nRefsEstimate;
                         if (af < pBest->BestCut.AreaFlow) {
-                            pEq->BestCut.AreaFlow = af;
+                            pEq->BestCut.AreaFlow = af * slackFactor;
                             pEq->BestCut.Arrival = arrival;
                             pBest = pEq;
                         }
