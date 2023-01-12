@@ -50,6 +50,8 @@ src/python/pyabc_wrap.*
 
 .idea/
 build/
+.cache
+
 
 *.rej
 *.orig
