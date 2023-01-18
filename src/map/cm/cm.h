@@ -185,6 +185,7 @@ struct Cm_Man_t_ {
     //For the area metrics and calculation purposes
     Cm_ManAreaAnal_t* paAnal;
     Vec_Flt_t* prevSlackValue;
+    Vec_Int_t* recoSumSlack;
 
     //For area flow optimization
     double slackNodeMax;
@@ -418,6 +419,7 @@ extern void Cm_ManSortById(Cm_Man_t* p);
 extern int Cm_ManNodeBalanceFindLeft(Vec_Ptr_t* vSuper);
 extern Cm_Obj_t* Cm_ManNodeLookup(Cm_Man_t* p, Cm_Obj_t* pFan0, Cm_Obj_t* pFan1);
 /*=== cmPrint.c ======================================================*/
+extern void Cm_PrintStats(Cm_Man_t* p);
 extern void Cm_PrintPars(Cm_Par_t* pPars);
 extern void Cm_PrintFa(Cm_Obj_t** pFaninArray, int depth);
 extern void Cm_PrintFa3(Cm_Obj_t** pFaninArray, int depth);

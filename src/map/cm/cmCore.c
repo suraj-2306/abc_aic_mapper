@@ -379,6 +379,7 @@ int Cm_ManPerformMapping(Cm_Man_t* p) {
         Cm_TestArrivalConsistency(p);
         Cm_TestPositiveSlacks(p, 1);
     }
+    Cm_PrintStats(p);
     Cm_ManAssignCones(p);
     if (p->pPars->fEnableSo) {
         Cm_ManCalcVisibleRequired(p);

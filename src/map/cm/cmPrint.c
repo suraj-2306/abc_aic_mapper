@@ -383,4 +383,27 @@ void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
     fclose(fpt);
 }
 
+/**Function*************************************************************
+
+  Synopsis    [To print stats of cm mapper for debuggin purposes]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+void Cm_PrintStats(Cm_Man_t* p) {
+    int i;
+    char* cRecoSlack = ABC_ALLOC(char, 100);
+    sprintf(cRecoSlack, "%s", "");
+    for (i = 0; i < p->recoSumSlack->nSize; i++) {
+        sprintf(cRecoSlack, "%s recoNo%d: %d", cRecoSlack, i, p->recoSumSlack[i]);
+    }
+    printf("%s\n", cRecoSlack);
+    ABC_FREE(cRecoSlack);
+	// ABC_FREE(cRecoSlack);
+}
+
 ABC_NAMESPACE_IMPL_END
