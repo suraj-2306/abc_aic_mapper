@@ -209,7 +209,7 @@ void Cm_ManSetSlackTimes(Cm_Man_t* p) {
     }
     p->slackNodeMax = Vec_FltFindMax(vSlackTimes);
     p->slackNodeMean = slackTimesSum / vSlackTimes->nSize;
-    Vec_IntPush(p->recoSumSlack, slackTimesSum);
+    Vec_FltPush(p->recoSumSlack, slackTimesSum);
     Vec_FltFree(vSlackTimes);
 }
 ABC_NAMESPACE_IMPL_END
