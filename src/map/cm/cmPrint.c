@@ -397,12 +397,13 @@ void Cm_PrintAreaMetricsCSV(Cm_Man_t* p) {
 void Cm_PrintStats(Cm_Man_t* p) {
     int i;
     char* cRecoSlack = ABC_ALLOC(char, 100);
-    sprintf(cRecoSlack, "%s", "");
+    // sprintf(cRecoSlack, "%s", "");
     for (i = 0; i < p->recoSumSlack->nSize; i++) {
-        sprintf(cRecoSlack, "%s reco_%d = %lf", cRecoSlack, i, p->recoSumSlack->pArray[i]);
+        // sprintf(cRecoSlack, "%s reco_%d = %lf", cRecoSlack, i, p->recoSumSlack->pArray[i]);
+        printf( "%s reco_%d = %lf", cRecoSlack, i, p->recoSumSlack->pArray[i]);
     }
-    printf("%s\n", cRecoSlack);
-    ABC_FREE(cRecoSlack);
+    // printf("%s\n", cRecoSlack);
+    // ABC_FREE(cRecoSlack);
 }
 
 ABC_NAMESPACE_IMPL_END
