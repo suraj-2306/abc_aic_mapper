@@ -400,7 +400,7 @@ void Cm_PrintStats(Cm_Man_t* p) {
     // sprintf(cRecoSlack, "%s", "");
     for (i = 0; i < p->recoSumSlack->nSize; i++) {
         // sprintf(cRecoSlack, "%s reco_%d = %lf", cRecoSlack, i, p->recoSumSlack->pArray[i]);
-        printf( "%s reco_%d = %lf", cRecoSlack, i, p->recoSumSlack->pArray[i]);
+        printf( "reco_%d = %lf\n", i, p->recoSumSlack->pArray[i]);
     }
     // printf("%s\n", cRecoSlack);
     // ABC_FREE(cRecoSlack);
